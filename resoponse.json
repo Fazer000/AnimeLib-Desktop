@@ -1,0 +1,293 @@
+{
+  "data": {
+    "replies": [
+      {
+        "id": 281001090,
+        "root_id": 280979576,
+        "parent_comment": 280979576,
+        "comment_level": 1,
+        "post_page": null,
+        "comment": "\u003cp\u003eВ 3 ряда...\u003c/p\u003e",
+        "created_at": "2025-10-04T15:02:46.000000Z",
+        "created_at_ts": 1759590166000,
+        "relation_type": "episodes",
+        "relation_id": 134339,
+        "user": {
+          "username": "serii-pat",
+          "id": 4223088,
+          "avatar": {
+            "filename": "lWqv6rbkrGr8.jpg",
+            "url": "https://cover.imglib.info/uploads/users/4223088/lWqv6rbkrGr8.jpg"
+          },
+          "premium": {
+            "enabled": false
+          }
+        },
+        "votes": {
+          "up": 1,
+          "down": 0,
+          "user": null
+        }
+      },
+      {
+        "id": 281022259,
+        "root_id": 280980187,
+        "parent_comment": 280980187,
+        "comment_level": 1,
+        "post_page": null,
+        "comment": "\u003cp\u003eКак мало вам надо для кайфа... \u003c/p\u003e",
+        "created_at": "2025-10-04T20:40:44.000000Z",
+        "created_at_ts": 1759610444000,
+        "relation_type": "episodes",
+        "relation_id": 134339,
+        "user": {
+          "username": "Dak_ai",
+          "id": 10660885,
+          "avatar": {
+            "filename": "a3086ea0-96e7-42bf-9bdb-81862e53563d.jpg",
+            "url": "https://cover.imglib.info/uploads/users/10660885/a3086ea0-96e7-42bf-9bdb-81862e53563d.jpg"
+          },
+          "premium": {
+            "enabled": false
+          }
+        },
+        "votes": {
+          "up": 0,
+          "down": 0,
+          "user": null
+        }
+      },
+      {
+        "id": 281026052,
+        "root_id": 280980187,
+        "parent_comment": 280980187,
+        "comment_level": 1,
+        "post_page": null,
+        "comment": "\u003cp\u003eНу, на сколько помню мангу, \u003cspan class=\"spoiler-node\" data-spoiler-type=\"inline\" data-spoiler-text=\"спойлер\"\u003e\u003cspan class=\"spoiler-node__text\"\u003eдальше он изучит всё, что только можно: фрахтование, магию всех классов, укрощение и будет всех разносить. Вообщем, гг, конечно, классный, но сюжет в целом, такой себе. И он будет с этой тянкой фехтовальщицей (вернее, сначала с ней начнёт, потом убежит за \u003cstrike\u003eхлебом\u003c/strike\u003e сбежавшей сестрой, а когда вернётся, у него уже будет ребёнок)\u003c/span\u003e\u003c/span\u003e\u003c/p\u003e",
+        "created_at": "2025-10-04T21:41:57.000000Z",
+        "created_at_ts": 1759614117000,
+        "relation_type": "episodes",
+        "relation_id": 134339,
+        "user": {
+          "username": "511wew511",
+          "id": 4899668,
+          "avatar": {
+            "filename": "TcVD5w1BxGGE.gif",
+            "url": "https://cover.imglib.info/uploads/users/4899668/TcVD5w1BxGGE.gif"
+          },
+          "premium": {
+            "enabled": false
+          }
+        },
+        "votes": {
+          "up": 0,
+          "down": 0,
+          "user": null
+        }
+      },
+      {
+        "id": 281027186,
+        "root_id": 280980187,
+        "parent_comment": 281022259,
+        "comment_level": 2,
+        "post_page": null,
+        "comment": "\u003cp\u003eДа я просто уже насмотрелся всякого...\u003c/p\u003e",
+        "created_at": "2025-10-04T22:00:48.000000Z",
+        "created_at_ts": 1759615248000,
+        "relation_type": "episodes",
+        "relation_id": 134339,
+        "user": {
+          "username": "Vang.",
+          "id": 7643338,
+          "avatar": {
+            "filename": "c03e1e0a-f030-4979-a352-1575242a5b70.jpg",
+            "url": "https://cover.imglib.info/uploads/users/7643338/c03e1e0a-f030-4979-a352-1575242a5b70.jpg"
+          },
+          "premium": {
+            "enabled": false
+          }
+        },
+        "votes": {
+          "up": 0,
+          "down": 0,
+          "user": null
+        }
+      },
+      {
+        "id": 281027259,
+        "root_id": 280980187,
+        "parent_comment": 281026052,
+        "comment_level": 2,
+        "post_page": null,
+        "comment": "\u003cp\u003eНу, так-то это было очевидно (особенно по второй серии), просто я уже как мог пересмотрел все возможные хоть какие-либо не каловые иссекаи, так что всегда в надежде найти хоть что-нибудь.\u003cbr\u003eP. s. у меня конечно еще много всяких иссекаев в списках, но я же не мазохист...\u003c/p\u003e",
+        "created_at": "2025-10-04T22:02:04.000000Z",
+        "created_at_ts": 1759615324000,
+        "relation_type": "episodes",
+        "relation_id": 134339,
+        "user": {
+          "username": "Vang.",
+          "id": 7643338,
+          "avatar": {
+            "filename": "c03e1e0a-f030-4979-a352-1575242a5b70.jpg",
+            "url": "https://cover.imglib.info/uploads/users/7643338/c03e1e0a-f030-4979-a352-1575242a5b70.jpg"
+          },
+          "premium": {
+            "enabled": false
+          }
+        },
+        "votes": {
+          "up": 0,
+          "down": 0,
+          "user": null
+        }
+      }
+    ],
+    "root": [
+      {
+        "id": 281028654,
+        "root_id": null,
+        "parent_comment": null,
+        "comment_level": 0,
+        "post_page": null,
+        "comment": "\u003cp\u003eНе ну там охренеть как ему не повезло ведь он будет восприимчив для всего, а стать богатым в фентези мире можно либо с навыками и классами либо фермерством, торговлей, грязной работой, или быть работником планктоном\u003c/p\u003e",
+        "created_at": "2025-10-04T22:27:38.000000Z",
+        "created_at_ts": 1759616858000,
+        "relation_type": "episodes",
+        "relation_id": 134339,
+        "user": {
+          "username": "Рудольф штрохайм",
+          "id": 8021661,
+          "avatar": {
+            "filename": "WGMCHz4ypc3N.jpg",
+            "url": "https://cover.imglib.info/uploads/users/8021661/WGMCHz4ypc3N.jpg"
+          },
+          "premium": {
+            "enabled": false
+          }
+        },
+        "votes": {
+          "up": 0,
+          "down": 0,
+          "user": null
+        }
+      },
+      {
+        "id": 281013971,
+        "root_id": null,
+        "parent_comment": null,
+        "comment_level": 0,
+        "post_page": null,
+        "comment": "\u003cp\u003eНипон. Где презрение со стороны семьи и начало арки злодея? Фу, брысь, плохое произведение!\u003c/p\u003e",
+        "created_at": "2025-10-04T18:41:37.000000Z",
+        "created_at_ts": 1759603297000,
+        "relation_type": "episodes",
+        "relation_id": 134339,
+        "user": {
+          "username": "ГенийЮжныхЗемель",
+          "id": 6923662,
+          "avatar": {
+            "filename": "351e0aab-6b8c-4e82-8d8d-c5fac82a2791.jpg",
+            "url": "https://cover.imglib.info/uploads/users/6923662/351e0aab-6b8c-4e82-8d8d-c5fac82a2791.jpg"
+          },
+          "premium": {
+            "enabled": false
+          }
+        },
+        "votes": {
+          "up": 0,
+          "down": 0,
+          "user": null
+        }
+      },
+      {
+        "id": 280981270,
+        "root_id": null,
+        "parent_comment": null,
+        "comment_level": 0,
+        "post_page": null,
+        "comment": "\u003cp\u003eНу не умеют японцы хранить интригу насчёт чужого пола, эти ресницы все выдают\u003c/p\u003e",
+        "created_at": "2025-10-04T07:56:05.000000Z",
+        "created_at_ts": 1759564565000,
+        "relation_type": "episodes",
+        "relation_id": 134339,
+        "user": {
+          "username": "Gunter😈",
+          "id": 876551,
+          "avatar": {
+            "filename": "DmeuzkGuPymI.jpg",
+            "url": "https://cover.imglib.info/uploads/users/876551/DmeuzkGuPymI.jpg"
+          },
+          "premium": {
+            "enabled": false
+          }
+        },
+        "votes": {
+          "up": 7,
+          "down": 1,
+          "user": null
+        }
+      },
+      {
+        "id": 280980187,
+        "root_id": null,
+        "parent_comment": null,
+        "comment_level": 0,
+        "post_page": null,
+        "comment": "\u003cp\u003eДа неужели! Старательный гг, хорошая родня, не совсем дауны сверстники, что самое главное пока что не 3D-шная анимация и даже гарема нет с 1 серии! Надеюсь не скатиться и можно будет с кайфом раз в неделю посмотреть\u003c/p\u003e",
+        "created_at": "2025-10-04T07:33:34.000000Z",
+        "created_at_ts": 1759563214000,
+        "relation_type": "episodes",
+        "relation_id": 134339,
+        "user": {
+          "username": "Vang.",
+          "id": 7643338,
+          "avatar": {
+            "filename": "c03e1e0a-f030-4979-a352-1575242a5b70.jpg",
+            "url": "https://cover.imglib.info/uploads/users/7643338/c03e1e0a-f030-4979-a352-1575242a5b70.jpg"
+          },
+          "premium": {
+            "enabled": false
+          }
+        },
+        "votes": {
+          "up": 2,
+          "down": 0,
+          "user": null
+        }
+      },
+      {
+        "id": 280979576,
+        "root_id": null,
+        "parent_comment": null,
+        "comment_level": 0,
+        "post_page": null,
+        "comment": "\u003cp\u003eНу хотя бы название помещается...\u003c/p\u003e",
+        "created_at": "2025-10-04T07:18:34.000000Z",
+        "created_at_ts": 1759562314000,
+        "relation_type": "episodes",
+        "relation_id": 134339,
+        "user": {
+          "username": "Vang.",
+          "id": 7643338,
+          "avatar": {
+            "filename": "c03e1e0a-f030-4979-a352-1575242a5b70.jpg",
+            "url": "https://cover.imglib.info/uploads/users/7643338/c03e1e0a-f030-4979-a352-1575242a5b70.jpg"
+          },
+          "premium": {
+            "enabled": false
+          }
+        },
+        "votes": {
+          "up": 3,
+          "down": 0,
+          "user": null
+        }
+      }
+    ]
+  },
+  "meta": {
+    "has_next_page": false,
+    "page": 1,
+    "per_page": 25
+  }
+}

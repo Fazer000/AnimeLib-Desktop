@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Custom scrollbar styling - thin and modern */
+* ::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+* ::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+* ::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
+  background: rgba(57, 57, 57, 0.4) !important;
+  border-radius: 3px !important;
+}
+
+* ::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(144, 144, 144, 0.6) !important;
+}
+
+body::-webkit-scrollbar {
+  width: 6px !important;
+}
+
+body::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: rgba(144, 144, 144, 0.4) !important;
+  border-radius: 3px !important;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background: rgba(144, 144, 144, 0.6) !important;
+}
+
+.webview-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+webview {
+  width: 100%;
+  height: 100%;
+  border: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Принудительное переопределение стилей AppBar */
+.MuiAppBar-root {
+  background-color: #252527 !important;
+  box-shadow: none !important;
+  border: none !important;
+  --Paper-shadow: none !important;
+  --Paper-overlay: none !important;
+}
+
+.MuiAppBar-root.MuiAppBar-positionStatic {
+  background-color: #252527 !important;
+  box-shadow: none !important;
+  --Paper-shadow: none !important;
+  --Paper-overlay: none !important;
+}
+
+/* Переопределение отступов Toolbar */
+.css-14te78c-MuiToolbar-root,
+.MuiToolbar-root {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+/* Video.js стили */
+.video-js {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 400px !important;
+  min-height: 300px !important;
+}
+
+.video-js .vjs-tech {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+[data-vjs-player] {
+  width: 100% !important;
+  height: 100% !important;
+}

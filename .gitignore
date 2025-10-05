@@ -1,0 +1,72 @@
+# Logs
+logs
+*.log
+npm-debug.log.*
+yarn-debug.log*
+yarn-error.log*
+localhost-*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# Testing
+coverage
+.eslintcache
+
+# Dependencies
+node_modules
+release/app/node_modules
+
+# Build directories
+release/app/dist
+release/build
+.erb/dll
+dist
+build
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment & Config
+.env
+.env.local
+.env.*.local
+
+# Auth & Test data
+auth.json
+response.json
+response2.json
+response3.json
+headers.txt
+
+# Type definitions
+*.css.d.ts
+*.sass.d.ts
+*.scss.d.ts
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Electron
+out/
+app/
