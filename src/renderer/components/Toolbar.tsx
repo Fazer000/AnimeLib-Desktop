@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types, react/require-default-props */
-import React from 'react';
-import { AppBar, Toolbar } from '@mui/material';
+import React, { useState } from 'react';
+import { AppBar, Toolbar, Box } from '@mui/material';
 import NavigationButtons from './toolbar/NavigationButtons';
 import UrlBar from './toolbar/UrlBar';
 import WindowControls from './toolbar/WindowControls';
+import AnimeInfoCard from './toolbar/AnimeInfoCard';
 
 /**
  * Props for Toolbar component
@@ -46,6 +47,9 @@ interface ToolbarProps {
   // ==================== Styling ====================
   backgroundColor?: string;
   height?: number;
+
+  // ==================== Anime Info ====================
+  animeId?: string;
 }
 
 /**
@@ -105,69 +109,121 @@ function ToolbarRefactored({
   // Styling props
   backgroundColor = '#252527',
   height = 32,
+
+  // Anime info props
+  animeId,
 }: ToolbarProps) {
+  const [showAnimeInfo, setShowAnimeInfo] = useState<boolean>(false);
+
+  const handleShowAnimeInfo = () => {
+    // eslint-disable-next-line no-console
+    console.log('[Toolbar] Show anime info, animeId:', animeId);
+    if (animeId) {
+      setShowAnimeInfo(true);
+    }
+  };
+
+  const handleHideAnimeInfo = () => {
+    // eslint-disable-next-line no-console
+    console.log('[Toolbar] Hide anime info');
+    setShowAnimeInfo(false);
+  };
+
   return (
-    <AppBar
-      position="static"
-      sx={{
-        backgroundColor: `${backgroundColor} !important`,
-        WebkitAppRegion: 'drag',
-        appRegion: 'drag',
-        minHeight: height,
-        height,
-        boxShadow: 'none !important',
-        border: 'none !important',
-        '--Paper-shadow': 'none !important',
-        '--Paper-overlay': 'none !important',
-        '&.MuiAppBar-root': {
+    <>
+      <AppBar
+        position="static"
+        sx={{
           backgroundColor: `${backgroundColor} !important`,
+          WebkitAppRegion: 'drag',
+          appRegion: 'drag',
+          borderRadius: selectedPlayer ? '0 0 16px 16px' : '0',
+          minHeight: height,
+          height,
           boxShadow: 'none !important',
           border: 'none !important',
           '--Paper-shadow': 'none !important',
           '--Paper-overlay': 'none !important',
-        },
-      }}
-    >
-      <Toolbar
-        sx={{
-          minHeight: `${height}px !important`,
-          height: `${height}px !important`,
-          paddingLeft: '8px',
-          paddingRight: '8px',
-          gap: 0.5,
+          '&.MuiAppBar-root': {
+            backgroundColor: `${backgroundColor} !important`,
+            boxShadow: 'none !important',
+            border: 'none !important',
+            '--Paper-shadow': 'none !important',
+            '--Paper-overlay': 'none !important',
+          },
         }}
       >
-        {/* ==================== Left Section: Navigation ==================== */}
-        <NavigationButtons
-          onBack={onBack}
-          onForward={onForward}
-          onRefresh={onRefresh}
-          onHome={onHome}
-          canGoBack={canGoBack}
-          canGoForward={canGoForward}
-          showPlayButton={showPlayButton}
-          isPlaying={isPlaying}
-          onPlayPause={onPlayPause}
-        />
+        <Toolbar
+          sx={{
+            minHeight: `${height}px !important`,
+            height: `${height}px !important`,
+            paddingLeft: '8px',
+            paddingRight: '8px',
+            gap: 0.5,
+          }}
+        >
+          {/* ==================== Left Section: Navigation ==================== */}
+          <NavigationButtons
+            onBack={onBack}
+            onForward={onForward}
+            onRefresh={onRefresh}
+            onHome={onHome}
+            canGoBack={canGoBack}
+            canGoForward={canGoForward}
+            showPlayButton={showPlayButton}
+            isPlaying={isPlaying}
+            onPlayPause={onPlayPause}
+          />
 
-        {/* ==================== Center Section: URL Bar ==================== */}
-        <UrlBar
-          title={title}
-          currentUrl={currentUrl}
-          showUrlInput={showUrlInput}
-          onUrlChange={onUrlChange}
-          onToggleUrlInput={onToggleUrlInput}
-          selectedPlayer={selectedPlayer}
-        />
+          {/* ==================== Center Section: URL Bar ==================== */}
+          <UrlBar
+            title={title}
+            currentUrl={currentUrl}
+            showUrlInput={showUrlInput}
+            onUrlChange={onUrlChange}
+            onToggleUrlInput={onToggleUrlInput}
+            selectedPlayer={selectedPlayer}
+          />
 
-        {/* ==================== Right Section: Window Controls ==================== */}
-        <WindowControls
-          onMinimize={onMinimize}
-          onMaximize={onMaximize}
-          onClose={onClose}
+          {/* ==================== Right Section: Window Controls ==================== */}
+          <WindowControls
+            onMinimize={onMinimize}
+            onMaximize={onMaximize}
+            onClose={onClose}
+          />
+        </Toolbar>
+      </AppBar>
+
+      {/* ==================== Invisible Hover Zone ==================== */}
+      {animeId && (
+        <Box
+          onMouseEnter={handleShowAnimeInfo}
+          onMouseLeave={handleHideAnimeInfo}
+          sx={{
+            position: 'fixed',
+            top: 32,
+            left: 0,
+            right: 0,
+            height: 30,
+            zIndex: 999,
+            margin: '0 auto',
+            width: '60%',
+            pointerEvents: 'auto',
+            // backgroundColor: 'rgba(255, 0, 0, 0.1)', // Debug: uncomment to see zone
+          }}
         />
-      </Toolbar>
-    </AppBar>
+      )}
+
+      {/* ==================== Anime Info Card ==================== */}
+      {animeId && (
+        <AnimeInfoCard
+          animeId={animeId}
+          isVisible={showAnimeInfo}
+          onMouseEnter={handleShowAnimeInfo}
+          onMouseLeave={handleHideAnimeInfo}
+        />
+      )}
+    </>
   );
 }
 

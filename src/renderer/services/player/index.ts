@@ -35,3 +35,10 @@ export type {
 
 export { BookmarkManager } from './BookmarkManager';
 export type { BookmarkManagerConfig } from './BookmarkManager';
+
+export { CommentsManager } from './CommentsManager';
+export type {
+  CommentsManagerConfig,
+  Comment,
+  CommentsPaginationState,
+} from './CommentsManager';

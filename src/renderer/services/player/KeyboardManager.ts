@@ -9,6 +9,9 @@ export interface KeyboardManagerConfig {
   onToggleFullscreen?: () => void;
   onTogglePictureInPicture?: () => void;
   onPlaybackRateChange?: (delta: number) => void;
+  onSkipForward?: (seconds: number) => void; // Custom skip forward
+  skipTime?: number; // Custom skip time in seconds
+  onKeyPress?: () => void; // Callback when any hotkey is pressed
 }
 
 /**
@@ -92,6 +95,17 @@ export class KeyboardManager {
 
       // Seek forward
       case 'ArrowRight':
+        // Shift + RightArrow = Custom skip forward
+        if (event.shiftKey && this.config.onSkipForward) {
+          const skipTime = this.config.skipTime || 85; // Default to 85 seconds if not set
+          this.config.onSkipForward(skipTime);
+          handled = true;
+        } else {
+          // Normal seek forward
+          this.config.onSeek?.(10);
+          handled = true;
+        }
+        break;
       case 'l':
       case 'L':
       case 'д': // Russian layout
@@ -173,6 +187,8 @@ export class KeyboardManager {
 
     if (handled) {
       event.preventDefault();
+      // Notify that a hotkey was pressed (to show controls)
+      this.config.onKeyPress?.();
     }
   }
 

@@ -1,13 +1,18 @@
 /* eslint-disable no-console */
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Box, Button, IconButton, Typography, useTheme } from '@mui/material';
-import { ChevronLeft, ChevronRight } from '@mui/icons-material';
+import {
+  ChevronLeft,
+  ChevronRight,
+  BookmarkRounded,
+} from '@mui/icons-material';
 import { Episode } from '../../api/animeApi';
 
 interface EpisodeSliderProps {
   episodes: Episode[];
   currentEpisodeIndex: number;
   onEpisodeSelect: (index: number) => void;
+  bookmarkedEpisodeId: number | null;
 }
 
 /**
@@ -23,6 +28,7 @@ function EpisodeSliderRefactored({
   episodes,
   currentEpisodeIndex,
   onEpisodeSelect,
+  bookmarkedEpisodeId = null,
 }: EpisodeSliderProps) {
   const theme = useTheme();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -35,6 +41,9 @@ function EpisodeSliderRefactored({
       scrollLeft: 0,
     },
   );
+
+  // Wheel scroll state
+  const [isWheelScrolling, setIsWheelScrolling] = useState<boolean>(false);
 
   // Scroll states
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -79,12 +88,21 @@ function EpisodeSliderRefactored({
    * Drag-to-scroll handlers
    */
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // Only start dragging if clicking on the container, not on buttons
+    if (
+      e.target === e.currentTarget ||
+      (e.target as HTMLElement).closest('.episode-button')
+    ) {
+      return;
+    }
+
     setIsDragging(true);
     setDragStart({
       x: e.pageX,
       scrollLeft: e.currentTarget.scrollLeft,
     });
     (e.currentTarget as HTMLElement).style.cursor = 'grabbing';
+    (e.currentTarget as HTMLElement).style.userSelect = 'none';
   }, []);
 
   const handleMouseMove = useCallback(
@@ -92,7 +110,7 @@ function EpisodeSliderRefactored({
       if (!isDragging) return;
       e.preventDefault();
       const x = e.pageX;
-      const walk = (x - dragStart.x) * 2;
+      const walk = (x - dragStart.x) * 1.5; // Reduced sensitivity for smoother dragging
       e.currentTarget.scrollLeft = dragStart.scrollLeft - walk;
     },
     [isDragging, dragStart],
@@ -101,15 +119,18 @@ function EpisodeSliderRefactored({
   const handleMouseUp = useCallback((e: React.MouseEvent) => {
     setIsDragging(false);
     (e.currentTarget as HTMLElement).style.cursor = 'grab';
+    (e.currentTarget as HTMLElement).style.userSelect = 'auto';
   }, []);
 
   const handleMouseLeave = useCallback((e: React.MouseEvent) => {
     setIsDragging(false);
     (e.currentTarget as HTMLElement).style.cursor = 'grab';
+    (e.currentTarget as HTMLElement).style.userSelect = 'auto';
   }, []);
 
   const handleEpisodeClick = useCallback(
-    (index: number) => {
+    (index: number, e: React.MouseEvent) => {
+      e.stopPropagation();
       if (!isDragging) {
         onEpisodeSelect(index);
       }
@@ -125,6 +146,43 @@ function EpisodeSliderRefactored({
       setTimeout(checkScrollState, 100);
     }
   }, [episodes, checkScrollState]);
+
+  /**
+   * Add native wheel event listener to prevent page scroll
+   */
+  useEffect(() => {
+    const element = scrollRef.current;
+    if (!element) return undefined;
+
+    const handleNativeWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (isWheelScrolling) return;
+
+      setIsWheelScrolling(true);
+
+      const scrollAmount = e.deltaY > 0 ? 150 : -150;
+      const currentScroll = element.scrollLeft;
+      const newScroll = currentScroll + scrollAmount;
+
+      element.scrollTo({
+        left: newScroll,
+        behavior: 'smooth',
+      });
+
+      setTimeout(() => {
+        setIsWheelScrolling(false);
+        checkScrollState();
+      }, 200);
+    };
+
+    element.addEventListener('wheel', handleNativeWheel, { passive: false });
+
+    return () => {
+      element.removeEventListener('wheel', handleNativeWheel);
+    };
+  }, [isWheelScrolling, checkScrollState]);
 
   if (episodes.length === 0) {
     return null;
@@ -142,8 +200,6 @@ function EpisodeSliderRefactored({
           display: 'flex',
           alignItems: 'center',
           position: 'relative',
-          pt: 0.25,
-          pb: 1.25,
         }}
       >
         {/* Left arrow */}
@@ -193,13 +249,15 @@ function EpisodeSliderRefactored({
             px: 1,
             overflowX: 'auto',
             overflowY: 'hidden',
-            cursor: 'grab',
+            cursor: isDragging ? 'grabbing' : 'grab',
             userSelect: 'none',
             '&::-webkit-scrollbar': {
               display: 'none',
             },
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
+            // Smooth scrolling
+            scrollBehavior: 'smooth',
           }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -209,11 +267,19 @@ function EpisodeSliderRefactored({
         >
           {episodes.map((episode, index) => {
             const isSelected = index === currentEpisodeIndex;
+            const hasBookmark = episode.id === bookmarkedEpisodeId;
 
             return (
               <Button
                 key={episode.id}
-                onClick={() => handleEpisodeClick(index)}
+                className="episode-button"
+                onClick={(e) => handleEpisodeClick(index, e)}
+                disableRipple={false}
+                TouchRippleProps={{
+                  style: {
+                    color: theme.palette.customColors.dtSecondaryColor,
+                  },
+                }}
                 sx={{
                   flex: episodes.length > 6 ? '1' : 'none',
                   minWidth: '100px',
@@ -221,12 +287,37 @@ function EpisodeSliderRefactored({
                   backgroundColor: theme.palette.primary.main,
                   border: isSelected
                     ? `1px solid ${theme.palette.customColors.dtSecondaryColor}`
-                    : 'none',
+                    : '1px solid transparent',
                   cursor: 'pointer',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
+                  mt: 1.25,
+                  mb: 1.25,
                   '&:hover': {
                     backgroundColor: isSelected
-                      ? 'rgba(124, 58, 237, 0.3)'
-                      : 'rgba(255, 255, 255, 0.05)',
+                      ? 'rgba(124, 58, 237, 0.2)'
+                      : 'rgba(255, 255, 255, 0.08)',
+                  },
+                  '&:active': {
+                    transform: 'scale(0.96)',
+                    transition: 'all 0.1s ease',
+                  },
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: isSelected
+                      ? `linear-gradient(135deg, ${theme.palette.customColors.dtSecondaryColor}20, transparent)`
+                      : 'transparent',
+                    borderRadius: 10,
+                    opacity: isSelected ? 1 : 0,
+                    transition: 'opacity 0.2s ease',
+                    zIndex: -1,
                   },
                 }}
               >
@@ -234,8 +325,22 @@ function EpisodeSliderRefactored({
                   sx={{
                     padding: '4px !important',
                     textAlign: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'row',
+                    flexWrap: 'nowrap',
+                    gap: 0.5,
                   }}
                 >
+                  {hasBookmark && (
+                    <BookmarkRounded
+                      sx={{
+                        fontSize: '0.9rem',
+                        color: theme.palette.customColors.dtSecondaryColor,
+                      }}
+                    />
+                  )}
                   <Typography
                     variant="body2"
                     sx={{
@@ -245,6 +350,7 @@ function EpisodeSliderRefactored({
                         : theme.palette.customColors.dtPrimaryTextColor,
                       textTransform: 'none',
                       fontSize: '0.84rem',
+                      textWrap: 'nowrap',
                     }}
                   >
                     {episode.number} эпизод
@@ -296,4 +402,4 @@ function EpisodeSliderRefactored({
   );
 }
 
-export default EpisodeSliderRefactored;
+export default React.memo(EpisodeSliderRefactored);

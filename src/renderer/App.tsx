@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 import React, { useState, useEffect, useCallback } from 'react';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-import UrlInput from './components/UrlInput';
-import WebView from './components/WebView';
-import PlayerPage from './components/PlayerPage';
+import UrlInputPage from './pages/UrlInputPage';
+import WebView from './pages/WebViewPage';
+import PlayerPage from './pages/PlayerPage';
 
 // Расширяем типы MUI для кастомных цветов
 declare module '@mui/material/styles' {
@@ -349,7 +349,7 @@ function App() {
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <UrlInput onSubmit={handleUrlSubmit} />
+      <UrlInputPage onSubmit={handleUrlSubmit} />
     </ThemeProvider>
   );
 }

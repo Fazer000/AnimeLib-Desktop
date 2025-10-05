@@ -61,6 +61,62 @@ ipcMain.on('window-close', () => {
   }
 });
 
+// Handler for fetching images with custom referer
+ipcMain.handle('fetch-image', async (event, { url, referer }) => {
+  const https = await import('https');
+  const http = await import('http');
+  const { URL } = await import('url');
+
+  const parsedUrl = new URL(url);
+  const client = parsedUrl.protocol === 'https:' ? https : http;
+
+  return new Promise((resolve) => {
+    const options = {
+      headers: {
+        Referer: referer || '',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
+    };
+
+    const request = client.get(url, options, (response) => {
+      const chunks: Buffer[] = [];
+
+      response.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+
+      response.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        const base64 = buffer.toString('base64');
+        const contentType = response.headers['content-type'] || 'image/jpeg';
+
+        resolve({
+          success: true,
+          data: base64,
+          contentType,
+        });
+      });
+    });
+
+    request.on('error', (error) => {
+      console.error('[fetch-image] Error:', error);
+      resolve({
+        success: false,
+        error: error.message,
+      });
+    });
+
+    request.end();
+  }).catch((error: any) => {
+    console.error('[fetch-image] Catch:', error);
+    return {
+      success: false,
+      error: error.message,
+    };
+  });
+});
+
 // Обработчик для кнопок плеера
 ipcMain.on('player-button-clicked', (event, url) => {
   console.log('[AnimeLIB] ===== PLAYER BUTTON CLICKED =====');
@@ -314,6 +370,7 @@ app
       }
 
       // Возвращаем пустой ответ
+      // eslint-disable-next-line promise/no-callback-in-promise
       callback({ statusCode: 200, data: '' });
     });
 

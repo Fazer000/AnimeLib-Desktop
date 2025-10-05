@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import axios from 'axios';
 
 // Интерфейсы для API
@@ -235,7 +236,7 @@ export const animeApi = {
     const maxRetries = 3;
     let lastError: any;
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const makeRequest = async (attempt: number): Promise<KodikVideoLinks> => {
       try {
         console.log(
           `[AnimeAPI] Kodik request attempt ${attempt}/${maxRetries}`,
@@ -257,13 +258,21 @@ export const animeApi = {
         if (attempt < maxRetries) {
           const delay = attempt * 2000; // 2s, 4s, 6s
           console.log(`[AnimeAPI] Retrying in ${delay}ms...`);
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          await new Promise<void>((resolve) => {
+            setTimeout(() => resolve(), delay);
+          });
+          return makeRequest(attempt + 1);
         }
+        throw error;
       }
-    }
+    };
 
-    console.error('[AnimeAPI] All Kodik request attempts failed:', lastError);
-    throw lastError;
+    try {
+      return await makeRequest(1);
+    } catch {
+      console.error('[AnimeAPI] All Kodik request attempts failed:', lastError);
+      throw lastError;
+    }
   },
 
   // Получить информацию об аниме
@@ -323,13 +332,6 @@ export const animeApi = {
       item_number: string;
     },
   ): Promise<{ success: boolean }> => {
-    console.log('[AnimeAPI] Saving bookmark:', {
-      anime: animeSlugUrl,
-      episode: episodeId,
-      timecode,
-      meta,
-    });
-
     try {
       const response = await animeApiClient.post('/bookmarks', {
         media_type: 'anime',
@@ -341,36 +343,43 @@ export const animeApi = {
         },
         meta,
       });
-
-      console.log('[AnimeAPI] Bookmark saved successfully:', response.data);
+      console.log('[AnimeAPI] Закладка успешно сохранена:', response.data);
       return { success: true };
     } catch (error: any) {
       console.error(
-        '[AnimeAPI] Error saving bookmark (status 21), попробуем с статусом 22:',
+        '[AnimeAPI] Ошибка при сохранении закладки (status 21), пробуем с другим статусом:',
         error,
       );
 
-      // Пробуем повторно с другим статусом
+      // Пробуем повторно с другим статусом (22)
       try {
-        const responseRetry = await animeApiClient.post('/bookmarks', {
+        await animeApiClient.post('/bookmarks', {
+          media_type: 'anime',
+          media_slug: animeSlugUrl,
+          bookmark: {
+            status: 21,
+          },
+          meta: {},
+        });
+        // После успешной попытки пробуем снова сохранить с нужными параметрами
+        const responseFinal = await animeApiClient.post('/bookmarks', {
           media_type: 'anime',
           media_slug: animeSlugUrl,
           bookmark: {
             item_id: episodeId,
-            status: 22,
+            status: 21,
             progress: timecode,
           },
           meta,
         });
-
         console.log(
-          '[AnimeAPI] Bookmark saved successfully (status 22):',
-          responseRetry.data,
+          '[AnimeAPI] Закладка успешно сохранена после повторной попытки:',
+          responseFinal.data,
         );
         return { success: true };
       } catch (retryError: any) {
         console.error(
-          '[AnimeAPI] Ошибка при повторном сохранении закладки (status 22):',
+          '[AnimeAPI] Ошибка при повторном сохранении закладки:',
           retryError,
         );
         throw retryError;
@@ -422,6 +431,30 @@ export const animeApi = {
       return response.data;
     } catch (error) {
       console.error('[AnimeAPI] Error loading comments:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Vote for a comment
+   */
+  voteComment: async (
+    commentId: number,
+    vote: 0 | 1,
+  ): Promise<{ success: boolean }> => {
+    try {
+      console.log('[AnimeAPI] Voting for comment:', commentId, 'vote:', vote);
+      const response = await animeApiClient.post(
+        `/comments/${commentId}/vote`,
+        {
+          vote,
+        },
+      );
+
+      console.log('[AnimeAPI] Vote successful:', response.data);
+      return { success: true };
+    } catch (error) {
+      console.error('[AnimeAPI] Error voting for comment:', error);
       throw error;
     }
   },

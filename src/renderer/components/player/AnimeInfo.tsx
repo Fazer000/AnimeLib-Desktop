@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import { AnimeInfo } from '../api/animeApi';
+import { AnimeInfo } from '../../api/animeApi';
 
 interface AnimeInfoProps {
   animeInfo: AnimeInfo | null;
@@ -18,7 +18,7 @@ function AnimeInfoComponent({ animeInfo, show, episodeName }: AnimeInfoProps) {
         top: 16,
         left: '50%',
         transform: 'translateX(-50%)',
-        zIndex: 1001,
+        zIndex: 900,
         textAlign: 'center',
         opacity: show ? 1 : 0,
         transition: 'opacity 0.3s ease',
