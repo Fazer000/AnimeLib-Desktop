@@ -2,12 +2,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import { animeApi, Episode, Player, KodikVideoLinks } from '../api/animeApi';
-import CustomToolbar from './Toolbar';
-import VideoPlayer, { VideoPlayerRef } from './VideoPlayer';
-import ErrorBoundary from './ErrorBoundary';
-import EpisodeSlider from './player/EpisodeSlider';
-import PlayerSidebar from './player/PlayerSidebar';
-import Comments from './Comments';
+import CustomToolbar from '../components/Toolbar';
+import VideoPlayer, { VideoPlayerRef } from '../components/player/VideoPlayer';
+import ErrorBoundary from '../components/player/ErrorBoundary';
+import EpisodeSlider from '../components/player/EpisodeSlider';
+import PlayerSidebar from '../components/player/PlayerSidebar';
+import CommentsSection from '../components/player/CommentsSection';
 import { PlayerSelectionManager, BookmarkManager } from '../services/player';
 
 interface PlayerPageProps {
@@ -47,6 +47,9 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack }: PlayerPageProps) {
   const [initialTimecode, setInitialTimecode] = useState<number | null>(null);
   const [hasBookmark, setHasBookmark] = useState<boolean>(false);
   const [bookmarkChecked, setBookmarkChecked] = useState<boolean>(false);
+  const [bookmarkedEpisodeId, setBookmarkedEpisodeId] = useState<number | null>(
+    null,
+  );
 
   // Ref to track if player is already loaded (prevent double loading)
   const playerLoadedRef = useRef<boolean>(false);
@@ -124,6 +127,11 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack }: PlayerPageProps) {
           }
 
           setHasBookmark(true);
+
+          // Store bookmarked episode ID for visual indicator
+          const bookmarkedEpId = bookmarkManager.getBookmarkedEpisodeId();
+          setBookmarkedEpisodeId(bookmarkedEpId);
+          console.log('[PlayerPage] Bookmarked episode ID:', bookmarkedEpId);
 
           // Now change episode - this will trigger player loading
           // But initialTimecode is already set and ready
@@ -645,6 +653,7 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack }: PlayerPageProps) {
           selectedPlayer={selectedPlayer}
           showUrlInput={showUrlInput}
           currentUrl={playerUrl}
+          animeId={animeId}
           onUrlChange={handleUrlChange}
           onToggleUrlInput={() => setShowUrlInput(!showUrlInput)}
           onMinimize={handleMinimize}
@@ -685,6 +694,7 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack }: PlayerPageProps) {
                 position: 'relative',
                 overflow: 'hidden',
                 borderRadius: 2,
+                boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
                 margin: 1,
                 marginRight: 0, // Убираем правый отступ чтобы вплотную к sidebar
               }}
@@ -756,6 +766,7 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack }: PlayerPageProps) {
                     }}
                     onSaveBookmark={handleSaveBookmark}
                     hasBookmark={hasBookmark}
+                    bookmarkedEpisodeId={bookmarkedEpisodeId}
                   />
                 </Box>
               </ErrorBoundary>
@@ -788,52 +799,12 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack }: PlayerPageProps) {
           episodes={episodes}
           currentEpisodeIndex={currentEpisodeIndex}
           onEpisodeSelect={handleEpisodeClick}
+          bookmarkedEpisodeId={bookmarkedEpisodeId}
         />
       </Box>
 
       {/* Comments section - Below player, centered 70% width */}
-      {selectedEpisode && (
-        <Box
-          sx={{
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'center',
-            padding: 3,
-            paddingTop: 2,
-          }}
-        >
-          <Box
-            sx={{
-              width: '70%',
-              maxWidth: '1200px',
-              backgroundColor: theme.palette.customColors.dtPrimaryColor,
-              borderRadius: 2,
-              overflow: 'hidden',
-            }}
-          >
-            <Box
-              sx={{
-                padding: '16px 20px',
-                borderBottom: `1px solid ${theme.palette.customColors.dtBorderColor}`,
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{
-                  color: theme.palette.customColors.dtPrimaryTextColor,
-                  fontWeight: 600,
-                  fontSize: '1.125rem',
-                }}
-              >
-                Комментарии
-              </Typography>
-            </Box>
-            <Box sx={{ padding: '0 20px' }}>
-              <Comments episodeId={selectedEpisode.id} />
-            </Box>
-          </Box>
-        </Box>
-      )}
+      {selectedEpisode && <CommentsSection episodeId={selectedEpisode.id} />}
     </Box>
   );
 }

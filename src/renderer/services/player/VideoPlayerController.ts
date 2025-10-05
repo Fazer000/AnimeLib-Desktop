@@ -11,6 +11,9 @@ export interface VideoPlayerControllerConfig {
   onStateChange?: (state: any) => void;
   onQualityOptionsChange?: (options: any[]) => void;
   onSelectedQualityChange?: (quality: string) => void;
+  onKeyPress?: () => void; // Callback when hotkey is pressed
+  onSkipForward?: (seconds: number) => void; // Custom skip forward
+  skipTime?: number; // Custom skip time in seconds
 }
 
 export interface PlayerLoadOptions {
@@ -82,6 +85,9 @@ export class VideoPlayerController {
         const newRate = this.stateManager.getState().playbackRate + delta;
         this.stateManager.setPlaybackRate(newRate);
       },
+      onSkipForward: config.onSkipForward, // Custom skip forward
+      skipTime: config.skipTime, // Custom skip time
+      onKeyPress: config.onKeyPress, // Pass the callback through
     });
   }
 
@@ -328,6 +334,13 @@ export class VideoPlayerController {
    */
   getStateManager(): VideoStateManager {
     return this.stateManager;
+  }
+
+  /**
+   * Получает менеджер клавиатуры
+   */
+  getKeyboardManager(): KeyboardManager {
+    return this.keyboardManager;
   }
 
   /**

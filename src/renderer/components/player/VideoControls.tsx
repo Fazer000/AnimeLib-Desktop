@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import React, { useState, useEffect } from 'react';
-import { Box, IconButton, Tooltip } from '@mui/material';
+import { Box, IconButton, Tooltip, useTheme } from '@mui/material';
 import {
   TuneRounded,
   FullscreenRounded,
@@ -10,12 +10,12 @@ import {
   BookmarkAddRounded,
 } from '@mui/icons-material';
 
-import ProgressBar from './player/ProgressBar';
-import PlaybackControls from './player/PlaybackControls';
-import VolumeControl from './player/VolumeControl';
-import EpisodeCarousel from './player/EpisodeCarousel';
-import SettingsMenu from './player/SettingsMenu';
-import { SkipManager } from '../services/player';
+import ProgressBar from './ProgressBar';
+import PlaybackControls from './PlaybackControls';
+import VolumeControl from './VolumeControl';
+import ControlsEpisodeSlider from './ControlsEpisodeSlider';
+import SettingsMenu from './SettingsMenu';
+import { SkipManager } from '../../services/player';
 
 interface VideoControlsProps {
   // Состояние плеера
@@ -42,6 +42,7 @@ interface VideoControlsProps {
   episodes: Array<{ id: number; number: string; name: string }>;
   currentEpisodeIndex: number;
   onEpisodeSelect: (index: number) => void;
+  bookmarkedEpisodeId?: number | null;
 
   // Обработчики
   onTogglePlay: () => void;
@@ -52,6 +53,7 @@ interface VideoControlsProps {
   onQualityChange: (quality: string) => void;
   onPlaybackRateChange: (rate: number) => void;
   onSkipForward: (seconds: number) => void;
+  onSkipTimeChange?: (time: number) => void;
 
   // Обработчики мыши
   onMouseMove: () => void;
@@ -91,6 +93,7 @@ function VideoControls({
   episodes,
   currentEpisodeIndex,
   onEpisodeSelect,
+  bookmarkedEpisodeId,
   onTogglePlay,
   onVolumeChange,
   onToggleMute,
@@ -99,6 +102,7 @@ function VideoControls({
   onQualityChange,
   onPlaybackRateChange,
   onSkipForward,
+  onSkipTimeChange,
   onMouseMove,
   onMouseLeave,
   onProgressMouseMove,
@@ -106,6 +110,7 @@ function VideoControls({
   onSeek,
   hoverTime,
 }: VideoControlsProps) {
+  const theme = useTheme();
   // UI State
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [showEpisodes, setShowEpisodes] = useState<boolean>(false);
@@ -191,6 +196,47 @@ function VideoControls({
         }}
       />
 
+      {/* Episodes button (above progress bar) */}
+      {isFullscreen && episodes && episodes.length > 0 && (
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: isFullscreen && showEpisodes ? '130px' : '80px',
+            right: 16,
+            opacity: showControls ? 1 : 0,
+            transition: 'opacity 0.3s ease-in-out, bottom 0.3s ease-in-out',
+            zIndex: 901,
+          }}
+          onMouseMove={onMouseMove}
+        >
+          <Tooltip title="Эпизоды" placement="left">
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggleEpisodes();
+              }}
+              sx={{
+                backgroundColor: 'rgba(20, 20, 20, 0.45)',
+                border: '1px solid rgba(116, 116, 128, 0.33)',
+                color: theme.palette.customColors.dtPrimaryTextColor,
+                padding: 1,
+                borderRadius: 4,
+                '&:hover': {
+                  color: theme.palette.customColors.dtSecondaryColor,
+                },
+                '&:active': {
+                  transform: 'translateY(0px) scale(0.96)',
+                  transition: 'all 0.1s ease',
+                },
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <ListRounded fontSize="medium" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )}
+
       {/* Main controls container */}
       <Box
         className="player-controls video-controls"
@@ -206,7 +252,7 @@ function VideoControls({
           padding: 1,
           opacity: showControls ? 1 : 0,
           transition: 'opacity 0.3s ease-in-out, bottom 0.3s ease-in-out',
-          zIndex: 1000,
+          zIndex: 900,
         }}
         onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}
@@ -261,30 +307,6 @@ function VideoControls({
               onVolumeChange={handleVolumeChange}
               onToggleMute={onToggleMute}
             />
-
-            {/* Episodes button (fullscreen only) */}
-            {isFullscreen && episodes && episodes.length > 0 && (
-              <Tooltip title="Эпизоды" placement="top">
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleToggleEpisodes();
-                  }}
-                  sx={{
-                    color: 'white',
-                    padding: 0.25,
-                    borderRadius: 2,
-                    '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      transform: 'scale(1.1)',
-                    },
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <ListRounded fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
 
             {/* Save Bookmark */}
             {onSaveBookmark && (
@@ -392,12 +414,13 @@ function VideoControls({
 
       {/* Episode Carousel (fullscreen only) */}
       {isFullscreen && (
-        <EpisodeCarousel
+        <ControlsEpisodeSlider
           episodes={episodes}
           currentEpisodeIndex={currentEpisodeIndex}
           showEpisodes={showEpisodes}
           onEpisodeSelect={handleEpisodeSelect}
           onMenuOpenChange={onMenuOpenChange}
+          bookmarkedEpisodeId={bookmarkedEpisodeId}
         />
       )}
 
@@ -414,7 +437,9 @@ function VideoControls({
         onSkipTimeChange={(time) => {
           skipManager.setSkipTime(time);
           setSkipTime(time);
+          onSkipTimeChange?.(time); // Notify parent component
         }}
+        showEpisodes={showEpisodes}
       />
     </>
   );
@@ -423,6 +448,8 @@ function VideoControls({
 VideoControls.defaultProps = {
   onSaveBookmark: undefined,
   hasBookmark: false,
+  onSkipTimeChange: undefined,
+  bookmarkedEpisodeId: null,
 };
 
 export default VideoControls;

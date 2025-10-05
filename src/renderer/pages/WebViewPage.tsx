@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Box } from '@mui/material';
-import CustomToolbar from './Toolbar';
+import CustomToolbar from '../components/Toolbar';
 import { extractAuthToken, injectClickInterceptor } from '../scripts';
 import { WebViewManager, ScriptInjectionManager } from '../services/webview';
 

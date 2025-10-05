@@ -69,140 +69,190 @@ function PlayerSidebarRefactored({
       sx={{
         width: '260px',
         height: 'calc(100% - 16px)',
-        borderRadius: 2,
         margin: 1,
-        backgroundColor: theme.palette.customColors.dtPrimaryColor,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
+        boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
+        borderRadius: 2,
       }}
     >
-      {/* Header */}
       <Box
         sx={{
-          p: 1.5,
-          borderBottom: `1px solid ${theme.palette.customColors.dtBorderColor}`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          backgroundColor: theme.palette.customColors.dtPrimaryColor,
+          mb: 1,
+          borderRadius: 2,
         }}
       >
-        <Typography
-          variant="subtitle1"
+        {/* Header */}
+        <Box
           sx={{
-            color: theme.palette.customColors.dtPrimaryTextColor,
-            fontWeight: 600,
+            p: 1.5,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}
         >
-          Озвучка
-        </Typography>
+          <Typography
+            variant="subtitle1"
+            sx={{
+              color: theme.palette.customColors.dtPrimaryTextColor,
+              fontWeight: 600,
+            }}
+          >
+            Озвучка
+          </Typography>
 
-        {/* Save bookmark button */}
-        {onSaveBookmark && (
-          <Tooltip title="Сохранить закладку" placement="left">
-            <IconButton
-              onClick={onSaveBookmark}
-              size="small"
-              sx={{
-                color: hasBookmark
-                  ? '#7C3AED'
-                  : theme.palette.customColors.dtPrimaryTextColor,
-                '&:hover': {
-                  backgroundColor: 'rgba(124, 58, 237, 0.1)',
-                  color: '#7C3AED',
-                },
-              }}
-            >
-              <BookmarkAddRounded fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        )}
-      </Box>
-
-      {/* Player type tabs */}
-      <Box
-        sx={{
-          borderBottom: `1px solid ${theme.palette.customColors.dtBorderColor}`,
-          height: '40px',
-        }}
-      >
-        <Tabs
-          value={tabValue}
-          onChange={handleTabChange}
-          variant="fullWidth"
-          TabIndicatorProps={{
-            style: {
-              display: 'flex',
-              justifyContent: 'center',
-              backgroundColor: 'transparent',
-              bottom: 3, // Приподнят на 1px от низа
-            },
-            children: (
-              <Box
+          {/* Save bookmark button */}
+          {onSaveBookmark && (
+            <Tooltip title="Сохранить закладку" placement="left">
+              <IconButton
+                onClick={onSaveBookmark}
+                size="small"
                 sx={{
-                  width: '70%', // 70% от ширины таба (подстраивается под текст)
-                  height: 3,
-                  backgroundColor: theme.palette.customColors.dtSecondaryColor,
-                  borderRadius: '8px', // Полностью скругленный
+                  color: hasBookmark
+                    ? '#7C3AED'
+                    : theme.palette.customColors.dtPrimaryTextColor,
+                  '&:hover': {
+                    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                    color: '#7C3AED',
+                  },
                 }}
-              />
-            ),
-          }}
+              >
+                <BookmarkAddRounded fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
+
+        {/* Player type tabs */}
+        <Box
           sx={{
-            minHeight: 11,
-            '& .MuiTabs-flexContainer': {
-              gap: 0,
-            },
+            height: '40px',
           }}
         >
-          {sortedPlayerTypes.map((playerType, index) => (
-            <Tab
-              key={playerType}
-              label={
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            variant="fullWidth"
+            TabIndicatorProps={{
+              style: {
+                display: 'flex',
+                justifyContent: 'center',
+                backgroundColor: 'transparent',
+                bottom: 3, // Приподнят на 1px от низа
+              },
+              children: (
                 <Box
                   sx={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 0.5,
+                    width: '70%', // 70% от ширины таба (подстраивается под текст)
+                    height: 3,
+                    backgroundColor:
+                      theme.palette.customColors.dtSecondaryColor,
+                    borderRadius: '8px', // Полностью скругленный
                   }}
-                >
-                  <Typography
-                    variant="body2"
+                />
+              ),
+            }}
+            sx={{
+              minHeight: 11,
+              '& .MuiTabs-flexContainer': {
+                gap: 0,
+              },
+            }}
+          >
+            {sortedPlayerTypes.map((playerType, index) => (
+              <Tab
+                key={playerType}
+                disableRipple={false}
+                TouchRippleProps={{
+                  style: {
+                    color: theme.palette.customColors.dtSecondaryColor,
+                  },
+                }}
+                label={
+                  <Box
                     sx={{
-                      fontSize: '0.8125rem',
-                      fontWeight: tabValue === index ? 600 : 500,
-                      textTransform: 'none',
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 0.5,
                     }}
                   >
-                    {playerType}
-                  </Typography>
-                </Box>
-              }
-              sx={{
-                minHeight: 40,
-                padding: '8px 12px',
-                color: theme.palette.customColors.dtPrimaryTextColor,
-                '&.Mui-selected': {
-                  color: theme.palette.customColors.dtSecondaryColor,
-                },
-                '&:hover': {
-                  backgroundColor:
-                    theme.palette.customColors.dtAlphaPrimaryColor,
-                },
-                transition: 'all 0.2s ease',
-              }}
-            />
-          ))}
-        </Tabs>
+                    <Typography
+                      variant="body2"
+                      className="tab-text"
+                      sx={{
+                        fontSize: '0.8125rem',
+                        fontWeight: tabValue === index ? 600 : 500,
+                        textTransform: 'none',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        position: 'relative',
+                        zIndex: 1,
+                      }}
+                    >
+                      {playerType}
+                    </Typography>
+                  </Box>
+                }
+                sx={{
+                  minHeight: 40,
+                  padding: '8px 12px',
+                  color: theme.palette.customColors.dtPrimaryTextColor,
+                  borderRadius: '8px',
+                  margin: '0 4px',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&.Mui-selected': {
+                    color: theme.palette.customColors.dtSecondaryColor,
+                    '&::before': {
+                      opacity: 1,
+                      transform: 'scale(1)',
+                    },
+                  },
+                  '&:hover': {
+                    backgroundColor: `${theme.palette.customColors.dtSecondaryColor}08`,
+                    transform: 'translateY(-1px)',
+                    '&::before': {
+                      opacity: 0.3,
+                    },
+                    '& .tab-text': {
+                      '&::after': {
+                        width: '60%',
+                      },
+                    },
+                  },
+                  '&:active': {
+                    transform: 'scale(0.86)',
+                    transition: 'all 0.1s ease',
+                  },
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: `linear-gradient(135deg, ${theme.palette.customColors.dtSecondaryColor}20, ${theme.palette.customColors.dtSecondaryColor}05)`,
+                    borderRadius: '8px',
+                    opacity: 0,
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    zIndex: -1,
+                  },
+                }}
+              />
+            ))}
+          </Tabs>
+        </Box>
       </Box>
-
       {/* Player list */}
       <Box
         sx={{
           flex: 1,
           overflow: 'auto',
           position: 'relative',
+          backgroundColor: theme.palette.customColors.dtPrimaryColor,
+          borderRadius: 2,
           '&::-webkit-scrollbar': {
             width: '8px',
           },
@@ -263,19 +313,29 @@ function PlayerSidebarRefactored({
                 <Button
                   key={player.id}
                   onClick={() => onPlayerSelect(player)}
+                  disableRipple={false}
+                  TouchRippleProps={{
+                    style: {
+                      color: theme.palette.customColors.dtSecondaryColor,
+                    },
+                  }}
                   sx={{
                     width: '100%',
                     height: '40px',
                     gap: 1,
                     justifyContent: 'space-between',
                     alignItems: 'center',
+                    '&:active': {
+                      transform: 'scale(0.96)',
+                      transition: 'all 0.1s ease',
+                    },
                   }}
                 >
                   <Typography
                     variant="body2"
                     sx={{
                       padding: '6px 12px',
-                      borderRadius: '8px',
+                      borderRadius: 2,
                       width: '100%',
                       textAlign: 'left',
                       fontWeight: 500,
@@ -299,10 +359,9 @@ function PlayerSidebarRefactored({
                       sx={{
                         color: theme.palette.customColors.dtSecondaryTextColor,
                         padding: '2px 8px',
-                        borderRadius: '4px',
+                        borderRadius: 2,
                         fontSize: '0.625rem',
-                        fontWeight: 600,
-                        backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                        fontWeight: 700,
                         border: `1px solid rgba(124, 58, 237, 0.3)`,
                       }}
                     >
@@ -348,4 +407,4 @@ PlayerSidebarRefactored.defaultProps = {
   hasBookmark: false,
 };
 
-export default PlayerSidebarRefactored;
+export default React.memo(PlayerSidebarRefactored);

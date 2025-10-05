@@ -10,14 +10,20 @@ import React, {
 import 'shaka-player/dist/controls.css';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import { PlayArrow, Pause } from '@mui/icons-material';
-import { Player, KodikVideoLinks, AnimeInfo, animeApi } from '../api/animeApi';
+import {
+  Player,
+  KodikVideoLinks,
+  AnimeInfo,
+  animeApi,
+} from '../../api/animeApi';
 import VideoControls from './VideoControls';
 import AnimeInfoComponent from './AnimeInfo';
 import {
+  SkipManager,
   VideoPlayerController,
   VideoState,
   QualityOption,
-} from '../services/player';
+} from '../../services/player';
 
 interface VideoPlayerProps {
   onError: (error: string) => void;
@@ -34,6 +40,8 @@ interface VideoPlayerProps {
   onSaveBookmark?: (episodeId: number, currentTime: number) => void; // Callback для сохранения закладки
   // eslint-disable-next-line react/require-default-props
   hasBookmark?: boolean; // Есть ли сохраненная закладка для текущего эпизода
+  // eslint-disable-next-line react/require-default-props
+  bookmarkedEpisodeId?: number | null; // ID эпизода с закладкой для визуального индикатора
 }
 
 interface VideoPlayerRef {
@@ -61,6 +69,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       onTimecodeApplied,
       onSaveBookmark,
       hasBookmark = false,
+      bookmarkedEpisodeId = null,
     },
     ref,
   ) => {
@@ -110,6 +119,10 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     // Autoplay state - track if this is the first load
     const isFirstLoadRef = useRef<boolean>(true);
 
+    // Skip Manager
+    const [skipManager] = useState(() => new SkipManager());
+    const [skipTime, setSkipTime] = useState(skipManager.getSkipTime());
+
     // Initialize controller
     useEffect(() => {
       const initController = async () => {
@@ -120,6 +133,13 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
         console.log('[VideoPlayer] Initializing controller...');
 
+        // Get initial skipTime from storage
+        const initialSkipTime = skipManager.getSkipTime();
+        console.log(
+          '[VideoPlayer] Initial skip time from storage:',
+          initialSkipTime,
+        );
+
         const controller = new VideoPlayerController({
           onError,
           onLoadingChange: setIsLoading,
@@ -128,6 +148,15 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           },
           onQualityOptionsChange: setQualityOptions,
           onSelectedQualityChange: setSelectedQuality,
+          onKeyPress: () => {
+            // Show controls when hotkey is pressed
+            setShowControls(true);
+          },
+          onSkipForward: (seconds: number) => {
+            // Handle custom skip forward
+            controllerRef.current?.getStateManager().skip(seconds);
+          },
+          skipTime: initialSkipTime, // Load from localStorage
         });
 
         const success = await controller.initialize(
@@ -154,7 +183,18 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         }
         setIsControllerReady(false);
       };
-    }, [onError]);
+    }, [onError, skipManager]);
+
+    // Update skipTime in KeyboardManager when it changes
+    useEffect(() => {
+      if (controllerRef.current) {
+        // Update the skipTime in KeyboardManager config
+        const keyboardManager = controllerRef.current.getKeyboardManager();
+        if (keyboardManager) {
+          keyboardManager.updateConfig({ skipTime });
+        }
+      }
+    }, [skipTime]);
 
     // Process pending load when controller becomes ready
     useEffect(() => {
@@ -539,6 +579,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           minHeight: '300px',
           backgroundColor: '#1c1c1c',
           overflow: 'hidden',
+          cursor: showControls ? 'default' : 'none',
           '&:hover': {
             '& .player-controls': {
               opacity: 1,
@@ -574,6 +615,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             display: 'block',
             visibility: 'visible',
             backgroundColor: '#000',
+            cursor: 'inherit',
           }}
           onClick={handlePlayerClick}
           onDoubleClick={handlePlayerDoubleClick}
@@ -595,6 +637,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               justifyContent: 'center',
               backgroundColor: '#0a0a0a',
               zIndex: 999,
+              cursor: 'inherit',
             }}
           >
             <Typography
@@ -622,6 +665,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               backgroundColor: 'rgba(28, 28, 28, 0.7)',
               zIndex: 1000,
               backdropFilter: 'blur(2px)',
+              cursor: 'inherit',
             }}
           >
             <CircularProgress color="secondary" size={50} />
@@ -637,6 +681,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               left: '50%',
               transform: 'translate(-50%, -50%)',
               zIndex: 1001,
+              cursor: 'inherit',
               animation: 'centerIconAnimation 1.2s ease-out',
               '@keyframes centerIconAnimation': {
                 '0%': {
@@ -718,9 +763,11 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             onQualityChange={handleQualityChange}
             onPlaybackRateChange={handlePlaybackRateChange}
             onSkipForward={handleSkipForward}
+            onSkipTimeChange={setSkipTime}
             episodes={episodes}
             currentEpisodeIndex={currentEpisodeIndex}
             onEpisodeSelect={onEpisodeSelect}
+            bookmarkedEpisodeId={bookmarkedEpisodeId}
             onMouseMove={() => {
               if (!showControls) {
                 setShowControls(true);

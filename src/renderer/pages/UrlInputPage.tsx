@@ -6,7 +6,7 @@ interface UrlInputProps {
   onSubmit: (url: string) => void;
 }
 
-function UrlInput({ onSubmit }: UrlInputProps) {
+function UrlInputPage({ onSubmit }: UrlInputProps) {
   const [url, setUrl] = useState<string>('https://v3.animelib.org');
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -190,4 +190,4 @@ function UrlInput({ onSubmit }: UrlInputProps) {
   );
 }
 
-export default UrlInput;
+export default UrlInputPage;

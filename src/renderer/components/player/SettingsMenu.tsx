@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, MenuItem, IconButton, Typography, useTheme } from '@mui/material';
+import { Box, MenuItem, IconButton, Typography } from '@mui/material';
 import {
   ArrowBackRounded,
   CheckRounded,
@@ -22,6 +22,7 @@ interface SettingsMenuProps {
   onQualityChange: (quality: string) => void;
   onPlaybackRateChange: (rate: number) => void;
   onSkipTimeChange: (time: number) => void;
+  showEpisodes: boolean;
 }
 
 type MenuPage = 'main' | 'quality' | 'speed' | 'skip';
@@ -39,9 +40,9 @@ function SettingsMenu({
   onQualityChange,
   onPlaybackRateChange,
   onSkipTimeChange,
+  showEpisodes = false,
 }: SettingsMenuProps) {
   const [currentPage, setCurrentPage] = useState<MenuPage>('main');
-  const theme = useTheme();
   const handleQualityChange = (quality: string) => {
     onQualityChange(quality);
     onClose();
@@ -94,11 +95,12 @@ function SettingsMenu({
       <Box
         sx={{
           position: 'absolute',
-          bottom: 70,
+          bottom: showEpisodes ? 120 : 70,
           right: 16,
           zIndex: 2000,
           py: 1,
-          backgroundColor: 'rgba(116, 116, 128, 0.49)',
+          transition: 'bottom 0.3s ease-in-out',
+          backgroundColor: 'rgba(20, 20, 20, 0.68)',
           border: '1px solid rgba(116, 116, 128, 0.33)',
           color: 'white',
           minWidth: 200,
@@ -137,7 +139,7 @@ function SettingsMenu({
                 px: 1.5,
                 minHeight: 'auto',
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
                 },
               }}
             >
@@ -188,7 +190,7 @@ function SettingsMenu({
                 px: 1.5,
                 minHeight: 'auto',
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
                 },
               }}
             >
@@ -238,7 +240,7 @@ function SettingsMenu({
                 px: 1.5,
                 minHeight: 'auto',
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
                 },
               }}
             >
@@ -338,7 +340,7 @@ function SettingsMenu({
                     backgroundColor: 'rgba(255, 255, 255, 0.08)',
                   },
                   '&.Mui-selected': {
-                    backgroundColor: 'rgba(124, 58, 237, 0.16)',
+                    backgroundColor: 'rgba(124, 58, 237, 0.25)',
                     color: '#BB86FC',
                   },
                 }}
@@ -442,7 +444,7 @@ function SettingsMenu({
                     backgroundColor: 'rgba(255, 255, 255, 0.08)',
                   },
                   '&.Mui-selected': {
-                    backgroundColor: 'rgba(124, 58, 237, 0.16)',
+                    backgroundColor: 'rgba(124, 58, 237, 0.25)',
                     color: '#BB86FC',
                   },
                 }}
@@ -563,8 +565,8 @@ function SettingsMenu({
                         borderRadius: 1,
                         cursor: 'pointer',
                         backgroundColor: isSelected
-                          ? 'rgba(124, 58, 237, 0.2)'
-                          : 'rgba(255, 255, 255, 0.05)',
+                          ? 'rgba(124, 58, 237, 0.3)'
+                          : 'rgba(255, 255, 255, 0.1)',
                         border: isSelected
                           ? '1px solid #BB86FC'
                           : '1px solid transparent',
@@ -577,8 +579,8 @@ function SettingsMenu({
                         transition: 'all 0.15s ease',
                         '&:hover': {
                           backgroundColor: isSelected
-                            ? 'rgba(124, 58, 237, 0.3)'
-                            : 'rgba(255, 255, 255, 0.1)',
+                            ? 'rgba(124, 58, 237, 0.4)'
+                            : 'rgba(255, 255, 255, 0.15)',
                         },
                       }}
                     >
@@ -621,8 +623,8 @@ function SettingsMenu({
                         borderRadius: 1,
                         cursor: 'pointer',
                         backgroundColor: isSelected
-                          ? 'rgba(124, 58, 237, 0.2)'
-                          : 'rgba(255, 255, 255, 0.05)',
+                          ? 'rgba(124, 58, 237, 0.3)'
+                          : 'rgba(255, 255, 255, 0.1)',
                         border: isSelected
                           ? '1px solid #BB86FC'
                           : '1px solid transparent',
@@ -635,8 +637,8 @@ function SettingsMenu({
                         transition: 'all 0.15s ease',
                         '&:hover': {
                           backgroundColor: isSelected
-                            ? 'rgba(124, 58, 237, 0.3)'
-                            : 'rgba(255, 255, 255, 0.1)',
+                            ? 'rgba(124, 58, 237, 0.4)'
+                            : 'rgba(255, 255, 255, 0.15)',
                         },
                       }}
                     >
@@ -652,7 +654,7 @@ function SettingsMenu({
               sx={{
                 mx: 1.5,
                 mb: 1,
-                backgroundColor: 'rgba(124, 58, 237, 0.12)',
+                backgroundColor: 'rgba(124, 58, 237, 0.2)',
                 borderRadius: 1,
                 px: 1.5,
                 py: 1,

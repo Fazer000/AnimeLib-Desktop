@@ -227,6 +227,13 @@ export class BookmarkManager {
   }
 
   /**
+   * Получить ID эпизода с закладкой
+   */
+  public getBookmarkedEpisodeId(): number | null {
+    return this.currentBookmark ? this.currentBookmark.item_id : null;
+  }
+
+  /**
    * Сохранить закладку на сервер
    * Note: This is not static because it's used as instance method by components
    */
