@@ -18,12 +18,19 @@ import {
 } from '../../api/animeApi';
 import VideoControls from './VideoControls';
 import AnimeInfoComponent from './AnimeInfo';
+import EpisodeNavigationHint from './EpisodeNavigationHint';
 import {
   SkipManager,
   VideoPlayerController,
   VideoState,
   QualityOption,
 } from '../../services/player';
+
+interface TimeCode {
+  type: 'opening' | 'ending';
+  from: number;
+  to: number;
+}
 
 interface VideoPlayerProps {
   onError: (error: string) => void;
@@ -42,6 +49,20 @@ interface VideoPlayerProps {
   hasBookmark?: boolean; // Есть ли сохраненная закладка для текущего эпизода
   // eslint-disable-next-line react/require-default-props
   bookmarkedEpisodeId?: number | null; // ID эпизода с закладкой для визуального индикатора
+  // eslint-disable-next-line react/require-default-props
+  autoplayEnabled?: boolean; // Включено ли автопроизведение
+  // eslint-disable-next-line react/require-default-props
+  onAutoplayChange?: (enabled: boolean) => void; // Callback для изменения настройки автопроизведения
+  // eslint-disable-next-line react/require-default-props
+  selectedPlayer?: {
+    id: number;
+    player: string;
+    team: {
+      name: string;
+    };
+  } | null; // Выбранная озвучка
+  // eslint-disable-next-line react/require-default-props
+  timecode?: TimeCode[]; // Сегменты для пропуска (опенинг, эндинг)
 }
 
 interface VideoPlayerRef {
@@ -70,6 +91,10 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       onSaveBookmark,
       hasBookmark = false,
       bookmarkedEpisodeId = null,
+      autoplayEnabled = false,
+      onAutoplayChange,
+      selectedPlayer = null,
+      timecode = [],
     },
     ref,
   ) => {
@@ -122,6 +147,9 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     // Skip Manager
     const [skipManager] = useState(() => new SkipManager());
     const [skipTime, setSkipTime] = useState(skipManager.getSkipTime());
+
+    // Timecode segments
+    const [currentSegment, setCurrentSegment] = useState<TimeCode | null>(null);
 
     // Initialize controller
     useEffect(() => {
@@ -352,6 +380,44 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       };
     }, [currentPlayerData, initialTimecode]);
 
+    // Auto-advance to next episode when video ends (if autoplay enabled)
+    useEffect(() => {
+      const video = videoRef.current;
+
+      if (!video || !autoplayEnabled) {
+        return undefined;
+      }
+
+      const handleVideoEnded = () => {
+        console.log(
+          '[VideoPlayer] Video ended, autoplay enabled, checking for next episode',
+        );
+
+        const hasNextEpisode = currentEpisodeIndex < episodes.length - 1;
+
+        if (hasNextEpisode) {
+          console.log(
+            '[VideoPlayer] Auto-advancing to next episode:',
+            currentEpisodeIndex + 1,
+          );
+          onEpisodeSelect(currentEpisodeIndex + 1);
+        } else {
+          console.log('[VideoPlayer] No more episodes to auto-advance to');
+        }
+      };
+
+      video.addEventListener('ended', handleVideoEnded);
+
+      return () => {
+        video.removeEventListener('ended', handleVideoEnded);
+      };
+    }, [
+      autoplayEnabled,
+      currentEpisodeIndex,
+      episodes.length,
+      onEpisodeSelect,
+    ]);
+
     // Fullscreen change handler
     useEffect(() => {
       const handleFullscreenChange = () => {
@@ -365,6 +431,21 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           handleFullscreenChange,
         );
     }, []);
+
+    // Check for active segment based on current time
+    useEffect(() => {
+      if (!timecode || timecode.length === 0) {
+        setCurrentSegment(null);
+        return;
+      }
+
+      const { currentTime } = videoState;
+      const activeSegment = timecode.find(
+        (segment) => currentTime >= segment.from && currentTime <= segment.to,
+      );
+
+      setCurrentSegment(activeSegment || null);
+    }, [videoState, timecode]);
 
     // Auto-hide controls
     useEffect(() => {
@@ -568,6 +649,13 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       [handleToggleFullscreen],
     );
 
+    const handleSkipSegment = useCallback(() => {
+      if (!currentSegment) return;
+
+      console.log(`[VideoPlayer] Skipping ${currentSegment.type} segment`);
+      handleSeek(currentSegment.to + 1);
+    }, [currentSegment, handleSeek]);
+
     return (
       <Box
         ref={containerRef}
@@ -599,6 +687,12 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           animeInfo={animeInfo}
           show={showControls}
           episodeName={episodeName || ''}
+          episodeNumber={
+            episodes[currentEpisodeIndex]
+              ? parseInt(episodes[currentEpisodeIndex].number, 10)
+              : 0
+          }
+          selectedPlayer={selectedPlayer || null}
         />
 
         {/* Video element */}
@@ -737,6 +831,15 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           </Box>
         )}
 
+        {/* Episode Navigation Hints */}
+        <EpisodeNavigationHint
+          currentEpisodeIndex={currentEpisodeIndex}
+          totalEpisodes={episodes.length}
+          onEpisodeSelect={onEpisodeSelect}
+          showControls={showControls}
+          episodes={episodes}
+        />
+
         {/* Custom controls */}
         {showControls && (
           <VideoControls
@@ -768,6 +871,11 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             currentEpisodeIndex={currentEpisodeIndex}
             onEpisodeSelect={onEpisodeSelect}
             bookmarkedEpisodeId={bookmarkedEpisodeId}
+            autoplayEnabled={autoplayEnabled}
+            onAutoplayChange={onAutoplayChange}
+            timecode={timecode}
+            currentSegment={currentSegment}
+            onSkipSegment={handleSkipSegment}
             onMouseMove={() => {
               if (!showControls) {
                 setShowControls(true);

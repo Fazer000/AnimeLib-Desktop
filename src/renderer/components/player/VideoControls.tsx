@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import React, { useState, useEffect } from 'react';
-import { Box, IconButton, Tooltip, useTheme } from '@mui/material';
+import { Box, IconButton, Tooltip, useTheme, Button } from '@mui/material';
 import {
   TuneRounded,
   FullscreenRounded,
@@ -17,6 +17,12 @@ import ControlsEpisodeSlider from './ControlsEpisodeSlider';
 import SettingsMenu from './SettingsMenu';
 import { SkipManager } from '../../services/player';
 
+interface TimeCode {
+  type: 'opening' | 'ending';
+  from: number;
+  to: number;
+}
+
 interface VideoControlsProps {
   // Состояние плеера
   isPlaying: boolean;
@@ -29,6 +35,8 @@ interface VideoControlsProps {
   isFullscreen: boolean;
   showControls: boolean;
   onMenuOpenChange: (isOpen: boolean) => void;
+  autoplayEnabled?: boolean;
+  onAutoplayChange?: (enabled: boolean) => void;
 
   // Опции качества
   qualityOptions: Array<{
@@ -68,6 +76,11 @@ interface VideoControlsProps {
   // Сохранение закладки
   onSaveBookmark?: () => void;
   hasBookmark?: boolean;
+
+  // Сегменты (опенинг, эндинг)
+  timecode: TimeCode[];
+  currentSegment?: TimeCode | null;
+  onSkipSegment?: () => void;
 }
 
 /**
@@ -109,6 +122,11 @@ function VideoControls({
   onProgressMouseLeave,
   onSeek,
   hoverTime,
+  autoplayEnabled = false,
+  onAutoplayChange,
+  timecode = [],
+  currentSegment,
+  onSkipSegment,
 }: VideoControlsProps) {
   const theme = useTheme();
   // UI State
@@ -192,9 +210,65 @@ function VideoControls({
           height: '40%',
           width: '100%',
           background:
-            'linear-gradient(to bottom, rgba(0, 0, 0, 0.27) 5%, rgba(0, 0, 0, 0) 100%)',
+            'linear-gradient(to bottom, rgba(0, 0, 0, 0.53) 5%, rgba(0, 0, 0, 0) 100%)',
         }}
       />
+
+      {/* Skip Segment Button */}
+      {currentSegment && showControls && onSkipSegment && (
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: showEpisodes ? 135 : 85,
+            right: isFullscreen ? 70 : 16,
+            zIndex: 900,
+            opacity: showControls ? 1 : 0,
+            transition: 'opacity, bottom 0.3s ease-in-out',
+            animation: 'fadeInSlideUp 0.3s ease-out',
+            '@keyframes fadeInSlideUp': {
+              from: {
+                opacity: 0,
+                transform: 'translateY(10px)',
+              },
+              to: {
+                opacity: 1,
+                transform: 'translateY(0)',
+              },
+            },
+          }}
+          onMouseMove={onMouseMove}
+        >
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              onSkipSegment();
+            }}
+            sx={{
+              backgroundColor: 'rgba(20, 20, 20, 0.45)',
+              border: '1px solid rgba(116, 116, 128, 0.33)',
+              color: theme.palette.customColors.dtPrimaryTextColor,
+              padding: '10px 20px',
+              borderRadius: 2,
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 500,
+              px: 2,
+              py: 0.5,
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                backgroundColor: 'rgba(116, 116, 128, 0.3)',
+              },
+              '&:active': {
+                transform: 'scale(0.96)',
+              },
+            }}
+          >
+            {currentSegment.type === 'opening'
+              ? 'Пропустить опенинг'
+              : 'Пропустить эндинг'}
+          </Button>
+        </Box>
+      )}
 
       {/* Episodes button (above progress bar) */}
       {isFullscreen && episodes && episodes.length > 0 && (
@@ -266,6 +340,7 @@ function VideoControls({
           onSeek={onSeek}
           onProgressMouseMove={onProgressMouseMove}
           onProgressMouseLeave={onProgressMouseLeave}
+          timecode={timecode}
         />
 
         {/* Main controls row */}
@@ -440,6 +515,8 @@ function VideoControls({
           onSkipTimeChange?.(time); // Notify parent component
         }}
         showEpisodes={showEpisodes}
+        autoplayEnabled={autoplayEnabled}
+        onAutoplayChange={onAutoplayChange}
       />
     </>
   );
@@ -450,6 +527,10 @@ VideoControls.defaultProps = {
   hasBookmark: false,
   onSkipTimeChange: undefined,
   bookmarkedEpisodeId: null,
+  autoplayEnabled: false,
+  onAutoplayChange: undefined,
+  currentSegment: null,
+  onSkipSegment: undefined,
 };
 
 export default VideoControls;

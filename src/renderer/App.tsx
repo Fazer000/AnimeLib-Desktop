@@ -327,6 +327,23 @@ function App() {
             setPlayerUrl(null);
             setAnimeId(null);
           }}
+          onHome={() => {
+            console.log('[App] Player home button clicked');
+
+            // Переходим на главную страницу сайта
+            const homeUrl = localStorage.getItem('animeLibUrl');
+            if (homeUrl) {
+              console.log('[App] Navigating to home URL:', homeUrl);
+              setSavedUrl(homeUrl);
+            } else {
+              console.warn('[App] No home URL found in localStorage');
+              // Fallback на дефолтный URL
+              setSavedUrl('https://v3.animelib.org/');
+            }
+
+            setPlayerUrl(null);
+            setAnimeId(null);
+          }}
         />
       </ThemeProvider>
     );

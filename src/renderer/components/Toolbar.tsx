@@ -10,7 +10,7 @@ import AnimeInfoCard from './toolbar/AnimeInfoCard';
  * Props for Toolbar component
  */
 interface ToolbarProps {
-  // ==================== Navigation ====================
+  // Navigation
   onBack?: () => void;
   onForward?: () => void;
   onRefresh?: () => void;
@@ -18,37 +18,32 @@ interface ToolbarProps {
   canGoBack?: boolean;
   canGoForward?: boolean;
 
-  // ==================== Display ====================
-  title?: string;
+  // Display
   currentUrl?: string;
-  selectedPlayer?: {
-    id: number;
-    player: string;
-    team: {
-      name: string;
-    };
-  } | null;
 
-  // ==================== URL Input ====================
+  // URL Input
   showUrlInput?: boolean;
   onUrlChange?: (url: string) => void;
   onToggleUrlInput?: () => void;
 
-  // ==================== Player Controls ====================
+  // Player Controls
   showPlayButton?: boolean;
   isPlaying?: boolean;
   onPlayPause?: () => void;
 
-  // ==================== Window Controls ====================
+  // Window Controls
   onMinimize?: () => void;
   onMaximize?: () => void;
   onClose?: () => void;
 
-  // ==================== Styling ====================
+  // Styling
   backgroundColor?: string;
   height?: number;
 
-  // ==================== Anime Info ====================
+  // Page State
+  isPlayerPage?: boolean;
+
+  // Anime Info
   animeId?: string;
 }
 
@@ -78,7 +73,7 @@ interface ToolbarProps {
  * ```
  */
 function ToolbarRefactored({
-  // Navigation props
+  // Navigation
   onBack,
   onForward,
   onRefresh,
@@ -86,31 +81,32 @@ function ToolbarRefactored({
   canGoBack = false,
   canGoForward = false,
 
-  // Display props
-  title,
+  // Display
   currentUrl = '',
-  selectedPlayer,
 
-  // URL input props
+  // URL Input
   showUrlInput = false,
   onUrlChange,
   onToggleUrlInput,
 
-  // Player control props
+  // Player Controls
   showPlayButton = false,
   isPlaying = false,
   onPlayPause,
 
-  // Window control props
+  // Window Controls
   onMinimize,
   onMaximize,
   onClose,
 
-  // Styling props
+  // Styling
   backgroundColor = '#252527',
   height = 32,
 
-  // Anime info props
+  // Page State
+  isPlayerPage = false,
+
+  // Anime Info
   animeId,
 }: ToolbarProps) {
   const [showAnimeInfo, setShowAnimeInfo] = useState<boolean>(false);
@@ -137,10 +133,10 @@ function ToolbarRefactored({
           backgroundColor: `${backgroundColor} !important`,
           WebkitAppRegion: 'drag',
           appRegion: 'drag',
-          borderRadius: selectedPlayer ? '0 0 16px 16px' : '0',
+          borderRadius: isPlayerPage ? '0 0 16px 16px' : '0',
           minHeight: height,
           height,
-          boxShadow: 'none !important',
+          boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
           border: 'none !important',
           '--Paper-shadow': 'none !important',
           '--Paper-overlay': 'none !important',
@@ -162,7 +158,7 @@ function ToolbarRefactored({
             gap: 0.5,
           }}
         >
-          {/* ==================== Left Section: Navigation ==================== */}
+          {/* Left Section: Navigation */}
           <NavigationButtons
             onBack={onBack}
             onForward={onForward}
@@ -175,17 +171,15 @@ function ToolbarRefactored({
             onPlayPause={onPlayPause}
           />
 
-          {/* ==================== Center Section: URL Bar ==================== */}
+          {/* Center Section: URL Bar */}
           <UrlBar
-            title={title}
             currentUrl={currentUrl}
             showUrlInput={showUrlInput}
             onUrlChange={onUrlChange}
             onToggleUrlInput={onToggleUrlInput}
-            selectedPlayer={selectedPlayer}
           />
 
-          {/* ==================== Right Section: Window Controls ==================== */}
+          {/* Right Section: Window Controls */}
           <WindowControls
             onMinimize={onMinimize}
             onMaximize={onMaximize}
@@ -194,7 +188,7 @@ function ToolbarRefactored({
         </Toolbar>
       </AppBar>
 
-      {/* ==================== Invisible Hover Zone ==================== */}
+      {/* Invisible Hover Zone */}
       {animeId && (
         <Box
           onMouseEnter={handleShowAnimeInfo}
@@ -209,12 +203,12 @@ function ToolbarRefactored({
             margin: '0 auto',
             width: '60%',
             pointerEvents: 'auto',
-            // backgroundColor: 'rgba(255, 0, 0, 0.1)', // Debug: uncomment to see zone
+            // backgroundColor: 'rgba(255, 0, 0, 0.1)', // Debug
           }}
         />
       )}
 
-      {/* ==================== Anime Info Card ==================== */}
+      {/* Anime Info Card */}
       {animeId && (
         <AnimeInfoCard
           animeId={animeId}

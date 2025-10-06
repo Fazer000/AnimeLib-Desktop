@@ -214,6 +214,7 @@ function EpisodeSliderRefactored({
               color: theme.palette.customColors.dtSecondaryColor,
               width: 32,
               height: 32,
+              mb: 0.85,
               '&:hover': {
                 backgroundColor: 'rgba(0, 0, 0, 0.9)',
               },
@@ -232,6 +233,7 @@ function EpisodeSliderRefactored({
               top: 0,
               bottom: 0,
               width: 40,
+              mb: 0.85,
               background: `linear-gradient(to right, ${theme.palette.primary.dark}, transparent)`,
               zIndex: 1,
               pointerEvents: 'none',
@@ -294,7 +296,7 @@ function EpisodeSliderRefactored({
                   transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
                   mt: 1.25,
-                  mb: 1.25,
+                  mb: 2,
                   '&:hover': {
                     backgroundColor: isSelected
                       ? 'rgba(124, 58, 237, 0.2)'
@@ -370,6 +372,7 @@ function EpisodeSliderRefactored({
               top: 0,
               bottom: 0,
               width: 40,
+              mb: 0.85,
               background: `linear-gradient(to left, ${theme.palette.primary.dark}, transparent)`,
               zIndex: 1,
               pointerEvents: 'none',
@@ -385,6 +388,7 @@ function EpisodeSliderRefactored({
               position: 'absolute',
               right: 10,
               zIndex: 2,
+              mb: 0.85,
               backgroundColor: 'rgba(0, 0, 0, 0.7)',
               color: theme.palette.customColors.dtSecondaryColor,
               width: 32,

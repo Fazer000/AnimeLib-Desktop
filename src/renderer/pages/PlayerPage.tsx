@@ -14,6 +14,7 @@ interface PlayerPageProps {
   playerUrl: string;
   animeId: string;
   onBack: () => void;
+  onHome?: () => void;
 }
 
 /**
@@ -24,7 +25,7 @@ interface PlayerPageProps {
  * - EpisodeSlider component for episode navigation
  * - PlayerSidebar component for player/voice team list
  */
-function PlayerPageRefactored({ playerUrl, animeId, onBack }: PlayerPageProps) {
+function PlayerPageRefactored({ playerUrl, animeId, onBack, onHome }: PlayerPageProps) {
   const theme = useTheme();
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
@@ -50,6 +51,15 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack }: PlayerPageProps) {
   const [bookmarkedEpisodeId, setBookmarkedEpisodeId] = useState<number | null>(
     null,
   );
+
+  // Autoplay state
+  const [autoplayEnabled, setAutoplayEnabled] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('playerAutoplayEnabled') === 'true';
+    } catch {
+      return false;
+    }
+  });
 
   // Ref to track if player is already loaded (prevent double loading)
   const playerLoadedRef = useRef<boolean>(false);
@@ -423,6 +433,31 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack }: PlayerPageProps) {
   );
 
   /**
+   * Handle player refresh
+   */
+  const handleRefresh = useCallback(async () => {
+    console.log('[PlayerPage] Refreshing player');
+
+    if (!selectedPlayer || !videoPlayerRef.current) {
+      console.warn('[PlayerPage] Cannot refresh: no player selected');
+      return;
+    }
+
+    // Reset 404 error
+    setShow404(false);
+
+    // Reload current player
+    if (selectedPlayer.player === 'Kodik' && selectedPlayer.src) {
+      console.log('[PlayerPage] Refreshing Kodik player');
+      const kodikData = await loadKodikLinks(selectedPlayer.src);
+      videoPlayerRef.current.loadPlayer(selectedPlayer, kodikData);
+    } else {
+      console.log('[PlayerPage] Refreshing non-Kodik player');
+      videoPlayerRef.current.loadPlayer(selectedPlayer, null);
+    }
+  }, [selectedPlayer, loadKodikLinks]);
+
+  /**
    * Handle player type selection
    */
   const handlePlayerTypeSelect = useCallback((playerType: string) => {
@@ -446,12 +481,24 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack }: PlayerPageProps) {
   );
 
   /**
+   * Handle autoplay change
+   */
+  const handleAutoplayChange = useCallback((enabled: boolean) => {
+    setAutoplayEnabled(enabled);
+    try {
+      localStorage.setItem('playerAutoplayEnabled', enabled.toString());
+    } catch (error) {
+      console.error('[PlayerPage] Error saving autoplay setting:', error);
+    }
+  }, []);
+
+  /**
    * Handle back navigation - with auto-save bookmark
    */
-  const handleBack = useCallback(async () => {
+  const handleBack = useCallback(() => {
     console.log('[PlayerPage] Going back');
 
-    // Auto-save bookmark before leaving
+    // Auto-save bookmark in background (non-blocking)
     const currentEpisode = episodes[currentEpisodeIndex];
     if (
       currentEpisode &&
@@ -464,7 +511,7 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack }: PlayerPageProps) {
 
       if (currentTime > 0) {
         console.log(
-          '[PlayerPage] Auto-saving bookmark before exit:',
+          '[PlayerPage] Auto-saving bookmark in background:',
           currentTime,
         );
 
@@ -476,12 +523,17 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack }: PlayerPageProps) {
           item_number: currentEpisode.number,
         };
 
-        await bookmarkManager.saveBookmark(
-          animeId,
-          currentEpisode.id,
-          currentTime,
-          meta,
-        );
+        // Save bookmark in background without blocking navigation
+        bookmarkManager
+          .saveBookmark(animeId, currentEpisode.id, currentTime, meta)
+          .then(() => {
+            console.log('[PlayerPage] Bookmark saved successfully in background');
+            return null;
+          })
+          .catch((err) => {
+            console.error('[PlayerPage] Error saving bookmark in background:', err);
+            return null;
+          });
       }
     }
 
@@ -639,18 +691,20 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack }: PlayerPageProps) {
       >
         <CustomToolbar
           onBack={handleBack}
+          onRefresh={handleRefresh}
           onHome={() => {
-            const homeUrl = localStorage.getItem('animeLibUrl');
-            if (homeUrl) {
-              console.log('[PlayerPage] Navigating to home URL:', homeUrl);
+            console.log('[PlayerPage] Home button clicked');
+            if (onHome) {
+              onHome();
+            } else {
+              console.warn('[PlayerPage] onHome not provided, falling back to onBack');
               onBack();
             }
           }}
           canGoBack
-          title={selectedEpisode ? `Эпизод ${selectedEpisode.number}` : 'Плеер'}
           backgroundColor="#252527"
           height={32}
-          selectedPlayer={selectedPlayer}
+          isPlayerPage
           showUrlInput={showUrlInput}
           currentUrl={playerUrl}
           animeId={animeId}
@@ -767,6 +821,10 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack }: PlayerPageProps) {
                     onSaveBookmark={handleSaveBookmark}
                     hasBookmark={hasBookmark}
                     bookmarkedEpisodeId={bookmarkedEpisodeId}
+                    autoplayEnabled={autoplayEnabled}
+                    onAutoplayChange={handleAutoplayChange}
+                    selectedPlayer={selectedPlayer}
+                    timecode={selectedPlayer?.timecode || []}
                   />
                 </Box>
               </ErrorBoundary>

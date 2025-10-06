@@ -11,36 +11,25 @@ import {
 import { Link, Close } from '@mui/icons-material';
 
 interface UrlBarProps {
-  title?: string;
   currentUrl?: string;
   showUrlInput?: boolean;
   onUrlChange?: (url: string) => void;
   onToggleUrlInput?: () => void;
-  selectedPlayer?: {
-    id: number;
-    player: string;
-    team: {
-      name: string;
-    };
-  } | null;
 }
 
 /**
  * UrlBar - URL input and display component
  *
  * Features:
- * - Toggle between title/URL display and input field
+ * - Toggle between URL display and input field
  * - Enter key to submit
- * - Player info display
  * - URL validation
  */
 function UrlBar({
-  title,
   currentUrl = '',
   showUrlInput = false,
   onUrlChange,
   onToggleUrlInput,
-  selectedPlayer,
 }: UrlBarProps) {
   const [localUrl, setLocalUrl] = useState('');
 
@@ -164,12 +153,7 @@ function UrlBar({
               fontFamily: 'Open Sans, sans-serif',
             }}
           >
-            {title || currentUrl}
-            {selectedPlayer && (
-              <span style={{ color: '#7C3AED', marginLeft: 4 }}>
-                • {selectedPlayer.team?.name || selectedPlayer.player}
-              </span>
-            )}
+            {currentUrl}
           </Typography>
         )}
       </Box>
