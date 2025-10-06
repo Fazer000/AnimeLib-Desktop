@@ -1,10 +1,7 @@
 import React from 'react';
 import { Box, IconButton, Typography, Tooltip } from '@mui/material';
-import {
-  PlayArrowRounded,
-  PauseRounded,
-  SkipNextRounded,
-} from '@mui/icons-material';
+import { PlayArrowRounded, PauseRounded } from '@mui/icons-material';
+import KeyboardDoubleArrowRightRoundedIcon from '@mui/icons-material/KeyboardDoubleArrowRightRounded';
 import { formatTime } from '../../utils/videoHelpers';
 
 interface PlaybackControlsProps {
@@ -79,7 +76,7 @@ function PlaybackControls({
               transition: 'all 0.2s ease',
             }}
           >
-            <SkipNextRounded fontSize="small" />
+            <KeyboardDoubleArrowRightRoundedIcon fontSize="small" />
           </IconButton>
         </span>
       </Tooltip>

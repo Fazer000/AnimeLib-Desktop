@@ -1,16 +1,7 @@
+/* eslint-disable no-console */
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  CircularProgress,
-  useTheme,
-} from '@mui/material';
-import {
-  NotificationsOutlined,
-  BookmarkBorderOutlined,
-  Star,
-} from '@mui/icons-material';
+import { Box, Typography, CircularProgress } from '@mui/material';
+import { Star } from '@mui/icons-material';
 import { animeApi, AnimeInfo } from '../../api/animeApi';
 
 interface AnimeInfoCardProps {
@@ -30,7 +21,6 @@ function AnimeInfoCard({
   onMouseEnter,
   onMouseLeave,
 }: AnimeInfoCardProps) {
-  const theme = useTheme();
   const [animeInfo, setAnimeInfo] = useState<AnimeInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -97,7 +87,7 @@ function AnimeInfoCard({
       onMouseLeave={onMouseLeave}
       sx={{
         position: 'fixed',
-        top: 40,
+        top: 50,
         left: 0,
         right: 0,
         zIndex: 9999,
@@ -121,12 +111,11 @@ function AnimeInfoCard({
         sx={{
           width: '90%',
           maxWidth: '900px',
-          backgroundColor: theme.palette.customColors.dtHeaderColor,
-          backdropFilter: 'blur(10px)',
+          backgroundColor: 'rgba(35, 34, 34, 0.66)',
+          backdropFilter: 'blur(4px)',
+          border: '1px solid rgba(24, 24, 24, 0.35)',
           borderRadius: 2,
           padding: 2,
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
-          border: '1px solid rgba(116, 116, 128, 0.2)',
         }}
       >
         <Box sx={{ display: 'flex', gap: 3 }}>

@@ -6,9 +6,23 @@ interface AnimeInfoProps {
   animeInfo: AnimeInfo | null;
   show: boolean;
   episodeName: string;
+  episodeNumber: number;
+  selectedPlayer: {
+    id: number;
+    player: string;
+    team: {
+      name: string;
+    };
+  } | null;
 }
 
-function AnimeInfoComponent({ animeInfo, show, episodeName }: AnimeInfoProps) {
+function AnimeInfoComponent({
+  animeInfo,
+  show,
+  episodeName,
+  episodeNumber,
+  selectedPlayer,
+}: AnimeInfoProps) {
   if (!animeInfo) return null;
 
   return (
@@ -30,13 +44,34 @@ function AnimeInfoComponent({ animeInfo, show, episodeName }: AnimeInfoProps) {
         sx={{
           color: 'white',
           fontWeight: 600,
-          fontSize: '1rem',
+          fontSize: '1.5rem',
           textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
-          mb: 0.5,
+          mb: 1,
         }}
       >
         {animeInfo.rus_name || animeInfo.name}
       </Typography>
+
+      {/* Эпизод и озвучка */}
+      {(episodeNumber || selectedPlayer) && (
+        <Typography
+          variant="body2"
+          sx={{
+            color: 'rgba(255, 255, 255, 0.9)',
+            fontSize: '0.9rem',
+            textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
+            mb: 0.5,
+          }}
+        >
+          {episodeNumber && `Эпизод ${episodeNumber}`}
+          {episodeNumber && selectedPlayer && ' • '}
+          {selectedPlayer && (
+            <span style={{ color: '#BB86FC' }}>
+              {selectedPlayer.team?.name || selectedPlayer.player}
+            </span>
+          )}
+        </Typography>
+      )}
 
       {/* Название эпизода */}
       {episodeName && (
@@ -44,7 +79,7 @@ function AnimeInfoComponent({ animeInfo, show, episodeName }: AnimeInfoProps) {
           variant="body2"
           sx={{
             color: 'rgba(255, 255, 255, 0.8)',
-            fontSize: '0.9rem',
+            fontSize: '0.85rem',
             textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
             mb: 0.5,
             fontStyle: 'italic',

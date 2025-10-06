@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { Box, MenuItem, IconButton, Typography } from '@mui/material';
+import {
+  Box,
+  MenuItem,
+  IconButton,
+  Typography,
+  Switch,
+  Divider,
+} from '@mui/material';
 import {
   ArrowBackRounded,
   CheckRounded,
@@ -23,6 +30,8 @@ interface SettingsMenuProps {
   onPlaybackRateChange: (rate: number) => void;
   onSkipTimeChange: (time: number) => void;
   showEpisodes: boolean;
+  autoplayEnabled: boolean;
+  onAutoplayChange?: (enabled: boolean) => void;
 }
 
 type MenuPage = 'main' | 'quality' | 'speed' | 'skip';
@@ -41,6 +50,8 @@ function SettingsMenu({
   onPlaybackRateChange,
   onSkipTimeChange,
   showEpisodes = false,
+  autoplayEnabled,
+  onAutoplayChange,
 }: SettingsMenuProps) {
   const [currentPage, setCurrentPage] = useState<MenuPage>('main');
   const handleQualityChange = (quality: string) => {
@@ -225,7 +236,6 @@ function SettingsMenu({
                 </Typography>
               </Box>
             </MenuItem>
-
             {/* Skip */}
             <MenuItem
               onClick={(e) => {
@@ -273,6 +283,69 @@ function SettingsMenu({
                 >
                   ›
                 </Typography>
+              </Box>
+            </MenuItem>
+
+            <Divider />
+
+            {/* Autoplay */}
+            <MenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                onAutoplayChange?.(!autoplayEnabled);
+              }}
+              sx={{
+                color: 'white',
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '0.875rem',
+                py: 0.75,
+                px: 1.5,
+                minHeight: 'auto',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                  gap: 1,
+                }}
+              >
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    Автовоспроизведение
+                  </Typography>
+                </Box>
+                <Switch
+                  checked={autoplayEnabled}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onAutoplayChange?.(e.target.checked);
+                  }}
+                  sx={{
+                    '& .MuiSwitch-switchBase': {
+                      color: '#BDBDBD',
+                      '&.Mui-checked': {
+                        color: '#BB86FC',
+                        '& + .MuiSwitch-track': {
+                          backgroundColor: 'rgba(187, 134, 252, 0.3)',
+                          border: '1px solid #BB86FC',
+                        },
+                      },
+                    },
+                    '& .MuiSwitch-track': {
+                      backgroundColor: 'rgba(189, 189, 189, 0.3)',
+                      border: '1px solid #BDBDBD',
+                    },
+                    '& .MuiSwitch-thumb': {
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                    },
+                  }}
+                  size="small"
+                />
               </Box>
             </MenuItem>
           </Box>
@@ -678,5 +751,9 @@ function SettingsMenu({
     </>
   );
 }
+
+SettingsMenu.defaultProps = {
+  onAutoplayChange: undefined,
+};
 
 export default SettingsMenu;

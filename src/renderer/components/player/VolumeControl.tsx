@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, IconButton, Slider, Tooltip, Fade } from '@mui/material';
 import { VolumeUpRounded, VolumeOffRounded } from '@mui/icons-material';
 
@@ -20,9 +20,18 @@ function VolumeControl({
   onVolumeChange,
   onToggleMute,
 }: VolumeControlProps) {
+  const [isDragging, setIsDragging] = useState(false);
+
   const handleVolumeChange = (event: Event, newValue: number | number[]) => {
     const vol = Array.isArray(newValue) ? newValue[0] : newValue;
+    if (!isDragging) {
+      setIsDragging(true);
+    }
     onVolumeChange(vol);
+  };
+
+  const handleChangeCommitted = () => {
+    setIsDragging(false);
   };
 
   return (
@@ -100,34 +109,49 @@ function VolumeControl({
         <Slider
           value={isMuted ? 0 : volume}
           onChange={handleVolumeChange}
+          onChangeCommitted={handleChangeCommitted}
           min={0}
           max={1}
           step={0.01}
           size="small"
           sx={{
             color: '#7C3AED',
+            cursor: 'pointer',
             '& .MuiSlider-thumb': {
               width: 12,
               height: 12,
-              backgroundColor: '#7C3AED',
-              border: '2px solid white',
+              backgroundColor: '#fff',
+              border: '2px solid #BB86FC',
               borderRadius: '50%',
+              transition: isDragging
+                ? 'none'
+                : 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+              willChange: isDragging ? 'left' : 'auto',
+              cursor: 'grab',
               '&:hover': {
                 width: 14,
                 height: 14,
                 boxShadow: 'none',
               },
-              transition: 'all 0.2s ease',
+              '&.Mui-active': {
+                width: 15,
+                height: 15,
+                cursor: 'grabbing',
+              },
             },
             '& .MuiSlider-track': {
-              height: 3,
-              background: 'linear-gradient(90deg, #7C3AED 0%, #A855F7 100%)',
-              borderRadius: 2,
+              height: 4,
+              background: '#7C3AED',
+              borderRadius: 10,
+              border: 'none',
+              transition: isDragging ? 'none' : 'width 0.1s ease',
+              willChange: isDragging ? 'width' : 'auto',
             },
             '& .MuiSlider-rail': {
-              height: 3,
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              borderRadius: 2,
+              height: 4,
+              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+              borderRadius: 10,
+              opacity: 1,
             },
           }}
         />

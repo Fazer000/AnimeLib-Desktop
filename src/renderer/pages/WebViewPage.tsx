@@ -326,6 +326,11 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
             width: '100%',
             height: '100%',
             border: 'none',
+            // Улучшения для качества рендера
+            WebkitFontSmoothing: 'antialiased',
+            MozOsxFontSmoothing: 'grayscale',
+            textRendering: 'optimizeLegibility',
+            imageRendering: 'crisp-edges',
           }}
           // eslint-disable-next-line react/no-unknown-property
           allowpopups

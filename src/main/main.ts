@@ -305,6 +305,11 @@ const createWindow = async () => {
       webSecurity: false,
       webviewTag: true,
       allowRunningInsecureContent: true,
+      // Улучшения для качества рендера
+      enableWebSQL: false,
+      spellcheck: false,
+      // Дополнительные настройки для производительности и качества
+      backgroundThrottling: false, // Не замедлять рендер в фоне
     },
   });
 
@@ -342,6 +347,17 @@ const createWindow = async () => {
 /**
  * Add event listeners...
  */
+
+// Параметры для улучшения качества рендера
+app.commandLine.appendSwitch('disable-frame-rate-limit'); // Отключить лимит FPS
+app.commandLine.appendSwitch('disable-gpu-vsync'); // Отключить вертикальную синхронизацию
+app.commandLine.appendSwitch('ignore-gpu-blacklist'); // Игнорировать черный список GPU
+app.commandLine.appendSwitch('enable-gpu-rasterization'); // Включить растеризацию на GPU
+app.commandLine.appendSwitch('enable-zero-copy'); // Включить zero-copy для улучшения производительности
+app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder'); // Аппаратное декодирование видео
+app.commandLine.appendSwitch('force-color-profile', 'srgb'); // Корректный цветовой профиль
+app.commandLine.appendSwitch('high-dpi-support', '1'); // Поддержка высокого DPI
+app.commandLine.appendSwitch('force-device-scale-factor', '1'); // Масштабирование устройства
 
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even

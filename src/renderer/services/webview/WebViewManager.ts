@@ -70,8 +70,36 @@ export class WebViewManager {
     this.isInitialized = true;
     console.log('[WebViewManager] WebView attached');
 
+    // Inject CSS for better rendering quality when DOM is ready
+    webview.addEventListener('dom-ready', () => {
+      this.injectRenderingImprovements();
+    });
+
     // Don't update state immediately - wait for dom-ready
     // State will be updated when navigation events occur
+  }
+
+  /**
+   * Inject CSS and settings for better rendering quality
+   */
+  private injectRenderingImprovements(): void {
+    if (!this.isReady()) {
+      return;
+    }
+
+    const css = `
+
+    `;
+
+    try {
+      this.webview.insertCSS(css);
+      console.log('[WebViewManager] Rendering improvements injected');
+    } catch (error) {
+      console.error(
+        '[WebViewManager] Error injecting rendering improvements:',
+        error,
+      );
+    }
   }
 
   /**

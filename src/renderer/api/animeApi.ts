@@ -186,18 +186,57 @@ const getAuthToken = (): string | null => {
   return null;
 };
 
+// Получаем URL сайта из localStorage
+const getAnimeLibUrl = (): string => {
+  try {
+    const url = localStorage.getItem('animeLibUrl');
+    return url || 'https://v3.animelib.org';
+  } catch (error) {
+    console.error('Error getting anime lib URL:', error);
+    return 'https://v3.animelib.org';
+  }
+};
+
+// Получаем Bearer токен
+const getBearerToken = (): string | null => {
+  return getAuthToken();
+};
+
 // Создаем экземпляр axios для API AnimeLib
 const animeApiClient = axios.create({
   baseURL: 'https://api.cdnlibs.org/api',
   timeout: 10000,
 });
 
-// Добавляем interceptor для авторизации
+// Добавляем interceptor для авторизации и заголовков
 animeApiClient.interceptors.request.use((config) => {
-  const token = getAuthToken();
+  const token = getBearerToken();
+  const animeLibUrl = getAnimeLibUrl();
+
+  // Добавляем авторизацию
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Добавляем общие заголовки
+  config.headers.Accept = '*/*';
+  config.headers['Accept-Language'] = 'ru,en;q=0.9,de;q=0.8,zh;q=0.7';
+  config.headers['Content-Type'] = 'application/json';
+  config.headers.Origin = animeLibUrl;
+  config.headers.Referer = animeLibUrl;
+  config.headers['Sec-Ch-Ua'] =
+    '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"';
+  config.headers['Sec-Ch-Ua-Mobile'] = '?1';
+  config.headers['Sec-Ch-Ua-Platform'] = '"Android"';
+  config.headers['Sec-Fetch-Dest'] = 'empty';
+  config.headers['Sec-Fetch-Mode'] = 'cors';
+  config.headers['Sec-Fetch-Site'] = 'cross-site';
+  config.headers['Site-Id'] = '5';
+  config.headers['User-Agent'] =
+    'Mozilla/5.0 (Linux; Android 14; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36';
+  config.headers['Client-Time-Zone'] = 'Europe/Samara';
+  config.headers.Priority = 'u=1, i';
+
   return config;
 });
 
@@ -205,6 +244,32 @@ animeApiClient.interceptors.request.use((config) => {
 const kodikApiClient = axios.create({
   baseURL: 'https://anilib-kodik-api.burntv.ru/api',
   timeout: 10000, // Увеличиваем таймаут до 30 секунд
+});
+
+// Добавляем interceptor для заголовков Kodik API
+kodikApiClient.interceptors.request.use((config) => {
+  const animeLibUrl = getAnimeLibUrl();
+
+  // Добавляем общие заголовки
+  config.headers.Accept = '*/*';
+  config.headers['Accept-Language'] = 'ru,en;q=0.9,de;q=0.8,zh;q=0.7';
+  config.headers['Content-Type'] = 'application/json';
+  config.headers.Origin = animeLibUrl;
+  config.headers.Referer = animeLibUrl;
+  config.headers['Sec-Ch-Ua'] =
+    '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"';
+  config.headers['Sec-Ch-Ua-Mobile'] = '?1';
+  config.headers['Sec-Ch-Ua-Platform'] = '"Android"';
+  config.headers['Sec-Fetch-Dest'] = 'empty';
+  config.headers['Sec-Fetch-Mode'] = 'cors';
+  config.headers['Sec-Fetch-Site'] = 'cross-site';
+  config.headers['Site-Id'] = '5';
+  config.headers['User-Agent'] =
+    'Mozilla/5.0 (Linux; Android 14; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36';
+  config.headers['Client-Time-Zone'] = 'Europe/Samara';
+  config.headers.Priority = 'u=1, i';
+
+  return config;
 });
 
 // API функции
