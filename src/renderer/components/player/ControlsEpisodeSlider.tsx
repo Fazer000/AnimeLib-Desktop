@@ -147,7 +147,8 @@ function ControlsEpisodeSlider({
         right: 0,
         transform: showEpisodes ? 'translateY(0)' : 'translateY(100%)',
         opacity: showEpisodes ? 1 : 0,
-        transition: 'transform 0.3s ease-in-out, opacity 0.3s ease-in-out',
+        transition:
+          'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
         padding: '12px 0px',
         maxHeight: '80px',
         background: 'linear-gradient(transparent, rgba(0, 0, 0, 0.7))',
@@ -203,8 +204,8 @@ function ControlsEpisodeSlider({
                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                 '&:hover': {
                   backgroundColor: isSelected
-                    ? 'rgba(124, 58, 237, 0.35)'
-                    : 'rgba(116, 116, 128, 0.3)',
+                    ? 'rgba(124, 58, 237, 0.07)'
+                    : 'rgba(55, 55, 55, 0.52)',
                 },
                 '&:active': {
                   transform: 'translateY(0px) scale(0.96)',

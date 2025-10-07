@@ -18,7 +18,7 @@ import SettingsMenu from './SettingsMenu';
 import { SkipManager } from '../../services/player';
 
 interface TimeCode {
-  type: 'opening' | 'ending';
+  type: 'opening' | 'ending' | 'compilation' | 'splashScreen';
   from: number;
   to: number;
 }
@@ -37,6 +37,8 @@ interface VideoControlsProps {
   onMenuOpenChange: (isOpen: boolean) => void;
   autoplayEnabled?: boolean;
   onAutoplayChange?: (enabled: boolean) => void;
+  showEpisodes?: boolean;
+  onShowEpisodesChange?: (show: boolean) => void;
 
   // Опции качества
   qualityOptions: Array<{
@@ -81,6 +83,20 @@ interface VideoControlsProps {
   timecode: TimeCode[];
   currentSegment?: TimeCode | null;
   onSkipSegment?: () => void;
+
+  // Auto skip settings
+  autoSkipSettings?: {
+    skipOpenings: boolean;
+    skipEndings: boolean;
+    skipCompilations: boolean;
+    skipSplashScreens: boolean;
+  };
+  onAutoSkipChange?: (settings: {
+    skipOpenings: boolean;
+    skipEndings: boolean;
+    skipCompilations: boolean;
+    skipSplashScreens: boolean;
+  }) => void;
 }
 
 /**
@@ -127,11 +143,14 @@ function VideoControls({
   timecode = [],
   currentSegment,
   onSkipSegment,
+  showEpisodes = false,
+  onShowEpisodesChange,
+  autoSkipSettings,
+  onAutoSkipChange,
 }: VideoControlsProps) {
   const theme = useTheme();
   // UI State
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const [showEpisodes, setShowEpisodes] = useState<boolean>(false);
   const [showVolumeTooltip, setShowVolumeTooltip] = useState(false);
 
   // Skip Manager
@@ -188,13 +207,13 @@ function VideoControls({
   // Handle episodes
   const handleToggleEpisodes = () => {
     const newShowEpisodes = !showEpisodes;
-    setShowEpisodes(newShowEpisodes);
+    onShowEpisodesChange?.(newShowEpisodes);
     onMenuOpenChange(newShowEpisodes);
   };
 
   const handleEpisodeSelect = (index: number) => {
     onEpisodeSelect(index);
-    setShowEpisodes(false);
+    onShowEpisodesChange?.(false);
     onMenuOpenChange(false);
   };
 
@@ -263,9 +282,18 @@ function VideoControls({
               },
             }}
           >
-            {currentSegment.type === 'opening'
-              ? 'Пропустить опенинг'
-              : 'Пропустить эндинг'}
+            {(() => {
+              switch (currentSegment.type) {
+                case 'opening':
+                  return 'Пропустить опенинг';
+                case 'ending':
+                  return 'Пропустить эндинг';
+                case 'compilation':
+                  return 'Пропустить компиляцию';
+                default:
+                  return 'Пропустить заставку';
+              }
+            })()}
           </Button>
         </Box>
       )}
@@ -296,7 +324,7 @@ function VideoControls({
                 padding: 1,
                 borderRadius: 4,
                 '&:hover': {
-                  color: theme.palette.customColors.dtSecondaryColor,
+                  backgroundColor: 'rgba(55, 55, 55, 0.52)',
                 },
                 '&:active': {
                   transform: 'translateY(0px) scale(0.96)',
@@ -311,6 +339,23 @@ function VideoControls({
         </Box>
       )}
 
+      {/* Bottom gradient - отдельный блок */}
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: isFullscreen && showEpisodes ? '130px' : '70px',
+          opacity: showEpisodes ? 1 : 0.8,
+          background:
+            'linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 30%, transparent 100%)',
+          transition: 'opacity 0.3s ease-in-out, height 0.3s ease-in-out',
+          pointerEvents: 'none',
+          zIndex: 899,
+        }}
+      />
+
       {/* Main controls container */}
       <Box
         className="player-controls video-controls"
@@ -319,13 +364,10 @@ function VideoControls({
           bottom: isFullscreen && showEpisodes ? '50px' : 0,
           left: 0,
           right: 0,
-          background:
-            isFullscreen && showEpisodes
-              ? 'rgba(0, 0, 0, 0)'
-              : 'linear-gradient(transparent, rgba(0, 0, 0, 0.8))',
           padding: 1,
           opacity: showControls ? 1 : 0,
-          transition: 'opacity 0.3s ease-in-out, bottom 0.3s ease-in-out',
+          transition:
+            'opacity 0.25s ease-in-out, bottom 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           zIndex: 900,
         }}
         onMouseMove={onMouseMove}
@@ -517,6 +559,8 @@ function VideoControls({
         showEpisodes={showEpisodes}
         autoplayEnabled={autoplayEnabled}
         onAutoplayChange={onAutoplayChange}
+        autoSkipSettings={autoSkipSettings}
+        onAutoSkipChange={onAutoSkipChange}
       />
     </>
   );
@@ -531,6 +575,15 @@ VideoControls.defaultProps = {
   onAutoplayChange: undefined,
   currentSegment: null,
   onSkipSegment: undefined,
+  showEpisodes: false,
+  onShowEpisodesChange: undefined,
+  autoSkipSettings: {
+    skipOpenings: false,
+    skipEndings: false,
+    skipCompilations: false,
+    skipSplashScreens: false,
+  },
+  onAutoSkipChange: undefined,
 };
 
 export default VideoControls;

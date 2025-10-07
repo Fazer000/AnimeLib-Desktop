@@ -14,6 +14,7 @@ export interface VideoPlayerControllerConfig {
   onKeyPress?: () => void; // Callback when hotkey is pressed
   onSkipForward?: (seconds: number) => void; // Custom skip forward
   skipTime?: number; // Custom skip time in seconds
+  onToggleEpisodes?: () => void; // Toggle episodes list
 }
 
 export interface PlayerLoadOptions {
@@ -88,6 +89,7 @@ export class VideoPlayerController {
       onSkipForward: config.onSkipForward, // Custom skip forward
       skipTime: config.skipTime, // Custom skip time
       onKeyPress: config.onKeyPress, // Pass the callback through
+      onToggleEpisodes: config.onToggleEpisodes, // Toggle episodes list
     });
   }
 

@@ -8,6 +8,7 @@ import ErrorBoundary from '../components/player/ErrorBoundary';
 import EpisodeSlider from '../components/player/EpisodeSlider';
 import PlayerSidebar from '../components/player/PlayerSidebar';
 import CommentsSection from '../components/player/CommentsSection';
+import ScrollToTopButton from '../components/player/ScrollToTopButton';
 import { PlayerSelectionManager, BookmarkManager } from '../services/player';
 
 interface PlayerPageProps {
@@ -25,7 +26,12 @@ interface PlayerPageProps {
  * - EpisodeSlider component for episode navigation
  * - PlayerSidebar component for player/voice team list
  */
-function PlayerPageRefactored({ playerUrl, animeId, onBack, onHome }: PlayerPageProps) {
+function PlayerPageRefactored({
+  playerUrl,
+  animeId,
+  onBack,
+  onHome,
+}: PlayerPageProps) {
   const theme = useTheme();
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
@@ -527,11 +533,16 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack, onHome }: PlayerPage
         bookmarkManager
           .saveBookmark(animeId, currentEpisode.id, currentTime, meta)
           .then(() => {
-            console.log('[PlayerPage] Bookmark saved successfully in background');
+            console.log(
+              '[PlayerPage] Bookmark saved successfully in background',
+            );
             return null;
           })
           .catch((err) => {
-            console.error('[PlayerPage] Error saving bookmark in background:', err);
+            console.error(
+              '[PlayerPage] Error saving bookmark in background:',
+              err,
+            );
             return null;
           });
       }
@@ -697,7 +708,9 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack, onHome }: PlayerPage
             if (onHome) {
               onHome();
             } else {
-              console.warn('[PlayerPage] onHome not provided, falling back to onBack');
+              console.warn(
+                '[PlayerPage] onHome not provided, falling back to onBack',
+              );
               onBack();
             }
           }}
@@ -863,8 +876,15 @@ function PlayerPageRefactored({ playerUrl, animeId, onBack, onHome }: PlayerPage
 
       {/* Comments section - Below player, centered 70% width */}
       {selectedEpisode && <CommentsSection episodeId={selectedEpisode.id} />}
+
+      {/* Scroll to top button */}
+      <ScrollToTopButton threshold={400} />
     </Box>
   );
 }
+
+PlayerPageRefactored.defaultProps = {
+  onHome: undefined,
+};
 
 export default PlayerPageRefactored;

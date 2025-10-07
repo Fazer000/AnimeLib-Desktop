@@ -37,7 +37,7 @@ export class ShakaPlayerManager {
 
   constructor(config: ShakaPlayerConfig = {}) {
     this.config = config;
-    this.maxRetries = config.maxRetries ?? 3; // По умолчанию 3 попытки
+    this.maxRetries = config.maxRetries ?? 5; // По умолчанию 5 попыток для Kodik
     this.retryDelay = config.retryDelay ?? 2000; // По умолчанию 2 секунды
   }
 
@@ -65,46 +65,232 @@ export class ShakaPlayerManager {
         return false;
       }
 
+      // Optimize video element for performance
+      videoElement.setAttribute('playsinline', 'true');
+      videoElement.setAttribute('preload', 'auto');
+
+      // Enable hardware acceleration hints
+      if ('requestVideoFrameCallback' in videoElement) {
+        console.log('[ShakaPlayerManager] requestVideoFrameCallback available');
+      }
+
       // Create player instance
       this.player = new shaka.Player();
       await this.player.attach(videoElement);
 
-      // Configure player
+      // Register network filters for Kodik HLS support
+      this.player
+        .getNetworkingEngine()
+        ?.registerRequestFilter((type, request) => {
+          // Add headers for HLS requests
+          if (request.uris[0]?.includes('kodik')) {
+            request.allowCrossSiteCredentials = true;
+            request.headers = request.headers || {};
+
+            // Only add safe headers that won't be blocked
+            request.headers.Accept = '*/*';
+            request.headers['Accept-Language'] =
+              'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7';
+
+            console.log(
+              '[ShakaPlayerManager] Request filter applied for Kodik',
+            );
+          }
+        });
+
+      // Register response filter to handle errors gracefully
+      this.player
+        .getNetworkingEngine()
+        ?.registerResponseFilter((type, response) => {
+          if (response.uri?.includes('kodik')) {
+            console.log(
+              '[ShakaPlayerManager] Response from Kodik:',
+              response.status,
+            );
+          }
+        });
+
+      // Configure player with performance optimizations
       this.player.configure({
         streaming: {
           retryParameters: {
-            maxAttempts: 3,
+            maxAttempts: 5, // Увеличиваем попытки для Kodik
             baseDelay: 1000,
             backoffFactor: 2,
             fuzzFactor: 0.5,
-            timeout: 30000,
+            timeout: 45000, // Увеличиваем таймаут до 45 сек
           },
-          bufferingGoal: 10,
-          rebufferingGoal: 1,
-          bufferBehind: 5,
-          lowLatencyMode: true,
+          // Buffer settings - оптимизированы для плавного воспроизведения
+          bufferingGoal: 30, // Увеличен буфер для плавности (30 сек)
+          rebufferingGoal: 2, // Быстрое восстановление после ребуферинга
+          bufferBehind: 30, // Держим 30 сек позади для перемотки назад
+
+          // Segment prefetch для более быстрой загрузки
+          segmentPrefetchLimit: 2, // Предзагружаем 2 сегмента вперёд
+
+          // Stall detection - быстрое обнаружение зависаний
+          stallEnabled: true,
+          stallThreshold: 1, // Обнаружение зависания через 1 сек
+          stallSkip: 0.1, // Пропускаем 0.1 сек при зависании
+
+          // Safe margin для избежания ребуферинга
+          safeSeekOffset: 5, // 5 сек безопасный отступ
+
+          // Low latency оптимизации
+          lowLatencyMode: false, // Отключаем для Kodik
+          autoLowLatencyMode: false,
+
+          // Force transmux для лучшей совместимости с Kodik
+          forceTransmux: true, // Включаем transmuxing для HLS
+
+          // Ignore text stream failures
+          ignoreTextStreamFailures: true,
+          alwaysStreamText: false,
+
+          // Start at high quality
+          startAtSegmentBoundary: false,
+
+          // Fast switching между качествами
+          useNativeHlsOnSafari: true,
+
+          // HLS-specific settings for better compatibility
+          inaccurateManifestTolerance: 2,
+          rebufferingGoalBackoffFactor: 1.2,
         },
+
         manifest: {
           retryParameters: {
-            maxAttempts: 3,
+            maxAttempts: 5, // Увеличиваем попытки для манифеста
+            baseDelay: 1000,
+            backoffFactor: 2,
+            fuzzFactor: 0.5,
+            timeout: 45000, // Увеличиваем таймаут
+          },
+          // Быстрое обновление манифеста
+          availabilityWindowOverride: 60,
+          disableAudio: false,
+          disableVideo: false,
+          disableText: true, // Отключаем субтитры для производительности
+          defaultPresentationDelay: 10,
+          // HLS-specific settings для Kodik
+          hls: {
+            useFullSegmentsForStartTime: true,
+            ignoreManifestProgramDateTime: false,
+          },
+        },
+
+        // ABR (Adaptive Bitrate) оптимизации
+        abr: {
+          enabled: true,
+          useNetworkInformation: true, // Используем Network Information API
+          defaultBandwidthEstimate: 5000000, // 5 Mbps начальная оценка
+          switchInterval: 8, // Переключение каждые 8 сек
+          bandwidthUpgradeTarget: 0.85, // Повышаем качество при 85% запаса
+          bandwidthDowngradeTarget: 0.95, // Понижаем при 95% использования
+          restrictions: {
+            minWidth: 0,
+            maxWidth: Infinity,
+            minHeight: 0,
+            maxHeight: Infinity,
+            minPixels: 0,
+            maxPixels: Infinity,
+            minFrameRate: 0,
+            maxFrameRate: Infinity,
+            minBandwidth: 0,
+            maxBandwidth: Infinity,
+          },
+        },
+
+        // Preferenced settings для оптимизации
+        preferredAudioLanguage: 'ru',
+        preferredTextLanguage: 'ru',
+        preferredVariantRole: '',
+        preferredAudioRole: '',
+        preferredTextRole: '',
+        preferForcedSubs: false,
+
+        // Streaming protocol settings
+        drm: {
+          retryParameters: {
+            maxAttempts: 2,
             baseDelay: 1000,
             backoffFactor: 2,
             fuzzFactor: 0.5,
             timeout: 30000,
           },
+        },
+
+        // MediaSource configuration
+        mediaSource: {
+          // Не используем sourceBufferExtraFeatures, т.к. это вызывает ошибки с MIME типами
+          forceTransmuxTS: true, // Форсировать transmux для TS сегментов
         },
       });
 
       // Setup error handler
       this.player.addEventListener('error', (event: any) => {
         const error = event.detail;
-        console.error('[ShakaPlayerManager] Error:', error);
-        this.config.onError?.('Ошибка загрузки видео');
+        console.error('[ShakaPlayerManager] Error details:', {
+          code: error.code,
+          category: error.category,
+          severity: error.severity,
+          data: error.data,
+          message: error.message,
+        });
+
+        // Provide more specific error messages
+        let errorMessage = 'Ошибка загрузки видео';
+        if (error.code === 3015) {
+          errorMessage =
+            'Ошибка загрузки HLS плейлиста. Попробуйте другой плеер.';
+        } else if (error.category === 1) {
+          errorMessage = 'Ошибка сети. Проверьте интернет-соединение.';
+        } else if (error.category === 3) {
+          errorMessage =
+            'Ошибка парсинга манифеста. Попробуйте другое качество.';
+        }
+
+        this.config.onError?.(errorMessage);
         this.setLoading(false);
       });
 
+      // Performance monitoring - buffering events
+      this.player.addEventListener('buffering', (event: any) => {
+        const isBuffering = event.buffering;
+        if (isBuffering) {
+          console.log('[ShakaPlayerManager] Buffering started');
+        } else {
+          console.log('[ShakaPlayerManager] Buffering ended');
+        }
+      });
+
+      // Adaptation events - track quality changes
+      this.player.addEventListener('adaptation', () => {
+        const activeVariant = this.player
+          ?.getVariantTracks()
+          .find((track) => track.active);
+        if (activeVariant) {
+          const bandwidth = Math.round((activeVariant.bandwidth || 0) / 1000);
+          console.log(
+            `[ShakaPlayerManager] Quality adapted to: ${activeVariant.height}p @ ${bandwidth}kbps`,
+          );
+        }
+      });
+
+      // ABR status changes
+      this.player.addEventListener('abrstatuschanged', (event: any) => {
+        console.log('[ShakaPlayerManager] ABR status:', event.status);
+      });
+
+      // Streaming event for advanced monitoring
+      this.player.addEventListener('streaming', () => {
+        console.log('[ShakaPlayerManager] Streaming event triggered');
+      });
+
       this.isInitialized = true;
-      console.log('[ShakaPlayerManager] Initialized successfully');
+      console.log(
+        '[ShakaPlayerManager] Initialized successfully with performance monitoring',
+      );
       return true;
     } catch (error) {
       console.error('[ShakaPlayerManager] Initialization error:', error);
@@ -145,8 +331,28 @@ export class ShakaPlayerManager {
       if (qualityOption.type === 'hls') {
         // Load HLS manifest with retry
         console.log('[ShakaPlayerManager] Loading HLS:', qualityOption.src);
+        console.log(
+          '[ShakaPlayerManager] HLS type detected, using Shaka Player',
+        );
+
         const loaded = await this.loadWithRetry(qualityOption.src);
         if (!loaded) {
+          console.error(
+            '[ShakaPlayerManager] Failed to load HLS with Shaka, trying native fallback',
+          );
+
+          // Try native HLS as fallback for Safari/iOS
+          if (
+            this.videoElement &&
+            this.videoElement.canPlayType('application/vnd.apple.mpegurl')
+          ) {
+            console.log('[ShakaPlayerManager] Using native HLS playback');
+            await this.player.unload();
+            this.videoElement.src = qualityOption.src;
+            this.videoElement.load();
+            return true;
+          }
+
           throw new Error('Ошибка загрузки HLS после всех попыток');
         }
       } else {
@@ -205,12 +411,25 @@ export class ShakaPlayerManager {
         console.log(
           `[ShakaPlayerManager] Attempt ${attempt}/${this.maxRetries} for: ${src}`,
         );
+
+        // Log network engine status
+        const networkEngine = this.player?.getNetworkingEngine();
+        console.log(
+          '[ShakaPlayerManager] Network engine available:',
+          !!networkEngine,
+        );
+
         // eslint-disable-next-line no-await-in-loop
         await this.player?.load(src);
         console.log('[ShakaPlayerManager] Successfully loaded:', src);
         return true;
       } catch (error: any) {
-        console.error(`[ShakaPlayerManager] Attempt ${attempt} failed:`, error);
+        console.error(`[ShakaPlayerManager] Attempt ${attempt} failed:`, {
+          code: error.code,
+          category: error.category,
+          message: error.message,
+          data: error.data,
+        });
 
         if (attempt < this.maxRetries) {
           console.log(
@@ -223,6 +442,7 @@ export class ShakaPlayerManager {
             '[ShakaPlayerManager] All retry attempts exhausted for:',
             src,
           );
+          console.error('[ShakaPlayerManager] Final error details:', error);
           return false;
         }
       }
@@ -335,6 +555,37 @@ export class ShakaPlayerManager {
       } catch (error) {
         console.error('[ShakaPlayerManager] Unload error:', error);
       }
+    }
+  }
+
+  /**
+   * Получает статистику производительности плеера
+   */
+  getStats(): any {
+    if (!this.player) {
+      return null;
+    }
+
+    try {
+      const stats = this.player.getStats();
+      const bufferedInfo = this.player.getBufferedInfo();
+
+      return {
+        ...stats,
+        bufferedInfo,
+        estimatedBandwidth: stats.estimatedBandwidth,
+        streamBandwidth: stats.streamBandwidth,
+        width: stats.width,
+        height: stats.height,
+        decodedFrames: stats.decodedFrames,
+        droppedFrames: stats.droppedFrames,
+        corruptedFrames: stats.corruptedFrames,
+        stallsDetected: stats.stallsDetected,
+        gapsJumped: stats.gapsJumped,
+      };
+    } catch (error) {
+      console.error('[ShakaPlayerManager] Error getting stats:', error);
+      return null;
     }
   }
 

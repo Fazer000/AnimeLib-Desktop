@@ -171,13 +171,18 @@ function ToolbarRefactored({
             onPlayPause={onPlayPause}
           />
 
-          {/* Center Section: URL Bar */}
-          <UrlBar
-            currentUrl={currentUrl}
-            showUrlInput={showUrlInput}
-            onUrlChange={onUrlChange}
-            onToggleUrlInput={onToggleUrlInput}
-          />
+          {/* Center Section: URL Bar - Hide on player page */}
+          {!isPlayerPage && (
+            <UrlBar
+              currentUrl={currentUrl}
+              showUrlInput={showUrlInput}
+              onUrlChange={onUrlChange}
+              onToggleUrlInput={onToggleUrlInput}
+            />
+          )}
+
+          {/* Spacer for player page */}
+          {isPlayerPage && <Box sx={{ flex: 1 }} />}
 
           {/* Right Section: Window Controls */}
           <WindowControls

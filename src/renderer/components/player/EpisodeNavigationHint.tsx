@@ -66,8 +66,7 @@ function EpisodeNavigationHint({
     height: 60,
     transition: 'all 0.3s ease',
     '&:hover': {
-      backgroundColor: 'rgba(116, 116, 128, 0.3)',
-      color: theme.palette.customColors.dtSecondaryColor,
+      backgroundColor: 'rgba(55, 55, 55, 0.52)',
     },
     '&:active': {
       transform: 'scale(0.95)',
@@ -86,8 +85,8 @@ function EpisodeNavigationHint({
             paddingLeft: 3,
             position: 'absolute',
             top: 0,
-            bottom: 200,
-            width: areaStyle?.width || '10%',
+            bottom: 0,
+            width: '10%',
             overflow: 'hidden',
             // Убираем transition с background/backgroundColor, делаем через отдельный ::before слой
             '&::before': {
@@ -108,7 +107,6 @@ function EpisodeNavigationHint({
           }}
           onMouseEnter={() => setShowLeft(true)}
           onMouseLeave={() => setShowLeft(false)}
-          onClick={handlePreviousClick}
         >
           <Box
             sx={{
@@ -121,7 +119,7 @@ function EpisodeNavigationHint({
               transition: 'all 0.3s ease',
             }}
           >
-            <IconButton sx={buttonStyle}>
+            <IconButton sx={buttonStyle} onClick={handlePreviousClick}>
               <ChevronLeft sx={{ fontSize: 36 }} />
             </IconButton>
             {previousEpisode && (
@@ -154,8 +152,8 @@ function EpisodeNavigationHint({
             paddingRight: 3,
             position: 'absolute',
             top: 0,
-            bottom: 200,
-            width: areaStyle?.width || '10%',
+            bottom: 0,
+            width: '10%',
             overflow: 'hidden',
             // Убираем transition с background/backgroundColor, делаем через отдельный ::before слой
             '&::before': {
@@ -176,7 +174,6 @@ function EpisodeNavigationHint({
           }}
           onMouseEnter={() => setShowRight(true)}
           onMouseLeave={() => setShowRight(false)}
-          onClick={handleNextClick}
         >
           <Box
             sx={{
@@ -189,7 +186,7 @@ function EpisodeNavigationHint({
               transition: 'all 0.3s ease',
             }}
           >
-            <IconButton sx={buttonStyle}>
+            <IconButton sx={buttonStyle} onClick={handleNextClick}>
               <ChevronRight sx={{ fontSize: 36 }} />
             </IconButton>
             {nextEpisode && (

@@ -27,7 +27,7 @@ import {
 } from '../../services/player';
 
 interface TimeCode {
-  type: 'opening' | 'ending';
+  type: 'opening' | 'ending' | 'compilation' | 'splashScreen';
   from: number;
   to: number;
 }
@@ -151,6 +151,32 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     // Timecode segments
     const [currentSegment, setCurrentSegment] = useState<TimeCode | null>(null);
 
+    // Episodes list visibility (for fullscreen)
+    const [showEpisodesList, setShowEpisodesList] = useState<boolean>(false);
+
+    // Auto skip settings
+    const [autoSkipSettings, setAutoSkipSettings] = useState(() => {
+      const stored = localStorage.getItem('autoSkipSettings');
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch {
+          return {
+            skipOpenings: false,
+            skipEndings: false,
+            skipCompilations: false,
+            skipSplashScreens: false,
+          };
+        }
+      }
+      return {
+        skipOpenings: false,
+        skipEndings: false,
+        skipCompilations: false,
+        skipSplashScreens: false,
+      };
+    });
+
     // Initialize controller
     useEffect(() => {
       const initController = async () => {
@@ -185,6 +211,11 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             controllerRef.current?.getStateManager().skip(seconds);
           },
           skipTime: initialSkipTime, // Load from localStorage
+          onToggleEpisodes: () => {
+            // Toggle episodes list
+            setShowEpisodesList((prev) => !prev);
+            setShowControls(true); // Show controls when episodes list is toggled
+          },
         });
 
         const success = await controller.initialize(
@@ -656,6 +687,40 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       handleSeek(currentSegment.to + 1);
     }, [currentSegment, handleSeek]);
 
+    const handleAutoSkipChange = useCallback(
+      (settings: {
+        skipOpenings: boolean;
+        skipEndings: boolean;
+        skipCompilations: boolean;
+        skipSplashScreens: boolean;
+      }) => {
+        setAutoSkipSettings(settings);
+        localStorage.setItem('autoSkipSettings', JSON.stringify(settings));
+        console.log('[VideoPlayer] Auto skip settings updated:', settings);
+      },
+      [],
+    );
+
+    // Auto skip logic
+    useEffect(() => {
+      if (!currentSegment) return;
+
+      const shouldSkip =
+        (currentSegment.type === 'opening' && autoSkipSettings.skipOpenings) ||
+        (currentSegment.type === 'ending' && autoSkipSettings.skipEndings) ||
+        (currentSegment.type === 'compilation' &&
+          autoSkipSettings.skipCompilations) ||
+        (currentSegment.type === 'splashScreen' &&
+          autoSkipSettings.skipSplashScreens);
+
+      if (shouldSkip) {
+        console.log(
+          `[VideoPlayer] Auto-skipping ${currentSegment.type} segment`,
+        );
+        handleSeek(currentSegment.to + 1);
+      }
+    }, [currentSegment, autoSkipSettings, handleSeek]);
+
     return (
       <Box
         ref={containerRef}
@@ -876,6 +941,10 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             timecode={timecode}
             currentSegment={currentSegment}
             onSkipSegment={handleSkipSegment}
+            showEpisodes={showEpisodesList}
+            onShowEpisodesChange={setShowEpisodesList}
+            autoSkipSettings={autoSkipSettings}
+            onAutoSkipChange={handleAutoSkipChange}
             onMouseMove={() => {
               if (!showControls) {
                 setShowControls(true);

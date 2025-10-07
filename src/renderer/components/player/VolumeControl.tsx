@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Box, IconButton, Slider, Tooltip, Fade } from '@mui/material';
-import { VolumeUpRounded, VolumeOffRounded } from '@mui/icons-material';
+
+import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
+import VolumeDownRoundedIcon from '@mui/icons-material/VolumeDownRounded';
+import VolumeMuteRoundedIcon from '@mui/icons-material/VolumeMuteRounded';
+import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 
 interface VolumeControlProps {
   volume: number;
@@ -32,6 +36,29 @@ function VolumeControl({
 
   const handleChangeCommitted = () => {
     setIsDragging(false);
+  };
+
+  // Получаем правильную иконку в зависимости от громкости
+  const getVolumeIcon = () => {
+    if (isMuted || volume === 0) {
+      return <VolumeOffRoundedIcon fontSize="small" />;
+    }
+    if (volume < 0.3) {
+      return <VolumeMuteRoundedIcon fontSize="small" />;
+    }
+    if (volume < 0.7) {
+      return <VolumeDownRoundedIcon fontSize="small" />;
+    }
+    return <VolumeUpRoundedIcon fontSize="small" />;
+  };
+
+  // Получаем tooltip текст
+  const getTooltipText = () => {
+    if (isMuted) return 'Включить звук';
+    if (volume === 0) return 'Включить звук';
+    if (volume < 0.3) return 'Тихо';
+    if (volume < 0.7) return 'Средняя громкость';
+    return 'Громко';
   };
 
   return (
@@ -70,7 +97,7 @@ function VolumeControl({
       </Fade>
 
       {/* Кнопка mute */}
-      <Tooltip title={isMuted ? 'Включить звук' : 'Выключить звук'}>
+      <Tooltip title={getTooltipText()} placement="top">
         <IconButton
           onClick={(e) => {
             e.stopPropagation();
@@ -80,19 +107,44 @@ function VolumeControl({
             color: 'white',
             padding: 0.25,
             borderRadius: 2,
+            position: 'relative',
             '&:hover': {
               backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              transform: 'scale(1.1)',
-              color: '#7C3AED',
+              transform: 'scale(1.15)',
+              color: '#BB86FC',
             },
-            transition: 'all 0.2s ease',
+            '&:active': {
+              transform: 'scale(0.95)',
+            },
+            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+            '& .MuiSvgIcon-root': {
+              filter: 'drop-shadow(0 2px 4px rgba(124, 58, 237, 0.3))',
+              transition: 'all 0.2s ease',
+            },
           }}
         >
-          {isMuted || volume === 0 ? (
-            <VolumeOffRounded fontSize="small" />
-          ) : (
-            <VolumeUpRounded fontSize="small" />
-          )}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              animation: isDragging
+                ? 'pulse 0.6s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                : 'none',
+              '@keyframes pulse': {
+                '0%, 100%': {
+                  transform: 'scale(1)',
+                  opacity: 1,
+                },
+                '50%': {
+                  transform: 'scale(1.1)',
+                  opacity: 0.8,
+                },
+              },
+            }}
+          >
+            {getVolumeIcon()}
+          </Box>
         </IconButton>
       </Tooltip>
 
@@ -123,6 +175,7 @@ function VolumeControl({
               backgroundColor: '#fff',
               border: '2px solid #BB86FC',
               borderRadius: '50%',
+              boxShadow: '0 2px 8px rgba(187, 134, 252, 0.4)',
               transition: isDragging
                 ? 'none'
                 : 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -131,21 +184,23 @@ function VolumeControl({
               '&:hover': {
                 width: 14,
                 height: 14,
-                boxShadow: 'none',
+                boxShadow: '0 0 0 8px rgba(187, 134, 252, 0.16)',
               },
               '&.Mui-active': {
                 width: 15,
                 height: 15,
                 cursor: 'grabbing',
+                boxShadow: '0 0 0 12px rgba(187, 134, 252, 0.2)',
               },
             },
             '& .MuiSlider-track': {
               height: 4,
-              background: '#7C3AED',
+              background: 'linear-gradient(90deg, #7C3AED 0%, #BB86FC 100%)',
               borderRadius: 10,
               border: 'none',
               transition: isDragging ? 'none' : 'width 0.1s ease',
               willChange: isDragging ? 'width' : 'auto',
+              boxShadow: '0 1px 4px rgba(124, 58, 237, 0.3)',
             },
             '& .MuiSlider-rail': {
               height: 4,

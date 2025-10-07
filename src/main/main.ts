@@ -221,6 +221,7 @@ ipcMain.handle('setup-video-headers', async (event, { siteUrl, authToken }) => {
   // Регистрируем перехватчик
   currentInterceptor = () => {
     session.defaultSession.webRequest.onBeforeSendHeaders(null);
+    session.defaultSession.webRequest.onHeadersReceived(null);
   };
 
   session.defaultSession.webRequest.onBeforeSendHeaders(
@@ -235,6 +236,33 @@ ipcMain.handle('setup-video-headers', async (event, { siteUrl, authToken }) => {
       ],
     },
     interceptor,
+  );
+
+  // Add CORS headers to responses
+  session.defaultSession.webRequest.onHeadersReceived(
+    {
+      urls: [
+        'https://cloud.kodik-storage.com/*',
+        'https://kodik-storage.com/*',
+        'https://kodik.info/*',
+      ],
+    },
+    (details, callback) => {
+      const { responseHeaders } = details;
+
+      // Add CORS headers
+      if (responseHeaders) {
+        responseHeaders['Access-Control-Allow-Origin'] = ['*'];
+        responseHeaders['Access-Control-Allow-Methods'] = [
+          'GET, POST, OPTIONS',
+        ];
+        responseHeaders['Access-Control-Allow-Headers'] = ['*'];
+        responseHeaders['Access-Control-Allow-Credentials'] = ['true'];
+      }
+
+      console.log('[AnimeLIB] CORS headers added for Kodik response');
+      callback({ responseHeaders });
+    },
   );
 
   console.log('[AnimeLIB] Interceptor registered');

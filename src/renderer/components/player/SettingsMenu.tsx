@@ -15,6 +15,7 @@ import {
   FourKOutlined,
   SpeedOutlined,
   FastForwardOutlined,
+  SkipNextOutlined,
 } from '@mui/icons-material';
 import { SkipManager } from '../../services/player';
 import { getQualityLevel } from '../../utils/videoHelpers';
@@ -32,9 +33,21 @@ interface SettingsMenuProps {
   showEpisodes: boolean;
   autoplayEnabled: boolean;
   onAutoplayChange?: (enabled: boolean) => void;
+  autoSkipSettings?: {
+    skipOpenings: boolean;
+    skipEndings: boolean;
+    skipCompilations: boolean;
+    skipSplashScreens: boolean;
+  };
+  onAutoSkipChange?: (settings: {
+    skipOpenings: boolean;
+    skipEndings: boolean;
+    skipCompilations: boolean;
+    skipSplashScreens: boolean;
+  }) => void;
 }
 
-type MenuPage = 'main' | 'quality' | 'speed' | 'skip';
+type MenuPage = 'main' | 'quality' | 'speed' | 'skip' | 'autoSkip';
 
 /**
  * Меню настроек видеоплеера
@@ -52,6 +65,13 @@ function SettingsMenu({
   showEpisodes = false,
   autoplayEnabled,
   onAutoplayChange,
+  autoSkipSettings = {
+    skipOpenings: false,
+    skipEndings: false,
+    skipCompilations: false,
+    skipSplashScreens: false,
+  },
+  onAutoSkipChange,
 }: SettingsMenuProps) {
   const [currentPage, setCurrentPage] = useState<MenuPage>('main');
   const handleQualityChange = (quality: string) => {
@@ -275,6 +295,57 @@ function SettingsMenu({
                     }}
                   >
                     {skipManager.formatSkipTime()}
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="body2"
+                  sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                >
+                  ›
+                </Typography>
+              </Box>
+            </MenuItem>
+
+            {/* Auto Skip */}
+            <MenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentPage('autoSkip');
+              }}
+              sx={{
+                color: 'white',
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '0.875rem',
+                py: 0.75,
+                px: 1.5,
+                minHeight: 'auto',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                  gap: 1,
+                }}
+              >
+                <SkipNextOutlined sx={{ fontSize: 18, color: '#C084FC' }} />
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    Автопропуск
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'rgba(255, 255, 255, 0.6)',
+                      fontSize: '11px',
+                    }}
+                  >
+                    {Object.values(autoSkipSettings).filter(Boolean).length}{' '}
+                    активных
                   </Typography>
                 </Box>
                 <Typography
@@ -747,6 +818,320 @@ function SettingsMenu({
             </Box>
           </Box>
         )}
+
+        {/* Auto Skip Page */}
+        {currentPage === 'autoSkip' && (
+          <Box>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                px: 1.5,
+                py: 0.75,
+                borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+              }}
+            >
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleBackToMain();
+                }}
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  padding: 0.25,
+                  mr: 0.75,
+                  minWidth: 'auto',
+                  width: 24,
+                  height: 24,
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  },
+                }}
+              >
+                <ArrowBackRounded sx={{ fontSize: 16 }} />
+              </IconButton>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  color: 'white',
+                  fontFamily: 'Roboto, sans-serif',
+                  fontWeight: 500,
+                  fontSize: '0.875rem',
+                }}
+              >
+                Автоматический пропуск
+              </Typography>
+            </Box>
+
+            {/* Skip Openings */}
+            <MenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                onAutoSkipChange?.({
+                  ...autoSkipSettings,
+                  skipOpenings: !autoSkipSettings.skipOpenings,
+                });
+              }}
+              sx={{
+                color: 'white',
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '0.875rem',
+                py: 0.75,
+                px: 1.5,
+                minHeight: 'auto',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                  gap: 1,
+                }}
+              >
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    Пропускать опенинги
+                  </Typography>
+                </Box>
+                <Switch
+                  checked={autoSkipSettings.skipOpenings}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onAutoSkipChange?.({
+                      ...autoSkipSettings,
+                      skipOpenings: e.target.checked,
+                    });
+                  }}
+                  sx={{
+                    '& .MuiSwitch-switchBase': {
+                      color: '#BDBDBD',
+                      '&.Mui-checked': {
+                        color: '#C084FC',
+                        '& + .MuiSwitch-track': {
+                          backgroundColor: 'rgba(192, 132, 252, 0.3)',
+                          border: '1px solid #C084FC',
+                        },
+                      },
+                    },
+                    '& .MuiSwitch-track': {
+                      backgroundColor: 'rgba(189, 189, 189, 0.3)',
+                      border: '1px solid #BDBDBD',
+                    },
+                    '& .MuiSwitch-thumb': {
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                    },
+                  }}
+                  size="small"
+                />
+              </Box>
+            </MenuItem>
+
+            {/* Skip Endings */}
+            <MenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                onAutoSkipChange?.({
+                  ...autoSkipSettings,
+                  skipEndings: !autoSkipSettings.skipEndings,
+                });
+              }}
+              sx={{
+                color: 'white',
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '0.875rem',
+                py: 0.75,
+                px: 1.5,
+                minHeight: 'auto',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                  gap: 1,
+                }}
+              >
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    Пропускать эндинги
+                  </Typography>
+                </Box>
+                <Switch
+                  checked={autoSkipSettings.skipEndings}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onAutoSkipChange?.({
+                      ...autoSkipSettings,
+                      skipEndings: e.target.checked,
+                    });
+                  }}
+                  sx={{
+                    '& .MuiSwitch-switchBase': {
+                      color: '#BDBDBD',
+                      '&.Mui-checked': {
+                        color: '#C084FC',
+                        '& + .MuiSwitch-track': {
+                          backgroundColor: 'rgba(192, 132, 252, 0.3)',
+                          border: '1px solid #C084FC',
+                        },
+                      },
+                    },
+                    '& .MuiSwitch-track': {
+                      backgroundColor: 'rgba(189, 189, 189, 0.3)',
+                      border: '1px solid #BDBDBD',
+                    },
+                    '& .MuiSwitch-thumb': {
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                    },
+                  }}
+                  size="small"
+                />
+              </Box>
+            </MenuItem>
+
+            {/* Skip Compilations */}
+            <MenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                onAutoSkipChange?.({
+                  ...autoSkipSettings,
+                  skipCompilations: !autoSkipSettings.skipCompilations,
+                });
+              }}
+              sx={{
+                color: 'white',
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '0.875rem',
+                py: 0.75,
+                px: 1.5,
+                minHeight: 'auto',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                  gap: 1,
+                }}
+              >
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    Пропускать компиляции
+                  </Typography>
+                </Box>
+                <Switch
+                  checked={autoSkipSettings.skipCompilations}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onAutoSkipChange?.({
+                      ...autoSkipSettings,
+                      skipCompilations: e.target.checked,
+                    });
+                  }}
+                  sx={{
+                    '& .MuiSwitch-switchBase': {
+                      color: '#BDBDBD',
+                      '&.Mui-checked': {
+                        color: '#C084FC',
+                        '& + .MuiSwitch-track': {
+                          backgroundColor: 'rgba(192, 132, 252, 0.3)',
+                          border: '1px solid #C084FC',
+                        },
+                      },
+                    },
+                    '& .MuiSwitch-track': {
+                      backgroundColor: 'rgba(189, 189, 189, 0.3)',
+                      border: '1px solid #BDBDBD',
+                    },
+                    '& .MuiSwitch-thumb': {
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                    },
+                  }}
+                  size="small"
+                />
+              </Box>
+            </MenuItem>
+
+            {/* Skip Splash Screens */}
+            <MenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                onAutoSkipChange?.({
+                  ...autoSkipSettings,
+                  skipSplashScreens: !autoSkipSettings.skipSplashScreens,
+                });
+              }}
+              sx={{
+                color: 'white',
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '0.875rem',
+                py: 0.75,
+                px: 1.5,
+                minHeight: 'auto',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                  gap: 1,
+                }}
+              >
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    Пропускать заставки
+                  </Typography>
+                </Box>
+                <Switch
+                  checked={autoSkipSettings.skipSplashScreens}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onAutoSkipChange?.({
+                      ...autoSkipSettings,
+                      skipSplashScreens: e.target.checked,
+                    });
+                  }}
+                  sx={{
+                    '& .MuiSwitch-switchBase': {
+                      color: '#BDBDBD',
+                      '&.Mui-checked': {
+                        color: '#C084FC',
+                        '& + .MuiSwitch-track': {
+                          backgroundColor: 'rgba(192, 132, 252, 0.3)',
+                          border: '1px solid #C084FC',
+                        },
+                      },
+                    },
+                    '& .MuiSwitch-track': {
+                      backgroundColor: 'rgba(189, 189, 189, 0.3)',
+                      border: '1px solid #BDBDBD',
+                    },
+                    '& .MuiSwitch-thumb': {
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                    },
+                  }}
+                  size="small"
+                />
+              </Box>
+            </MenuItem>
+          </Box>
+        )}
       </Box>
     </>
   );
@@ -754,6 +1139,13 @@ function SettingsMenu({
 
 SettingsMenu.defaultProps = {
   onAutoplayChange: undefined,
+  autoSkipSettings: {
+    skipOpenings: false,
+    skipEndings: false,
+    skipCompilations: false,
+    skipSplashScreens: false,
+  },
+  onAutoSkipChange: undefined,
 };
 
 export default SettingsMenu;

@@ -12,6 +12,7 @@ export interface KeyboardManagerConfig {
   onSkipForward?: (seconds: number) => void; // Custom skip forward
   skipTime?: number; // Custom skip time in seconds
   onKeyPress?: () => void; // Callback when any hotkey is pressed
+  onToggleEpisodes?: () => void; // Toggle episodes list
 }
 
 /**
@@ -146,6 +147,14 @@ export class KeyboardManager {
       case 'I':
       case 'ш': // Russian layout
         this.config.onTogglePictureInPicture?.();
+        handled = true;
+        break;
+
+      // Toggle Episodes List
+      case 'v':
+      case 'V':
+      case 'м': // Russian layout
+        this.config.onToggleEpisodes?.();
         handled = true;
         break;
 
