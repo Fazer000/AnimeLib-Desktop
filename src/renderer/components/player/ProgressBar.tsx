@@ -3,7 +3,7 @@ import { Box, Slider } from '@mui/material';
 import { formatTime } from '../../utils/videoHelpers';
 
 interface TimeCode {
-  type: 'opening' | 'ending';
+  type: 'opening' | 'ending' | 'compilation' | 'splashScreen';
   from: number;
   to: number;
 }
@@ -47,7 +47,7 @@ function ProgressBar({
     const segs: Array<{
       start: number;
       end: number;
-      type: 'normal' | 'opening' | 'ending';
+      type: 'normal' | 'opening' | 'ending' | 'compilation' | 'splashScreen';
     }> = [];
     let lastEnd = 0;
 
@@ -118,7 +118,7 @@ function ProgressBar({
           top: '50%',
           transform: 'translateY(-50%)',
           left: 4,
-          right: 16,
+          right: 4,
           height: 5,
           display: 'flex',
           gap: '3px',

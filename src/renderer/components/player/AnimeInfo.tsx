@@ -66,26 +66,16 @@ function AnimeInfoComponent({
           {episodeNumber && `Эпизод ${episodeNumber}`}
           {episodeNumber && selectedPlayer && ' • '}
           {selectedPlayer && (
-            <span style={{ color: '#BB86FC' }}>
+            <span style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
               {selectedPlayer.team?.name || selectedPlayer.player}
             </span>
           )}
-        </Typography>
-      )}
-
-      {/* Название эпизода */}
-      {episodeName && (
-        <Typography
-          variant="body2"
-          sx={{
-            color: 'rgba(255, 255, 255, 0.8)',
-            fontSize: '0.85rem',
-            textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
-            mb: 0.5,
-            fontStyle: 'italic',
-          }}
-        >
-          {episodeName}
+          {episodeName && ' • '}
+          {episodeName && (
+            <span style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+              {episodeName}
+            </span>
+          )}
         </Typography>
       )}
 
