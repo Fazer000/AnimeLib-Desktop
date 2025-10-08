@@ -1,0 +1,132 @@
+/* TipTap Editor Styles */
+.comment-editor-content {
+  outline: none;
+}
+
+.comment-editor-content p {
+  margin: 0;
+  padding: 0;
+}
+
+.comment-editor-content p + p {
+  margin-top: 0.5em;
+}
+
+/* Placeholder */
+.comment-editor-content p.is-editor-empty:first-child::before {
+  color: rgba(255, 255, 255, 0.4);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Blockquote */
+.comment-editor-content blockquote {
+  border-left: 3px solid rgba(84, 84, 88, 0.44);
+  background-color: rgba(59, 59, 59, 0.43);
+  padding: 8px 12px;
+  margin: 8px 0;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Spoiler */
+.comment-editor-content .spoiler-inline {
+  background-color: rgba(124, 58, 237, 0.2);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  margin: 0 2px;
+  transition: all 0.2s ease;
+}
+
+.comment-editor-content .spoiler-inline:hover {
+  background-color: rgba(124, 58, 237, 0.3);
+  border-color: rgba(124, 58, 237, 0.5);
+}
+
+.comment-editor-content .spoiler-inline::before {
+  content: attr(data-visible-text);
+  font-weight: 600;
+  margin-right: 6px;
+  color: rgba(124, 58, 237, 0.8);
+  font-size: 0.875rem;
+}
+
+.comment-editor-content .spoiler-inline:not([data-visible-text])::before {
+  content: "спойлер";
+}
+
+/* Support for old format spoilers from existing comments */
+.comment-editor-content .spoiler-node[data-spoiler-type="inline"] {
+  background-color: rgba(124, 58, 237, 0.2);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  margin: 0 2px;
+  transition: all 0.2s ease;
+}
+
+.comment-editor-content .spoiler-node[data-spoiler-type="inline"]:hover {
+  background-color: rgba(124, 58, 237, 0.3);
+  border-color: rgba(124, 58, 237, 0.5);
+}
+
+.comment-editor-content .spoiler-node[data-spoiler-type="inline"]::before {
+  content: attr(data-spoiler-text);
+  font-weight: 600;
+  margin-right: 6px;
+  color: rgba(124, 58, 237, 0.8);
+  font-size: 0.875rem;
+}
+
+.comment-editor-content .spoiler-node[data-spoiler-type="inline"]:not([data-spoiler-text])::before {
+  content: "спойлер";
+}
+
+/* Bold */
+.comment-editor-content strong {
+  font-weight: 600;
+}
+
+/* Italic */
+.comment-editor-content em {
+  font-style: italic;
+}
+
+/* Underline */
+.comment-editor-content u {
+  text-decoration: underline;
+}
+
+/* Strike */
+.comment-editor-content s {
+  text-decoration: line-through;
+}
+
+/* Scrollbar */
+.comment-editor-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.comment-editor-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.comment-editor-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.comment-editor-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
