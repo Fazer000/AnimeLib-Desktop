@@ -111,6 +111,137 @@ function CommentText({ html }: CommentTextProps) {
             case 'br':
               return <br key={currentKey} />;
 
+            case 'span':
+              // Check if it's an inline spoiler (new format from editor)
+              if (element.hasAttribute('data-spoiler')) {
+                const spoilerText = element.getAttribute('data-visible-text') || 'спойлер';
+                const isRevealed = revealedSpoilers.has(currentKey);
+
+                return (
+                  <Box
+                    key={currentKey}
+                    component="span"
+                    onClick={() => {
+                      setRevealedSpoilers((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(currentKey)) {
+                          next.delete(currentKey);
+                        } else {
+                          next.add(currentKey);
+                        }
+                        return next;
+                      });
+                    }}
+                    sx={{
+                      backgroundColor: 'rgba(124, 58, 237, 0.2)',
+                      border: '1px solid rgba(124, 58, 237, 0.3)',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      display: 'inline-block',
+                      margin: '0 2px',
+                      transition: 'all 0.2s ease',
+                      userSelect: 'none',
+                      '&:hover': {
+                        backgroundColor: 'rgba(124, 58, 237, 0.3)',
+                        borderColor: 'rgba(124, 58, 237, 0.5)',
+                      },
+                    }}
+                  >
+                    <Typography
+                      component="span"
+                      sx={{
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        color: 'rgba(124, 58, 237, 0.8)',
+                        marginRight: '4px',
+                      }}
+                    >
+                      {spoilerText}
+                    </Typography>
+                    {isRevealed && (
+                      <Typography
+                        component="span"
+                        sx={{
+                          fontSize: '0.875rem',
+                          color: theme.palette.customColors.dtPrimaryTextColor,
+                        }}
+                      >
+                        {element.textContent}
+                      </Typography>
+                    )}
+                  </Box>
+                );
+              }
+
+              // Check if it's an inline spoiler (old format from existing comments)
+              if (element.classList.contains('spoiler-node') && element.hasAttribute('data-spoiler-type')) {
+                const spoilerText = element.getAttribute('data-spoiler-text') || 'спойлер';
+                const isRevealed = revealedSpoilers.has(currentKey);
+
+                // Find spoiler content
+                const spoilerContent = element.querySelector('.spoiler-node__text');
+                const spoilerHTML = spoilerContent?.innerHTML || '';
+
+                return (
+                  <Box
+                    key={currentKey}
+                    component="span"
+                    onClick={() => {
+                      setRevealedSpoilers((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(currentKey)) {
+                          next.delete(currentKey);
+                        } else {
+                          next.add(currentKey);
+                        }
+                        return next;
+                      });
+                    }}
+                    sx={{
+                      backgroundColor: 'rgba(124, 58, 237, 0.2)',
+                      border: '1px solid rgba(124, 58, 237, 0.3)',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      display: 'inline-block',
+                      margin: '0 2px',
+                      transition: 'all 0.2s ease',
+                      userSelect: 'none',
+                      '&:hover': {
+                        backgroundColor: 'rgba(124, 58, 237, 0.3)',
+                        borderColor: 'rgba(124, 58, 237, 0.5)',
+                      },
+                    }}
+                  >
+                    <Typography
+                      component="span"
+                      sx={{
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        color: 'rgba(124, 58, 237, 0.8)',
+                        marginRight: '4px',
+                      }}
+                    >
+                      {spoilerText}
+                    </Typography>
+                    {isRevealed && (
+                      <Typography
+                        component="span"
+                        sx={{
+                          fontSize: '0.875rem',
+                          color: theme.palette.customColors.dtPrimaryTextColor,
+                        }}
+                      >
+                        {parseHTML(spoilerHTML)}
+                      </Typography>
+                    )}
+                  </Box>
+                );
+              }
+
+              return <span key={currentKey}>{children}</span>;
+
             case 'div':
               // Check if it's a spoiler
               if (element.classList.contains('spoiler-node')) {
@@ -156,7 +287,7 @@ function CommentText({ html }: CommentTextProps) {
                         userSelect: 'none',
                         transition: 'all 0.2s ease',
                         '&:hover': {
-                          backgroundColor: 'rgba(124, 58, 237, 0.25)',
+                          backgroundColor: 'rgba(124, 58, 237, 0.2)',
                         },
                       }}
                     >

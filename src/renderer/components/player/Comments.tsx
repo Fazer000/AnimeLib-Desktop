@@ -19,6 +19,7 @@ import { CommentsManager, Comment } from '../../services/player';
 import CommentText from './CommentText';
 import { animeApi } from '../../api/animeApi';
 import { useImageWithReferer } from '../../hooks/useImageWithReferer';
+import CommentEditor, { CommentSubmitData } from './CommentEditor';
 
 /**
  * Reply item - simplified version for nested replies
@@ -671,6 +672,29 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
   );
 
   /**
+   * Handle comment submission
+   */
+  const handleCommentSubmit = useCallback(
+    async (data: CommentSubmitData) => {
+      try {
+        await animeApi.submitComment(data);
+        console.log('[Comments] Comment submitted successfully');
+
+        // Reload comments after submission
+        commentsManager.reset();
+        setComments([]);
+        setDisplayCount(20);
+        setHasMore(true);
+        await commentsManager.loadComments(episodeId, 1);
+      } catch (error) {
+        console.error('[Comments] Error submitting comment:', error);
+        throw error;
+      }
+    },
+    [commentsManager, episodeId],
+  );
+
+  /**
    * Reset comments and update sort when sort option changes
    */
   useEffect(() => {
@@ -756,33 +780,43 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
     };
   }, [displayCount, comments.length]);
 
+  // Get visible comments
+  const visibleComments = comments.slice(0, displayCount);
+  const hasMoreToDisplay = displayCount < comments.length;
+
   if (comments.length === 0 && !loading) {
     return (
       <Box
         sx={{
-          padding: 4,
-          textAlign: 'center',
-          backgroundColor: 'rgba(0, 0, 0, 0.2)',
-          borderRadius: 2,
-          margin: 2,
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        <Typography
-          variant="body2"
+        {/* Comment Editor */}
+        <CommentEditor episodeId={episodeId} onSubmit={handleCommentSubmit} />
+
+        <Box
           sx={{
-            color: theme.palette.customColors.dtAccentTextColor,
-            fontSize: '0.9375rem',
+            padding: 4,
+            textAlign: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+            borderRadius: 2,
+            margin: 2,
           }}
         >
-          Пока нет комментариев
-        </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              color: theme.palette.customColors.dtAccentTextColor,
+              fontSize: '0.9375rem',
+            }}
+          >
+            Пока нет комментариев
+          </Typography>
+        </Box>
       </Box>
     );
   }
-
-  // Get visible comments
-  const visibleComments = comments.slice(0, displayCount);
-  const hasMoreToDisplay = displayCount < comments.length;
 
   return (
     <Box
@@ -791,6 +825,9 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
         flexDirection: 'column',
       }}
     >
+      {/* Comment Editor */}
+      <CommentEditor episodeId={episodeId} onSubmit={handleCommentSubmit} />
+
       {visibleComments.map((comment) => (
         <CommentItem
           key={comment.id}

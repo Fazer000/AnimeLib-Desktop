@@ -510,6 +510,32 @@ export const animeApi = {
       throw error;
     }
   },
+
+  /**
+   * Submit a new comment
+   */
+  submitComment: async (commentData: {
+    comment: {
+      type: 'doc';
+      content: unknown[];
+    };
+    post_type: 'episodes';
+    post_id: number;
+    parent_comment: number | null;
+    root_id: number | null;
+    comment_level: number;
+  }): Promise<{ success: boolean; data: any }> => {
+    try {
+      console.log('[AnimeAPI] Submitting comment:', commentData);
+      const response = await animeApiClient.post('/comments', commentData);
+
+      console.log('[AnimeAPI] Comment submitted successfully:', response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('[AnimeAPI] Error submitting comment:', error);
+      throw error;
+    }
+  },
 };
 
 export default animeApi;
