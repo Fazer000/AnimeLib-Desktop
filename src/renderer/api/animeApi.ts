@@ -186,17 +186,6 @@ const getAuthToken = (): string | null => {
   return null;
 };
 
-// Получаем URL сайта из localStorage
-const getAnimeLibUrl = (): string => {
-  try {
-    const url = localStorage.getItem('animeLibUrl');
-    return url || 'https://v3.animelib.org';
-  } catch (error) {
-    console.error('Error getting anime lib URL:', error);
-    return 'https://v3.animelib.org';
-  }
-};
-
 // Получаем Bearer токен
 const getBearerToken = (): string | null => {
   return getAuthToken();
@@ -211,7 +200,6 @@ const animeApiClient = axios.create({
 // Добавляем interceptor для авторизации и заголовков
 animeApiClient.interceptors.request.use((config) => {
   const token = getBearerToken();
-  const animeLibUrl = getAnimeLibUrl();
 
   // Добавляем авторизацию
   if (token) {
@@ -219,21 +207,12 @@ animeApiClient.interceptors.request.use((config) => {
   }
 
   // Добавляем общие заголовки
+  // ВАЖНО: Origin, Referer, User-Agent, Sec-* заголовки нельзя устанавливать вручную
+  // Браузер устанавливает их автоматически
   config.headers.Accept = '*/*';
   config.headers['Accept-Language'] = 'ru,en;q=0.9,de;q=0.8,zh;q=0.7';
   config.headers['Content-Type'] = 'application/json';
-  config.headers.Origin = animeLibUrl;
-  config.headers.Referer = animeLibUrl;
-  config.headers['Sec-Ch-Ua'] =
-    '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"';
-  config.headers['Sec-Ch-Ua-Mobile'] = '?1';
-  config.headers['Sec-Ch-Ua-Platform'] = '"Android"';
-  config.headers['Sec-Fetch-Dest'] = 'empty';
-  config.headers['Sec-Fetch-Mode'] = 'cors';
-  config.headers['Sec-Fetch-Site'] = 'cross-site';
   config.headers['Site-Id'] = '5';
-  config.headers['User-Agent'] =
-    'Mozilla/5.0 (Linux; Android 14; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36';
   config.headers['Client-Time-Zone'] = 'Europe/Samara';
   config.headers.Priority = 'u=1, i';
 

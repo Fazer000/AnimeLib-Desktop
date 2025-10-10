@@ -15,7 +15,7 @@ import PlaybackControls from './PlaybackControls';
 import VolumeControl from './VolumeControl';
 import ControlsEpisodeSlider from './ControlsEpisodeSlider';
 import SettingsMenu from './SettingsMenu';
-import { SkipManager } from '../../services/player';
+import { SkipManager, ThumbnailManager } from '../../services/player';
 
 interface TimeCode {
   type: 'opening' | 'ending' | 'compilation' | 'splashScreen';
@@ -97,6 +97,9 @@ interface VideoControlsProps {
     skipCompilations: boolean;
     skipSplashScreens: boolean;
   }) => void;
+
+  // Thumbnail manager
+  thumbnailManager?: ThumbnailManager | null;
 }
 
 /**
@@ -147,6 +150,7 @@ function VideoControls({
   onShowEpisodesChange,
   autoSkipSettings,
   onAutoSkipChange,
+  thumbnailManager = null,
 }: VideoControlsProps) {
   const theme = useTheme();
   // UI State
@@ -383,6 +387,7 @@ function VideoControls({
           onProgressMouseMove={onProgressMouseMove}
           onProgressMouseLeave={onProgressMouseLeave}
           timecode={timecode}
+          thumbnailManager={thumbnailManager}
         />
 
         {/* Main controls row */}
@@ -584,6 +589,7 @@ VideoControls.defaultProps = {
     skipSplashScreens: false,
   },
   onAutoSkipChange: undefined,
+  thumbnailManager: null,
 };
 
 export default VideoControls;

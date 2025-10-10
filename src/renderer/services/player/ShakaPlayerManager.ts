@@ -138,10 +138,6 @@ export class ShakaPlayerManager {
 
           // Low latency оптимизации
           lowLatencyMode: false, // Отключаем для Kodik
-          autoLowLatencyMode: false,
-
-          // Force transmux для лучшей совместимости с Kodik
-          forceTransmux: true, // Включаем transmuxing для HLS
 
           // Ignore text stream failures
           ignoreTextStreamFailures: true,
@@ -151,11 +147,10 @@ export class ShakaPlayerManager {
           startAtSegmentBoundary: false,
 
           // Fast switching между качествами
-          useNativeHlsOnSafari: true,
+          preferNativeHls: true, // Предпочитаем нативный HLS где возможно
 
           // HLS-specific settings for better compatibility
           inaccurateManifestTolerance: 2,
-          rebufferingGoalBackoffFactor: 1.2,
         },
 
         manifest: {
@@ -174,7 +169,6 @@ export class ShakaPlayerManager {
           defaultPresentationDelay: 10,
           // HLS-specific settings для Kodik
           hls: {
-            useFullSegmentsForStartTime: true,
             ignoreManifestProgramDateTime: false,
           },
         },
@@ -204,7 +198,6 @@ export class ShakaPlayerManager {
         // Preferenced settings для оптимизации
         preferredAudioLanguage: 'ru',
         preferredTextLanguage: 'ru',
-        preferredVariantRole: '',
         preferredAudioRole: '',
         preferredTextRole: '',
         preferForcedSubs: false,
@@ -222,8 +215,8 @@ export class ShakaPlayerManager {
 
         // MediaSource configuration
         mediaSource: {
-          // Не используем sourceBufferExtraFeatures, т.к. это вызывает ошибки с MIME типами
-          forceTransmuxTS: true, // Форсировать transmux для TS сегментов
+          // Force transmux для лучшей совместимости с Kodik
+          forceTransmux: true, // Включаем transmuxing для HLS
         },
       });
 

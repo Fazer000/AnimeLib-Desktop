@@ -87,7 +87,6 @@ function VolumeControl({
             fontWeight: 600,
             zIndex: 2001,
             border: '1px solid rgba(255, 255, 255, 0.2)',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(8px)',
             whiteSpace: 'nowrap',
           }}
@@ -118,7 +117,6 @@ function VolumeControl({
             },
             transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
             '& .MuiSvgIcon-root': {
-              filter: 'drop-shadow(0 2px 4px rgba(124, 58, 237, 0.3))',
               transition: 'all 0.2s ease',
             },
           }}
@@ -175,7 +173,6 @@ function VolumeControl({
               backgroundColor: '#fff',
               border: '2px solid #BB86FC',
               borderRadius: '50%',
-              boxShadow: '0 2px 8px rgba(187, 134, 252, 0.4)',
               transition: isDragging
                 ? 'none'
                 : 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -184,23 +181,20 @@ function VolumeControl({
               '&:hover': {
                 width: 14,
                 height: 14,
-                boxShadow: '0 0 0 8px rgba(187, 134, 252, 0.16)',
               },
               '&.Mui-active': {
                 width: 15,
                 height: 15,
                 cursor: 'grabbing',
-                boxShadow: '0 0 0 12px rgba(187, 134, 252, 0.2)',
               },
             },
             '& .MuiSlider-track': {
               height: 4,
-              background: 'linear-gradient(90deg, #7C3AED 0%, #BB86FC 100%)',
-              borderRadius: 10,
+              background: '#7C3AED',
+              borderRadius: 50,
               border: 'none',
               transition: isDragging ? 'none' : 'width 0.1s ease',
               willChange: isDragging ? 'width' : 'auto',
-              boxShadow: '0 1px 4px rgba(124, 58, 237, 0.3)',
             },
             '& .MuiSlider-rail': {
               height: 4,

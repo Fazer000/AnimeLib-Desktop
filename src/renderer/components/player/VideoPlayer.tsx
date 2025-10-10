@@ -19,11 +19,17 @@ import {
 import VideoControls from './VideoControls';
 import AnimeInfoComponent from './AnimeInfo';
 import EpisodeNavigationHint from './EpisodeNavigationHint';
+import NextEpisodeNotification from './NextEpisodeNotification';
 import {
   SkipManager,
   VideoPlayerController,
   VideoState,
   QualityOption,
+  UIStateManager,
+  UIState,
+  AutoplayManager,
+  SegmentManager,
+  TimeCodeSegment,
 } from '../../services/player';
 
 interface TimeCode {
@@ -131,51 +137,52 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const [selectedQuality, setSelectedQuality] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    // UI control states
-    const [showControls, setShowControls] = useState<boolean>(true);
-    const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
-    const [hoverTime, setHoverTime] = useState<number | null>(null);
-    const [showCenterIcon, setShowCenterIcon] = useState<boolean>(false);
-    const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+    // UI State Manager
+    const [uiState, setUIState] = useState<UIState>({
+      showControls: true,
+      isFullscreen: false,
+      showCenterIcon: false,
+      hoverTime: null,
+      isMenuOpen: false,
+      showEpisodesList: false,
+    });
+    const [uiStateManager] = useState(
+      () =>
+        new UIStateManager({
+          onStateChange: (state) => setUIState(state),
+        }),
+    );
+
+    // Autoplay Manager
+    const [autoplayManager] = useState(
+      () =>
+        new AutoplayManager({
+          enabled: autoplayEnabled,
+          onEpisodeChange: onEpisodeSelect,
+        }),
+    );
+
+    // Segment Manager
+    const [currentSegment, setCurrentSegment] = useState<TimeCode | null>(null);
+    const [segmentManager] = useState(
+      () =>
+        new SegmentManager({
+          onSegmentChange: (segment) => setCurrentSegment(segment),
+          onSkipSegment: (time) => controllerRef.current?.seekTo(time),
+        }),
+    );
 
     // Bookmark timecode state
     const timecodeAppliedRef = useRef<boolean>(false);
-
-    // Autoplay state - track if this is the first load
-    const isFirstLoadRef = useRef<boolean>(true);
 
     // Skip Manager
     const [skipManager] = useState(() => new SkipManager());
     const [skipTime, setSkipTime] = useState(skipManager.getSkipTime());
 
-    // Timecode segments
-    const [currentSegment, setCurrentSegment] = useState<TimeCode | null>(null);
-
-    // Episodes list visibility (for fullscreen)
-    const [showEpisodesList, setShowEpisodesList] = useState<boolean>(false);
-
-    // Auto skip settings
-    const [autoSkipSettings, setAutoSkipSettings] = useState(() => {
-      const stored = localStorage.getItem('autoSkipSettings');
-      if (stored) {
-        try {
-          return JSON.parse(stored);
-        } catch {
-          return {
-            skipOpenings: false,
-            skipEndings: false,
-            skipCompilations: false,
-            skipSplashScreens: false,
-          };
-        }
-      }
-      return {
-        skipOpenings: false,
-        skipEndings: false,
-        skipCompilations: false,
-        skipSplashScreens: false,
-      };
-    });
+    // Next episode notification
+    const [showNextEpisodeNotification, setShowNextEpisodeNotification] =
+      useState(false);
+    const nextEpisodeNotificationShownRef = useRef(false);
 
     // Initialize controller
     useEffect(() => {
@@ -204,7 +211,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           onSelectedQualityChange: setSelectedQuality,
           onKeyPress: () => {
             // Show controls when hotkey is pressed
-            setShowControls(true);
+            uiStateManager.showPlayerControls();
           },
           onSkipForward: (seconds: number) => {
             // Handle custom skip forward
@@ -213,8 +220,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           skipTime: initialSkipTime, // Load from localStorage
           onToggleEpisodes: () => {
             // Toggle episodes list
-            setShowEpisodesList((prev) => !prev);
-            setShowControls(true); // Show controls when episodes list is toggled
+            uiStateManager.toggleEpisodesList();
           },
         });
 
@@ -236,13 +242,18 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       initController();
 
       return () => {
+        // Cleanup managers
+        uiStateManager.destroy();
+        autoplayManager.destroy();
+        segmentManager.destroy();
+
         if (controllerRef.current) {
           controllerRef.current.destroy();
           controllerRef.current = null;
         }
         setIsControllerReady(false);
       };
-    }, [onError, skipManager]);
+    }, [onError, skipManager, uiStateManager, autoplayManager, segmentManager]);
 
     // Update skipTime in KeyboardManager when it changes
     useEffect(() => {
@@ -348,70 +359,49 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       timecodeAppliedRef.current = false;
     }, [currentPlayerData]);
 
-    // Autoplay after player loads (except first time)
+    // Setup autoplay when player loads
     useEffect(() => {
       const video = videoRef.current;
 
       if (!video || !currentPlayerData) {
-        return undefined;
+        return;
       }
 
-      console.log(
-        '[VideoPlayer] Player loaded, isFirstLoad:',
-        isFirstLoadRef.current,
-        'initialTimecode:',
-        initialTimecode,
+      autoplayManager.attachVideo(video);
+      autoplayManager.setBookmarkPending(
+        initialTimecode !== null && !timecodeAppliedRef.current,
       );
+      autoplayManager.setupAutoplayOnLoad();
+    }, [currentPlayerData, initialTimecode, autoplayManager]);
 
-      // Skip autoplay on first load
-      if (isFirstLoadRef.current) {
-        isFirstLoadRef.current = false;
-        console.log('[VideoPlayer] First load - skipping autoplay');
-        return undefined;
+    // Setup auto-advance to next episode (only if no notification will be shown)
+    useEffect(() => {
+      const video = videoRef.current;
+
+      if (!video) {
+        return;
       }
 
-      // Skip autoplay if we have a bookmark timecode to apply
-      if (initialTimecode !== null && !timecodeAppliedRef.current) {
-        console.log(
-          '[VideoPlayer] Bookmark timecode pending - skipping autoplay, will play after timecode applied',
-        );
-        return undefined;
+      // Не включаем автопереход если будет показываться уведомление
+      const hasNextEpisode = currentEpisodeIndex < episodes.length - 1;
+      const shouldShowNotification = autoplayEnabled && hasNextEpisode;
+
+      if (shouldShowNotification) {
+        // Уведомление само управляет переключением
+        return;
       }
 
-      // For subsequent loads, autoplay when video is ready
-      const handleCanPlayForAutoplay = () => {
-        console.log('[VideoPlayer] Video ready - starting autoplay');
+      // В остальных случаях используем стандартный автопереход
+      autoplayManager.updateConfig({ enabled: autoplayEnabled });
+      autoplayManager.setupAutoAdvance(currentEpisodeIndex, episodes.length);
+    }, [
+      autoplayEnabled,
+      currentEpisodeIndex,
+      episodes.length,
+      autoplayManager,
+    ]);
 
-        // Small delay to ensure video is fully ready
-        setTimeout(() => {
-          if (video && !video.paused) {
-            console.log('[VideoPlayer] Video already playing');
-            return;
-          }
-
-          video
-            .play()
-            .then(() => {
-              console.log('[VideoPlayer] Autoplay started successfully');
-              return null;
-            })
-            .catch((error) => {
-              console.warn('[VideoPlayer] Autoplay failed:', error);
-              // Autoplay может быть заблокирован браузером
-              return null;
-            });
-        }, 300);
-      };
-
-      video.addEventListener('canplay', handleCanPlayForAutoplay);
-
-      // eslint-disable-next-line consistent-return
-      return () => {
-        video.removeEventListener('canplay', handleCanPlayForAutoplay);
-      };
-    }, [currentPlayerData, initialTimecode]);
-
-    // Auto-advance to next episode when video ends (if autoplay enabled)
+    // Show next episode notification after video ends
     useEffect(() => {
       const video = videoRef.current;
 
@@ -419,21 +409,19 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         return undefined;
       }
 
+      const hasNextEpisode = currentEpisodeIndex < episodes.length - 1;
+      if (!hasNextEpisode) {
+        return undefined;
+      }
+
       const handleVideoEnded = () => {
-        console.log(
-          '[VideoPlayer] Video ended, autoplay enabled, checking for next episode',
-        );
-
-        const hasNextEpisode = currentEpisodeIndex < episodes.length - 1;
-
-        if (hasNextEpisode) {
+        // Показываем уведомление только если уже не показали
+        if (!nextEpisodeNotificationShownRef.current) {
           console.log(
-            '[VideoPlayer] Auto-advancing to next episode:',
-            currentEpisodeIndex + 1,
+            '[VideoPlayer] Video ended, showing next episode notification',
           );
-          onEpisodeSelect(currentEpisodeIndex + 1);
-        } else {
-          console.log('[VideoPlayer] No more episodes to auto-advance to');
+          setShowNextEpisodeNotification(true);
+          nextEpisodeNotificationShownRef.current = true;
         }
       };
 
@@ -442,17 +430,18 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       return () => {
         video.removeEventListener('ended', handleVideoEnded);
       };
-    }, [
-      autoplayEnabled,
-      currentEpisodeIndex,
-      episodes.length,
-      onEpisodeSelect,
-    ]);
+    }, [autoplayEnabled, currentEpisodeIndex, episodes.length]);
+
+    // Reset notification flag when episode changes
+    useEffect(() => {
+      nextEpisodeNotificationShownRef.current = false;
+      setShowNextEpisodeNotification(false);
+    }, [currentEpisodeIndex]);
 
     // Fullscreen change handler
     useEffect(() => {
       const handleFullscreenChange = () => {
-        setIsFullscreen(!!document.fullscreenElement);
+        uiStateManager.setFullscreen(!!document.fullscreenElement);
       };
 
       document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -461,40 +450,37 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           'fullscreenchange',
           handleFullscreenChange,
         );
-    }, []);
+    }, [uiStateManager]);
 
-    // Check for active segment based on current time
+    // Setup segments
     useEffect(() => {
-      if (!timecode || timecode.length === 0) {
-        setCurrentSegment(null);
-        return;
-      }
+      segmentManager.setSegments(timecode as TimeCodeSegment[]);
+    }, [timecode, segmentManager]);
 
-      const { currentTime } = videoState;
-      const activeSegment = timecode.find(
-        (segment) => currentTime >= segment.from && currentTime <= segment.to,
-      );
+    // Update duration in segment manager
+    useEffect(() => {
+      segmentManager.setDuration(videoState.duration);
+    }, [videoState.duration, segmentManager]);
 
-      setCurrentSegment(activeSegment || null);
-    }, [videoState, timecode]);
+    // Update segments based on current time
+    useEffect(() => {
+      segmentManager.updateCurrentTime(videoState.currentTime);
+    }, [videoState.currentTime, segmentManager]);
 
     // Auto-hide controls
     useEffect(() => {
-      let timeout: ReturnType<typeof setTimeout> | undefined;
-
-      if (videoState.isPlaying && showControls && !isMenuOpen) {
-        timeout = setTimeout(() => {
-          console.log('[VideoPlayer] Hiding controls after timeout');
-          setShowControls(false);
-        }, 4000);
-      }
+      uiStateManager.startAutoHide(videoState.isPlaying);
 
       return () => {
-        if (timeout) {
-          clearTimeout(timeout);
-        }
+        uiStateManager.stopAutoHide();
       };
-    }, [videoState.isPlaying, showControls, isMenuOpen]);
+    }, [
+      videoState.isPlaying,
+      uiState.showControls,
+      uiState.isMenuOpen,
+      uiState.hoverTime,
+      uiStateManager,
+    ]);
 
     // Imperative handle
     useImperativeHandle(
@@ -609,15 +595,15 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           const rect = event.currentTarget.getBoundingClientRect();
           const percent = (event.clientX - rect.left) / rect.width;
           const time = percent * videoState.duration;
-          setHoverTime(time);
+          uiStateManager.setHoverTime(time);
         }
       },
-      [videoState.duration],
+      [videoState.duration, uiStateManager],
     );
 
     const handleProgressMouseLeave = useCallback(() => {
-      setHoverTime(null);
-    }, []);
+      uiStateManager.setHoverTime(null);
+    }, [uiStateManager]);
 
     const handleSeek = useCallback((time: number) => {
       controllerRef.current?.seekTo(time);
@@ -655,14 +641,24 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           return;
         }
 
-        if (!videoState.isPlaying) {
-          setShowCenterIcon(true);
-          setTimeout(() => setShowCenterIcon(false), 1000);
+        // Очищаем предыдущий таймаут если есть
+        const clickTimeout = uiStateManager.getClickTimeout();
+        if (clickTimeout) {
+          clearTimeout(clickTimeout);
         }
 
-        handleTogglePlay();
+        // Debounce для избежания конфликта с двойным кликом
+        const newTimeout = setTimeout(() => {
+          // Показываем иконку при ЛЮБОМ переключении плей/пауза
+          uiStateManager.showPlayPauseIcon();
+
+          handleTogglePlay();
+          uiStateManager.setClickTimeout(null);
+        }, 200); // 200ms debounce
+
+        uiStateManager.setClickTimeout(newTimeout);
       },
-      [videoState.isPlaying, handleTogglePlay],
+      [handleTogglePlay, uiStateManager],
     );
 
     const handlePlayerDoubleClick = useCallback(
@@ -675,17 +671,17 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           return;
         }
 
+        // Отменяем pending клик при двойном клике
+        uiStateManager.clearClickTimeout();
+
         await handleToggleFullscreen();
       },
-      [handleToggleFullscreen],
+      [handleToggleFullscreen, uiStateManager],
     );
 
     const handleSkipSegment = useCallback(() => {
-      if (!currentSegment) return;
-
-      console.log(`[VideoPlayer] Skipping ${currentSegment.type} segment`);
-      handleSeek(currentSegment.to + 1);
-    }, [currentSegment, handleSeek]);
+      segmentManager.skipCurrentSegment();
+    }, [segmentManager]);
 
     const handleAutoSkipChange = useCallback(
       (settings: {
@@ -694,32 +690,31 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         skipCompilations: boolean;
         skipSplashScreens: boolean;
       }) => {
-        setAutoSkipSettings(settings);
-        localStorage.setItem('autoSkipSettings', JSON.stringify(settings));
-        console.log('[VideoPlayer] Auto skip settings updated:', settings);
+        segmentManager.updateSettings(settings);
       },
-      [],
+      [segmentManager],
     );
 
-    // Auto skip logic
-    useEffect(() => {
-      if (!currentSegment) return;
-
-      const shouldSkip =
-        (currentSegment.type === 'opening' && autoSkipSettings.skipOpenings) ||
-        (currentSegment.type === 'ending' && autoSkipSettings.skipEndings) ||
-        (currentSegment.type === 'compilation' &&
-          autoSkipSettings.skipCompilations) ||
-        (currentSegment.type === 'splashScreen' &&
-          autoSkipSettings.skipSplashScreens);
-
-      if (shouldSkip) {
-        console.log(
-          `[VideoPlayer] Auto-skipping ${currentSegment.type} segment`,
-        );
-        handleSeek(currentSegment.to + 1);
+    const handleNextEpisodeCancel = useCallback(() => {
+      setShowNextEpisodeNotification(false);
+      // Отменяем автопереход - временно отключаем autoplay
+      if (onAutoplayChange) {
+        onAutoplayChange(false);
       }
-    }, [currentSegment, autoSkipSettings, handleSeek]);
+    }, [onAutoplayChange]);
+
+    const handleNextEpisodePlayNow = useCallback(() => {
+      setShowNextEpisodeNotification(false);
+      // Сразу переключаем на следующий эпизод
+      const hasNextEpisode = currentEpisodeIndex < episodes.length - 1;
+      if (hasNextEpisode) {
+        console.log(
+          '[VideoPlayer] User requested immediate next episode:',
+          currentEpisodeIndex + 1,
+        );
+        onEpisodeSelect(currentEpisodeIndex + 1);
+      }
+    }, [currentEpisodeIndex, episodes.length, onEpisodeSelect]);
 
     return (
       <Box
@@ -732,7 +727,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           minHeight: '300px',
           backgroundColor: '#1c1c1c',
           overflow: 'hidden',
-          cursor: showControls ? 'default' : 'none',
+          cursor: uiState.showControls ? 'default' : 'none',
           '&:hover': {
             '& .player-controls': {
               opacity: 1,
@@ -740,8 +735,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           },
         }}
         onMouseMove={() => {
-          if (!showControls) {
-            setShowControls(true);
+          if (!uiState.showControls) {
+            uiStateManager.showPlayerControls();
           }
         }}
         onClick={handlePlayerClick}
@@ -750,7 +745,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         {/* Информация об аниме */}
         <AnimeInfoComponent
           animeInfo={animeInfo}
-          show={showControls}
+          show={uiState.showControls}
           episodeName={episodeName || ''}
           episodeNumber={
             episodes[currentEpisodeIndex]
@@ -832,7 +827,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         )}
 
         {/* Center play/pause icon */}
-        {showCenterIcon && (
+        {uiState.showCenterIcon && (
           <Box
             sx={{
               position: 'absolute',
@@ -874,7 +869,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
                 justifyContent: 'center',
               }}
             >
-              {videoState.isPlaying ? (
+              {/* Показываем иконку РЕЗУЛЬТАТА (инвертируем т.к. состояние ещё не обновилось) */}
+              {!videoState.isPlaying ? (
                 <Pause
                   sx={{
                     fontSize: 62,
@@ -901,12 +897,24 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           currentEpisodeIndex={currentEpisodeIndex}
           totalEpisodes={episodes.length}
           onEpisodeSelect={onEpisodeSelect}
-          showControls={showControls}
+          showControls={uiState.showControls}
           episodes={episodes}
         />
 
+        {/* Next Episode Notification */}
+        {showNextEpisodeNotification &&
+          currentEpisodeIndex < episodes.length - 1 && (
+            <NextEpisodeNotification
+              nextEpisodeNumber={episodes[currentEpisodeIndex + 1].number}
+              nextEpisodeName={episodes[currentEpisodeIndex + 1].name}
+              countdownSeconds={6}
+              onCancel={handleNextEpisodeCancel}
+              onPlayNow={handleNextEpisodePlayNow}
+            />
+          )}
+
         {/* Custom controls */}
-        {showControls && (
+        {uiState.showControls && (
           <VideoControls
             isPlaying={videoState.isPlaying}
             isLoading={isLoading}
@@ -915,9 +923,9 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             volume={videoState.volume}
             isMuted={videoState.isMuted}
             buffered={videoState.buffered}
-            isFullscreen={isFullscreen}
-            showControls={showControls}
-            onMenuOpenChange={setIsMenuOpen}
+            isFullscreen={uiState.isFullscreen}
+            showControls={uiState.showControls}
+            onMenuOpenChange={(isOpen) => uiStateManager.setMenuOpen(isOpen)}
             onSaveBookmark={handleSaveBookmark}
             hasBookmark={hasBookmark}
             qualityOptions={qualityOptions}
@@ -941,13 +949,15 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             timecode={timecode}
             currentSegment={currentSegment}
             onSkipSegment={handleSkipSegment}
-            showEpisodes={showEpisodesList}
-            onShowEpisodesChange={setShowEpisodesList}
-            autoSkipSettings={autoSkipSettings}
+            showEpisodes={uiState.showEpisodesList}
+            onShowEpisodesChange={(show) =>
+              uiStateManager.setShowEpisodesList(show)
+            }
+            autoSkipSettings={segmentManager.getSettings()}
             onAutoSkipChange={handleAutoSkipChange}
             onMouseMove={() => {
-              if (!showControls) {
-                setShowControls(true);
+              if (!uiState.showControls) {
+                uiStateManager.showPlayerControls();
               }
             }}
             onMouseLeave={() => {
@@ -956,7 +966,10 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             onProgressMouseMove={handleProgressMouseMove}
             onProgressMouseLeave={handleProgressMouseLeave}
             onSeek={handleSeek}
-            hoverTime={hoverTime}
+            hoverTime={uiState.hoverTime}
+            thumbnailManager={
+              controllerRef.current?.getThumbnailManager() || null
+            }
           />
         )}
       </Box>

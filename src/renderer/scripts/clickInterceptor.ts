@@ -175,25 +175,26 @@ export function injectClickInterceptor(webview: any): Promise<void> {
       return Promise.reject(new Error('executeJavaScript not available'));
     }
 
-    return webview
-      .executeJavaScript(clickInterceptorScript)
+    // Таймаут для executeJavaScript (5 секунд)
+    const executeWithTimeout = Promise.race([
+      webview.executeJavaScript(clickInterceptorScript),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), 5000),
+      ),
+    ]);
+
+    return executeWithTimeout
       .then(() => {
         console.log(
           '[AnimeLIB] Simple click interceptor injected successfully',
         );
-        console.log(
-          '[AnimeLIB] Script length:',
-          clickInterceptorScript.length,
-          'characters',
-        );
       })
       .catch((err: any) => {
-        console.error('[AnimeLIB] Script injection error:', err);
-        console.error(
-          '[AnimeLIB] Script content preview:',
-          `${clickInterceptorScript.substring(0, 200)}...`,
-        );
-        throw err;
+        // Тихая обработка ошибок - не спамим консоль
+        if (err.message !== 'Timeout') {
+          console.warn('[AnimeLIB] Click interceptor injection skipped:', err.message);
+        }
+        // НЕ throw err - просто игнорируем ошибку
       });
   } catch (error) {
     console.error('[AnimeLIB] Error calling executeJavaScript:', error);
