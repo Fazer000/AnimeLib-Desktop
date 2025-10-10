@@ -42,3 +42,14 @@ export type {
   Comment,
   CommentsPaginationState,
 } from './CommentsManager';
+
+export { ThumbnailManager } from './ThumbnailManager';
+
+export { UIStateManager } from './UIStateManager';
+export type { UIState } from './UIStateManager';
+
+export { AutoplayManager } from './AutoplayManager';
+export type { AutoplayConfig } from './AutoplayManager';
+
+export { SegmentManager } from './SegmentManager';
+export type { TimeCodeSegment, SegmentSettings } from './SegmentManager';

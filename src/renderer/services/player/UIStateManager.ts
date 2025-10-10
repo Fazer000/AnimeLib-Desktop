@@ -1,167 +1,200 @@
 /* eslint-disable no-console */
 
-export interface UIState {
-  showControls: boolean;
-  isFullscreen: boolean;
-  isMenuOpen: boolean;
-  showEpisodes: boolean;
-  showVolumeTooltip: boolean;
-  hoverTime: number | null;
-  showCenterIcon: boolean;
-}
-
-export interface UIStateConfig {
-  onStateChange?: (state: Partial<UIState>) => void;
-}
-
 /**
- * Управляет состоянием UI плеера
+ * UIStateManager - управление состоянием UI плеера
+ *
+ * Отвечает за:
+ * - Видимость контролов
+ * - Fullscreen режим
+ * - Центральная иконка плей/пауза
+ * - Hover время на прогресс-баре
+ * - Состояние меню
  */
 export class UIStateManager {
-  private state: UIState;
+  // States
+  private showControls: boolean = true;
+  private isFullscreen: boolean = false;
+  private showCenterIcon: boolean = false;
+  private hoverTime: number | null = null;
+  private isMenuOpen: boolean = false;
+  private showEpisodesList: boolean = false;
 
-  private config: UIStateConfig;
+  // Callbacks
+  private onStateChange?: (state: UIState) => void;
 
-  private autoHideTimeout: ReturnType<typeof setTimeout> | null = null;
+  // Auto-hide timer
+  private autoHideTimer: ReturnType<typeof setTimeout> | null = null;
 
-  private volumeTooltipTimeout: ReturnType<typeof setTimeout> | null = null;
+  // Click debounce timer
+  private clickTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(config: UIStateConfig = {}) {
-    this.config = config;
-    this.state = {
-      showControls: true,
-      isFullscreen: false,
-      isMenuOpen: false,
-      showEpisodes: false,
-      showVolumeTooltip: false,
-      hoverTime: null,
-      showCenterIcon: false,
+  constructor(callbacks?: {
+    onStateChange?: (state: UIState) => void;
+  }) {
+    this.onStateChange = callbacks?.onStateChange;
+  }
+
+  /**
+   * Получить текущее состояние
+   */
+  getState(): UIState {
+    return {
+      showControls: this.showControls,
+      isFullscreen: this.isFullscreen,
+      showCenterIcon: this.showCenterIcon,
+      hoverTime: this.hoverTime,
+      isMenuOpen: this.isMenuOpen,
+      showEpisodesList: this.showEpisodesList,
     };
   }
 
   /**
-   * Обновляет состояние
+   * Обновить состояние и уведомить подписчиков
    */
   private updateState(updates: Partial<UIState>): void {
-    this.state = { ...this.state, ...updates };
-    this.config.onStateChange?.(updates);
+    Object.assign(this, updates);
+    this.onStateChange?.(this.getState());
   }
 
   /**
-   * Показывает контролы
+   * Показать контролы
    */
-  showControls(): void {
+  showPlayerControls(): void {
     this.updateState({ showControls: true });
-    this.resetAutoHideTimeout();
   }
 
   /**
-   * Скрывает контролы
+   * Скрыть контролы
    */
-  hideControls(): void {
-    if (!this.state.isMenuOpen) {
-      this.updateState({ showControls: false });
-    }
+  hidePlayerControls(): void {
+    this.updateState({ showControls: false });
   }
 
   /**
-   * Устанавливает таймер автоскрытия контролов
-   */
-  private resetAutoHideTimeout(): void {
-    if (this.autoHideTimeout) {
-      clearTimeout(this.autoHideTimeout);
-    }
-
-    // Auto-hide only if playing and menu is not open
-    if (!this.state.isMenuOpen) {
-      this.autoHideTimeout = setTimeout(() => {
-        this.hideControls();
-      }, 4000);
-    }
-  }
-
-  /**
-   * Переключает полноэкранный режим
+   * Установить fullscreen состояние
    */
   setFullscreen(isFullscreen: boolean): void {
     this.updateState({ isFullscreen });
   }
 
   /**
-   * Открывает/закрывает меню
+   * Показать центральную иконку плей/пауза
    */
-  setMenuOpen(isOpen: boolean): void {
-    this.updateState({ isMenuOpen: isOpen });
-
-    if (isOpen) {
-      // Keep controls visible when menu is open
-      if (this.autoHideTimeout) {
-        clearTimeout(this.autoHideTimeout);
-        this.autoHideTimeout = null;
-      }
-    } else {
-      this.resetAutoHideTimeout();
-    }
-  }
-
-  /**
-   * Показывает/скрывает список эпизодов
-   */
-  setShowEpisodes(show: boolean): void {
-    this.updateState({ showEpisodes: show });
-    this.setMenuOpen(show);
-  }
-
-  /**
-   * Показывает тултип громкости
-   */
-  showVolumeTooltip(): void {
-    this.updateState({ showVolumeTooltip: true });
-
-    if (this.volumeTooltipTimeout) {
-      clearTimeout(this.volumeTooltipTimeout);
-    }
-
-    this.volumeTooltipTimeout = setTimeout(() => {
-      this.updateState({ showVolumeTooltip: false });
-    }, 1500);
-  }
-
-  /**
-   * Устанавливает время при наведении на прогресс бар
-   */
-  setHoverTime(time: number | null): void {
-    this.updateState({ hoverTime: time });
-  }
-
-  /**
-   * Показывает центральную иконку play/pause
-   */
-  showCenterIcon(): void {
+  showPlayPauseIcon(): void {
     this.updateState({ showCenterIcon: true });
+
+    // Автоматически скрыть через 1 секунду
     setTimeout(() => {
       this.updateState({ showCenterIcon: false });
     }, 1000);
   }
 
   /**
-   * Получает текущее состояние
+   * Установить hover время на прогресс-баре
    */
-  getState(): UIState {
-    return { ...this.state };
+  setHoverTime(time: number | null): void {
+    this.updateState({ hoverTime: time });
   }
 
   /**
-   * Очищает все таймеры
+   * Установить состояние меню
    */
-  cleanup(): void {
-    if (this.autoHideTimeout) {
-      clearTimeout(this.autoHideTimeout);
-      this.autoHideTimeout = null;
+  setMenuOpen(isOpen: boolean): void {
+    this.updateState({ isMenuOpen: isOpen });
+  }
+
+  /**
+   * Переключить список эпизодов
+   */
+  toggleEpisodesList(): void {
+    this.updateState({ showEpisodesList: !this.showEpisodesList });
+    this.showPlayerControls(); // Показываем контролы при открытии списка
+  }
+
+  /**
+   * Установить видимость списка эпизодов
+   */
+  setShowEpisodesList(show: boolean): void {
+    this.updateState({ showEpisodesList: show });
+  }
+
+  /**
+   * Запустить автоскрытие контролов
+   */
+  startAutoHide(isPlaying: boolean, delay: number = 4000): void {
+    // Очищаем предыдущий таймер
+    if (this.autoHideTimer) {
+      clearTimeout(this.autoHideTimer);
+      this.autoHideTimer = null;
     }
-    if (this.volumeTooltipTimeout) {
-      clearTimeout(this.volumeTooltipTimeout);
-      this.volumeTooltipTimeout = null;
+
+    // Не скрываем контролы если:
+    // - видео на паузе
+    // - меню открыто
+    // - курсор наведён на прогресс-бар (показываем превью)
+    if (!isPlaying || this.isMenuOpen || this.hoverTime !== null) {
+      return;
+    }
+
+    if (!this.showControls) {
+      return;
+    }
+
+    this.autoHideTimer = setTimeout(() => {
+      console.log('[UIStateManager] Auto-hiding controls');
+      this.hidePlayerControls();
+    }, delay);
+  }
+
+  /**
+   * Остановить автоскрытие контролов
+   */
+  stopAutoHide(): void {
+    if (this.autoHideTimer) {
+      clearTimeout(this.autoHideTimer);
+      this.autoHideTimer = null;
     }
   }
+
+  /**
+   * Получить таймер клика (для debounce)
+   */
+  getClickTimeout(): ReturnType<typeof setTimeout> | null {
+    return this.clickTimeout;
+  }
+
+  /**
+   * Установить таймер клика
+   */
+  setClickTimeout(timeout: ReturnType<typeof setTimeout> | null): void {
+    this.clickTimeout = timeout;
+  }
+
+  /**
+   * Очистить таймер клика
+   */
+  clearClickTimeout(): void {
+    if (this.clickTimeout) {
+      clearTimeout(this.clickTimeout);
+      this.clickTimeout = null;
+    }
+  }
+
+  /**
+   * Уничтожить менеджер
+   */
+  destroy(): void {
+    this.stopAutoHide();
+    this.clearClickTimeout();
+    this.onStateChange = undefined;
+  }
+}
+
+export interface UIState {
+  showControls: boolean;
+  isFullscreen: boolean;
+  showCenterIcon: boolean;
+  hoverTime: number | null;
+  isMenuOpen: boolean;
+  showEpisodesList: boolean;
 }

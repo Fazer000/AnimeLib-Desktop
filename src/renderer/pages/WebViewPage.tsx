@@ -69,7 +69,9 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
       scriptManager.registerCallback(() => {
         console.log('[WebView] Injecting click interceptor...');
         try {
-          injectClickInterceptor(webview);
+          injectClickInterceptor(webview).catch(() => {
+            // Тихо игнорируем ошибку - она уже залогирована внутри функции
+          });
         } catch (error) {
           console.error('[WebView] Error injecting click interceptor:', error);
         }
@@ -78,7 +80,9 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
       scriptManager.registerCallback(() => {
         console.log('[WebView] Extracting auth token...');
         try {
-          extractAuthToken(webview);
+          extractAuthToken(webview).catch(() => {
+            // Тихо игнорируем ошибку - она уже залогирована внутри функции
+          });
         } catch (error) {
           console.error('[WebView] Error extracting auth token:', error);
         }
@@ -158,11 +162,20 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
 
     // eslint-disable-next-line consistent-return
     return () => {
+      console.log('[WebView] Cleaning up event listeners and managers...');
+
       webview.removeEventListener('dom-ready', handleDomReady);
       webview.removeEventListener('did-finish-load', handleLoadStop);
       webview.removeEventListener('did-fail-load', handleError);
       webview.removeEventListener('did-navigate', handleNavigate);
       webview.removeEventListener('did-navigate-in-page', handleInPageNavigate);
+
+      // Очищаем ScriptInjectionManager
+      if (scriptManager) {
+        scriptManager.destroy();
+      }
+
+      console.log('[WebView] Cleanup complete');
     };
   }, []);
 

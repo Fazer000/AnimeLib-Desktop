@@ -1,6 +1,14 @@
-import React, { useMemo, useRef, useCallback } from 'react';
+import React, {
+  useMemo,
+  useRef,
+  useCallback,
+  useState,
+  useEffect,
+} from 'react';
 import { Box, Slider } from '@mui/material';
 import { formatTime } from '../../utils/videoHelpers';
+import { ThumbnailManager } from '../../services/player';
+import ThumbnailPreview from './ThumbnailPreview';
 
 interface TimeCode {
   type: 'opening' | 'ending' | 'compilation' | 'splashScreen';
@@ -17,6 +25,8 @@ interface ProgressBarProps {
   onProgressMouseMove: (event: React.MouseEvent<HTMLDivElement>) => void;
   onProgressMouseLeave: () => void;
   timecode: TimeCode[];
+  // eslint-disable-next-line react/require-default-props
+  thumbnailManager?: ThumbnailManager | null;
 }
 
 /**
@@ -31,6 +41,7 @@ function ProgressBar({
   onProgressMouseMove,
   onProgressMouseLeave,
   timecode = [],
+  thumbnailManager = null,
 }: ProgressBarProps) {
   // Локальное состояние для плавного драга без запросов
   const [dragTime, setDragTime] = React.useState<number | null>(null);
@@ -38,9 +49,21 @@ function ProgressBar({
   const dragTimeRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
 
+  // Thumbnail state
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [isThumbnailLoading, setIsThumbnailLoading] = useState(false);
+  const thumbnailTimeRef = useRef<number | null>(null);
+  const thumbnailTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
   // Мемоизация сегментов - пересчитываем только при изменении timecode или duration
   const segments = useMemo(() => {
-    if (!timecode || timecode.length === 0 || duration === 0) {
+    if (!duration || duration <= 0) {
+      return [{ start: 0, end: 0, type: 'normal' as const }];
+    }
+
+    if (!timecode || timecode.length === 0) {
       return [{ start: 0, end: duration, type: 'normal' as const }];
     }
 
@@ -51,22 +74,41 @@ function ProgressBar({
     }> = [];
     let lastEnd = 0;
 
-    // Сортируем timecode по времени начала
-    const sortedTimecode = [...timecode].sort((a, b) => a.from - b.from);
+    // Сортируем timecode по времени начала и фильтруем некорректные
+    const sortedTimecode = [...timecode]
+      .filter((tc) => tc.from < tc.to && tc.from >= 0 && tc.to <= duration)
+      .sort((a, b) => a.from - b.from);
 
     sortedTimecode.forEach((tc) => {
-      // Добавляем обычный сегмент перед этим timecode
-      if (tc.from > lastEnd) {
-        segs.push({ start: lastEnd, end: tc.from, type: 'normal' });
+      // Ограничиваем сегмент границами видео
+      const segmentStart = Math.max(0, tc.from);
+      const segmentEnd = Math.min(duration, tc.to);
+
+      // Пропускаем если сегмент уже прошли (перекрытие)
+      if (segmentStart < lastEnd) {
+        // Обновляем lastEnd если текущий сегмент заканчивается позже
+        lastEnd = Math.max(lastEnd, segmentEnd);
+        return;
       }
+
+      // Добавляем обычный сегмент перед этим timecode (если есть зазор)
+      if (segmentStart > lastEnd) {
+        segs.push({ start: lastEnd, end: segmentStart, type: 'normal' });
+      }
+
       // Добавляем сегмент timecode
-      segs.push({ start: tc.from, end: tc.to, type: tc.type });
-      lastEnd = tc.to;
+      segs.push({ start: segmentStart, end: segmentEnd, type: tc.type });
+      lastEnd = segmentEnd;
     });
 
-    // Добавляем последний обычный сегмент
+    // Добавляем последний обычный сегмент (если есть)
     if (lastEnd < duration) {
       segs.push({ start: lastEnd, end: duration, type: 'normal' });
+    }
+
+    // Важно: корректируем последний сегмент чтобы он заканчивался ТОЧНО на duration
+    if (segs.length > 0) {
+      segs[segs.length - 1].end = duration;
     }
 
     return segs;
@@ -98,8 +140,59 @@ function ProgressBar({
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
       }
+      if (thumbnailTimeoutRef.current) {
+        clearTimeout(thumbnailTimeoutRef.current);
+      }
     };
   }, []);
+
+  // Load thumbnail when hover time changes (ТОЛЬКО на паузе!)
+  useEffect(() => {
+    if (!thumbnailManager || hoverTime === null) {
+      setThumbnailUrl(null);
+      setIsThumbnailLoading(false);
+      thumbnailTimeRef.current = null;
+      if (thumbnailTimeoutRef.current) {
+        clearTimeout(thumbnailTimeoutRef.current);
+        thumbnailTimeoutRef.current = null;
+      }
+      return;
+    }
+
+    const roundedTime = Math.floor(hoverTime);
+
+    // Если время не изменилось значительно, не загружаем новое превью
+    if (thumbnailTimeRef.current === roundedTime) {
+      return;
+    }
+
+    thumbnailTimeRef.current = roundedTime;
+
+    // Debounce для предотвращения слишком частых запросов
+    if (thumbnailTimeoutRef.current) {
+      clearTimeout(thumbnailTimeoutRef.current);
+    }
+
+    thumbnailTimeoutRef.current = setTimeout(() => {
+      setIsThumbnailLoading(true);
+
+      thumbnailManager
+        .getThumbnail(roundedTime)
+        .then((url) => {
+          // Проверяем что время все еще актуально
+          if (thumbnailTimeRef.current === roundedTime) {
+            setThumbnailUrl(url);
+            setIsThumbnailLoading(false);
+          }
+          return url;
+        })
+        .catch(() => {
+          // Если видео играет - это ожидаемо, не показываем превью
+          setThumbnailUrl(null);
+          setIsThumbnailLoading(false);
+        });
+    }, 150); // Debounce 150ms
+  }, [hoverTime, thumbnailManager]);
 
   return (
     <Box
@@ -123,28 +216,68 @@ function ProgressBar({
           display: 'flex',
           gap: '3px',
           transition: 'height 0.2s ease',
+          overflow: 'hidden', // Важно! Предотвращает выход сегментов за пределы
           '&:hover': {
             height: 8,
           },
         }}
       >
-        {segments.map((segment) => {
+        {segments.map((segment, index) => {
           const segmentDuration = segment.end - segment.start;
-          const segmentWidth = (segmentDuration / duration) * 100;
-          const segmentProgress = Math.max(
-            0,
-            Math.min(
-              100,
-              ((displayTime - segment.start) / segmentDuration) * 100,
-            ),
-          );
-          const segmentBuffered = Math.max(
-            0,
-            Math.min(
-              100,
-              ((buffered * duration - segment.start) / segmentDuration) * 100,
-            ),
-          );
+
+          // Защита от деления на 0
+          if (segmentDuration <= 0 || duration <= 0) {
+            return null;
+          }
+
+          // Рассчитываем ширину сегмента
+          let segmentWidth = (segmentDuration / duration) * 100;
+
+          // Для последнего сегмента вычисляем оставшуюся ширину
+          // чтобы гарантировать что сумма всех сегментов = 100%
+          if (index === segments.length - 1) {
+            const previousWidths = segments
+              .slice(0, index)
+              .reduce((sum, seg) => {
+                const dur = seg.end - seg.start;
+                return sum + (dur / duration) * 100;
+              }, 0);
+            segmentWidth = 100 - previousWidths;
+            segmentWidth = Math.max(0.1, segmentWidth); // Минимум 0.1% чтобы сегмент был виден
+          }
+
+          // Ограничиваем ширину в разумных пределах
+          segmentWidth = Math.max(0, Math.min(100, segmentWidth));
+
+          // Расчет прогресса - ТОЛЬКО если displayTime в пределах или после сегмента
+          let segmentProgress = 0;
+          if (displayTime >= segment.start) {
+            if (displayTime <= segment.end) {
+              // Внутри сегмента - считаем прогресс
+              segmentProgress =
+                ((displayTime - segment.start) / segmentDuration) * 100;
+            } else {
+              // После сегмента - 100%
+              segmentProgress = 100;
+            }
+          }
+          // До сегмента - 0% (по умолчанию)
+
+          // Расчет буферизации - аналогично прогрессу
+          const bufferedTime = buffered * duration;
+          let segmentBuffered = 0;
+          if (bufferedTime >= segment.start) {
+            if (bufferedTime <= segment.end) {
+              segmentBuffered =
+                ((bufferedTime - segment.start) / segmentDuration) * 100;
+            } else {
+              segmentBuffered = 100;
+            }
+          }
+
+          // Ограничиваем значения в пределах 0-100%
+          segmentProgress = Math.max(0, Math.min(100, segmentProgress));
+          segmentBuffered = Math.max(0, Math.min(100, segmentBuffered));
 
           // Единые цвета для всех сегментов
           const colors = {
@@ -160,7 +293,8 @@ function ProgressBar({
                 position: 'relative',
                 width: `${segmentWidth}%`,
                 height: '100%',
-                flexShrink: 0,
+                flexShrink: 1, // Позволяем сегментам сжиматься если нужно
+                minWidth: 0, // Важно для корректной работы flex-shrink
               }}
             >
               {/* Фон сегмента */}
@@ -318,55 +452,66 @@ function ProgressBar({
         }}
       />
 
-      {/* Tooltip с временем при наведении */}
-      {hoverTime !== null && (
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 24,
-            left: `${(hoverTime / duration) * 100}%`,
-            transform: 'translateX(-50%)',
-            color: '#fff',
-            padding: '6px 12px',
-            backgroundColor: 'rgba(41, 41, 41, 0.62)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            borderRadius: 2,
-            fontSize: '12px',
-            fontFamily: 'Roboto, sans-serif',
-            fontWeight: 500,
-            whiteSpace: 'nowrap',
-            zIndex: 2001,
-            pointerEvents: 'none',
-            animation: 'tooltipAppear 0.15s ease-out',
-            '@keyframes tooltipAppear': {
-              from: {
-                opacity: 0,
-                transform: 'translateX(-50%) translateY(5px)',
-              },
-              to: {
-                opacity: 1,
-                transform: 'translateX(-50%) translateY(0)',
-              },
-            },
-            '&::before': {
-              content: '""',
+      {/* Thumbnail Preview или Tooltip с временем при наведении */}
+      {hoverTime !== null &&
+        (thumbnailManager ? (
+          <ThumbnailPreview
+            thumbnailUrl={thumbnailUrl}
+            time={hoverTime}
+            isLoading={isThumbnailLoading}
+            position={{
+              x: `${(hoverTime / duration) * 100}%`,
+              y: 24,
+            }}
+          />
+        ) : (
+          <Box
+            sx={{
               position: 'absolute',
-              bottom: -4,
-              left: '50%',
-              transform: 'translateX(-50%) rotate(45deg)',
-              width: 8,
-              height: 8,
+              bottom: 24,
+              left: `${(hoverTime / duration) * 100}%`,
+              transform: 'translateX(-50%)',
+              color: '#fff',
+              padding: '6px 12px',
               backgroundColor: 'rgba(41, 41, 41, 0.62)',
+              backdropFilter: 'blur(10px)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderTop: 'none',
-              borderLeft: 'none',
-            },
-          }}
-        >
-          {formatTime(hoverTime)}
-        </Box>
-      )}
+              borderRadius: 2,
+              fontSize: '12px',
+              fontFamily: 'Roboto, sans-serif',
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+              zIndex: 2001,
+              pointerEvents: 'none',
+              animation: 'tooltipAppear 0.15s ease-out',
+              '@keyframes tooltipAppear': {
+                from: {
+                  opacity: 0,
+                  transform: 'translateX(-50%) translateY(5px)',
+                },
+                to: {
+                  opacity: 1,
+                  transform: 'translateX(-50%) translateY(0)',
+                },
+              },
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                bottom: -4,
+                left: '50%',
+                transform: 'translateX(-50%) rotate(45deg)',
+                width: 8,
+                height: 8,
+                backgroundColor: 'rgba(41, 41, 41, 0.62)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderTop: 'none',
+                borderLeft: 'none',
+              },
+            }}
+          >
+            {formatTime(hoverTime)}
+          </Box>
+        ))}
     </Box>
   );
 }

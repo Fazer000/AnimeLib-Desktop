@@ -265,4 +265,16 @@ export class ScriptInjectionManager {
     this.retryCount = 0;
     console.log('[ScriptInjectionManager] State reset');
   }
+
+  /**
+   * Destroy manager and cleanup
+   */
+  public destroy(): void {
+    console.log('[ScriptInjectionManager] Destroying manager...');
+    this.clearCallbacks();
+    this.webview = null;
+    this.isInjecting = false;
+    this.retryCount = 0;
+    console.log('[ScriptInjectionManager] Manager destroyed');
+  }
 }

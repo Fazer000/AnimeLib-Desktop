@@ -1,7 +1,7 @@
-; Custom NSIS script for AnimeLib Desktop Beta installer
+; Custom NSIS script for AnimeLib Desktop installer
 ; Automatically adds app folder name to installation path
 
-!define APP_DIR_NAME "AnimeLibDesktopBeta"
+!define APP_DIR_NAME "AnimeLibDesktop"
 
 !macro customInit
   ; Устанавливаем путь по умолчанию для всех пользователей

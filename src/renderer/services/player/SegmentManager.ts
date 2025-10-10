@@ -1,0 +1,210 @@
+/* eslint-disable no-console */
+
+export interface TimeCodeSegment {
+  type: 'opening' | 'ending' | 'compilation' | 'splashScreen';
+  from: number;
+  to: number;
+}
+
+export interface SegmentSettings {
+  skipOpenings: boolean;
+  skipEndings: boolean;
+  skipCompilations: boolean;
+  skipSplashScreens: boolean;
+}
+
+/**
+ * SegmentManager - управление сегментами видео (опенинг, эндинг и т.д.)
+ *
+ * Отвечает за:
+ * - Определение текущего сегмента
+ * - Автопропуск сегментов
+ * - Сохранение настроек автопропуска
+ */
+export class SegmentManager {
+  private segments: TimeCodeSegment[] = [];
+  private currentSegment: TimeCodeSegment | null = null;
+  private settings: SegmentSettings;
+  private skippedSegments: Set<string> = new Set(); // Треккинг пропущенных сегментов
+  private videoDuration: number = 0; // Длительность видео для защиты от перемотки за границы
+
+  private onSegmentChange?: (segment: TimeCodeSegment | null) => void;
+  private onSkipSegment?: (toTime: number) => void;
+
+  constructor(callbacks?: {
+    onSegmentChange?: (segment: TimeCodeSegment | null) => void;
+    onSkipSegment?: (toTime: number) => void;
+  }) {
+    this.onSegmentChange = callbacks?.onSegmentChange;
+    this.onSkipSegment = callbacks?.onSkipSegment;
+
+    // Загружаем настройки из localStorage
+    this.settings = this.loadSettings();
+  }
+
+  /**
+   * Загрузить настройки из localStorage
+   */
+  private loadSettings(): SegmentSettings {
+    const stored = localStorage.getItem('autoSkipSettings');
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        // fallthrough
+      }
+    }
+
+    return {
+      skipOpenings: false,
+      skipEndings: false,
+      skipCompilations: false,
+      skipSplashScreens: false,
+    };
+  }
+
+  /**
+   * Сохранить настройки в localStorage
+   */
+  private saveSettings(): void {
+    localStorage.setItem('autoSkipSettings', JSON.stringify(this.settings));
+  }
+
+  /**
+   * Установить сегменты
+   */
+  setSegments(segments: TimeCodeSegment[]): void {
+    this.segments = segments;
+    this.skippedSegments.clear(); // Очищаем историю при смене сегментов
+    console.log('[SegmentManager] Segments set:', segments.length);
+  }
+
+  /**
+   * Установить длительность видео
+   */
+  setDuration(duration: number): void {
+    // Если duration изменился (новое видео/эпизод), очищаем историю пропусков
+    if (this.videoDuration !== duration && duration > 0) {
+      this.skippedSegments.clear();
+      console.log('[SegmentManager] Duration changed, cleared skip history');
+    }
+    this.videoDuration = duration;
+  }
+
+  /**
+   * Обновить текущее время и проверить сегменты
+   */
+  updateCurrentTime(currentTime: number): void {
+    if (this.segments.length === 0) {
+      if (this.currentSegment !== null) {
+        this.currentSegment = null;
+        this.onSegmentChange?.(null);
+      }
+      return;
+    }
+
+    // Находим активный сегмент
+    const activeSegment = this.segments.find(
+      (segment) => currentTime >= segment.from && currentTime <= segment.to,
+    );
+
+    // Обновляем только если изменился
+    if (activeSegment !== this.currentSegment) {
+      this.currentSegment = activeSegment || null;
+      this.onSegmentChange?.(this.currentSegment);
+
+      // Проверяем автопропуск
+      if (this.currentSegment && this.shouldAutoSkip(this.currentSegment)) {
+        const segmentKey = `${this.currentSegment.from}-${this.currentSegment.to}-${this.currentSegment.type}`;
+
+        // Пропускаем только если еще не пропускали этот сегмент
+        if (!this.skippedSegments.has(segmentKey)) {
+          console.log(
+            `[SegmentManager] Auto-skipping ${this.currentSegment.type} segment`,
+          );
+          this.skippedSegments.add(segmentKey);
+          this.skipCurrentSegment();
+        }
+      }
+    }
+  }
+
+  /**
+   * Получить текущий сегмент
+   */
+  getCurrentSegment(): TimeCodeSegment | null {
+    return this.currentSegment;
+  }
+
+  /**
+   * Получить настройки
+   */
+  getSettings(): SegmentSettings {
+    return { ...this.settings };
+  }
+
+  /**
+   * Обновить настройки
+   */
+  updateSettings(settings: Partial<SegmentSettings>): void {
+    this.settings = { ...this.settings, ...settings };
+    this.saveSettings();
+    console.log('[SegmentManager] Settings updated:', this.settings);
+  }
+
+  /**
+   * Проверить нужно ли автопропустить сегмент
+   */
+  private shouldAutoSkip(segment: TimeCodeSegment): boolean {
+    switch (segment.type) {
+      case 'opening':
+        return this.settings.skipOpenings;
+      case 'ending':
+        return this.settings.skipEndings;
+      case 'compilation':
+        return this.settings.skipCompilations;
+      case 'splashScreen':
+        return this.settings.skipSplashScreens;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Пропустить текущий сегмент
+   */
+  skipCurrentSegment(): void {
+    if (!this.currentSegment) {
+      console.warn('[SegmentManager] No current segment to skip');
+      return;
+    }
+
+    let skipToTime = this.currentSegment.to + 1;
+
+    // Защита: если сегмент идёт до конца видео (эндинг обычно)
+    if (this.videoDuration > 0 && skipToTime >= this.videoDuration) {
+      // Перематываем на время чуть меньше конца, чтобы autoplay мог сработать
+      skipToTime = this.videoDuration - 0.5;
+      console.log(
+        `[SegmentManager] Segment goes to end, skipping to ${skipToTime} (near end)`,
+      );
+    } else {
+      console.log('[SegmentManager] Skipping to:', skipToTime);
+    }
+
+    this.onSkipSegment?.(skipToTime);
+  }
+
+  /**
+   * Уничтожить менеджер
+   */
+  destroy(): void {
+    this.segments = [];
+    this.currentSegment = null;
+    this.skippedSegments.clear();
+    this.videoDuration = 0;
+    this.onSegmentChange = undefined;
+    this.onSkipSegment = undefined;
+  }
+}
+

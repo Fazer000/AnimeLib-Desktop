@@ -1,6 +1,6 @@
 {
   "name": "animelib-desktop",
-  "version": "0.9.2-beta",
+  "version": "1.0.0",
   "description": "AnimeLib Desktop - Desktop anime player",
   "keywords": [
     "electron",
@@ -182,8 +182,8 @@
     "webpack-merge": "^6.0.1"
   },
   "build": {
-    "productName": "AnimeLib Desktop Beta",
-    "appId": "org.animelib.desktop.beta",
+    "productName": "AnimeLib Desktop",
+    "appId": "org.animelib.desktop",
     "asar": true,
     "afterSign": ".erb/scripts/notarize.js",
     "asarUnpack": "**\\*.{node,dll}",
@@ -238,7 +238,7 @@
       "allowElevation": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "AnimeLib Desktop Beta",
+      "shortcutName": "AnimeLib Desktop",
       "installerIcon": "assets/icon.ico",
       "uninstallerIcon": "assets/icon.ico",
       "installerHeaderIcon": "assets/icon.ico",

@@ -62,8 +62,15 @@ export function extractAuthToken(webview: any): Promise<any> {
       return Promise.reject(new Error('executeJavaScript not available'));
     }
 
-    return webview
-      .executeJavaScript(authExtractorScript)
+    // Таймаут для executeJavaScript (5 секунд)
+    const executeWithTimeout = Promise.race([
+      webview.executeJavaScript(authExtractorScript),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), 5000),
+      ),
+    ]);
+
+    return executeWithTimeout
       .then((result: any) => {
         console.log('[AnimeLIB] Extraction result:', result);
 
@@ -97,8 +104,11 @@ export function extractAuthToken(webview: any): Promise<any> {
         return result;
       })
       .catch((err: any) => {
-        console.error('[AnimeLIB] Script execution error:', err);
-        throw err;
+        // Тихая обработка ошибок - не спамим консоль
+        if (err.message !== 'Timeout') {
+          console.warn('[AnimeLIB] Auth extraction skipped:', err.message);
+        }
+        // НЕ throw err - просто игнорируем ошибку
       });
   } catch (error) {
     console.error('[AnimeLIB] Error calling executeJavaScript:', error);

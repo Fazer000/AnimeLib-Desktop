@@ -4,6 +4,7 @@ import { ShakaPlayerManager } from './ShakaPlayerManager';
 import { VideoStateManager } from './VideoStateManager';
 import { QualityManager } from './QualityManager';
 import { KeyboardManager } from './KeyboardManager';
+import { ThumbnailManager } from './ThumbnailManager';
 
 export interface VideoPlayerControllerConfig {
   onError?: (error: string) => void;
@@ -35,6 +36,8 @@ export class VideoPlayerController {
   private qualityManager: QualityManager;
 
   private keyboardManager: KeyboardManager;
+
+  private thumbnailManager: ThumbnailManager;
 
   private config: VideoPlayerControllerConfig;
 
@@ -91,6 +94,8 @@ export class VideoPlayerController {
       onKeyPress: config.onKeyPress, // Pass the callback through
       onToggleEpisodes: config.onToggleEpisodes, // Toggle episodes list
     });
+
+    this.thumbnailManager = new ThumbnailManager();
   }
 
   /**
@@ -211,6 +216,11 @@ export class VideoPlayerController {
       this.shouldAutoPlay,
     );
 
+    // Загрузка видео источника для thumbnail manager
+    if (this.videoElement?.src) {
+      this.thumbnailManager.loadVideo(this.videoElement.src);
+    }
+
     // Reset saved state
     this.savedTime = 0;
     this.shouldAutoPlay = false;
@@ -257,6 +267,9 @@ export class VideoPlayerController {
     if (this.videoElement && !this.videoElement.paused) {
       this.videoElement.pause();
     }
+
+    // Clear thumbnail cache
+    this.thumbnailManager.clearCache();
 
     // Reset managers
     this.stateManager.reset();
@@ -353,10 +366,10 @@ export class VideoPlayerController {
   }
 
   /**
-   * Получает менеджер клавиатуры
+   * Получает менеджер превью
    */
-  getKeyboardManager(): KeyboardManager {
-    return this.keyboardManager;
+  getThumbnailManager(): ThumbnailManager {
+    return this.thumbnailManager;
   }
 
   /**
@@ -370,6 +383,9 @@ export class VideoPlayerController {
 
     // Detach state manager
     this.stateManager.detach();
+
+    // Destroy thumbnail manager
+    this.thumbnailManager.destroy();
 
     // Destroy Shaka Player
     await this.shakaManager.destroy();
