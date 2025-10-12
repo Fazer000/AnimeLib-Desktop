@@ -81,7 +81,7 @@ const ThumbnailPreview = memo(
           </Box>
 
           {/* Превью изображение */}
-          {isLoading ? (
+          {isLoading && (
             <Box
               sx={{
                 width: 120,
@@ -94,7 +94,9 @@ const ThumbnailPreview = memo(
             >
               <CircularProgress size={20} sx={{ color: '#7C3AED' }} />
             </Box>
-          ) : thumbnailUrl ? (
+          )}
+
+          {!isLoading && thumbnailUrl && (
             <img
               src={thumbnailUrl}
               alt="Preview"
@@ -105,7 +107,9 @@ const ThumbnailPreview = memo(
                 objectFit: 'cover',
               }}
             />
-          ) : (
+          )}
+
+          {!isLoading && !thumbnailUrl && (
             <Box
               sx={{
                 width: 120,
@@ -150,4 +154,3 @@ const ThumbnailPreview = memo(
 ThumbnailPreview.displayName = 'ThumbnailPreview';
 
 export default ThumbnailPreview;
-

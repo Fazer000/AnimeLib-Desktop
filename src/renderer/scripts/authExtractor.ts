@@ -49,6 +49,7 @@ export const authExtractorScript = `
 export function extractAuthToken(webview: any): Promise<any> {
   // Check if webview is ready
   if (!webview) {
+    // eslint-disable-next-line no-console
     console.error('[AnimeLIB] Cannot extract token: webview is null');
     return Promise.reject(new Error('Webview is null'));
   }
@@ -56,6 +57,7 @@ export function extractAuthToken(webview: any): Promise<any> {
   try {
     // Check if webview has executeJavaScript method
     if (!webview.executeJavaScript) {
+      // eslint-disable-next-line no-console
       console.error(
         '[AnimeLIB] Webview does not have executeJavaScript method',
       );
@@ -65,52 +67,47 @@ export function extractAuthToken(webview: any): Promise<any> {
     // Таймаут для executeJavaScript (5 секунд)
     const executeWithTimeout = Promise.race([
       webview.executeJavaScript(authExtractorScript),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), 5000),
-      ),
+      new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error('Timeout')), 5000);
+      }),
     ]);
 
     return executeWithTimeout
       .then((result: any) => {
-        console.log('[AnimeLIB] Extraction result:', result);
-
         if (result && result.success && result.token) {
-          console.log('[AnimeLIB] ===== TOKEN EXTRACTED SUCCESSFULLY =====');
-          console.log('[AnimeLIB] Token:', result.token);
-
           // Сохраняем токен
           try {
             localStorage.setItem(
               'animeLibAuthToken',
               JSON.stringify(result.token),
             );
-            console.log('[AnimeLIB] Token saved to localStorage!');
 
             // Проверяем сохранение
             const saved = localStorage.getItem('animeLibAuthToken');
-            if (saved) {
-              console.log('[AnimeLIB] Verification: Token saved successfully!');
-            } else {
-              console.log('[AnimeLIB] Verification: FAILED to save token!');
+            if (!saved) {
+              // eslint-disable-next-line no-console
+              console.error('[AnimeLIB] Verification: FAILED to save token!');
             }
           } catch (err) {
+            // eslint-disable-next-line no-console
             console.error('[AnimeLIB] Save error:', err);
           }
         } else {
+          // eslint-disable-next-line no-console
           console.log('[AnimeLIB] ===== TOKEN EXTRACTION FAILED =====');
-          console.log('[AnimeLIB] Error:', result?.error);
-          console.log('[AnimeLIB] Available keys:', result?.keys);
         }
         return result;
       })
       .catch((err: any) => {
         // Тихая обработка ошибок - не спамим консоль
         if (err.message !== 'Timeout') {
+          // eslint-disable-next-line no-console
           console.warn('[AnimeLIB] Auth extraction skipped:', err.message);
         }
         // НЕ throw err - просто игнорируем ошибку
       });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('[AnimeLIB] Error calling executeJavaScript:', error);
     return Promise.reject(error);
   }

@@ -15,12 +15,16 @@ export interface AutoplayConfig {
  */
 export class AutoplayManager {
   private videoElement: HTMLVideoElement | null = null;
+
   private config: AutoplayConfig;
+
   private isFirstLoad: boolean = true;
+
   private hasBookmarkPending: boolean = false;
 
   // Event handlers
   private canPlayHandler: (() => void) | null = null;
+
   private endedHandler: (() => void) | null = null;
 
   constructor(config: AutoplayConfig) {
@@ -130,6 +134,7 @@ export class AutoplayManager {
           .play()
           .then(() => {
             console.log('[AutoplayManager] Autoplay started successfully');
+            return undefined;
           })
           .catch((error) => {
             console.warn('[AutoplayManager] Autoplay failed:', error);
@@ -183,4 +188,3 @@ export class AutoplayManager {
     this.videoElement = null;
   }
 }
-

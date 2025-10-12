@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
 export type Channels =
@@ -6,10 +7,12 @@ export type Channels =
   | 'window-minimize'
   | 'window-maximize'
   | 'window-close'
+  | 'window-fullscreen'
   | 'open-player-page'
   | 'webview-log'
   | 'setup-video-headers'
-  | 'clear-video-headers';
+  | 'clear-video-headers'
+  | 'get-maximize-state';
 
 const electronHandler = {
   ipcRenderer: {
@@ -44,6 +47,14 @@ const electronHandler = {
     clearVideoHeaders: async () => {
       console.log('[AnimeLIB] Preload: Clearing video headers');
       return ipcRenderer.invoke('clear-video-headers');
+    },
+    setFullscreen: (isFullscreen: boolean) => {
+      console.log('[AnimeLIB] Preload: Setting fullscreen:', isFullscreen);
+      ipcRenderer.send('window-fullscreen', isFullscreen);
+    },
+    getMaximizeState: async (): Promise<boolean> => {
+      console.log('[AnimeLIB] Preload: Getting maximize state');
+      return ipcRenderer.invoke('get-maximize-state');
     },
   },
 };

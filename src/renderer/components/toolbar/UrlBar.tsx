@@ -85,7 +85,6 @@ function UrlBar({
       <Box
         sx={{
           flex: 1,
-          marginX: 1,
           WebkitAppRegion: 'drag',
           appRegion: 'drag',
         }}
@@ -176,16 +175,6 @@ function UrlBar({
           <Link sx={{ fontSize: 16 }} />
         </IconButton>
       )}
-
-      {/* Draggable spacer */}
-      <Box
-        sx={{
-          width: 8,
-          height: '100%',
-          WebkitAppRegion: 'drag',
-          appRegion: 'drag',
-        }}
-      />
     </>
   );
 }

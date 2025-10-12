@@ -1,14 +1,7 @@
 /* eslint-disable react/require-default-props */
 import React from 'react';
 import { IconButton, Box } from '@mui/material';
-import {
-  ArrowBack,
-  ArrowForward,
-  Refresh,
-  Home,
-  PlayArrow,
-  Pause,
-} from '@mui/icons-material';
+import { ArrowBack, ArrowForward, Refresh, Home } from '@mui/icons-material';
 
 interface NavigationButtonsProps {
   onBack?: () => void;
@@ -17,9 +10,6 @@ interface NavigationButtonsProps {
   onHome?: () => void;
   canGoBack?: boolean;
   canGoForward?: boolean;
-  showPlayButton?: boolean;
-  isPlaying?: boolean;
-  onPlayPause?: () => void;
 }
 
 /**
@@ -29,7 +19,6 @@ interface NavigationButtonsProps {
  * - Back/Forward navigation
  * - Refresh
  * - Home
- * - Play/Pause (optional)
  */
 function NavigationButtons({
   onBack,
@@ -38,9 +27,6 @@ function NavigationButtons({
   onHome,
   canGoBack = false,
   canGoForward = false,
-  showPlayButton = false,
-  isPlaying = false,
-  onPlayPause,
 }: NavigationButtonsProps) {
   const buttonStyle = {
     color: '#ffffff',
@@ -52,7 +38,7 @@ function NavigationButtons({
   };
 
   return (
-    <>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
       {/* Back button */}
       {onBack && (
         <IconButton
@@ -62,35 +48,6 @@ function NavigationButtons({
           sx={buttonStyle}
         >
           <ArrowBack sx={{ fontSize: 16 }} />
-        </IconButton>
-      )}
-
-      {/* Draggable spacer */}
-      <Box
-        sx={{
-          width: 8,
-          height: '100%',
-          WebkitAppRegion: 'drag',
-          appRegion: 'drag',
-        }}
-      />
-
-      {/* Play/Pause button (optional) */}
-      {showPlayButton && onPlayPause && (
-        <IconButton
-          size="small"
-          onClick={onPlayPause}
-          sx={{
-            ...buttonStyle,
-            color: '#7C3AED',
-            marginLeft: 1,
-          }}
-        >
-          {isPlaying ? (
-            <Pause sx={{ fontSize: 16 }} />
-          ) : (
-            <PlayArrow sx={{ fontSize: 16 }} />
-          )}
         </IconButton>
       )}
 
@@ -106,30 +63,19 @@ function NavigationButtons({
         </IconButton>
       )}
 
-      {/* Refresh button */}
-      {onRefresh && (
-        <IconButton size="small" onClick={onRefresh} sx={buttonStyle}>
-          <Refresh sx={{ fontSize: 16 }} />
-        </IconButton>
-      )}
-
       {/* Home button */}
       {onHome && (
         <IconButton size="small" onClick={onHome} sx={buttonStyle}>
           <Home sx={{ fontSize: 16 }} />
         </IconButton>
       )}
-
-      {/* Draggable spacer */}
-      <Box
-        sx={{
-          width: 8,
-          height: '100%',
-          WebkitAppRegion: 'drag',
-          appRegion: 'drag',
-        }}
-      />
-    </>
+      {/* Refresh button */}
+      {onRefresh && (
+        <IconButton size="small" onClick={onRefresh} sx={buttonStyle}>
+          <Refresh sx={{ fontSize: 16 }} />
+        </IconButton>
+      )}
+    </Box>
   );
 }
 

@@ -331,7 +331,8 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
         height={32}
       />
 
-      <Box sx={{ flex: 1, position: 'relative' }}>
+      {/* Padding for fixed toolbar */}
+      <Box sx={{ flex: 1, position: 'relative', marginTop: '32px' }}>
         <webview
           ref={webviewRef}
           src={savedUrl}

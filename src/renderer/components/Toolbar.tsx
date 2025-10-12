@@ -26,11 +26,6 @@ interface ToolbarProps {
   onUrlChange?: (url: string) => void;
   onToggleUrlInput?: () => void;
 
-  // Player Controls
-  showPlayButton?: boolean;
-  isPlaying?: boolean;
-  onPlayPause?: () => void;
-
   // Window Controls
   onMinimize?: () => void;
   onMaximize?: () => void;
@@ -89,11 +84,6 @@ function ToolbarRefactored({
   onUrlChange,
   onToggleUrlInput,
 
-  // Player Controls
-  showPlayButton = false,
-  isPlaying = false,
-  onPlayPause,
-
   // Window Controls
   onMinimize,
   onMaximize,
@@ -128,8 +118,12 @@ function ToolbarRefactored({
   return (
     <>
       <AppBar
-        position="static"
+        position="fixed"
         sx={{
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1300,
           backgroundColor: `${backgroundColor} !important`,
           WebkitAppRegion: 'drag',
           appRegion: 'drag',
@@ -153,9 +147,9 @@ function ToolbarRefactored({
           sx={{
             minHeight: `${height}px !important`,
             height: `${height}px !important`,
-            paddingLeft: '8px',
-            paddingRight: '8px',
-            gap: 0.5,
+            paddingLeft: 1,
+            paddingRight: 1,
+            gap: 1,
           }}
         >
           {/* Left Section: Navigation */}
@@ -166,9 +160,6 @@ function ToolbarRefactored({
             onHome={onHome}
             canGoBack={canGoBack}
             canGoForward={canGoForward}
-            showPlayButton={showPlayButton}
-            isPlaying={isPlaying}
-            onPlayPause={onPlayPause}
           />
 
           {/* Center Section: URL Bar - Hide on player page */}

@@ -1,5 +1,14 @@
 /* eslint-disable no-console */
 
+export interface UIState {
+  showControls: boolean;
+  isFullscreen: boolean;
+  showCenterIcon: boolean;
+  hoverTime: number | null;
+  isMenuOpen: boolean;
+  showEpisodesList: boolean;
+}
+
 /**
  * UIStateManager - управление состоянием UI плеера
  *
@@ -13,10 +22,15 @@
 export class UIStateManager {
   // States
   private showControls: boolean = true;
+
   private isFullscreen: boolean = false;
+
   private showCenterIcon: boolean = false;
+
   private hoverTime: number | null = null;
+
   private isMenuOpen: boolean = false;
+
   private showEpisodesList: boolean = false;
 
   // Callbacks
@@ -28,9 +42,7 @@ export class UIStateManager {
   // Click debounce timer
   private clickTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(callbacks?: {
-    onStateChange?: (state: UIState) => void;
-  }) {
+  constructor(callbacks?: { onStateChange?: (state: UIState) => void }) {
     this.onStateChange = callbacks?.onStateChange;
   }
 
@@ -188,13 +200,4 @@ export class UIStateManager {
     this.clearClickTimeout();
     this.onStateChange = undefined;
   }
-}
-
-export interface UIState {
-  showControls: boolean;
-  isFullscreen: boolean;
-  showCenterIcon: boolean;
-  hoverTime: number | null;
-  isMenuOpen: boolean;
-  showEpisodesList: boolean;
 }

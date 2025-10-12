@@ -21,6 +21,17 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+import { APP_NAME, APP_VERSION } from '../constants';
+
+// Динамический импорт electron-store (ES модуль)
+let store: any = null;
+const initStore = async () => {
+  if (!store) {
+    const Store = (await import('electron-store')).default;
+    store = new Store();
+  }
+  return store;
+};
 
 class AppUpdater {
   constructor() {
@@ -31,6 +42,11 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+
+// Логируем информацию о приложении при запуске
+console.log(`========================================`);
+console.log(`${APP_NAME} v${APP_VERSION}`);
+console.log(`========================================`);
 
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
@@ -59,6 +75,23 @@ ipcMain.on('window-close', () => {
   if (mainWindow) {
     mainWindow.close();
   }
+});
+
+// Обработчик для переключения полноэкранного режима ОКНА (кнопка Maximize)
+ipcMain.on('window-fullscreen', async (event, isFullscreen: boolean) => {
+  console.log(`[Main IPC] Toggle window fullscreen: ${isFullscreen}`);
+  if (mainWindow) {
+    mainWindow.setFullScreen(isFullscreen);
+    // Сохраняем состояние
+    const storeInstance = await initStore();
+    storeInstance.set('windowMaximized', isFullscreen);
+  }
+});
+
+// Обработчик для получения текущего состояния maximize
+ipcMain.handle('get-maximize-state', async () => {
+  const storeInstance = await initStore();
+  return storeInstance.get('windowMaximized', false);
 });
 
 // Handler for fetching images with custom referer
@@ -321,29 +354,35 @@ const createWindow = async () => {
     show: false,
     width: 1024,
     height: 728,
+    title: `${APP_NAME} v${APP_VERSION}`,
     icon: getAssetPath('icon.png'),
     titleBarStyle: 'hidden',
     frame: false,
+    // КРИТИЧНО: используем простой fullscreen для Windows (без DWM)
+    simpleFullscreen: true, // Simple fullscreen обходит DWM композитор
+    fullscreenable: true,
+    transparent: false,
+    hasShadow: false,
     webPreferences: {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
-      nodeIntegration: false,
-      contextIsolation: true,
+      nodeIntegration: false, // ВАЖНО: должно быть false для безопасности
+      contextIsolation: true, // ВАЖНО: должно быть true для работы contextBridge
       webSecurity: false,
       webviewTag: true,
       allowRunningInsecureContent: true,
-      // Улучшения для качества рендера
+      // Оптимизации для производительности
       enableWebSQL: false,
       spellcheck: false,
-      // Дополнительные настройки для производительности и качества
-      backgroundThrottling: false, // Не замедлять рендер в фоне
+      backgroundThrottling: false, // ВАЖНО: false для fullscreen без фризов
+      offscreen: false,
     },
   });
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));
 
-  mainWindow.on('ready-to-show', () => {
+  mainWindow.on('ready-to-show', async () => {
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');
     }
@@ -352,10 +391,40 @@ const createWindow = async () => {
     } else {
       mainWindow.show();
     }
+
+    // Восстанавливаем maximize состояние окна
+    const storeInstance = await initStore();
+    const savedMaximizeState = storeInstance.get(
+      'windowMaximized',
+      false,
+    ) as boolean;
+    console.log('[Main] Saved maximize state:', savedMaximizeState);
+    if (savedMaximizeState) {
+      console.log('[Main] Restoring maximized state');
+      setTimeout(() => {
+        if (mainWindow) {
+          mainWindow.setFullScreen(true);
+          console.log('[Main] Window maximized');
+        }
+      }, 100);
+    }
   });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+  });
+
+  // Отслеживаем изменения maximize режима окна
+  mainWindow.on('enter-full-screen', async () => {
+    const storeInstance = await initStore();
+    storeInstance.set('windowMaximized', true);
+    console.log('[Main] Window entered fullscreen - state saved');
+  });
+
+  mainWindow.on('leave-full-screen', async () => {
+    const storeInstance = await initStore();
+    storeInstance.set('windowMaximized', false);
+    console.log('[Main] Window left fullscreen - state saved');
   });
 
   const menuBuilder = new MenuBuilder(mainWindow);
@@ -376,16 +445,27 @@ const createWindow = async () => {
  * Add event listeners...
  */
 
-// Параметры для улучшения качества рендера
-app.commandLine.appendSwitch('disable-frame-rate-limit'); // Отключить лимит FPS
-app.commandLine.appendSwitch('disable-gpu-vsync'); // Отключить вертикальную синхронизацию
-app.commandLine.appendSwitch('ignore-gpu-blacklist'); // Игнорировать черный список GPU
-app.commandLine.appendSwitch('enable-gpu-rasterization'); // Включить растеризацию на GPU
-app.commandLine.appendSwitch('enable-zero-copy'); // Включить zero-copy для улучшения производительности
-app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder'); // Аппаратное декодирование видео
-app.commandLine.appendSwitch('force-color-profile', 'srgb'); // Корректный цветовой профиль
-app.commandLine.appendSwitch('high-dpi-support', '1'); // Поддержка высокого DPI
-app.commandLine.appendSwitch('force-device-scale-factor', '1'); // Масштабирование устройства
+// РАДИКАЛЬНЫЙ фикс для fullscreen фризов
+// Проблема: Windows DWM композитор конфликтует с fullscreen
+app.commandLine.appendSwitch('disable-frame-rate-limit'); // Снимаем лимит FPS
+app.commandLine.appendSwitch('disable-gpu-vsync'); // Отключаем vsync
+app.commandLine.appendSwitch(
+  'disable-features',
+  'VizDisplayCompositor,CalculateNativeWinOcclusion',
+); // Отключаем композитор
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-zero-copy');
+app.commandLine.appendSwitch('disable-software-rasterizer');
+app.commandLine.appendSwitch('ignore-gpu-blocklist');
+app.commandLine.appendSwitch('enable-accelerated-video-decode');
+app.commandLine.appendSwitch('num-raster-threads', '4'); // Увеличиваем потоки рендера
+app.commandLine.appendSwitch('enable-gpu-memory-buffer-video-frames');
+// Критично для Windows fullscreen
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+// Дополнительные оптимизации
+app.commandLine.appendSwitch('enable-accelerated-2d-canvas');
+app.commandLine.appendSwitch('max-active-webgl-contexts', '4');
 
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even

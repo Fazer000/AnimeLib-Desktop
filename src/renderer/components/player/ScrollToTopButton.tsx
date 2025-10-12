@@ -83,4 +83,3 @@ ScrollToTopButton.defaultProps = {
 };
 
 export default ScrollToTopButton;
-

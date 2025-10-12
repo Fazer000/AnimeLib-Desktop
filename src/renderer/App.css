@@ -6,6 +6,22 @@
   box-sizing: border-box;
 }
 
+/* КРИТИЧНО: Отключаем композитинг для избежания фризов в fullscreen */
+html,
+body,
+#root {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000;
+  -webkit-perspective: 1000;
+  will-change: auto;
+  /* Отключаем аппаратное композитирование для стабильности */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
 /* Custom scrollbar styling - thin and modern */
 * ::-webkit-scrollbar,
 *::-webkit-scrollbar {
@@ -100,6 +116,9 @@ webview {
   height: 100% !important;
   min-width: 400px !important;
   min-height: 300px !important;
+  /* Отключаем композитинг для видео */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .video-js .vjs-tech {
@@ -110,4 +129,14 @@ webview {
 [data-vjs-player] {
   width: 100% !important;
   height: 100% !important;
+}
+
+/* КРИТИЧНО: Оптимизация video элементов для fullscreen */
+video {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* Отключаем композитинг */
+  will-change: auto;
 }

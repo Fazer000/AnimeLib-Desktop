@@ -162,6 +162,7 @@ export const clickInterceptorScript = `
 export function injectClickInterceptor(webview: any): Promise<void> {
   // Check if webview is ready
   if (!webview) {
+    // eslint-disable-next-line no-console
     console.error('[AnimeLIB] Cannot inject script: webview is null');
     return Promise.reject(new Error('Webview is null'));
   }
@@ -169,6 +170,7 @@ export function injectClickInterceptor(webview: any): Promise<void> {
   try {
     // Check if webview has executeJavaScript method
     if (!webview.executeJavaScript) {
+      // eslint-disable-next-line no-console
       console.error(
         '[AnimeLIB] Webview does not have executeJavaScript method',
       );
@@ -178,25 +180,32 @@ export function injectClickInterceptor(webview: any): Promise<void> {
     // Таймаут для executeJavaScript (5 секунд)
     const executeWithTimeout = Promise.race([
       webview.executeJavaScript(clickInterceptorScript),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), 5000),
-      ),
+      new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error('Timeout')), 5000);
+      }),
     ]);
 
     return executeWithTimeout
       .then(() => {
+        // eslint-disable-next-line no-console
         console.log(
           '[AnimeLIB] Simple click interceptor injected successfully',
         );
+        return undefined;
       })
       .catch((err: any) => {
         // Тихая обработка ошибок - не спамим консоль
         if (err.message !== 'Timeout') {
-          console.warn('[AnimeLIB] Click interceptor injection skipped:', err.message);
+          // eslint-disable-next-line no-console
+          console.warn(
+            '[AnimeLIB] Click interceptor injection skipped:',
+            err.message,
+          );
         }
         // НЕ throw err - просто игнорируем ошибку
       });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('[AnimeLIB] Error calling executeJavaScript:', error);
     return Promise.reject(error);
   }

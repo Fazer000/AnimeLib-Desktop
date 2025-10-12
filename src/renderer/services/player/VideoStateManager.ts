@@ -27,8 +27,13 @@ export class VideoStateManager {
 
   private eventListeners: Array<{
     event: string;
-    handler: EventListener;
+    handler: (event: Event) => void;
   }> = [];
+
+  // Throttling для timeupdate
+  private lastTimeUpdate = 0;
+
+  private readonly timeUpdateThrottle = 100; // 100ms = 10 раз в секунду
 
   constructor(config: VideoStateConfig = {}) {
     this.config = config;
@@ -39,9 +44,9 @@ export class VideoStateManager {
       currentTime: 0,
       duration: 0,
       buffered: 0,
-      volume: this.loadFromStorage('videoVolume', 1),
-      isMuted: this.loadFromStorage('videoMuted', false),
-      playbackRate: this.loadFromStorage('videoPlaybackRate', 1),
+      volume: VideoStateManager.loadFromStorage('videoVolume', 1),
+      isMuted: VideoStateManager.loadFromStorage('videoMuted', false),
+      playbackRate: VideoStateManager.loadFromStorage('videoPlaybackRate', 1),
       isBuffering: false,
     };
   }
@@ -88,7 +93,7 @@ export class VideoStateManager {
   /**
    * Добавляет слушатель события
    */
-  private addListener(event: string, handler: EventListener): void {
+  private addListener(event: string, handler: (event: Event) => void): void {
     this.videoElement?.addEventListener(event, handler);
     this.eventListeners.push({ event, handler });
   }
@@ -106,6 +111,13 @@ export class VideoStateManager {
 
   private handleTimeUpdate(): void {
     if (!this.videoElement) return;
+
+    // Throttling - обновляем не чаще чем раз в 100ms
+    const now = Date.now();
+    if (now - this.lastTimeUpdate < this.timeUpdateThrottle) {
+      return;
+    }
+    this.lastTimeUpdate = now;
 
     const updates: Partial<VideoState> = {
       currentTime: this.videoElement.currentTime || 0,
@@ -132,8 +144,8 @@ export class VideoStateManager {
     this.updateState({ volume, isMuted });
 
     // Save to localStorage
-    this.saveToStorage('videoVolume', volume);
-    this.saveToStorage('videoMuted', isMuted);
+    VideoStateManager.saveToStorage('videoVolume', volume);
+    VideoStateManager.saveToStorage('videoMuted', isMuted);
   }
 
   private handleLoadedMetadata(): void {
@@ -195,7 +207,7 @@ export class VideoStateManager {
       this.videoElement.muted = false;
     }
 
-    this.saveToStorage('videoVolume', clampedVolume);
+    VideoStateManager.saveToStorage('videoVolume', clampedVolume);
   }
 
   /**
@@ -222,7 +234,7 @@ export class VideoStateManager {
     const clampedRate = Math.max(0.25, Math.min(2, rate));
     this.videoElement.playbackRate = clampedRate;
     this.updateState({ playbackRate: clampedRate });
-    this.saveToStorage('videoPlaybackRate', clampedRate);
+    VideoStateManager.saveToStorage('videoPlaybackRate', clampedRate);
     console.log('[VideoStateManager] Playback rate changed to:', clampedRate);
   }
 
@@ -283,7 +295,7 @@ export class VideoStateManager {
 
   // Storage helpers
 
-  private loadFromStorage(key: string, defaultValue: any): any {
+  private static loadFromStorage(key: string, defaultValue: any): any {
     const saved = localStorage.getItem(key);
     if (saved === null) return defaultValue;
 
@@ -294,7 +306,7 @@ export class VideoStateManager {
     }
   }
 
-  private saveToStorage(key: string, value: any): void {
+  private static saveToStorage(key: string, value: any): void {
     localStorage.setItem(key, JSON.stringify(value));
   }
 }

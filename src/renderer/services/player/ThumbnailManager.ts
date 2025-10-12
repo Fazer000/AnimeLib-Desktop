@@ -9,26 +9,40 @@
  * - Минимальная нагрузка на сервер
  * - Работает во время воспроизведения
  */
-export class ThumbnailManager {
+class ThumbnailManager {
   private videoSrc: string | null = null;
+
   private seekVideo: HTMLVideoElement | null = null;
+
   private canvas: HTMLCanvasElement | null = null;
+
   private ctx: CanvasRenderingContext2D | null = null;
+
   private cache: Map<number, string> = new Map();
+
   private isGenerating = false;
+
   private generationQueue: Array<{
     time: number;
     resolve: (url: string) => void;
     reject: (error: Error) => void;
     priority?: number;
   }> = [];
+
   private lastGenerationTime = 0;
+
   private readonly throttleMs = 100;
+
   private readonly thumbnailWidth = 120;
+
   private readonly thumbnailHeight = 68;
+
   private readonly maxCacheSize = 200;
+
   private readonly jpegQuality = 0.5;
+
   private isDestroyed = false;
+
   private activeSeeks = new Map<HTMLVideoElement, AbortController>();
 
   constructor() {
@@ -55,7 +69,10 @@ export class ThumbnailManager {
   /**
    * Создание временного видео для превью с Range запросом
    */
-  private createSeekVideo(src: string, targetTime: number): {
+  private createSeekVideo(
+    src: string,
+    targetTime: number,
+  ): {
     video: HTMLVideoElement;
     abort: AbortController;
   } {
@@ -91,9 +108,9 @@ export class ThumbnailManager {
     // Throttling
     const now = Date.now();
     if (now - this.lastGenerationTime < this.throttleMs) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, this.throttleMs - (now - this.lastGenerationTime)),
-      );
+      await new Promise((resolve) => {
+        setTimeout(resolve, this.throttleMs - (now - this.lastGenerationTime));
+      });
     }
 
     this.lastGenerationTime = Date.now();
@@ -210,14 +227,18 @@ export class ThumbnailManager {
 
     this.isGenerating = true;
 
+    // eslint-disable-next-line no-await-in-loop
     while (this.generationQueue.length > 0) {
       // Сортируем по приоритету (больше = важнее)
-      this.generationQueue.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+      this.generationQueue.sort(
+        (a, b) => (b.priority || 0) - (a.priority || 0),
+      );
 
       const request = this.generationQueue.shift();
       if (!request) break;
 
       try {
+        // eslint-disable-next-line no-await-in-loop
         const dataUrl = await this.generateThumbnailInternal(request.time);
         request.resolve(dataUrl);
       } catch (error) {
@@ -239,10 +260,7 @@ export class ThumbnailManager {
   /**
    * Получение превью (из кэша или генерация)
    */
-  async getThumbnail(
-    time: number,
-    priority: number = 10,
-  ): Promise<string> {
+  async getThumbnail(time: number, priority: number = 10): Promise<string> {
     if (this.isDestroyed) {
       throw new Error('ThumbnailManager is destroyed');
     }
@@ -271,7 +289,6 @@ export class ThumbnailManager {
       this.processQueue();
     });
   }
-
 
   /**
    * Очистка кэша
@@ -308,3 +325,4 @@ export class ThumbnailManager {
   }
 }
 
+export default ThumbnailManager;

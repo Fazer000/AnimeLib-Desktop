@@ -23,12 +23,17 @@ export interface SegmentSettings {
  */
 export class SegmentManager {
   private segments: TimeCodeSegment[] = [];
+
   private currentSegment: TimeCodeSegment | null = null;
+
   private settings: SegmentSettings;
+
   private skippedSegments: Set<string> = new Set(); // Треккинг пропущенных сегментов
+
   private videoDuration: number = 0; // Длительность видео для защиты от перемотки за границы
 
   private onSegmentChange?: (segment: TimeCodeSegment | null) => void;
+
   private onSkipSegment?: (toTime: number) => void;
 
   constructor(callbacks?: {
@@ -39,13 +44,13 @@ export class SegmentManager {
     this.onSkipSegment = callbacks?.onSkipSegment;
 
     // Загружаем настройки из localStorage
-    this.settings = this.loadSettings();
+    this.settings = SegmentManager.loadSettings();
   }
 
   /**
    * Загрузить настройки из localStorage
    */
-  private loadSettings(): SegmentSettings {
+  private static loadSettings(): SegmentSettings {
     const stored = localStorage.getItem('autoSkipSettings');
     if (stored) {
       try {
@@ -207,4 +212,3 @@ export class SegmentManager {
     this.onSkipSegment = undefined;
   }
 }
-
