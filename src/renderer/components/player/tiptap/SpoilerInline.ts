@@ -69,7 +69,7 @@ export const SpoilerInline = Node.create<SpoilerInlineOptions>({
     ];
   },
 
-  renderHTML({ HTMLAttributes, node }) {
+  renderHTML({ HTMLAttributes }) {
     return [
       'span',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
@@ -89,19 +89,15 @@ export const SpoilerInline = Node.create<SpoilerInlineOptions>({
           const { from, to } = selection;
           const spoilerId = `spoiler-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-          return commands.insertContentAt(
-            { from, to },
-            [
-              {
-                type: this.name,
-                attrs: { visibleText, spoilerId },
-                content: [{ type: 'text', text: content }],
-              },
-              { type: 'text', text: ' ' },
-            ],
-          );
+          return commands.insertContentAt({ from, to }, [
+            {
+              type: this.name,
+              attrs: { visibleText, spoilerId },
+              content: [{ type: 'text', text: content }],
+            },
+            { type: 'text', text: ' ' },
+          ]);
         },
     };
   },
 });
-

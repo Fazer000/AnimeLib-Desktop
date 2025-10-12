@@ -18,7 +18,7 @@ import { ArrowUpward, ArrowDownward } from '@mui/icons-material';
 import { CommentsManager, Comment } from '../../services/player';
 import CommentText from './CommentText';
 import { animeApi } from '../../api/animeApi';
-import { useImageWithReferer } from '../../hooks/useImageWithReferer';
+import useImageWithReferer from '../../hooks/useImageWithReferer';
 import CommentEditor, { CommentSubmitData } from './CommentEditor';
 
 /**

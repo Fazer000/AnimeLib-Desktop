@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 /**
  * Hook to load images with custom referer header using Electron IPC
  */
-export function useImageWithReferer(imageUrl: string | undefined): string {
+function useImageWithReferer(imageUrl: string | undefined): string {
   const [blobUrl, setBlobUrl] = useState<string>('');
 
   useEffect(() => {
@@ -55,6 +55,7 @@ export function useImageWithReferer(imageUrl: string | undefined): string {
           setBlobUrl(imageUrl);
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('[useImageWithReferer] Failed to load image:', error);
         // Fallback to direct image URL on error
         if (!isCancelled) {
@@ -76,3 +77,5 @@ export function useImageWithReferer(imageUrl: string | undefined): string {
 
   return blobUrl;
 }
+
+export default useImageWithReferer;

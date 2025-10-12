@@ -4,7 +4,7 @@ import { ShakaPlayerManager } from './ShakaPlayerManager';
 import { VideoStateManager } from './VideoStateManager';
 import { QualityManager } from './QualityManager';
 import { KeyboardManager } from './KeyboardManager';
-import { ThumbnailManager } from './ThumbnailManager';
+import ThumbnailManager from './ThumbnailManager';
 
 export interface VideoPlayerControllerConfig {
   onError?: (error: string) => void;
@@ -295,7 +295,7 @@ export class VideoPlayerController {
   }
 
   /**
-   * Переключает полноэкранный режим
+   * Переключает полноэкранный режим ПЛЕЕРА (DOM fullscreen)
    */
   async toggleFullscreen(): Promise<void> {
     if (!this.containerElement) return;

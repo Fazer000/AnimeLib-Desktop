@@ -89,7 +89,8 @@ export class QualityManager {
   /**
    * Создает URL для AnimeLib видео
    */
-  private buildAnimelibUrls(href: string): {
+  // eslint-disable-next-line class-methods-use-this
+  public buildAnimelibUrls(href: string): {
     primaryUrl: string;
     fallbackUrl: string;
     fallbackUrl2: string;

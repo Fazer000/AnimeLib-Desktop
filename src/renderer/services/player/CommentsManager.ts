@@ -83,7 +83,8 @@ export class CommentsManager {
   /**
    * Связываем replies с root комментариями
    */
-  private attachRepliesToComments(
+  // eslint-disable-next-line class-methods-use-this
+  public attachRepliesToComments(
     rootComments: Comment[],
     repliesData: Comment[],
   ): Comment[] {

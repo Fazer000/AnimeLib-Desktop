@@ -114,7 +114,8 @@ function CommentText({ html }: CommentTextProps) {
             case 'span':
               // Check if it's an inline spoiler (new format from editor)
               if (element.hasAttribute('data-spoiler')) {
-                const spoilerText = element.getAttribute('data-visible-text') || 'спойлер';
+                const spoilerText =
+                  element.getAttribute('data-visible-text') || 'спойлер';
                 const isRevealed = revealedSpoilers.has(currentKey);
 
                 return (
@@ -175,12 +176,18 @@ function CommentText({ html }: CommentTextProps) {
               }
 
               // Check if it's an inline spoiler (old format from existing comments)
-              if (element.classList.contains('spoiler-node') && element.hasAttribute('data-spoiler-type')) {
-                const spoilerText = element.getAttribute('data-spoiler-text') || 'спойлер';
+              if (
+                element.classList.contains('spoiler-node') &&
+                element.hasAttribute('data-spoiler-type')
+              ) {
+                const spoilerText =
+                  element.getAttribute('data-spoiler-text') || 'спойлер';
                 const isRevealed = revealedSpoilers.has(currentKey);
 
                 // Find spoiler content
-                const spoilerContent = element.querySelector('.spoiler-node__text');
+                const spoilerContent = element.querySelector(
+                  '.spoiler-node__text',
+                );
                 const spoilerHTML = spoilerContent?.innerHTML || '';
 
                 return (

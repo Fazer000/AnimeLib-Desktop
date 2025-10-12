@@ -684,201 +684,202 @@ function PlayerPageRefactored({
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        height: '100vh',
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: theme.palette.primary.dark,
       }}
     >
-      {/* Fixed Toolbar */}
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
+      <CustomToolbar
+        onBack={handleBack}
+        onRefresh={handleRefresh}
+        onHome={() => {
+          console.log('[PlayerPage] Home button clicked');
+          if (onHome) {
+            onHome();
+          } else {
+            console.warn(
+              '[PlayerPage] onHome not provided, falling back to onBack',
+            );
+            onBack();
+          }
         }}
-      >
-        <CustomToolbar
-          onBack={handleBack}
-          onRefresh={handleRefresh}
-          onHome={() => {
-            console.log('[PlayerPage] Home button clicked');
-            if (onHome) {
-              onHome();
-            } else {
-              console.warn(
-                '[PlayerPage] onHome not provided, falling back to onBack',
-              );
-              onBack();
-            }
-          }}
-          canGoBack
-          backgroundColor="#252527"
-          height={32}
-          isPlayerPage
-          showUrlInput={showUrlInput}
-          currentUrl={playerUrl}
-          animeId={animeId}
-          onUrlChange={handleUrlChange}
-          onToggleUrlInput={() => setShowUrlInput(!showUrlInput)}
-          onMinimize={handleMinimize}
-          onMaximize={handleMaximize}
-          onClose={handleClose}
-        />
-      </Box>
+        canGoBack
+        backgroundColor="#252527"
+        height={32}
+        isPlayerPage
+        showUrlInput={showUrlInput}
+        currentUrl={playerUrl}
+        animeId={animeId}
+        onUrlChange={handleUrlChange}
+        onToggleUrlInput={() => setShowUrlInput(!showUrlInput)}
+        onMinimize={handleMinimize}
+        onMaximize={handleMaximize}
+        onClose={handleClose}
+      />
 
-      {/* Player section - 100vh with top padding for fixed toolbar */}
+      {/* Padding for fixed toolbar */}
       <Box
         sx={{
-          marginTop: '32px', // Отступ под fixed toolbar
-          height: 'calc(100vh - 32px)',
-          display: 'flex',
-          flexDirection: 'column',
+          flex: 1,
+          position: 'relative',
+          marginTop: '32px',
+          overflow: 'auto',
         }}
       >
-        {/* Main content */}
-        <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-          {/* Video player */}
-          <Box
-            sx={{
-              flex: 1,
-              backgroundColor: '#0a0a0a',
-              display: 'flex',
-              flexDirection: 'column',
-              position: 'relative',
-              width: 'calc(100% - 260px)',
-              height: '100%',
-              minHeight: '400px',
-            }}
-          >
+        {/* Player section */}
+        <Box
+          sx={{
+            height: 'calc(100vh - 32px)',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {/* Main content */}
+          <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+            {/* Video player */}
             <Box
               sx={{
-                width: 'calc(100% - 8px)',
-                height: 'calc(100% - 16px)',
-                backgroundColor: '#000',
+                flex: 1,
+                backgroundColor: '#0a0a0a',
+                display: 'flex',
+                flexDirection: 'column',
                 position: 'relative',
-                overflow: 'hidden',
-                borderRadius: 2,
-                boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
-                margin: 1,
-                marginRight: 0, // Убираем правый отступ чтобы вплотную к sidebar
+                width: 'calc(100% - 260px)',
+                height: '100%',
+                minHeight: '400px',
               }}
             >
-              <ErrorBoundary>
-                {/* 404 Error Overlay - positioned absolutely to overlay VideoPlayer */}
-                {show404 && (
+              <Box
+                sx={{
+                  width: 'calc(100% - 8px)',
+                  height: 'calc(100% - 16px)',
+                  backgroundColor: '#000',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  borderRadius: 2,
+                  boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
+                  margin: 1,
+                  marginRight: 0, // Убираем правый отступ чтобы вплотную к sidebar
+                }}
+              >
+                <ErrorBoundary>
+                  {/* 404 Error Overlay - positioned absolutely to overlay VideoPlayer */}
+                  {show404 && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#000',
+                        color: '#ffffff',
+                        textAlign: 'center',
+                        zIndex: 10,
+                      }}
+                    >
+                      <Typography
+                        variant="h1"
+                        sx={{
+                          fontSize: '120px',
+                          fontWeight: 'bold',
+                          color: '#7C3AED',
+                        }}
+                      >
+                        404
+                      </Typography>
+                      <Typography
+                        variant="h4"
+                        color="#bfbfbf"
+                        sx={{
+                          marginBottom: 1,
+                        }}
+                      >
+                        Видео не найдено
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {/* VideoPlayer - Always mounted, hidden when 404 overlay is shown */}
                   <Box
                     sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: '#000',
-                      color: '#ffffff',
-                      textAlign: 'center',
-                      zIndex: 10,
+                      width: '100%',
+                      height: '100%',
+                      visibility: show404 ? 'hidden' : 'visible',
                     }}
                   >
-                    <Typography
-                      variant="h1"
-                      sx={{
-                        fontSize: '120px',
-                        fontWeight: 'bold',
-                        color: '#7C3AED',
+                    <VideoPlayer
+                      ref={videoPlayerRef}
+                      onError={handleVideoError}
+                      animeId={animeId}
+                      episodeName={selectedEpisode ? selectedEpisode.name : ''}
+                      episodes={episodes}
+                      currentEpisodeIndex={currentEpisodeIndex}
+                      onEpisodeSelect={handleEpisodeClick}
+                      initialTimecode={initialTimecode}
+                      onTimecodeApplied={() => {
+                        console.log(
+                          '[PlayerPage] Timecode applied successfully, clearing...',
+                        );
+                        setInitialTimecode(null);
                       }}
-                    >
-                      404
-                    </Typography>
-                    <Typography
-                      variant="h4"
-                      color="#bfbfbf"
-                      sx={{
-                        marginBottom: 1,
-                      }}
-                    >
-                      Видео не найдено
-                    </Typography>
+                      onSaveBookmark={handleSaveBookmark}
+                      hasBookmark={hasBookmark}
+                      bookmarkedEpisodeId={bookmarkedEpisodeId}
+                      autoplayEnabled={autoplayEnabled}
+                      onAutoplayChange={handleAutoplayChange}
+                      selectedPlayer={selectedPlayer}
+                      timecode={selectedPlayer?.timecode || []}
+                    />
                   </Box>
-                )}
-
-                {/* VideoPlayer - Always mounted, hidden when 404 overlay is shown */}
-                <Box
-                  sx={{
-                    width: '100%',
-                    height: '100%',
-                    visibility: show404 ? 'hidden' : 'visible',
-                  }}
-                >
-                  <VideoPlayer
-                    ref={videoPlayerRef}
-                    onError={handleVideoError}
-                    animeId={animeId}
-                    episodeName={selectedEpisode ? selectedEpisode.name : ''}
-                    episodes={episodes}
-                    currentEpisodeIndex={currentEpisodeIndex}
-                    onEpisodeSelect={handleEpisodeClick}
-                    initialTimecode={initialTimecode}
-                    onTimecodeApplied={() => {
-                      console.log(
-                        '[PlayerPage] Timecode applied successfully, clearing...',
-                      );
-                      setInitialTimecode(null);
-                    }}
-                    onSaveBookmark={handleSaveBookmark}
-                    hasBookmark={hasBookmark}
-                    bookmarkedEpisodeId={bookmarkedEpisodeId}
-                    autoplayEnabled={autoplayEnabled}
-                    onAutoplayChange={handleAutoplayChange}
-                    selectedPlayer={selectedPlayer}
-                    timecode={selectedPlayer?.timecode || []}
-                  />
-                </Box>
-              </ErrorBoundary>
+                </ErrorBoundary>
+              </Box>
             </Box>
+
+            {/* Sidebar with players */}
+            <PlayerSidebar
+              players={players}
+              selectedPlayer={selectedPlayer}
+              selectedPlayerType={selectedPlayerType}
+              loading={loading}
+              onPlayerSelect={handlePlayerSelect}
+              onPlayerTypeSelect={handlePlayerTypeSelect}
+              hasBookmark={hasBookmark}
+              onSaveBookmark={() => {
+                // Get current episode and time from video player
+                const currentEpisode = episodes[currentEpisodeIndex];
+                if (
+                  currentEpisode &&
+                  videoPlayerRef.current?.videoRef.current
+                ) {
+                  const currentTime =
+                    videoPlayerRef.current.videoRef.current.currentTime || 0;
+                  handleSaveBookmark(currentEpisode.id, currentTime);
+                }
+              }}
+            />
           </Box>
 
-          {/* Sidebar with players */}
-          <PlayerSidebar
-            players={players}
-            selectedPlayer={selectedPlayer}
-            selectedPlayerType={selectedPlayerType}
-            loading={loading}
-            onPlayerSelect={handlePlayerSelect}
-            onPlayerTypeSelect={handlePlayerTypeSelect}
-            hasBookmark={hasBookmark}
-            onSaveBookmark={() => {
-              // Get current episode and time from video player
-              const currentEpisode = episodes[currentEpisodeIndex];
-              if (currentEpisode && videoPlayerRef.current?.videoRef.current) {
-                const currentTime =
-                  videoPlayerRef.current.videoRef.current.currentTime || 0;
-                handleSaveBookmark(currentEpisode.id, currentTime);
-              }
-            }}
+          {/* Episode slider */}
+          <EpisodeSlider
+            episodes={episodes}
+            currentEpisodeIndex={currentEpisodeIndex}
+            onEpisodeSelect={handleEpisodeClick}
+            bookmarkedEpisodeId={bookmarkedEpisodeId}
           />
         </Box>
 
-        {/* Episode slider */}
-        <EpisodeSlider
-          episodes={episodes}
-          currentEpisodeIndex={currentEpisodeIndex}
-          onEpisodeSelect={handleEpisodeClick}
-          bookmarkedEpisodeId={bookmarkedEpisodeId}
-        />
+        {/* Comments section - Below player, centered 70% width */}
+        {selectedEpisode && <CommentsSection episodeId={selectedEpisode.id} />}
+
+        {/* Scroll to top button */}
+        <ScrollToTopButton threshold={400} />
       </Box>
-
-      {/* Comments section - Below player, centered 70% width */}
-      {selectedEpisode && <CommentsSection episodeId={selectedEpisode.id} />}
-
-      {/* Scroll to top button */}
-      <ScrollToTopButton threshold={400} />
     </Box>
   );
 }

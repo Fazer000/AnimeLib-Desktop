@@ -26,7 +26,7 @@ import {
   Send,
 } from '@mui/icons-material';
 import { SpoilerInline } from './tiptap/SpoilerInline';
-import './CommentEditor.css';
+import '../../CommentEditor.css';
 
 export interface CommentSubmitData {
   comment: {

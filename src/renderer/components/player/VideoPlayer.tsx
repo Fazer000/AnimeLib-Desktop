@@ -438,10 +438,12 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       setShowNextEpisodeNotification(false);
     }, [currentEpisodeIndex]);
 
-    // Fullscreen change handler
+    // Fullscreen change handler - отслеживаем DOM fullscreen ПЛЕЕРА
     useEffect(() => {
       const handleFullscreenChange = () => {
-        uiStateManager.setFullscreen(!!document.fullscreenElement);
+        const isFullscreen = !!document.fullscreenElement;
+        uiStateManager.setFullscreen(isFullscreen);
+        console.log('[VideoPlayer] Player fullscreen changed:', isFullscreen);
       };
 
       document.addEventListener('fullscreenchange', handleFullscreenChange);
