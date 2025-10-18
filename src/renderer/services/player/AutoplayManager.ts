@@ -5,6 +5,14 @@ export interface AutoplayConfig {
   onEpisodeChange?: (episodeIndex: number) => void;
 }
 
+export interface LoadContext {
+  isVoiceChange: boolean;
+  isEpisodeChange: boolean;
+  hasBookmark: boolean;
+  isFromHint: boolean; // Переключение через хинты (боковые кнопки)
+  currentTime?: number; // Сохраненное время для voice change
+}
+
 /**
  * AutoplayManager - управление автопроигрыванием
  *
@@ -21,6 +29,8 @@ export class AutoplayManager {
   private isFirstLoad: boolean = true;
 
   private hasBookmarkPending: boolean = false;
+
+  private shouldAutoplayOnLoad: boolean = false;
 
   // Event handlers
   private canPlayHandler: (() => void) | null = null;
@@ -95,6 +105,45 @@ export class AutoplayManager {
   }
 
   /**
+   * Определить нужно ли автовоспроизведение на основе контекста загрузки
+   */
+  determineAutoplay(context: LoadContext): boolean {
+    console.log('[AutoplayManager] Determining autoplay:', context);
+
+    // Первая загрузка - никогда не автовоспроизводим
+    if (this.isFirstLoad) {
+      this.isFirstLoad = false;
+      console.log('[AutoplayManager] First load - no autoplay');
+      return false;
+    }
+
+    // Закладка - всегда автовоспроизводим
+    if (context.hasBookmark) {
+      console.log('[AutoplayManager] Bookmark - autoplay enabled');
+      return true;
+    }
+
+    // Переключение через хинты - ВСЕГДА автовоспроизводим
+    if (context.isFromHint) {
+      console.log('[AutoplayManager] From hint - autoplay enabled');
+      return true;
+    }
+
+    // Смена озвучки - сохраняем состояние воспроизведения
+    if (context.isVoiceChange) {
+      console.log(
+        '[AutoplayManager] Voice change - preserving play state:',
+        context.currentTime !== undefined,
+      );
+      return context.currentTime !== undefined;
+    }
+
+    // Все остальные случаи - без автовоспроизведения
+    console.log('[AutoplayManager] Default - no autoplay');
+    return false;
+  }
+
+  /**
    * Запустить автопроигрывание при загрузке плеера
    */
   setupAutoplayOnLoad(): void {
@@ -103,21 +152,20 @@ export class AutoplayManager {
       return;
     }
 
-    // Пропускаем первую загрузку
-    if (this.isFirstLoad) {
-      this.isFirstLoad = false;
-      console.log('[AutoplayManager] First load - skipping autoplay setup');
-      return;
-    }
-
     // Очищаем предыдущий handler
     if (this.canPlayHandler) {
       this.videoElement.removeEventListener('canplay', this.canPlayHandler);
     }
 
+    // Если не нужно автовоспроизведение, выходим
+    if (!this.shouldAutoplayOnLoad) {
+      console.log('[AutoplayManager] Autoplay not requested for this load');
+      return;
+    }
+
     // Создаём новый handler
     this.canPlayHandler = () => {
-      if (!this.shouldAutoplay() || !this.videoElement) {
+      if (!this.videoElement) {
         return;
       }
 
@@ -139,10 +187,18 @@ export class AutoplayManager {
           .catch((error) => {
             console.warn('[AutoplayManager] Autoplay failed:', error);
           });
-      }, 300);
+      }, 100);
     };
 
     this.videoElement.addEventListener('canplay', this.canPlayHandler);
+  }
+
+  /**
+   * Установить флаг автовоспроизведения для следующей загрузки
+   */
+  setShouldAutoplayOnLoad(should: boolean): void {
+    this.shouldAutoplayOnLoad = should;
+    console.log('[AutoplayManager] Autoplay on load set to:', should);
   }
 
   /**

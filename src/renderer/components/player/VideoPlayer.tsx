@@ -46,6 +46,8 @@ interface VideoPlayerProps {
   currentEpisodeIndex: number;
   onEpisodeSelect: (index: number) => void;
   // eslint-disable-next-line react/require-default-props
+  onEpisodeSelectWithAutoplay?: (index: number) => void;
+  // eslint-disable-next-line react/require-default-props
   initialTimecode?: number | null; // Таймкод для установки после загрузки видео
   // eslint-disable-next-line react/require-default-props
   onTimecodeApplied?: () => void; // Callback когда таймкод применен
@@ -76,7 +78,11 @@ interface VideoPlayerProps {
 }
 
 interface VideoPlayerRef {
-  loadPlayer: (player: Player, kodikLinks?: KodikVideoLinks | null) => void;
+  loadPlayer: (
+    player: Player,
+    kodikLinks?: KodikVideoLinks | null,
+    isFromHint?: boolean,
+  ) => void;
   clearPlayer: () => void;
   destroyPlayer: () => void;
   seekTo: (time: number) => void;
@@ -97,6 +103,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       episodes,
       currentEpisodeIndex,
       onEpisodeSelect,
+      onEpisodeSelectWithAutoplay,
       initialTimecode = null,
       onTimecodeApplied,
       onSaveBookmark,
@@ -230,6 +237,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             // Toggle episodes list
             uiStateManager.toggleEpisodesList();
           },
+          autoplayManager,
         });
 
         const success = await controller.initialize(
@@ -505,6 +513,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         loadPlayer: async (
           player: Player,
           kodikLinks?: KodikVideoLinks | null,
+          isFromHint?: boolean,
         ) => {
           if (!controllerRef.current || !isControllerReady) {
             console.log(
@@ -519,15 +528,23 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             '[VideoPlayer] Loading player:',
             player.team.name,
             player.player,
+            'isFromHint:',
+            isFromHint || false,
           );
 
           setCurrentPlayerData(player);
+
+          // Get current episode ID
+          const currentEpisode = episodes[currentEpisodeIndex];
+          const episodeId = currentEpisode?.id;
 
           // Load player with timecode if available
           await controllerRef.current.loadPlayer({
             player,
             kodikLinks: kodikLinks || null,
             initialTimecode: initialTimecode || undefined,
+            isFromHint: isFromHint || false,
+            episodeId,
           });
 
           // Mark timecode as applied if it was provided
@@ -575,6 +592,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         initialTimecode,
         onTimecodeApplied,
         videoState.isPlaying,
+        currentEpisodeIndex,
+        episodes,
       ],
     );
 
@@ -934,7 +953,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         <EpisodeNavigationHint
           currentEpisodeIndex={currentEpisodeIndex}
           totalEpisodes={episodes.length}
-          onEpisodeSelect={onEpisodeSelect}
+          onEpisodeSelect={onEpisodeSelectWithAutoplay || onEpisodeSelect}
           showControls={uiState.showControls}
           episodes={episodes}
         />

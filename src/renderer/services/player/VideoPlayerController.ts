@@ -5,6 +5,7 @@ import { VideoStateManager } from './VideoStateManager';
 import { QualityManager } from './QualityManager';
 import { KeyboardManager } from './KeyboardManager';
 import ThumbnailManager from './ThumbnailManager';
+import { AutoplayManager } from './AutoplayManager';
 
 export interface VideoPlayerControllerConfig {
   onError?: (error: string) => void;
@@ -16,12 +17,15 @@ export interface VideoPlayerControllerConfig {
   onSkipForward?: (seconds: number) => void; // Custom skip forward
   skipTime?: number; // Custom skip time in seconds
   onToggleEpisodes?: () => void; // Toggle episodes list
+  autoplayManager?: AutoplayManager; // AutoplayManager для управления автовоспроизведением
 }
 
 export interface PlayerLoadOptions {
   player: Player;
   kodikLinks?: KodikVideoLinks | null;
   initialTimecode?: number;
+  isFromHint?: boolean; // Переключение эпизода через хинты (боковые кнопки)
+  episodeId?: number; // ID эпизода для определения episode change
 }
 
 /**
@@ -51,6 +55,10 @@ export class VideoPlayerController {
 
   // State tracking for voice/episode changes
   private isInitialLoad: boolean = true;
+
+  private lastLoadedPlayer: Player | null = null;
+
+  private lastEpisodeId: number | null = null;
 
   private savedTime: number = 0;
 
@@ -145,34 +153,76 @@ export class VideoPlayerController {
       options.player.player,
     );
 
-    // Check if this is a voice change (not initial load or episode change)
-    const isVoiceChange =
-      !this.isInitialLoad && this.currentPlayerData !== null;
+    // Определяем контекст загрузки
+    // Voice change = тот же плеер И тот же эпизод
+    const isSamePlayer =
+      this.lastLoadedPlayer !== null &&
+      this.lastLoadedPlayer.id === options.player.id;
+    const isSameEpisode =
+      this.lastEpisodeId !== null &&
+      options.episodeId !== undefined &&
+      this.lastEpisodeId === options.episodeId;
 
-    // Handle bookmark timecode with priority
-    if (options.initialTimecode !== undefined && options.initialTimecode > 0) {
+    const isVoiceChange = !this.isInitialLoad && isSamePlayer && isSameEpisode;
+
+    // Episode change = не первая загрузка и не voice change
+    const isEpisodeChange = !this.isInitialLoad && !isVoiceChange;
+
+    const hasBookmark =
+      options.initialTimecode !== undefined && options.initialTimecode > 0;
+
+    console.log('[VideoPlayerController] Load context:', {
+      isInitialLoad: this.isInitialLoad,
+      isVoiceChange,
+      isEpisodeChange,
+      hasBookmark,
+      isFromHint: options.isFromHint || false,
+      lastPlayerId: this.lastLoadedPlayer?.id,
+      currentPlayerId: options.player.id,
+      lastEpisodeId: this.lastEpisodeId,
+      currentEpisodeId: options.episodeId,
+      isSamePlayer,
+      isSameEpisode,
+    });
+
+    // Получаем текущее время для voice change
+    let currentTime: number | undefined;
+    if (isVoiceChange && this.videoElement) {
+      const state = this.stateManager.getState();
+      currentTime = state.isPlaying ? state.currentTime : undefined;
+    }
+
+    // Создаём контекст загрузки для AutoplayManager
+    const loadContext = {
+      isVoiceChange,
+      isEpisodeChange,
+      hasBookmark,
+      isFromHint: options.isFromHint || false,
+      currentTime,
+    };
+
+    // Определяем автовоспроизведение через AutoplayManager
+    this.shouldAutoPlay =
+      this.config.autoplayManager?.determineAutoplay(loadContext) || false;
+
+    // Устанавливаем флаг автовоспроизведения в AutoplayManager
+    this.config.autoplayManager?.setShouldAutoplayOnLoad(this.shouldAutoPlay);
+
+    // Обрабатываем сохранённое время
+    if (hasBookmark) {
       console.log(
         '[VideoPlayerController] Bookmark timecode provided:',
         options.initialTimecode,
       );
-      this.savedTime = options.initialTimecode;
-      this.shouldAutoPlay = true; // Autoplay from bookmark
-    } else if (isVoiceChange && this.videoElement) {
-      // Save current time and playing state for voice change
-      const state = this.stateManager.getState();
-      this.savedTime = state.currentTime || 0;
-      this.shouldAutoPlay = state.isPlaying;
-      console.log('[VideoPlayerController] Saving state for voice change:', {
-        time: this.savedTime,
+      this.savedTime = options.initialTimecode!;
+    } else if (isVoiceChange && currentTime !== undefined) {
+      console.log('[VideoPlayerController] Voice change, saving time:', {
+        time: currentTime,
         shouldAutoPlay: this.shouldAutoPlay,
       });
+      this.savedTime = currentTime;
     } else {
-      // Initial load or episode change - no autoplay
-      console.log(
-        '[VideoPlayerController] Not a voice change, resetting state',
-      );
       this.savedTime = 0;
-      this.shouldAutoPlay = false;
       this.isInitialLoad = false;
     }
 
@@ -183,6 +233,8 @@ export class VideoPlayerController {
 
     // Set new player data
     this.currentPlayerData = options;
+    this.lastLoadedPlayer = options.player;
+    this.lastEpisodeId = options.episodeId || null;
 
     // Create quality options
     this.qualityManager.createQualityOptions(

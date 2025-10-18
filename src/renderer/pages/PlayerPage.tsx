@@ -24,7 +24,6 @@ interface PlayerPageProps {
   animeId: string;
   onBack: () => void;
   onHome?: () => void;
-  onNavigateToUrl?: (url: string) => void;
 }
 
 /**
@@ -40,9 +39,12 @@ function PlayerPageRefactored({
   animeId,
   onBack,
   onHome,
-  onNavigateToUrl,
 }: PlayerPageProps) {
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
+  const shouldAutoplayNextEpisodeRef = useRef<boolean>(false);
+
+  // Current anime state
+  const [currentAnimeId, setCurrentAnimeId] = useState<string>(animeId);
 
   // Episode states
   const [episodes, setEpisodes] = useState<Episode[]>([]);
@@ -138,11 +140,11 @@ function PlayerPageRefactored({
    * Load all episodes for current anime
    */
   const loadEpisodes = useCallback(async (): Promise<void> => {
-    if (!animeId) return;
+    if (!currentAnimeId) return;
 
     setLoading(true);
     try {
-      const data = await animeApi.getEpisodes(animeId);
+      const data = await animeApi.getEpisodes(currentAnimeId);
       setEpisodes(data.data);
       console.log('[PlayerPage] Loaded episodes:', data.data.length);
     } catch (err) {
@@ -150,20 +152,20 @@ function PlayerPageRefactored({
     } finally {
       setLoading(false);
     }
-  }, [animeId]);
+  }, [currentAnimeId]);
 
   /**
    * Load and process bookmark for current anime
    */
   const loadBookmark = useCallback(
     async (loadedEpisodes: Episode[]): Promise<void> => {
-      if (!animeId || bookmarkManager.isProcessed()) {
+      if (!currentAnimeId || bookmarkManager.isProcessed()) {
         return;
       }
 
       try {
         const result = await bookmarkManager.loadBookmark(
-          animeId,
+          currentAnimeId,
           loadedEpisodes,
         );
 
@@ -211,7 +213,7 @@ function PlayerPageRefactored({
         setBookmarkChecked(true);
       }
     },
-    [animeId, bookmarkManager],
+    [currentAnimeId, bookmarkManager],
   );
 
   /**
@@ -260,17 +262,17 @@ function PlayerPageRefactored({
    * Load related anime
    */
   const loadRelatedAnime = useCallback(async (): Promise<void> => {
-    if (!animeId) return;
+    if (!currentAnimeId) return;
 
     try {
-      const data = await animeApi.getRelatedAnime(animeId);
+      const data = await animeApi.getRelatedAnime(currentAnimeId);
       setRelatedAnime(data.data);
       console.log('[PlayerPage] Loaded related anime:', data.data.length);
     } catch (err) {
       console.error('[PlayerPage] Error loading related anime:', err);
       setRelatedAnime([]);
     }
-  }, [animeId]);
+  }, [currentAnimeId]);
 
   /**
    * Initialize episodes on mount
@@ -403,13 +405,20 @@ function PlayerPageRefactored({
       // Load player in VideoPlayer
       // Note: initialTimecode will be applied by VideoPlayer's useEffect
       if (videoPlayerRef.current) {
+        const shouldAutoplay = shouldAutoplayNextEpisodeRef.current;
+        shouldAutoplayNextEpisodeRef.current = false; // Reset flag
+
         if (autoSelected.player === 'Kodik' && autoSelected.src) {
           // Load Kodik links first, then load player
           console.log('[PlayerPage] Loading Kodik player');
           const kodikData = await loadKodikLinks(autoSelected.src);
 
           if (kodikData && kodikData.success) {
-            videoPlayerRef.current.loadPlayer(autoSelected, kodikData);
+            videoPlayerRef.current.loadPlayer(
+              autoSelected,
+              kodikData,
+              shouldAutoplay,
+            );
           }
         } else {
           // Load non-Kodik player immediately
@@ -417,7 +426,7 @@ function PlayerPageRefactored({
             '[PlayerPage] Loading non-Kodik player:',
             autoSelected.team.name,
           );
-          videoPlayerRef.current.loadPlayer(autoSelected, null);
+          videoPlayerRef.current.loadPlayer(autoSelected, null, shouldAutoplay);
         }
       }
     };
@@ -531,15 +540,39 @@ function PlayerPageRefactored({
   }, []);
 
   /**
-   * Handle episode selection
+   * Handle episode selection (manual, without autoplay)
    */
   const handleEpisodeClick = useCallback(
     (episodeIndex: number) => {
       if (episodeIndex !== currentEpisodeIndex) {
-        console.log('[PlayerPage] Switching to episode:', episodeIndex + 1);
+        console.log(
+          '[PlayerPage] Switching to episode (manual):',
+          episodeIndex + 1,
+        );
         setCurrentEpisodeIndex(episodeIndex);
         // Reset bookmark state when switching episodes
         setHasBookmark(false);
+      }
+    },
+    [currentEpisodeIndex],
+  );
+
+  /**
+   * Handle episode selection with autoplay (from navigation hints)
+   */
+  const handleEpisodeClickWithAutoplay = useCallback(
+    (episodeIndex: number) => {
+      if (episodeIndex !== currentEpisodeIndex) {
+        console.log(
+          '[PlayerPage] Switching to episode (from hint):',
+          episodeIndex + 1,
+        );
+        setCurrentEpisodeIndex(episodeIndex);
+        // Reset bookmark state when switching episodes
+        setHasBookmark(false);
+
+        // Mark that this episode change is from hint (боковые кнопки)
+        shouldAutoplayNextEpisodeRef.current = true;
       }
     },
     [currentEpisodeIndex],
@@ -572,31 +605,108 @@ function PlayerPageRefactored({
   }, [sidebarCollapsed]);
 
   /**
-   * Handle related anime click - navigate to anime page in WebView
+   * Handle related anime click - load player for selected anime
    */
   const handleRelatedAnimeClick = useCallback(
-    (slugUrl: string) => {
-      console.log('[PlayerPage] Related anime clicked:', slugUrl);
+    async (slugUrl: string, newAnimeId: number) => {
+      console.log(
+        '[PlayerPage] Related anime clicked:',
+        slugUrl,
+        'anime_id:',
+        newAnimeId,
+      );
 
-      // Get base URL from localStorage and remove trailing slash
-      const baseUrl =
-        localStorage.getItem('animeLibUrl') || 'https://v3.animelib.org';
-      const cleanBaseUrl = baseUrl.replace(/\/$/, '');
+      try {
+        // Update current anime ID
+        setCurrentAnimeId(slugUrl);
 
-      // Construct full URL
-      const fullUrl = `${cleanBaseUrl}/ru/anime/${slugUrl}`;
+        // Reset states
+        setLoading(true);
+        setShow404(false);
+        playerLoadedRef.current = false;
 
-      console.log('[PlayerPage] Navigating to:', fullUrl);
+        // Load episodes for new anime (using slugUrl as animeId)
+        const episodesData = await animeApi.getEpisodes(slugUrl);
+        const newEpisodes = episodesData.data;
 
-      if (onNavigateToUrl) {
-        onNavigateToUrl(fullUrl);
-      } else if (onHome) {
-        // Fallback: navigate to home and then to the URL
-        localStorage.setItem('pendingAnimeSlug', slugUrl);
-        onHome();
+        if (!newEpisodes || newEpisodes.length === 0) {
+          console.error('[PlayerPage] No episodes found for related anime');
+          setLoading(false);
+          return;
+        }
+
+        setEpisodes(newEpisodes);
+        console.log(
+          '[PlayerPage] Loaded episodes for related anime:',
+          newEpisodes.length,
+        );
+
+        // Load first episode's players
+        const firstEpisode = newEpisodes[0];
+        const playersData = await animeApi.getEpisodePlayers(firstEpisode.id);
+        const newPlayers = playersData.data.players;
+
+        setPlayers(newPlayers);
+        setSelectedEpisode(firstEpisode);
+        setCurrentEpisodeIndex(0);
+
+        // Check for bookmark
+        const bookmarkResult = await bookmarkManager.loadBookmark(
+          slugUrl,
+          newEpisodes,
+        );
+
+        if (bookmarkResult.episodeIndex !== null) {
+          setHasBookmark(true);
+          setBookmarkedEpisodeId(bookmarkManager.getBookmarkedEpisodeId());
+          setInitialTimecode(bookmarkResult.timecodeSeconds);
+
+          // If bookmark is for different episode, load that episode
+          if (bookmarkResult.episodeIndex !== 0) {
+            const bookmarkedEpisode = newEpisodes[bookmarkResult.episodeIndex];
+            const bookmarkedPlayersData = await animeApi.getEpisodePlayers(
+              bookmarkedEpisode.id,
+            );
+            setPlayers(bookmarkedPlayersData.data.players);
+            setSelectedEpisode(bookmarkedEpisode);
+            setCurrentEpisodeIndex(bookmarkResult.episodeIndex);
+          }
+        } else {
+          setHasBookmark(false);
+          setBookmarkedEpisodeId(null);
+          setInitialTimecode(null);
+        }
+        setBookmarkChecked(true);
+
+        // Auto-select player
+        const autoSelected =
+          playerSelectionManager.autoSelectPlayerOrFallback(newPlayers);
+        if (autoSelected) {
+          setSelectedPlayer(autoSelected);
+          playerLoadedRef.current = true;
+
+          // Load player data
+          if (autoSelected.player === 'Kodik' && autoSelected.src) {
+            const kodikData = await loadKodikLinks(autoSelected.src);
+            if (videoPlayerRef.current && kodikData) {
+              await videoPlayerRef.current.loadPlayer(autoSelected, kodikData);
+            }
+          } else if (videoPlayerRef.current) {
+            await videoPlayerRef.current.loadPlayer(autoSelected);
+          }
+        }
+
+        // Load related anime for new anime
+        loadRelatedAnime();
+
+        setLoading(false);
+      } catch (error) {
+        console.error('[PlayerPage] Error loading related anime:', error);
+        setLoading(false);
+        setShow404(true);
       }
     },
-    [onNavigateToUrl, onHome],
+    [bookmarkManager, playerSelectionManager, loadKodikLinks, loadRelatedAnime],
   );
 
   /**
@@ -610,7 +720,7 @@ function PlayerPageRefactored({
     if (
       currentEpisode &&
       videoPlayerRef.current?.videoRef.current &&
-      animeId &&
+      currentAnimeId &&
       selectedPlayer
     ) {
       const currentTime =
@@ -632,7 +742,7 @@ function PlayerPageRefactored({
 
         // Save bookmark in background without blocking navigation
         bookmarkManager
-          .saveBookmark(animeId, currentEpisode.id, currentTime, meta)
+          .saveBookmark(currentAnimeId, currentEpisode.id, currentTime, meta)
           .then(() => {
             console.log(
               '[PlayerPage] Bookmark saved successfully in background',
@@ -674,7 +784,7 @@ function PlayerPageRefactored({
     onBack,
     episodes,
     currentEpisodeIndex,
-    animeId,
+    currentAnimeId,
     bookmarkManager,
     selectedPlayer,
   ]);
@@ -713,7 +823,7 @@ function PlayerPageRefactored({
    */
   const handleSaveBookmark = useCallback(
     async (episodeId: number, currentTime: number) => {
-      if (!animeId || !selectedPlayer) {
+      if (!currentAnimeId || !selectedPlayer) {
         console.warn('[PlayerPage] Cannot save bookmark: no animeId or player');
         return;
       }
@@ -734,14 +844,14 @@ function PlayerPageRefactored({
       };
 
       console.log('[PlayerPage] Saving bookmark:', {
-        animeId,
+        animeId: currentAnimeId,
         episodeId,
         currentTime,
         meta,
       });
 
       const success = await bookmarkManager.saveBookmark(
-        animeId,
+        currentAnimeId,
         episodeId,
         currentTime,
         meta,
@@ -756,7 +866,7 @@ function PlayerPageRefactored({
         // TODO: Show error notification
       }
     },
-    [animeId, bookmarkManager, selectedPlayer, episodes],
+    [currentAnimeId, bookmarkManager, selectedPlayer, episodes],
   );
 
   // ==================== Cleanup ====================
@@ -812,7 +922,7 @@ function PlayerPageRefactored({
         isPlayerPage
         showUrlInput={showUrlInput}
         currentUrl={playerUrl}
-        animeId={animeId}
+        animeId={currentAnimeId}
         onUrlChange={handleUrlChange}
         onToggleUrlInput={() => setShowUrlInput(!showUrlInput)}
         onMinimize={handleMinimize}
@@ -867,12 +977,16 @@ function PlayerPageRefactored({
                 width: 'calc(100% - 260px)',
                 height: '100%',
                 minHeight: '400px',
+                justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+                alignItems: sidebarCollapsed ? 'center' : 'stretch',
               }}
             >
               <Box
                 sx={{
-                  width: 'calc(100% - 8px)',
+                  width: sidebarCollapsed ? 'auto' : 'calc(100% - 8px)',
                   height: 'calc(100% - 16px)',
+                  maxWidth: sidebarCollapsed ? '100%' : 'none',
+                  aspectRatio: sidebarCollapsed ? '16 / 9' : 'auto',
                   backgroundColor: '#000',
                   position: 'relative',
                   overflow: 'hidden',
@@ -935,11 +1049,14 @@ function PlayerPageRefactored({
                     <VideoPlayer
                       ref={videoPlayerRef}
                       onError={handleVideoError}
-                      animeId={animeId}
+                      animeId={currentAnimeId}
                       episodeName={selectedEpisode ? selectedEpisode.name : ''}
                       episodes={episodes}
                       currentEpisodeIndex={currentEpisodeIndex}
                       onEpisodeSelect={handleEpisodeClick}
+                      onEpisodeSelectWithAutoplay={
+                        handleEpisodeClickWithAutoplay
+                      }
                       initialTimecode={initialTimecode}
                       onTimecodeApplied={() => {
                         console.log(
@@ -999,6 +1116,7 @@ function PlayerPageRefactored({
         {/* Related anime section - Below episodes, above comments */}
         {relatedAnime.length > 0 && (
           <RelatedAnime
+            key={currentAnimeId}
             relatedAnime={relatedAnime}
             onAnimeClick={handleRelatedAnimeClick}
           />
@@ -1024,7 +1142,6 @@ function PlayerPageRefactored({
 
 PlayerPageRefactored.defaultProps = {
   onHome: undefined,
-  onNavigateToUrl: undefined,
 };
 
 export default PlayerPageRefactored;
