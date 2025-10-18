@@ -69,6 +69,10 @@ interface VideoPlayerProps {
   } | null; // Выбранная озвучка
   // eslint-disable-next-line react/require-default-props
   timecode?: TimeCode[]; // Сегменты для пропуска (опенинг, эндинг)
+  // eslint-disable-next-line react/require-default-props
+  sidebarCollapsed?: boolean; // Состояние сайдбара
+  // eslint-disable-next-line react/require-default-props
+  onSidebarToggle?: () => void; // Callback для переключения сайдбара
 }
 
 interface VideoPlayerRef {
@@ -77,6 +81,7 @@ interface VideoPlayerRef {
   destroyPlayer: () => void;
   seekTo: (time: number) => void;
   videoRef: React.RefObject<HTMLVideoElement | null>;
+  isPlaying: () => boolean;
 }
 
 /**
@@ -101,6 +106,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       onAutoplayChange,
       selectedPlayer = null,
       timecode = [],
+      sidebarCollapsed = false,
+      onSidebarToggle,
     },
     ref,
   ) => {
@@ -183,6 +190,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const [showNextEpisodeNotification, setShowNextEpisodeNotification] =
       useState(false);
     const nextEpisodeNotificationShownRef = useRef(false);
+    const nextEpisodeCancelledRef = useRef(false);
 
     // Initialize controller
     useEffect(() => {
@@ -374,7 +382,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       autoplayManager.setupAutoplayOnLoad();
     }, [currentPlayerData, initialTimecode, autoplayManager]);
 
-    // Setup auto-advance to next episode (only if no notification will be shown)
+    // Setup auto-advance to next episode
     useEffect(() => {
       const video = videoRef.current;
 
@@ -382,17 +390,22 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         return;
       }
 
-      // Не включаем автопереход если будет показываться уведомление
-      const hasNextEpisode = currentEpisodeIndex < episodes.length - 1;
-      const shouldShowNotification = autoplayEnabled && hasNextEpisode;
-
-      if (shouldShowNotification) {
+      if (!autoplayEnabled) {
+        // Если автовоспроизведение ВЫКЛЮЧЕНО, отключаем AutoplayManager
         // Уведомление само управляет переключением
+        console.log(
+          '[VideoPlayer] Autoplay disabled, notification will handle next episode',
+        );
+        autoplayManager.updateConfig({ enabled: false });
+        autoplayManager.setupAutoAdvance(currentEpisodeIndex, episodes.length);
         return;
       }
 
-      // В остальных случаях используем стандартный автопереход
-      autoplayManager.updateConfig({ enabled: autoplayEnabled });
+      // Если автовоспроизведение ВКЛЮЧЕНО, используем стандартный автопереход
+      console.log(
+        '[VideoPlayer] Autoplay enabled, AutoplayManager will handle next episode',
+      );
+      autoplayManager.updateConfig({ enabled: true });
       autoplayManager.setupAutoAdvance(currentEpisodeIndex, episodes.length);
     }, [
       autoplayEnabled,
@@ -401,11 +414,11 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       autoplayManager,
     ]);
 
-    // Show next episode notification after video ends
+    // Show next episode notification after video ends (ONLY if autoplay is DISABLED)
     useEffect(() => {
       const video = videoRef.current;
 
-      if (!video || !autoplayEnabled) {
+      if (!video || autoplayEnabled) {
         return undefined;
       }
 
@@ -418,7 +431,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         // Показываем уведомление только если уже не показали
         if (!nextEpisodeNotificationShownRef.current) {
           console.log(
-            '[VideoPlayer] Video ended, showing next episode notification',
+            '[VideoPlayer] Video ended with autoplay disabled, showing next episode notification',
           );
           setShowNextEpisodeNotification(true);
           nextEpisodeNotificationShownRef.current = true;
@@ -435,6 +448,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     // Reset notification flag when episode changes
     useEffect(() => {
       nextEpisodeNotificationShownRef.current = false;
+      nextEpisodeCancelledRef.current = false;
       setShowNextEpisodeNotification(false);
     }, [currentEpisodeIndex]);
 
@@ -552,9 +566,16 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           controllerRef.current?.seekTo(time);
         },
 
+        isPlaying: () => videoState.isPlaying,
+
         videoRef,
       }),
-      [isControllerReady, initialTimecode, onTimecodeApplied],
+      [
+        isControllerReady,
+        initialTimecode,
+        onTimecodeApplied,
+        videoState.isPlaying,
+      ],
     );
 
     // Control handlers
@@ -698,20 +719,35 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     );
 
     const handleNextEpisodeCancel = useCallback(() => {
+      console.log('[VideoPlayer] Next episode cancelled by user');
+      nextEpisodeCancelledRef.current = true;
       setShowNextEpisodeNotification(false);
-      // Отменяем автопереход - временно отключаем autoplay
-      if (onAutoplayChange) {
-        onAutoplayChange(false);
+      // Ставим видео на паузу (оно уже в конце т.к. ended event)
+      const video = videoRef.current;
+      if (video) {
+        // Pause directly and ensure it stays paused
+        video.pause();
+        console.log(
+          '[VideoPlayer] Next episode cancelled: video paused at end',
+        );
       }
-    }, [onAutoplayChange]);
+    }, []);
 
     const handleNextEpisodePlayNow = useCallback(() => {
+      // Проверяем, не была ли нажата кнопка отмены
+      if (nextEpisodeCancelledRef.current) {
+        console.log(
+          '[VideoPlayer] Next episode playback cancelled, ignoring timer',
+        );
+        return;
+      }
+
       setShowNextEpisodeNotification(false);
       // Сразу переключаем на следующий эпизод
       const hasNextEpisode = currentEpisodeIndex < episodes.length - 1;
       if (hasNextEpisode) {
         console.log(
-          '[VideoPlayer] User requested immediate next episode:',
+          '[VideoPlayer] Playing next episode:',
           currentEpisodeIndex + 1,
         );
         onEpisodeSelect(currentEpisodeIndex + 1);
@@ -972,6 +1008,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             thumbnailManager={
               controllerRef.current?.getThumbnailManager() || null
             }
+            sidebarCollapsed={sidebarCollapsed}
+            onSidebarToggle={onSidebarToggle || (() => {})}
           />
         )}
       </Box>

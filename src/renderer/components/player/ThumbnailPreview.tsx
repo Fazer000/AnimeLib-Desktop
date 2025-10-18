@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useRef } from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
 
 interface ThumbnailPreviewProps {
@@ -14,12 +14,64 @@ interface ThumbnailPreviewProps {
 const ThumbnailPreview = memo(
   ({ thumbnailUrl, time, isLoading, position }: ThumbnailPreviewProps) => {
     const [isVisible, setIsVisible] = useState(false);
+    const previewRef = useRef<HTMLDivElement>(null);
+    const [adjustedPosition, setAdjustedPosition] = useState({
+      left: position.x,
+      transform: 'translateX(-50%)',
+    });
 
     useEffect(() => {
       // Плавное появление
       const timer = setTimeout(() => setIsVisible(true), 50);
       return () => clearTimeout(timer);
     }, []);
+
+    // Корректировка позиции чтобы не выходить за края
+    useEffect(() => {
+      if (!previewRef.current) return;
+
+      const previewElement = previewRef.current;
+      const previewWidth = 160; // Ширина превью из стилей
+      const padding = 12; // Отступ от края
+
+      // Получаем позицию X в пикселях
+      let xPosition: number;
+      if (typeof position.x === 'string') {
+        // Если это строка (например "50%"), парсим её
+        const match = position.x.match(/(\d+)/);
+        if (match) {
+          const percent = parseInt(match[1], 10);
+          const containerWidth = previewElement.parentElement?.offsetWidth || 0;
+          xPosition = (containerWidth * percent) / 100;
+        } else {
+          xPosition = 0;
+        }
+      } else {
+        xPosition = position.x;
+      }
+
+      const containerWidth = previewElement.parentElement?.offsetWidth || 0;
+      const halfWidth = previewWidth / 2;
+
+      let newLeft = position.x;
+      let newTransform = 'translateX(-50%)';
+
+      // Проверка левого края
+      if (xPosition - halfWidth < padding) {
+        newLeft = padding;
+        newTransform = 'translateX(0)';
+      }
+      // Проверка правого края
+      else if (xPosition + halfWidth > containerWidth - padding) {
+        newLeft = containerWidth - padding;
+        newTransform = 'translateX(-100%)';
+      }
+
+      setAdjustedPosition({
+        left: newLeft,
+        transform: newTransform,
+      });
+    }, [position.x]);
 
     const formatTime = (seconds: number): string => {
       const h = Math.floor(seconds / 3600);
@@ -34,11 +86,12 @@ const ThumbnailPreview = memo(
 
     return (
       <Box
+        ref={previewRef}
         sx={{
           position: 'absolute',
-          left: position.x,
+          left: adjustedPosition.left,
           bottom: position.y,
-          transform: 'translateX(-50%)',
+          transform: adjustedPosition.transform,
           zIndex: 1500,
           opacity: isVisible ? 1 : 0,
           transition: 'opacity 0.15s ease-in-out',
@@ -60,17 +113,17 @@ const ThumbnailPreview = memo(
           <Box
             sx={{
               position: 'absolute',
-              top: 4,
-              right: 4,
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
-              borderRadius: '4px',
-              padding: '2px 6px',
+              top: 6,
+              right: 6,
+              backgroundColor: 'rgba(0, 0, 0, 0.85)',
+              borderRadius: '6px',
+              padding: '4px 8px',
               zIndex: 2,
             }}
           >
             <Typography
               sx={{
-                fontSize: '0.75rem',
+                fontSize: '0.8rem',
                 fontWeight: 600,
                 color: 'white',
                 fontFamily: 'monospace',
@@ -84,15 +137,15 @@ const ThumbnailPreview = memo(
           {isLoading && (
             <Box
               sx={{
-                width: 120,
-                height: 68,
+                width: 160,
+                height: 90,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: '#2a2a2a',
               }}
             >
-              <CircularProgress size={20} sx={{ color: '#7C3AED' }} />
+              <CircularProgress size={24} sx={{ color: '#7C3AED' }} />
             </Box>
           )}
 
@@ -101,8 +154,8 @@ const ThumbnailPreview = memo(
               src={thumbnailUrl}
               alt="Preview"
               style={{
-                width: 120,
-                height: 68,
+                width: 160,
+                height: 90,
                 display: 'block',
                 objectFit: 'cover',
               }}
@@ -112,8 +165,8 @@ const ThumbnailPreview = memo(
           {!isLoading && !thumbnailUrl && (
             <Box
               sx={{
-                width: 120,
-                height: 68,
+                width: 160,
+                height: 90,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -122,7 +175,7 @@ const ThumbnailPreview = memo(
             >
               <Typography
                 sx={{
-                  fontSize: '0.7rem',
+                  fontSize: '0.75rem',
                   color: 'rgba(255, 255, 255, 0.5)',
                 }}
               >
@@ -130,21 +183,6 @@ const ThumbnailPreview = memo(
               </Typography>
             </Box>
           )}
-
-          {/* Треугольник указатель */}
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: -8,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: 0,
-              height: 0,
-              borderLeft: '8px solid transparent',
-              borderRight: '8px solid transparent',
-              borderTop: '8px solid rgba(124, 58, 237, 0.3)',
-            }}
-          />
         </Box>
       </Box>
     );

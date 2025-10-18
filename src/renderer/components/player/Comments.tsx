@@ -695,29 +695,23 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
   );
 
   /**
-   * Reset comments and update sort when sort option changes
+   * Initial load - только если shouldLoad = true
    */
   useEffect(() => {
-    if (!shouldLoad) return undefined;
+    if (!shouldLoad) {
+      console.log('[Comments] shouldLoad is false, skipping initial load');
+      return;
+    }
+
+    console.log('[Comments] shouldLoad is true, loading comments');
     const { sortBy, sortType } = getSortParams(sortOption);
     commentsManager.updateSortOptions(sortBy, sortType);
     commentsManager.reset();
     setComments([]);
-    setDisplayCount(20); // Reset display count
+    setDisplayCount(20);
     setHasMore(true);
     commentsManager.loadComments(episodeId, 1);
-    return undefined;
-  }, [sortOption, getSortParams, commentsManager, episodeId, shouldLoad]);
-
-  /**
-   * Initial load - только если shouldLoad = true
-   */
-  useEffect(() => {
-    if (shouldLoad) {
-      commentsManager.loadComments(episodeId, 1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [episodeId, commentsManager, shouldLoad]);
+  }, [episodeId, commentsManager, shouldLoad, sortOption, getSortParams]);
 
   /**
    * Setup intersection observer for infinite scroll - только если shouldLoad = true
@@ -783,6 +777,31 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
   // Get visible comments
   const visibleComments = comments.slice(0, displayCount);
   const hasMoreToDisplay = displayCount < comments.length;
+
+  // Show loading placeholder if comments not loaded yet
+  if (!shouldLoad) {
+    return (
+      <Box
+        sx={{
+          padding: 4,
+          textAlign: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.2)',
+          borderRadius: 2,
+          margin: 2,
+        }}
+      >
+        <Typography
+          variant="body2"
+          sx={{
+            color: theme.palette.customColors.dtAccentTextColor,
+            fontSize: '0.9375rem',
+          }}
+        >
+          Прокрутите вниз, чтобы загрузить комментарии
+        </Typography>
+      </Box>
+    );
+  }
 
   if (comments.length === 0 && !loading) {
     return (

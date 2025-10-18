@@ -8,6 +8,7 @@ import {
   PictureInPictureAltRounded,
   ListRounded,
   BookmarkAddRounded,
+  GraphicEqRounded,
 } from '@mui/icons-material';
 
 import ProgressBar from './ProgressBar';
@@ -100,6 +101,10 @@ interface VideoControlsProps {
 
   // Thumbnail manager
   thumbnailManager?: ThumbnailManager | null;
+
+  // Sidebar toggle
+  sidebarCollapsed: boolean;
+  onSidebarToggle: () => void;
 }
 
 /**
@@ -151,6 +156,8 @@ function VideoControls({
   autoSkipSettings,
   onAutoSkipChange,
   thumbnailManager = null,
+  sidebarCollapsed = false,
+  onSidebarToggle,
 }: VideoControlsProps) {
   const theme = useTheme();
   // UI State
@@ -429,6 +436,34 @@ function VideoControls({
               onVolumeChange={handleVolumeChange}
               onToggleMute={onToggleMute}
             />
+
+            {/* Toggle Sidebar */}
+            {onSidebarToggle && !isFullscreen && (
+              <Tooltip
+                title={sidebarCollapsed ? 'Показать озвучки' : 'Скрыть озвучки'}
+                placement="top"
+              >
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSidebarToggle();
+                  }}
+                  sx={{
+                    color: sidebarCollapsed ? 'white' : '#7C3AED',
+                    padding: 0.25,
+                    borderRadius: 2,
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      transform: 'scale(1.1)',
+                      color: '#7C3AED',
+                    },
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <GraphicEqRounded fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
 
             {/* Save Bookmark */}
             {onSaveBookmark && (

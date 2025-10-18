@@ -5,41 +5,79 @@ import { KeyboardArrowUp } from '@mui/icons-material';
 interface ScrollToTopButtonProps {
   // Порог прокрутки для показа кнопки (в пикселях)
   threshold?: number;
+  // ID контейнера для скролла (если не указан, используется window)
+  scrollContainerId?: string;
 }
 
 /**
  * Кнопка для прокрутки страницы вверх
  * Появляется когда пользователь прокрутил страницу вниз
  */
-function ScrollToTopButton({ threshold = 300 }: ScrollToTopButtonProps) {
+function ScrollToTopButton({
+  threshold = 300,
+  scrollContainerId,
+}: ScrollToTopButtonProps) {
   const [showButton, setShowButton] = useState(false);
 
   // Отслеживание прокрутки
   useEffect(() => {
+    const scrollContainer = scrollContainerId
+      ? document.getElementById(scrollContainerId)
+      : window;
+
+    if (!scrollContainer) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[ScrollToTopButton] Scroll container not found:',
+        scrollContainerId,
+      );
+      return undefined;
+    }
+
     const handleScroll = () => {
-      const scrolled = window.scrollY > threshold;
+      const scrolled =
+        scrollContainer === window
+          ? window.scrollY > threshold
+          : (scrollContainer as HTMLElement).scrollTop > threshold;
       setShowButton(scrolled);
     };
 
     // Добавляем слушатель
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    scrollContainer.addEventListener('scroll', handleScroll, {
+      passive: true,
+    } as any);
 
     // Проверяем начальное положение
     handleScroll();
 
     // Очистка
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      scrollContainer.removeEventListener('scroll', handleScroll as any);
     };
-  }, [threshold]);
+  }, [threshold, scrollContainerId]);
 
   // Прокрутка наверх
   const scrollToTop = useCallback(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    });
-  }, []);
+    const scrollContainer = scrollContainerId
+      ? document.getElementById(scrollContainerId)
+      : window;
+
+    if (!scrollContainer) {
+      return;
+    }
+
+    if (scrollContainer === window) {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    } else {
+      (scrollContainer as HTMLElement).scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    }
+  }, [scrollContainerId]);
 
   return (
     <Zoom in={showButton}>
@@ -80,6 +118,7 @@ function ScrollToTopButton({ threshold = 300 }: ScrollToTopButtonProps) {
 
 ScrollToTopButton.defaultProps = {
   threshold: 300,
+  scrollContainerId: undefined,
 };
 
 export default ScrollToTopButton;
