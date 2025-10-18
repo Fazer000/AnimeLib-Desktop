@@ -24,6 +24,7 @@ interface PlayerSidebarProps {
   onPlayerTypeSelect: (type: string) => void;
   onSaveBookmark?: () => void;
   hasBookmark?: boolean;
+  isCollapsed?: boolean;
 }
 
 /**
@@ -44,6 +45,7 @@ function PlayerSidebarRefactored({
   onPlayerTypeSelect,
   onSaveBookmark,
   hasBookmark,
+  isCollapsed = false,
 }: PlayerSidebarProps) {
   const theme = useTheme();
 
@@ -67,14 +69,17 @@ function PlayerSidebarRefactored({
   return (
     <Box
       sx={{
-        width: '260px',
+        position: 'relative',
+        width: isCollapsed ? '0px' : '260px',
         height: 'calc(100% - 16px)',
         margin: 1,
+        marginLeft: isCollapsed ? 0 : 1,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
+        boxShadow: isCollapsed ? 'none' : '0 0 10px 0 rgba(0, 0, 0, 0.4)',
         borderRadius: 2,
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       }}
     >
       <Box
@@ -82,6 +87,9 @@ function PlayerSidebarRefactored({
           backgroundColor: theme.palette.customColors.dtPrimaryColor,
           mb: 1,
           borderRadius: 2,
+          opacity: isCollapsed ? 0 : 1,
+          visibility: isCollapsed ? 'hidden' : 'visible',
+          transition: 'opacity 0.2s ease, visibility 0.2s ease',
         }}
       >
         {/* Header */}
@@ -253,6 +261,9 @@ function PlayerSidebarRefactored({
           position: 'relative',
           backgroundColor: theme.palette.customColors.dtPrimaryColor,
           borderRadius: 2,
+          opacity: isCollapsed ? 0 : 1,
+          visibility: isCollapsed ? 'hidden' : 'visible',
+          transition: 'opacity 0.2s ease, visibility 0.2s ease',
           '&::-webkit-scrollbar': {
             width: '8px',
           },
@@ -405,6 +416,7 @@ function PlayerSidebarRefactored({
 PlayerSidebarRefactored.defaultProps = {
   onSaveBookmark: undefined,
   hasBookmark: false,
+  isCollapsed: false,
 };
 
 export default React.memo(PlayerSidebarRefactored);

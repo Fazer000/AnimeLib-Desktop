@@ -88,6 +88,17 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
         }
       });
 
+      scriptManager.registerCallback(() => {
+        console.log('[WebView] Injecting custom selects...');
+        try {
+          scriptManager.injectCustomSelects().catch(() => {
+            // Тихо игнорируем ошибку - она уже залогирована внутри функции
+          });
+        } catch (error) {
+          console.error('[WebView] Error injecting custom selects:', error);
+        }
+      });
+
       console.log('[WebView] Managers initialized successfully');
 
       // eslint-disable-next-line consistent-return

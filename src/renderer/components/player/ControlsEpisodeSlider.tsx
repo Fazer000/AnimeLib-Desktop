@@ -43,25 +43,22 @@ function ControlsEpisodeSlider({
   // Wheel scroll state
   const [isWheelScrolling, setIsWheelScrolling] = useState<boolean>(false);
 
+  // Drag movement flag
+  const [dragMoved, setDragMoved] = useState<boolean>(false);
+
   /**
    * Drag-to-scroll handlers
    */
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    // Only start dragging if clicking on the container, not on buttons
-    if (
-      e.target === e.currentTarget ||
-      (e.target as HTMLElement).closest('.episode-button')
-    ) {
-      return;
-    }
-
     setIsDragging(true);
+    setDragMoved(false);
     setDragStart({
       x: e.pageX,
       scrollLeft: e.currentTarget.scrollLeft,
     });
     (e.currentTarget as HTMLElement).style.cursor = 'grabbing';
     (e.currentTarget as HTMLElement).style.userSelect = 'none';
+    (e.currentTarget as HTMLElement).style.scrollBehavior = 'auto';
   }, []);
 
   const handleMouseMove = useCallback(
@@ -69,8 +66,13 @@ function ControlsEpisodeSlider({
       if (!isDragging) return;
       e.preventDefault();
       const x = e.pageX;
-      const walk = (x - dragStart.x) * 1.2; // Reduced sensitivity for smoother dragging
+      const walk = (x - dragStart.x) * 1; // 1:1 чувствительность для точного следования
       e.currentTarget.scrollLeft = dragStart.scrollLeft - walk;
+
+      // Если переместили больше чем на 5px, считаем что это драг
+      if (Math.abs(walk) > 5) {
+        setDragMoved(true);
+      }
     },
     [isDragging, dragStart],
   );
@@ -79,23 +81,32 @@ function ControlsEpisodeSlider({
     setIsDragging(false);
     (e.currentTarget as HTMLElement).style.cursor = 'grab';
     (e.currentTarget as HTMLElement).style.userSelect = 'auto';
+    (e.currentTarget as HTMLElement).style.scrollBehavior = 'smooth';
+
+    // Сбрасываем флаг движения через небольшую задержку
+    setTimeout(() => setDragMoved(false), 100);
   }, []);
 
   const handleMouseLeave = useCallback((e: React.MouseEvent) => {
     setIsDragging(false);
     (e.currentTarget as HTMLElement).style.cursor = 'grab';
     (e.currentTarget as HTMLElement).style.userSelect = 'auto';
+    (e.currentTarget as HTMLElement).style.scrollBehavior = 'smooth';
+
+    setTimeout(() => setDragMoved(false), 100);
   }, []);
 
   const handleEpisodeClick = useCallback(
     (index: number, e: React.MouseEvent) => {
       e.stopPropagation();
-      if (!isDragging) {
-        onEpisodeSelect(index);
-        onMenuOpenChange(false);
+      // Не вызываем клик если был драг
+      if (dragMoved) {
+        return;
       }
+      onEpisodeSelect(index);
+      onMenuOpenChange(false);
     },
-    [isDragging, onEpisodeSelect, onMenuOpenChange],
+    [dragMoved, onEpisodeSelect, onMenuOpenChange],
   );
 
   /**
@@ -184,6 +195,7 @@ function ControlsEpisodeSlider({
               key={episode.id}
               className="episode-button"
               onClick={(e) => handleEpisodeClick(index, e)}
+              disableRipple={dragMoved}
               sx={{
                 padding: '8px 12px',
                 mx: 1.25,

@@ -1,72 +1,78 @@
 {
-  "id": 540964,
-  "episode_id": 132409,
-  "player": "Animelib",
-  "translation_type": {
-    "id": 2,
-    "label": "\u041e\u0437\u0432\u0443\u0447\u043a\u0430"
-  },
-  "team": {
-    "id": 33139,
-    "slug": "dream-cast",
-    "slug_url": "33139--dream-cast",
-    "model": "team",
-    "name": "Dream Cast",
-    "cover": {
-      "filename": "YG8C01G16HEV",
-      "thumbnail": "https:\/\/cover.imglib.info\/uploads\/team\/dream-cast\/cover\/YG8C01G16HEV_thumb.jpg",
-      "default": "https:\/\/cover.imglib.info\/uploads\/team\/dream-cast\/cover\/YG8C01G16HEV_250x350.jpg",
-      "md": "https:\/\/cover.imglib.info\/uploads\/team\/dream-cast\/cover\/YG8C01G16HEV_250x350.jpg"
-    },
-    "stats": [
-      {
-        "value": 261,
-        "formated": "261",
-        "short": "261",
-        "label": "\u041f\u043e\u0434\u043f\u0438\u0441\u0447\u0438\u043a",
-        "tag": "subscribes"
+  "data": [
+    {
+      "order": 85,
+      "related_type": {
+        "id": 10,
+        "label": "\u0414\u0440\u0443\u0433\u043e\u0435"
+      },
+      "media": {
+        "id": 20538,
+        "name": "Yofukashi no Uta Mini",
+        "rus_name": "\u041f\u0435\u0441\u043d\u044c \u043d\u043e\u0447\u043d\u044b\u0445 \u0441\u043e\u0432: \u041c\u0438\u043d\u0438-\u0430\u043d\u0438\u043c\u0435",
+        "eng_name": "Call of the Night Mini",
+        "model": "anime",
+        "slug": "yofukashi-no-uta-mini-anime",
+        "slug_url": "20538--yofukashi-no-uta-mini-anime",
+        "cover": {
+          "filename": "2fa5a6ca-8c44-4777-9f3e-9c5c5906fa96",
+          "thumbnail": "https:\/\/cover.imglib.info\/uploads\/anime\/20538\/cover\/2fa5a6ca-8c44-4777-9f3e-9c5c5906fa96_thumb.jpg",
+          "default": "https:\/\/cover.imglib.info\/uploads\/anime\/20538\/cover\/2fa5a6ca-8c44-4777-9f3e-9c5c5906fa96.jpg",
+          "md": "https:\/\/cover.imglib.info\/uploads\/anime\/20538\/cover\/2fa5a6ca-8c44-4777-9f3e-9c5c5906fa96.jpg"
+        },
+        "ageRestriction": {
+          "id": 2,
+          "label": "12+"
+        },
+        "site": 5,
+        "type": {
+          "id": 21,
+          "label": "ONA"
+        },
+        "status": {
+          "id": 2,
+          "label": "\u0417\u0430\u0432\u0435\u0440\u0448\u0451\u043d"
+        },
+        "releaseDateString": "",
+        "shiki_rate": null
       }
-    ]
-  },
-  "created_at": "2025-07-11T22:30:08.000000Z",
-  "is_viewed": false,
-  "views": 3796,
-  "timecode": [
-    {
-      "type": "opening",
-      "from": 60,
-      "to": 150
     },
     {
-      "type": "ending",
-      "from": 1335,
-      "to": 1440
+      "order": 86,
+      "related_type": {
+        "id": 4,
+        "label": "\u041f\u0440\u043e\u0434\u043e\u043b\u0436\u0435\u043d\u0438\u0435"
+      },
+      "media": {
+        "id": 23344,
+        "name": "Yofukashi no Uta Season 2",
+        "rus_name": "\u041f\u0435\u0441\u043d\u044c \u043d\u043e\u0447\u043d\u044b\u0445 \u0441\u043e\u0432 2",
+        "eng_name": "Call of the Night Season 2",
+        "model": "anime",
+        "slug": "yofukashi-no-uta-season-2-anime",
+        "slug_url": "23344--yofukashi-no-uta-season-2-anime",
+        "cover": {
+          "filename": "1eb86b6f-dd9a-46a9-a55c-6c042e945040",
+          "thumbnail": "https:\/\/cover.imglib.info\/uploads\/anime\/23344\/cover\/1eb86b6f-dd9a-46a9-a55c-6c042e945040_thumb.jpg",
+          "default": "https:\/\/cover.imglib.info\/uploads\/anime\/23344\/cover\/1eb86b6f-dd9a-46a9-a55c-6c042e945040.jpg",
+          "md": "https:\/\/cover.imglib.info\/uploads\/anime\/23344\/cover\/1eb86b6f-dd9a-46a9-a55c-6c042e945040.jpg"
+        },
+        "ageRestriction": {
+          "id": 2,
+          "label": "12+"
+        },
+        "site": 5,
+        "type": {
+          "id": 16,
+          "label": "TV \u0421\u0435\u0440\u0438\u0430\u043b"
+        },
+        "status": {
+          "id": 2,
+          "label": "\u0417\u0430\u0432\u0435\u0440\u0448\u0451\u043d"
+        },
+        "releaseDateString": "",
+        "shiki_rate": null
+      }
     }
-  ],
-  "subtitles": [],
-  "video": {
-    "id": 106612,
-    "quality": [
-      {
-        "href": "\/uploads\/converted_videos\/anime\/24262\/players\/106612\/2283fd1b-c392-4ae5-a3a4-e1c102124a87_2160.mp4",
-        "quality": 2160,
-        "bitrate": 7500
-      },
-      {
-        "href": "\/uploads\/converted_videos\/anime\/24262\/players\/106612\/2283fd1b-c392-4ae5-a3a4-e1c102124a87_1080.mp4",
-        "quality": 1080,
-        "bitrate": 3000
-      },
-      {
-        "href": "\/uploads\/converted_videos\/anime\/24262\/players\/106612\/2283fd1b-c392-4ae5-a3a4-e1c102124a87_720.mp4",
-        "quality": 720,
-        "bitrate": 1400
-      },
-      {
-        "href": "\/uploads\/converted_videos\/anime\/24262\/players\/106612\/2283fd1b-c392-4ae5-a3a4-e1c102124a87_360.mp4",
-        "quality": 360,
-        "bitrate": 600
-      }
-    ]
-  }
-},
+  ]
+}

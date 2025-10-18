@@ -1,7 +1,13 @@
 /* eslint-disable no-console */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Box, Typography, useTheme } from '@mui/material';
-import { animeApi, Episode, Player, KodikVideoLinks } from '../api/animeApi';
+import { Box, Typography } from '@mui/material';
+import {
+  animeApi,
+  Episode,
+  Player,
+  KodikVideoLinks,
+  RelatedAnime as RelatedAnimeType,
+} from '../api/animeApi';
 import CustomToolbar from '../components/Toolbar';
 import VideoPlayer, { VideoPlayerRef } from '../components/player/VideoPlayer';
 import ErrorBoundary from '../components/player/ErrorBoundary';
@@ -9,6 +15,8 @@ import EpisodeSlider from '../components/player/EpisodeSlider';
 import PlayerSidebar from '../components/player/PlayerSidebar';
 import CommentsSection from '../components/player/CommentsSection';
 import ScrollToTopButton from '../components/player/ScrollToTopButton';
+import RelatedAnime from '../components/player/RelatedAnime';
+import AmbientLight from '../components/player/AmbientLight';
 import { PlayerSelectionManager, BookmarkManager } from '../services/player';
 
 interface PlayerPageProps {
@@ -16,6 +24,7 @@ interface PlayerPageProps {
   animeId: string;
   onBack: () => void;
   onHome?: () => void;
+  onNavigateToUrl?: (url: string) => void;
 }
 
 /**
@@ -31,8 +40,8 @@ function PlayerPageRefactored({
   animeId,
   onBack,
   onHome,
+  onNavigateToUrl,
 }: PlayerPageProps) {
-  const theme = useTheme();
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
   // Episode states
@@ -66,6 +75,39 @@ function PlayerPageRefactored({
       return false;
     }
   });
+
+  // Related anime state
+  const [relatedAnime, setRelatedAnime] = useState<RelatedAnimeType[]>([]);
+
+  // Sidebar state
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('playerSidebarCollapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  // Video playing state for ambient light - с мемоизацией для предотвращения лишних рендеров
+  const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
+
+  // Update video playing state periodically - только если изменилось
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (videoPlayerRef.current) {
+        const playing = videoPlayerRef.current.isPlaying();
+        setIsVideoPlaying((prev) => {
+          // Обновляем только если изменилось
+          if (prev !== playing) {
+            return playing;
+          }
+          return prev;
+        });
+      }
+    }, 1000); // Update every 1000ms (было 500ms)
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Ref to track if player is already loaded (prevent double loading)
   const playerLoadedRef = useRef<boolean>(false);
@@ -215,11 +257,28 @@ function PlayerPageRefactored({
   // ==================== Initialization ====================
 
   /**
+   * Load related anime
+   */
+  const loadRelatedAnime = useCallback(async (): Promise<void> => {
+    if (!animeId) return;
+
+    try {
+      const data = await animeApi.getRelatedAnime(animeId);
+      setRelatedAnime(data.data);
+      console.log('[PlayerPage] Loaded related anime:', data.data.length);
+    } catch (err) {
+      console.error('[PlayerPage] Error loading related anime:', err);
+      setRelatedAnime([]);
+    }
+  }, [animeId]);
+
+  /**
    * Initialize episodes on mount
    */
   useEffect(() => {
     loadEpisodes();
-  }, [loadEpisodes]);
+    loadRelatedAnime();
+  }, [loadEpisodes, loadRelatedAnime]);
 
   /**
    * Check and load bookmark after episodes are loaded
@@ -499,6 +558,48 @@ function PlayerPageRefactored({
   }, []);
 
   /**
+   * Handle sidebar toggle
+   */
+  const handleSidebarToggle = useCallback(() => {
+    try {
+      const newState = !sidebarCollapsed;
+      localStorage.setItem('playerSidebarCollapsed', newState.toString());
+      setSidebarCollapsed(newState);
+      console.log('[PlayerPage] Sidebar collapsed:', newState);
+    } catch (error) {
+      console.error('[PlayerPage] Error saving sidebar state:', error);
+    }
+  }, [sidebarCollapsed]);
+
+  /**
+   * Handle related anime click - navigate to anime page in WebView
+   */
+  const handleRelatedAnimeClick = useCallback(
+    (slugUrl: string) => {
+      console.log('[PlayerPage] Related anime clicked:', slugUrl);
+
+      // Get base URL from localStorage and remove trailing slash
+      const baseUrl =
+        localStorage.getItem('animeLibUrl') || 'https://v3.animelib.org';
+      const cleanBaseUrl = baseUrl.replace(/\/$/, '');
+
+      // Construct full URL
+      const fullUrl = `${cleanBaseUrl}/ru/anime/${slugUrl}`;
+
+      console.log('[PlayerPage] Navigating to:', fullUrl);
+
+      if (onNavigateToUrl) {
+        onNavigateToUrl(fullUrl);
+      } else if (onHome) {
+        // Fallback: navigate to home and then to the URL
+        localStorage.setItem('pendingAnimeSlug', slugUrl);
+        onHome();
+      }
+    },
+    [onNavigateToUrl, onHome],
+  );
+
+  /**
    * Handle back navigation - with auto-save bookmark
    */
   const handleBack = useCallback(() => {
@@ -687,7 +788,8 @@ function PlayerPageRefactored({
         height: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: theme.palette.primary.dark,
+        backgroundColor: '#0a0a0a',
+        overflow: 'hidden',
       }}
     >
       <CustomToolbar
@@ -720,6 +822,7 @@ function PlayerPageRefactored({
 
       {/* Padding for fixed toolbar */}
       <Box
+        id="player-page-scroll-container"
         sx={{
           flex: 1,
           position: 'relative',
@@ -727,21 +830,37 @@ function PlayerPageRefactored({
           overflow: 'auto',
         }}
       >
-        {/* Player section */}
+        {/* Player section - Fixed height container */}
         <Box
           sx={{
             height: 'calc(100vh - 32px)',
             display: 'flex',
             flexDirection: 'column',
+            position: 'relative',
           }}
         >
+          {/* Ambient light effect */}
+          {videoPlayerRef.current?.videoRef && (
+            <AmbientLight
+              videoRef={videoPlayerRef.current.videoRef}
+              isPlaying={isVideoPlaying}
+              isFullscreen={false}
+            />
+          )}
+
           {/* Main content */}
-          <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          <Box
+            sx={{
+              flex: 1,
+              display: 'flex',
+              overflow: 'hidden',
+              position: 'relative',
+            }}
+          >
             {/* Video player */}
             <Box
               sx={{
                 flex: 1,
-                backgroundColor: '#0a0a0a',
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'relative',
@@ -835,6 +954,8 @@ function PlayerPageRefactored({
                       onAutoplayChange={handleAutoplayChange}
                       selectedPlayer={selectedPlayer}
                       timecode={selectedPlayer?.timecode || []}
+                      sidebarCollapsed={sidebarCollapsed}
+                      onSidebarToggle={handleSidebarToggle}
                     />
                   </Box>
                 </ErrorBoundary>
@@ -850,6 +971,7 @@ function PlayerPageRefactored({
               onPlayerSelect={handlePlayerSelect}
               onPlayerTypeSelect={handlePlayerTypeSelect}
               hasBookmark={hasBookmark}
+              isCollapsed={sidebarCollapsed}
               onSaveBookmark={() => {
                 // Get current episode and time from video player
                 const currentEpisode = episodes[currentEpisodeIndex];
@@ -874,11 +996,27 @@ function PlayerPageRefactored({
           />
         </Box>
 
+        {/* Related anime section - Below episodes, above comments */}
+        {relatedAnime.length > 0 && (
+          <RelatedAnime
+            relatedAnime={relatedAnime}
+            onAnimeClick={handleRelatedAnimeClick}
+          />
+        )}
+
         {/* Comments section - Below player, centered 70% width */}
-        {selectedEpisode && <CommentsSection episodeId={selectedEpisode.id} />}
+        {selectedEpisode && (
+          <CommentsSection
+            episodeId={selectedEpisode.id}
+            scrollContainerId="player-page-scroll-container"
+          />
+        )}
 
         {/* Scroll to top button */}
-        <ScrollToTopButton threshold={400} />
+        <ScrollToTopButton
+          threshold={400}
+          scrollContainerId="player-page-scroll-container"
+        />
       </Box>
     </Box>
   );
@@ -886,6 +1024,7 @@ function PlayerPageRefactored({
 
 PlayerPageRefactored.defaultProps = {
   onHome: undefined,
+  onNavigateToUrl: undefined,
 };
 
 export default PlayerPageRefactored;

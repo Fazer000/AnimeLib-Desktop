@@ -344,6 +344,12 @@ function App() {
             setPlayerUrl(null);
             setAnimeId(null);
           }}
+          onNavigateToUrl={(url: string) => {
+            console.log('[App] Player navigate to URL:', url);
+            setSavedUrl(url);
+            setPlayerUrl(null);
+            setAnimeId(null);
+          }}
         />
       </ThemeProvider>
     );

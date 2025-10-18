@@ -172,6 +172,48 @@ export interface AnimeBookmarkResponse {
   data: AnimeBookmark | null;
 }
 
+export interface RelatedAnime {
+  order: number;
+  related_type: {
+    id: number;
+    label: string;
+  };
+  media: {
+    id: number;
+    name: string;
+    rus_name: string;
+    eng_name: string;
+    model: string;
+    slug: string;
+    slug_url: string;
+    cover: {
+      filename: string;
+      thumbnail: string;
+      default: string;
+      md: string;
+    };
+    ageRestriction: {
+      id: number;
+      label: string;
+    };
+    site: number;
+    type: {
+      id: number;
+      label: string;
+    };
+    status: {
+      id: number;
+      label: string;
+    };
+    releaseDateString: string;
+    shiki_rate: number | null;
+  };
+}
+
+export interface RelatedAnimeResponse {
+  data: RelatedAnime[];
+}
+
 // Получаем токен из localStorage
 const getAuthToken = (): string | null => {
   try {
@@ -512,6 +554,30 @@ export const animeApi = {
       return { success: true, data: response.data };
     } catch (error) {
       console.error('[AnimeAPI] Error submitting comment:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get related anime
+   */
+  getRelatedAnime: async (
+    animeSlugUrl: string,
+  ): Promise<RelatedAnimeResponse> => {
+    try {
+      console.log('[AnimeAPI] Loading related anime for:', animeSlugUrl);
+      const response = await animeApiClient.get(
+        `/anime/${animeSlugUrl}/relations`,
+      );
+
+      console.log(
+        '[AnimeAPI] Related anime loaded:',
+        response.data.data.length,
+        'items',
+      );
+      return response.data;
+    } catch (error) {
+      console.error('[AnimeAPI] Error loading related anime:', error);
       throw error;
     }
   },

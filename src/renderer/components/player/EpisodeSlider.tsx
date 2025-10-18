@@ -35,6 +35,7 @@ function EpisodeSliderRefactored({
 
   // Drag states
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [dragMoved, setDragMoved] = useState<boolean>(false);
   const [dragStart, setDragStart] = useState<{ x: number; scrollLeft: number }>(
     {
       x: 0,
@@ -88,21 +89,15 @@ function EpisodeSliderRefactored({
    * Drag-to-scroll handlers
    */
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    // Only start dragging if clicking on the container, not on buttons
-    if (
-      e.target === e.currentTarget ||
-      (e.target as HTMLElement).closest('.episode-button')
-    ) {
-      return;
-    }
-
     setIsDragging(true);
+    setDragMoved(false);
     setDragStart({
       x: e.pageX,
       scrollLeft: e.currentTarget.scrollLeft,
     });
     (e.currentTarget as HTMLElement).style.cursor = 'grabbing';
     (e.currentTarget as HTMLElement).style.userSelect = 'none';
+    (e.currentTarget as HTMLElement).style.scrollBehavior = 'auto';
   }, []);
 
   const handleMouseMove = useCallback(
@@ -110,8 +105,13 @@ function EpisodeSliderRefactored({
       if (!isDragging) return;
       e.preventDefault();
       const x = e.pageX;
-      const walk = (x - dragStart.x) * 1.5; // Reduced sensitivity for smoother dragging
+      const walk = (x - dragStart.x) * 1; // 1:1 чувствительность для точного следования
       e.currentTarget.scrollLeft = dragStart.scrollLeft - walk;
+
+      // Если переместили больше чем на 5px, считаем что это драг
+      if (Math.abs(walk) > 5) {
+        setDragMoved(true);
+      }
     },
     [isDragging, dragStart],
   );
@@ -120,22 +120,31 @@ function EpisodeSliderRefactored({
     setIsDragging(false);
     (e.currentTarget as HTMLElement).style.cursor = 'grab';
     (e.currentTarget as HTMLElement).style.userSelect = 'auto';
+    (e.currentTarget as HTMLElement).style.scrollBehavior = 'smooth';
+
+    // Сбрасываем флаг движения через небольшую задержку
+    setTimeout(() => setDragMoved(false), 100);
   }, []);
 
   const handleMouseLeave = useCallback((e: React.MouseEvent) => {
     setIsDragging(false);
     (e.currentTarget as HTMLElement).style.cursor = 'grab';
     (e.currentTarget as HTMLElement).style.userSelect = 'auto';
+    (e.currentTarget as HTMLElement).style.scrollBehavior = 'smooth';
+
+    setTimeout(() => setDragMoved(false), 100);
   }, []);
 
   const handleEpisodeClick = useCallback(
     (index: number, e: React.MouseEvent) => {
       e.stopPropagation();
-      if (!isDragging) {
-        onEpisodeSelect(index);
+      // Не вызываем клик если был драг
+      if (dragMoved) {
+        return;
       }
+      onEpisodeSelect(index);
     },
-    [isDragging, onEpisodeSelect],
+    [dragMoved, onEpisodeSelect],
   );
 
   /**
@@ -191,7 +200,6 @@ function EpisodeSliderRefactored({
   return (
     <Box
       sx={{
-        backgroundColor: theme.palette.primary.dark,
         position: 'relative',
       }}
     >
@@ -234,7 +242,8 @@ function EpisodeSliderRefactored({
               bottom: 0,
               width: 40,
               mb: 0.85,
-              background: `linear-gradient(to right, ${theme.palette.primary.dark}, transparent)`,
+              background:
+                'linear-gradient(to right, rgba(10, 10, 10, 0.9), transparent)',
               zIndex: 1,
               pointerEvents: 'none',
             }}
@@ -276,7 +285,7 @@ function EpisodeSliderRefactored({
                 key={episode.id}
                 className="episode-button"
                 onClick={(e) => handleEpisodeClick(index, e)}
-                disableRipple={false}
+                disableRipple={dragMoved}
                 TouchRippleProps={{
                   style: {
                     color: theme.palette.customColors.dtSecondaryColor,
@@ -373,7 +382,8 @@ function EpisodeSliderRefactored({
               bottom: 0,
               width: 40,
               mb: 0.85,
-              background: `linear-gradient(to left, ${theme.palette.primary.dark}, transparent)`,
+              background:
+                'linear-gradient(to left, rgba(10, 10, 10, 0.9), transparent)',
               zIndex: 1,
               pointerEvents: 'none',
             }}
