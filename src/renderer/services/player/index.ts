@@ -3,6 +3,8 @@
  * ООП-архитектура для управления видеоплеером
  */
 
+export { default as AmbientLightManager } from './AmbientLightManager';
+
 export { ShakaPlayerManager } from './ShakaPlayerManager';
 export type { QualityOption, ShakaPlayerConfig } from './ShakaPlayerManager';
 

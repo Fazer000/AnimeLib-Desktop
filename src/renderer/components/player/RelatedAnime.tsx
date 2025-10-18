@@ -12,7 +12,7 @@ import useImageWithReferer from '../../hooks/useImageWithReferer';
 
 interface RelatedAnimeProps {
   relatedAnime: RelatedAnimeType[];
-  onAnimeClick: (slugUrl: string) => void;
+  onAnimeClick: (slugUrl: string, animeId: number) => void;
 }
 
 /**
@@ -29,10 +29,11 @@ function RelatedAnimeCard({
 }) {
   const theme = useTheme();
   const imageUrl = useImageWithReferer(item.media.cover.default);
+  const isAnime = item.media.model === 'anime';
 
   const handleClick = (e: React.MouseEvent) => {
-    // Не вызываем клик если был драг
-    if (isDragMoving) {
+    // Не вызываем клик если был драг или если не аниме
+    if (isDragMoving || !isAnime) {
       e.preventDefault();
       e.stopPropagation();
       return;
@@ -56,7 +57,13 @@ function RelatedAnimeCard({
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
         textAlign: 'left',
         justifyContent: 'flex-start',
-        cursor: 'pointer',
+        cursor: isAnime ? 'pointer' : 'not-allowed',
+        opacity: isAnime ? 1 : 0.5,
+        '&:hover': isAnime
+          ? {}
+          : {
+              opacity: 0.5,
+            },
       }}
     >
       {/* Обложка слева */}
@@ -340,7 +347,7 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
               <RelatedAnimeCard
                 key={item.media.id}
                 item={item}
-                onClick={() => onAnimeClick(item.media.slug_url)}
+                onClick={() => onAnimeClick(item.media.slug_url, item.media.id)}
                 isDragMoving={dragMoved}
               />
             ))}
