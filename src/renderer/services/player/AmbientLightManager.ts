@@ -15,9 +15,9 @@ export default class AmbientLightManager {
 
   private sampleSize = 32;
 
-  private minUpdateInterval = 150; // 150ms между обновлениями
+  private minUpdateInterval = 200; // 200ms между обновлениями для оптимизации
 
-  private interpolationFactor = 0.08; // Маленький шаг для плавности
+  private interpolationFactor = 0.15; // Увеличен для более быстрых переходов
 
   private currentColors = {
     top: 'rgba(0, 0, 0, 0)',

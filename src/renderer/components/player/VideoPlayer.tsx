@@ -75,6 +75,8 @@ interface VideoPlayerProps {
   sidebarCollapsed?: boolean; // Состояние сайдбара
   // eslint-disable-next-line react/require-default-props
   onSidebarToggle?: () => void; // Callback для переключения сайдбара
+  // eslint-disable-next-line react/require-default-props
+  onAspectRatioChange?: (aspectRatio: number | null) => void; // Callback при изменении aspect ratio
 }
 
 interface VideoPlayerRef {
@@ -115,6 +117,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       timecode = [],
       sidebarCollapsed = false,
       onSidebarToggle,
+      onAspectRatioChange,
     },
     ref,
   ) => {
@@ -166,6 +169,9 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           onStateChange: (state) => setUIState(state),
         }),
     );
+
+    // Video aspect ratio state (not used internally, only passed to parent)
+    const videoAspectRatioRef = useRef<number | null>(null);
 
     // Autoplay Manager
     const [autoplayManager] = useState(
@@ -389,6 +395,39 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       );
       autoplayManager.setupAutoplayOnLoad();
     }, [currentPlayerData, initialTimecode, autoplayManager]);
+
+    // Detect video aspect ratio
+    useEffect(() => {
+      const video = videoRef.current;
+      if (!video) return undefined;
+
+      const handleLoadedMetadata = () => {
+        const { videoWidth, videoHeight } = video;
+        if (videoWidth && videoHeight) {
+          const aspectRatio = videoWidth / videoHeight;
+          console.log('[VideoPlayer] Video aspect ratio:', aspectRatio, {
+            width: videoWidth,
+            height: videoHeight,
+          });
+          videoAspectRatioRef.current = aspectRatio;
+          onAspectRatioChange?.(aspectRatio);
+        } else {
+          videoAspectRatioRef.current = null;
+          onAspectRatioChange?.(null);
+        }
+      };
+
+      // Check if metadata is already loaded
+      if (video.readyState >= 1) {
+        handleLoadedMetadata();
+      }
+
+      video.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+      return () => {
+        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      };
+    }, [currentPlayerData, onAspectRatioChange]);
 
     // Setup auto-advance to next episode
     useEffect(() => {
@@ -784,6 +823,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           minHeight: '300px',
           backgroundColor: '#1c1c1c',
           overflow: 'hidden',
+          borderRadius: 2,
           cursor: uiState.showControls ? 'default' : 'none',
           '&:hover': {
             '& .player-controls': {
@@ -816,8 +856,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         <video
           ref={videoRef}
           preload="metadata"
-          width="100%"
-          height="100%"
           crossOrigin="anonymous"
           playsInline
           style={{
@@ -827,6 +865,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             visibility: 'visible',
             backgroundColor: '#000',
             cursor: 'inherit',
+            objectFit: uiState.isFullscreen ? 'contain' : 'fill',
           }}
           onClick={handlePlayerClick}
           onDoubleClick={handlePlayerDoubleClick}

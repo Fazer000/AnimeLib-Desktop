@@ -95,25 +95,25 @@ const AmbientLight = memo(
           background: `radial-gradient(ellipse 120% 80% at 50% 0%, ${createSmoothGradient(colorTop, 20)})`,
           filter: 'blur(180px)',
           opacity: 0.6,
-          transition: 'none',
+          transition: 'background 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
         },
         bottom: {
           background: `radial-gradient(ellipse 120% 80% at 50% 100%, ${createSmoothGradient(colorBottom, 20)})`,
           filter: 'blur(180px)',
           opacity: 0.65,
-          transition: 'none',
+          transition: 'background 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
         },
         left: {
           background: `linear-gradient(to right, ${createSmoothGradient(colorLeft, 20)})`,
           filter: 'blur(160px)',
           opacity: 0.6,
-          transition: 'none',
+          transition: 'background 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
         },
         right: {
           background: `linear-gradient(to left, ${createSmoothGradient(colorRight, 20)})`,
           filter: 'blur(160px)',
           opacity: 0.6,
-          transition: 'none',
+          transition: 'background 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
         },
       };
     }, [dominantColors]);
@@ -136,7 +136,7 @@ const AmbientLight = memo(
             width: '100%',
             height: '100%',
             pointerEvents: 'none',
-            zIndex: 0,
+            zIndex: -1,
             opacity: isPlaying ? 1 : 0.3,
             transition: 'opacity 0.8s ease',
             overflow: 'visible',
