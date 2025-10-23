@@ -90,6 +90,9 @@ function PlayerPageRefactored({
     }
   });
 
+  // Video aspect ratio state
+  const [videoAspectRatio, setVideoAspectRatio] = useState<number | null>(null);
+
   // Video playing state for ambient light - с мемоизацией для предотвращения лишних рендеров
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
 
@@ -947,15 +950,60 @@ function PlayerPageRefactored({
             display: 'flex',
             flexDirection: 'column',
             position: 'relative',
+            isolation: 'isolate', // Create stacking context
           }}
         >
-          {/* Ambient light effect */}
+          {/* Ambient light effect - positioned absolutely to player */}
           {videoPlayerRef.current?.videoRef && (
-            <AmbientLight
-              videoRef={videoPlayerRef.current.videoRef}
-              isPlaying={isVideoPlaying}
-              isFullscreen={false}
-            />
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: sidebarCollapsed ? 0 : '260px',
+                bottom: 0,
+                pointerEvents: 'none',
+                zIndex: 0,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Box
+                sx={{
+                  width: videoAspectRatio ? 'fit-content' : 'calc(100% - 8px)',
+                  height: videoAspectRatio
+                    ? 'fit-content'
+                    : 'calc(100% - 16px)',
+                  maxWidth: 'calc(100% - 8px)',
+                  maxHeight: 'calc(100% - 16px)',
+                  aspectRatio: (() => {
+                    if (videoAspectRatio) return videoAspectRatio.toFixed(4);
+                    if (sidebarCollapsed) return '16 / 9';
+                    return 'auto';
+                  })(),
+                  '@media (min-aspect-ratio: 1/1)': videoAspectRatio
+                    ? {
+                        height: 'calc(100% - 16px)',
+                        width: 'auto',
+                      }
+                    : {},
+                  '@media (max-aspect-ratio: 1/1)': videoAspectRatio
+                    ? {
+                        width: 'calc(100% - 8px)',
+                        height: 'auto',
+                      }
+                    : {},
+                  position: 'relative',
+                }}
+              >
+                <AmbientLight
+                  videoRef={videoPlayerRef.current.videoRef}
+                  isPlaying={isVideoPlaying}
+                  isFullscreen={false}
+                />
+              </Box>
+            </Box>
           )}
 
           {/* Main content */}
@@ -965,6 +1013,7 @@ function PlayerPageRefactored({
               display: 'flex',
               overflow: 'hidden',
               position: 'relative',
+              zIndex: 1,
             }}
           >
             {/* Video player */}
@@ -977,23 +1026,44 @@ function PlayerPageRefactored({
                 width: 'calc(100% - 260px)',
                 height: '100%',
                 minHeight: '400px',
-                justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-                alignItems: sidebarCollapsed ? 'center' : 'stretch',
+                justifyContent: 'center',
+                alignItems: 'center',
+                overflow: 'hidden',
+                zIndex: 0,
               }}
             >
               <Box
                 sx={{
-                  width: sidebarCollapsed ? 'auto' : 'calc(100% - 8px)',
-                  height: 'calc(100% - 16px)',
-                  maxWidth: sidebarCollapsed ? '100%' : 'none',
-                  aspectRatio: sidebarCollapsed ? '16 / 9' : 'auto',
+                  width: videoAspectRatio ? 'fit-content' : '100%',
+                  height: videoAspectRatio ? 'fit-content' : '100%',
+                  maxWidth: 'calc(100% - 8px)',
+                  maxHeight: 'calc(100% - 16px)',
+                  aspectRatio: (() => {
+                    if (videoAspectRatio) return videoAspectRatio.toFixed(4);
+                    if (sidebarCollapsed) return '16 / 9';
+                    return 'auto';
+                  })(),
+                  // Make it grow to fill available space while respecting aspect ratio
+                  '@media (min-aspect-ratio: 1/1)': videoAspectRatio
+                    ? {
+                        height: 'calc(100% - 16px)',
+                        width: 'auto',
+                      }
+                    : {},
+                  '@media (max-aspect-ratio: 1/1)': videoAspectRatio
+                    ? {
+                        width: 'calc(100% - 8px)',
+                        height: 'auto',
+                      }
+                    : {},
                   backgroundColor: '#000',
                   position: 'relative',
                   overflow: 'hidden',
                   borderRadius: 2,
                   boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
                   margin: 1,
-                  marginRight: 0, // Убираем правый отступ чтобы вплотную к sidebar
+                  marginRight: 0,
+                  zIndex: 1,
                 }}
               >
                 <ErrorBoundary>
@@ -1057,6 +1127,7 @@ function PlayerPageRefactored({
                       onEpisodeSelectWithAutoplay={
                         handleEpisodeClickWithAutoplay
                       }
+                      onAspectRatioChange={setVideoAspectRatio}
                       initialTimecode={initialTimecode}
                       onTimecodeApplied={() => {
                         console.log(
@@ -1079,38 +1150,42 @@ function PlayerPageRefactored({
               </Box>
             </Box>
 
-            {/* Sidebar with players */}
-            <PlayerSidebar
-              players={players}
-              selectedPlayer={selectedPlayer}
-              selectedPlayerType={selectedPlayerType}
-              loading={loading}
-              onPlayerSelect={handlePlayerSelect}
-              onPlayerTypeSelect={handlePlayerTypeSelect}
-              hasBookmark={hasBookmark}
-              isCollapsed={sidebarCollapsed}
-              onSaveBookmark={() => {
-                // Get current episode and time from video player
-                const currentEpisode = episodes[currentEpisodeIndex];
-                if (
-                  currentEpisode &&
-                  videoPlayerRef.current?.videoRef.current
-                ) {
-                  const currentTime =
-                    videoPlayerRef.current.videoRef.current.currentTime || 0;
-                  handleSaveBookmark(currentEpisode.id, currentTime);
-                }
-              }}
-            />
+            {/* Sidebar with players - higher z-index */}
+            <Box sx={{ position: 'relative', zIndex: 2 }}>
+              <PlayerSidebar
+                players={players}
+                selectedPlayer={selectedPlayer}
+                selectedPlayerType={selectedPlayerType}
+                loading={loading}
+                onPlayerSelect={handlePlayerSelect}
+                onPlayerTypeSelect={handlePlayerTypeSelect}
+                hasBookmark={hasBookmark}
+                isCollapsed={sidebarCollapsed}
+                onSaveBookmark={() => {
+                  // Get current episode and time from video player
+                  const currentEpisode = episodes[currentEpisodeIndex];
+                  if (
+                    currentEpisode &&
+                    videoPlayerRef.current?.videoRef.current
+                  ) {
+                    const currentTime =
+                      videoPlayerRef.current.videoRef.current.currentTime || 0;
+                    handleSaveBookmark(currentEpisode.id, currentTime);
+                  }
+                }}
+              />
+            </Box>
           </Box>
 
           {/* Episode slider */}
-          <EpisodeSlider
-            episodes={episodes}
-            currentEpisodeIndex={currentEpisodeIndex}
-            onEpisodeSelect={handleEpisodeClick}
-            bookmarkedEpisodeId={bookmarkedEpisodeId}
-          />
+          <Box sx={{ position: 'relative', zIndex: 3 }}>
+            <EpisodeSlider
+              episodes={episodes}
+              currentEpisodeIndex={currentEpisodeIndex}
+              onEpisodeSelect={handleEpisodeClick}
+              bookmarkedEpisodeId={bookmarkedEpisodeId}
+            />
+          </Box>
         </Box>
 
         {/* Related anime section - Below episodes, above comments */}
