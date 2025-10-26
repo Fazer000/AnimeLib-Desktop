@@ -581,6 +581,68 @@ export const animeApi = {
       throw error;
     }
   },
+
+  /**
+   * Search anime
+   */
+  searchAnime: async (query: string): Promise<any> => {
+    try {
+      console.log('[AnimeAPI] Searching anime:', query);
+
+      // Получаем Bearer токен из localStorage
+      const bearerToken = localStorage.getItem('animeLibAuthToken');
+      let authToken: string | undefined;
+      if (bearerToken) {
+        try {
+          const tokenData = JSON.parse(bearerToken);
+          if (tokenData.access_token) {
+            authToken = tokenData.access_token;
+          }
+        } catch (error) {
+          console.error('[AnimeAPI] Error parsing auth token:', error);
+        }
+      }
+
+      // Создаем отдельный axios instance без Site-Id для поиска
+      const searchClient = axios.create({
+        baseURL: 'https://api.cdnlibs.org/api',
+        timeout: 10000,
+      });
+
+      // Добавляем только необходимые заголовки без Site-Id
+      searchClient.interceptors.request.use((config) => {
+        config.headers.Accept = '*/*';
+        config.headers['Accept-Language'] = 'ru,en;q=0.9,de;q=0.8,zh;q=0.7';
+        config.headers['Content-Type'] = 'application/json';
+        config.headers['Client-Time-Zone'] = 'Europe/Samara';
+        config.headers.Priority = 'u=1, i';
+
+        // Добавляем Bearer токен если есть
+        if (authToken) {
+          config.headers.Authorization = `Bearer ${authToken}`;
+        }
+
+        return config;
+      });
+
+      const response = await searchClient.get('/anime', {
+        params: {
+          'fields[]': ['rate_avg', 'rate', 'releaseDate'],
+          q: query,
+        },
+      });
+
+      console.log(
+        '[AnimeAPI] Search results:',
+        response.data.data.length,
+        'items',
+      );
+      return response.data;
+    } catch (error) {
+      console.error('[AnimeAPI] Error searching anime:', error);
+      throw error;
+    }
+  },
 };
 
 export default animeApi;

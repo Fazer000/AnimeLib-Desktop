@@ -1,13 +1,20 @@
 /* eslint-disable react/require-default-props */
 import React from 'react';
 import { IconButton, Box } from '@mui/material';
-import { ArrowBack, ArrowForward, Refresh, Home } from '@mui/icons-material';
+import {
+  ArrowBack,
+  ArrowForward,
+  Refresh,
+  Home,
+  Search,
+} from '@mui/icons-material';
 
 interface NavigationButtonsProps {
   onBack?: () => void;
   onForward?: () => void;
   onRefresh?: () => void;
   onHome?: () => void;
+  onSearch?: () => void;
   canGoBack?: boolean;
   canGoForward?: boolean;
 }
@@ -25,6 +32,7 @@ function NavigationButtons({
   onForward,
   onRefresh,
   onHome,
+  onSearch,
   canGoBack = false,
   canGoForward = false,
 }: NavigationButtonsProps) {
@@ -73,6 +81,12 @@ function NavigationButtons({
       {onRefresh && (
         <IconButton size="small" onClick={onRefresh} sx={buttonStyle}>
           <Refresh sx={{ fontSize: 16 }} />
+        </IconButton>
+      )}
+      {/* Search button */}
+      {onSearch && (
+        <IconButton size="small" onClick={onSearch} sx={buttonStyle}>
+          <Search sx={{ fontSize: 16 }} />
         </IconButton>
       )}
     </Box>
