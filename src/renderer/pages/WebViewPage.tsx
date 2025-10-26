@@ -335,6 +335,7 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
         currentUrl={currentUrl}
         onUrlChange={handleUrlChange}
         onToggleUrlInput={() => setShowUrlInput(!showUrlInput)}
+        onPlayerButtonClick={onPlayerButtonClick}
         onMinimize={handleWindowMinimize}
         onMaximize={handleWindowMaximize}
         onClose={handleWindowClose}

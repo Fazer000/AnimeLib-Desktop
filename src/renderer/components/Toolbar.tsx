@@ -5,6 +5,7 @@ import NavigationButtons from './toolbar/NavigationButtons';
 import UrlBar from './toolbar/UrlBar';
 import WindowControls from './toolbar/WindowControls';
 import AnimeInfoCard from './toolbar/AnimeInfoCard';
+import SearchModal from './toolbar/SearchModal';
 
 /**
  * Props for Toolbar component
@@ -40,6 +41,9 @@ interface ToolbarProps {
 
   // Anime Info
   animeId?: string;
+
+  // Search Navigation
+  onPlayerButtonClick?: (url: string, animeId?: string) => void;
 }
 
 /**
@@ -98,8 +102,12 @@ function ToolbarRefactored({
 
   // Anime Info
   animeId,
+
+  // Search Navigation
+  onPlayerButtonClick,
 }: ToolbarProps) {
   const [showAnimeInfo, setShowAnimeInfo] = useState<boolean>(false);
+  const [showSearchModal, setShowSearchModal] = useState<boolean>(false);
 
   const handleShowAnimeInfo = () => {
     // eslint-disable-next-line no-console
@@ -113,6 +121,59 @@ function ToolbarRefactored({
     // eslint-disable-next-line no-console
     console.log('[Toolbar] Hide anime info');
     setShowAnimeInfo(false);
+  };
+
+  const handleOpenSearch = () => {
+    // eslint-disable-next-line no-console
+    console.log('[Toolbar] Opening search modal');
+    setShowSearchModal(true);
+  };
+
+  const handleCloseSearch = () => {
+    // eslint-disable-next-line no-console
+    console.log('[Toolbar] Closing search modal');
+    setShowSearchModal(false);
+  };
+
+  const handleAnimeSelect = (slugUrl: string, openInPlayer = false) => {
+    // eslint-disable-next-line no-console
+    console.log(
+      '[Toolbar] Anime selected from search:',
+      slugUrl,
+      'openInPlayer:',
+      openInPlayer,
+    );
+
+    // Получаем базовый URL из localStorage и убираем лишний слеш на конце
+    let baseUrl =
+      localStorage.getItem('animeLibUrl') || 'https://v3.animelib.org';
+    if (baseUrl.endsWith('/')) {
+      baseUrl = baseUrl.slice(0, -1);
+    }
+
+    // Формируем полный URL для аниме
+    const fullUrl = `${baseUrl}/ru/anime/${slugUrl}`;
+
+    // eslint-disable-next-line no-console
+    console.log('[Toolbar] Navigating to:', fullUrl);
+
+    // Если нужно открыть в плеере, вызываем onPlayerButtonClick
+    if (openInPlayer) {
+      if (!onPlayerButtonClick) {
+        // eslint-disable-next-line no-console
+        console.warn('[Toolbar] onPlayerButtonClick not provided');
+        return;
+      }
+      onPlayerButtonClick(fullUrl, slugUrl);
+    } else if (onUrlChange) {
+      // Если в WebView, используем onUrlChange для навигации
+      // eslint-disable-next-line no-console
+      console.log('[Toolbar] Navigating WebView to:', fullUrl);
+      onUrlChange(fullUrl);
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn('[Toolbar] onUrlChange not provided');
+    }
   };
 
   return (
@@ -158,6 +219,7 @@ function ToolbarRefactored({
             onForward={onForward}
             onRefresh={onRefresh}
             onHome={onHome}
+            onSearch={handleOpenSearch}
             canGoBack={canGoBack}
             canGoForward={canGoForward}
           />
@@ -213,6 +275,13 @@ function ToolbarRefactored({
           onMouseLeave={handleHideAnimeInfo}
         />
       )}
+
+      {/* Search Modal */}
+      <SearchModal
+        open={showSearchModal}
+        onClose={handleCloseSearch}
+        onAnimeSelect={handleAnimeSelect}
+      />
     </>
   );
 }
