@@ -1,23 +1,17 @@
-/* eslint-disable no-console */
-
-/**
- * AmbientLightManager - Менеджер для управления амбиентной подсветкой видео
- * Анализирует цвета на краях видео и вычисляет доминантные цвета для каждой зоны
- */
 export default class AmbientLightManager {
   private canvas: HTMLCanvasElement;
 
   private ctx: CanvasRenderingContext2D;
 
-  private animationFrameId: number | null = null;
+  private timeoutId: ReturnType<typeof setTimeout> | null = null;
 
   private lastUpdateTime: number = 0;
 
-  private sampleSize = 32;
+  private sampleSize = 16;
 
-  private minUpdateInterval = 200; // 200ms между обновлениями для оптимизации
+  private minUpdateInterval = 100;
 
-  private interpolationFactor = 0.15; // Увеличен для более быстрых переходов
+  private interpolationFactor = 0.25;
 
   private currentColors = {
     top: 'rgba(0, 0, 0, 0)',
@@ -28,11 +22,11 @@ export default class AmbientLightManager {
 
   private onColorsUpdate:
     | ((colors: {
-        top: string;
-        bottom: string;
-        left: string;
-        right: string;
-      }) => void)
+    top: string;
+    bottom: string;
+    left: string;
+    right: string;
+  }) => void)
     | null = null;
 
   constructor() {
@@ -47,9 +41,6 @@ export default class AmbientLightManager {
     this.ctx = context;
   }
 
-  /**
-   * Устанавливает callback для обновления цветов
-   */
   setOnColorsUpdate(
     callback: (colors: {
       top: string;
@@ -61,9 +52,6 @@ export default class AmbientLightManager {
     this.onColorsUpdate = callback;
   }
 
-  /**
-   * Парсит rgba строку в объект компонентов
-   */
   // eslint-disable-next-line class-methods-use-this
   private parseRgba(rgba: string): {
     r: number;
@@ -83,9 +71,6 @@ export default class AmbientLightManager {
     return { r: 0, g: 0, b: 0, a: 0 };
   }
 
-  /**
-   * Интерполирует между двумя цветами
-   */
   private interpolateColor(
     color1: string,
     color2: string,
@@ -102,23 +87,15 @@ export default class AmbientLightManager {
     return `rgba(${r}, ${g}, ${b}, ${a.toFixed(2)})`;
   }
 
-  /**
-   * Извлекает доминантный цвет из массива пикселей
-   */
   // eslint-disable-next-line class-methods-use-this
   private getDominantColor(
     pixels: { r: number; g: number; b: number }[],
   ): string {
     if (pixels.length === 0) return 'rgba(0, 0, 0, 0)';
 
-    // Группируем похожие цвета
-    const colorBuckets: Map<
-      string,
-      { r: number; g: number; b: number; count: number }
-    > = new Map();
+    const colorBuckets: Map<string, { r: number; g: number; b: number; count: number }> = new Map();
 
     pixels.forEach((pixel) => {
-      // Округляем до ближайшего кратного 16 для группировки
       const bucketR = Math.round(pixel.r / 16) * 16;
       const bucketG = Math.round(pixel.g / 16) * 16;
       const bucketB = Math.round(pixel.b / 16) * 16;
@@ -140,7 +117,6 @@ export default class AmbientLightManager {
       }
     });
 
-    // Находим самый популярный bucket
     let maxCount = 0;
     let dominantBucket: { r: number; g: number; b: number; count: number } = {
       r: 0,
@@ -156,57 +132,27 @@ export default class AmbientLightManager {
       }
     });
 
-    // Вычисляем средний цвет в bucket
     const r = Math.round(dominantBucket.r / dominantBucket.count);
     const g = Math.round(dominantBucket.g / dominantBucket.count);
     const b = Math.round(dominantBucket.b / dominantBucket.count);
 
-    // Повышаем насыщенность
     const avgGray = (r + g + b) / 10;
     const saturationBoost = 2;
-    const newR = Math.min(
-      255,
-      Math.round(avgGray + (r - avgGray) * saturationBoost),
-    );
-    const newG = Math.min(
-      255,
-      Math.round(avgGray + (g - avgGray) * saturationBoost),
-    );
-    const newB = Math.min(
-      255,
-      Math.round(avgGray + (b - avgGray) * saturationBoost),
-    );
+    const newR = Math.min(255, Math.round(avgGray + (r - avgGray) * saturationBoost));
+    const newG = Math.min(255, Math.round(avgGray + (g - avgGray) * saturationBoost));
+    const newB = Math.min(255, Math.round(avgGray + (b - avgGray) * saturationBoost));
 
     return `rgba(${newR}, ${newG}, ${newB}, 0.4)`;
   }
 
-  /**
-   * Анализирует видео и извлекает цвета
-   */
   private extractColors(video: HTMLVideoElement, isPlaying: boolean): void {
     if (!isPlaying || video.paused || video.ended) {
-      this.animationFrameId = requestAnimationFrame(() =>
-        this.extractColors(video, isPlaying),
-      );
       return;
     }
-
-    const now = Date.now();
-    // Обновляем цвета не чаще указанного интервала
-    if (now - this.lastUpdateTime < this.minUpdateInterval) {
-      this.animationFrameId = requestAnimationFrame(() =>
-        this.extractColors(video, isPlaying),
-      );
-      return;
-    }
-
-    this.lastUpdateTime = now;
 
     try {
-      // Рисуем видео на canvas
       this.ctx.drawImage(video, 0, 0, this.sampleSize, this.sampleSize);
 
-      // Получаем данные пикселей
       const imageData = this.ctx.getImageData(
         0,
         0,
@@ -215,7 +161,6 @@ export default class AmbientLightManager {
       );
       const { data } = imageData;
 
-      // Разделяем на 4 зоны: верх, низ, лево, право
       const zones = {
         top: [] as { r: number; g: number; b: number }[],
         bottom: [] as { r: number; g: number; b: number }[],
@@ -223,7 +168,7 @@ export default class AmbientLightManager {
         right: [] as { r: number; g: number; b: number }[],
       };
 
-      const edgeThickness = 4; // Толщина края для анализа
+      const edgeThickness = 2;
 
       for (let y = 0; y < this.sampleSize; y += 1) {
         for (let x = 0; x < this.sampleSize; x += 1) {
@@ -232,14 +177,12 @@ export default class AmbientLightManager {
           const g = data[idx + 1];
           const b = data[idx + 2];
 
-          // Пропускаем слишком темные или слишком яркие пиксели
           const brightness = (r + g + b) / 3;
           if (brightness < 20 || brightness > 235) {
             // eslint-disable-next-line no-continue
             continue;
           }
 
-          // Проверяем минимальную насыщенность
           const max = Math.max(r, g, b);
           const min = Math.min(r, g, b);
           if (max - min < 20) {
@@ -249,7 +192,6 @@ export default class AmbientLightManager {
 
           const pixel = { r, g, b };
 
-          // Определяем зону
           if (y < edgeThickness) {
             zones.top.push(pixel);
           }
@@ -265,7 +207,6 @@ export default class AmbientLightManager {
         }
       }
 
-      // Вычисляем доминантные цвета для каждой зоны
       const targetColors = {
         top: this.getDominantColor(zones.top),
         bottom: this.getDominantColor(zones.bottom),
@@ -273,7 +214,6 @@ export default class AmbientLightManager {
         right: this.getDominantColor(zones.right),
       };
 
-      // Плавная интерполяция к новым цветам
       this.currentColors = {
         top: this.interpolateColor(
           this.currentColors.top,
@@ -297,7 +237,6 @@ export default class AmbientLightManager {
         ),
       };
 
-      // Уведомляем о новых цветах
       if (this.onColorsUpdate) {
         this.onColorsUpdate(this.currentColors);
       }
@@ -305,34 +244,25 @@ export default class AmbientLightManager {
       console.error('[AmbientLightManager] Error extracting colors:', error);
     }
 
-    this.animationFrameId = requestAnimationFrame(() =>
-      this.extractColors(video, isPlaying),
+    this.timeoutId = setTimeout(
+      () => this.extractColors(video, isPlaying),
+      this.minUpdateInterval,
     );
   }
 
-  /**
-   * Запускает анализ видео
-   */
   start(video: HTMLVideoElement, isPlaying: boolean): void {
-    if (this.animationFrameId !== null) {
-      this.stop();
-    }
+    this.stop();
+    if (!isPlaying) return;
     this.extractColors(video, isPlaying);
   }
 
-  /**
-   * Останавливает анализ видео
-   */
   stop(): void {
-    if (this.animationFrameId !== null) {
-      cancelAnimationFrame(this.animationFrameId);
-      this.animationFrameId = null;
+    if (this.timeoutId !== null) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
     }
   }
 
-  /**
-   * Сбрасывает цвета к начальным значениям
-   */
   reset(): void {
     this.currentColors = {
       top: 'rgba(0, 0, 0, 0)',
@@ -345,9 +275,6 @@ export default class AmbientLightManager {
     }
   }
 
-  /**
-   * Получает текущие цвета
-   */
   getCurrentColors(): {
     top: string;
     bottom: string;
@@ -357,9 +284,6 @@ export default class AmbientLightManager {
     return { ...this.currentColors };
   }
 
-  /**
-   * Очищает ресурсы
-   */
   dispose(): void {
     this.stop();
     this.onColorsUpdate = null;

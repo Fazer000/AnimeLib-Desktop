@@ -77,6 +77,8 @@ interface VideoPlayerProps {
   onSidebarToggle?: () => void; // Callback для переключения сайдбара
   // eslint-disable-next-line react/require-default-props
   onAspectRatioChange?: (aspectRatio: number | null) => void; // Callback при изменении aspect ratio
+  ambientLightEnabled?: boolean;
+  onAmbientLightChange?: (enabled: boolean) => void;
 }
 
 interface VideoPlayerRef {
@@ -118,6 +120,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       sidebarCollapsed = false,
       onSidebarToggle,
       onAspectRatioChange,
+      ambientLightEnabled = true,
+      onAmbientLightChange,
     },
     ref,
   ) => {
@@ -317,45 +321,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       }
     }, [isControllerReady]);
 
-    // Setup video headers when player changes
-    useEffect(() => {
-      if (!currentPlayerData) return;
-
-      const setupHeaders = async () => {
-        const rawSiteUrl = localStorage.getItem('animeLibUrl');
-        const siteUrl = new URL(rawSiteUrl || 'https://v3.animelib.org').origin;
-        const bearerToken = localStorage.getItem('animeLibAuthToken');
-
-        let authToken: string | undefined;
-        if (bearerToken) {
-          try {
-            const tokenData = JSON.parse(bearerToken);
-            if (tokenData.access_token) {
-              authToken = tokenData.access_token;
-            }
-          } catch (error) {
-            console.error('[VideoPlayer] Error parsing auth token:', error);
-          }
-        }
-
-        if (window.electron?.electronAPI?.setupVideoHeaders) {
-          try {
-            await window.electron.electronAPI.setupVideoHeaders(
-              siteUrl,
-              authToken,
-            );
-            console.log('[VideoPlayer] Video headers setup complete');
-          } catch (error) {
-            console.error(
-              '[VideoPlayer] Error setting up video headers:',
-              error,
-            );
-          }
-        }
-      };
-
-      setupHeaders();
-    }, [currentPlayerData]);
+    // Video headers are now set up directly inside loadPlayer() before video load
+    // to avoid race condition where video request fires before headers are ready
 
     // Load anime info
     useEffect(() => {
@@ -570,6 +537,38 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             'isFromHint:',
             isFromHint || false,
           );
+
+          // Setup video headers BEFORE loading video to avoid 403
+          const rawSiteUrl = localStorage.getItem('animeLibUrl');
+          const siteUrl = new URL(rawSiteUrl || 'https://v3.animelib.org').origin;
+          const bearerToken = localStorage.getItem('animeLibAuthToken');
+
+          let authToken: string | undefined;
+          if (bearerToken) {
+            try {
+              const tokenData = JSON.parse(bearerToken);
+              if (tokenData.access_token) {
+                authToken = tokenData.access_token;
+              }
+            } catch (error) {
+              console.error('[VideoPlayer] Error parsing auth token:', error);
+            }
+          }
+
+          if (window.electron?.electronAPI?.setupVideoHeaders) {
+            try {
+              await window.electron.electronAPI.setupVideoHeaders(
+                siteUrl,
+                authToken,
+              );
+              console.log('[VideoPlayer] Video headers setup complete');
+            } catch (error) {
+              console.error(
+                '[VideoPlayer] Error setting up video headers:',
+                error,
+              );
+            }
+          }
 
           setCurrentPlayerData(player);
 
@@ -1041,6 +1040,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             onEpisodeSelect={onEpisodeSelect}
             bookmarkedEpisodeId={bookmarkedEpisodeId}
             autoplayEnabled={autoplayEnabled}
+            ambientLightEnabled={ambientLightEnabled}
+            onAmbientLightChange={onAmbientLightChange}
             onAutoplayChange={onAutoplayChange}
             timecode={timecode}
             currentSegment={currentSegment}

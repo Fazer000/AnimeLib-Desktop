@@ -352,14 +352,21 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
             width: '100%',
             height: '100%',
             border: 'none',
+            // КРИТИЧНО: Отключаем композитинг для WebView
+            transform: 'translateZ(0)',
+            willChange: 'auto',
+            backfaceVisibility: 'hidden',
             // Улучшения для качества рендера
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
-            textRendering: 'optimizeLegibility',
-            imageRendering: 'crisp-edges',
           }}
           // eslint-disable-next-line react/no-unknown-property
           allowpopups
+          // КРИТИЧНО для производительности
+          // eslint-disable-next-line react/no-unknown-property
+          disablewebsecurity="true"
+          // eslint-disable-next-line react/no-unknown-property
+          nodeintegration="false"
         />
       </Box>
     </Box>

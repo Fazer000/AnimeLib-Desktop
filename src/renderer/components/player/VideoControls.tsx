@@ -37,6 +37,8 @@ interface VideoControlsProps {
   showControls: boolean;
   onMenuOpenChange: (isOpen: boolean) => void;
   autoplayEnabled?: boolean;
+  ambientLightEnabled?: boolean;
+  onAmbientLightChange?: (enabled: boolean) => void;
   onAutoplayChange?: (enabled: boolean) => void;
   showEpisodes?: boolean;
   onShowEpisodesChange?: (show: boolean) => void;
@@ -147,6 +149,8 @@ function VideoControls({
   onSeek,
   hoverTime,
   autoplayEnabled = false,
+  ambientLightEnabled = true,
+  onAmbientLightChange,
   onAutoplayChange,
   timecode = [],
   currentSegment,
@@ -601,6 +605,8 @@ function VideoControls({
         onAutoplayChange={onAutoplayChange}
         autoSkipSettings={autoSkipSettings}
         onAutoSkipChange={onAutoSkipChange}
+        ambientLightEnabled={ambientLightEnabled}
+        onAmbientLightChange={onAmbientLightChange}
       />
     </>
   );
@@ -625,6 +631,8 @@ VideoControls.defaultProps = {
   },
   onAutoSkipChange: undefined,
   thumbnailManager: null,
+  ambientLightEnabled: true,
+  onAmbientLightChange: undefined,
 };
 
 export default VideoControls;
