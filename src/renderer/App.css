@@ -85,6 +85,13 @@ webview {
   left: 0;
   right: 0;
   bottom: 0;
+  /* КРИТИЧНО: Отключаем композитинг для WebView */
+  transform: translateZ(0);
+  will-change: auto;
+  backface-visibility: hidden;
+  /* Предотвращаем repaints */
+  contain: layout style paint;
+  content-visibility: auto;
 }
 
 /* Принудительное переопределение стилей AppBar */

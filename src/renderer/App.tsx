@@ -301,16 +301,29 @@ function App() {
           onBack={() => {
             console.log('[App] Player back button clicked');
 
-            // Переходим на страницу аниме по animeId
             if (animeId && animeId !== 'unknown') {
-              const animeUrl = `https://v3.animelib.org/ru/anime/${animeId}`;
-              console.log('[App] Returning to anime page:', animeUrl);
-              setSavedUrl(animeUrl);
+              const baseUrl = localStorage.getItem('animeLibUrl') || '';
+              try {
+                const urlObj = new URL(baseUrl);
+                const animeUrl = `${urlObj.protocol}//${urlObj.host}/ru/anime/${animeId}`;
+                console.log('[App] Returning to anime page:', animeUrl);
+                setSavedUrl(animeUrl);
+              } catch {
+                const savedCurrentPage = localStorage.getItem(
+                  'animeLibCurrentPage',
+                );
+                if (savedCurrentPage) {
+                  console.log(
+                    '[App] Returning to saved page:',
+                    savedCurrentPage,
+                  );
+                  setSavedUrl(savedCurrentPage);
+                } else if (baseUrl) {
+                  setSavedUrl(baseUrl);
+                }
+              }
             } else {
-              // Fallback: получаем сохранённую страницу из localStorage
-              const savedCurrentPage = localStorage.getItem(
-                'animeLibCurrentPage',
-              );
+              const savedCurrentPage = localStorage.getItem('animeLibCurrentPage');
 
               if (savedCurrentPage) {
                 console.log('[App] Returning to saved page:', savedCurrentPage);
@@ -330,15 +343,12 @@ function App() {
           onHome={() => {
             console.log('[App] Player home button clicked');
 
-            // Переходим на главную страницу сайта
             const homeUrl = localStorage.getItem('animeLibUrl');
             if (homeUrl) {
               console.log('[App] Navigating to home URL:', homeUrl);
               setSavedUrl(homeUrl);
             } else {
               console.warn('[App] No home URL found in localStorage');
-              // Fallback на дефолтный URL
-              setSavedUrl('https://v3.animelib.org/');
             }
 
             setPlayerUrl(null);

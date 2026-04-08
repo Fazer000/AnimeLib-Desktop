@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useEffect, useRef, useState, useMemo, memo } from 'react';
 import { Box } from '@mui/material';
 import { AmbientLightManager } from '../../services/player';
@@ -9,14 +8,11 @@ interface AmbientLightProps {
     | { current: HTMLVideoElement | null };
   isPlaying: boolean;
   isFullscreen: boolean;
+  enabled: boolean;
 }
 
-/**
- * AmbientLight - Компонент для создания амбиентной подсветки под видео
- * Использует AmbientLightManager для анализа цветов видео
- */
 const AmbientLight = memo(
-  ({ videoRef, isPlaying, isFullscreen }: AmbientLightProps) => {
+  ({ videoRef, isPlaying, isFullscreen, enabled }: AmbientLightProps) => {
     const managerRef = useRef<AmbientLightManager | null>(null);
     const [dominantColors, setDominantColors] = useState<{
       top: string;
@@ -30,7 +26,6 @@ const AmbientLight = memo(
       right: 'rgba(0, 0, 0, 0)',
     });
 
-    // Инициализация менеджера
     useEffect(() => {
       if (!managerRef.current) {
         managerRef.current = new AmbientLightManager();
@@ -47,12 +42,11 @@ const AmbientLight = memo(
       };
     }, []);
 
-    // Управление анализом видео
     useEffect(() => {
       const video = videoRef.current;
       const manager = managerRef.current;
 
-      if (!video || !manager || isFullscreen) {
+      if (!video || !manager || isFullscreen || !enabled) {
         if (manager) {
           manager.stop();
           manager.reset();
@@ -60,7 +54,6 @@ const AmbientLight = memo(
         return undefined;
       }
 
-      // Запускаем анализ
       manager.start(video, isPlaying);
 
       return () => {
@@ -68,21 +61,18 @@ const AmbientLight = memo(
           manager.stop();
         }
       };
-    }, [videoRef, isPlaying, isFullscreen]);
+    }, [videoRef, isPlaying, isFullscreen, enabled]);
 
-    // Мемоизируем стили градиентов с промежуточными точками для плавности
     const gradientStyles = useMemo(() => {
       const colorTop = dominantColors.top || 'rgba(0, 0, 0, 0)';
       const colorBottom = dominantColors.bottom || 'rgba(0, 0, 0, 0)';
       const colorLeft = dominantColors.left || 'rgba(0, 0, 0, 0)';
       const colorRight = dominantColors.right || 'rgba(0, 0, 0, 0)';
 
-      // Функция для создания плавного градиента с множеством точек
       const createSmoothGradient = (color: string, steps: number) => {
         const points: string[] = [];
         for (let i = 0; i <= steps; i += 1) {
           const position = (i / steps) * 100;
-          // Экспоненциальное затухание для более плавного перехода
           const opacity = (1 - i / steps) ** 2.5;
           const newColor = color.replace(/[\d.]+\)$/, `${opacity.toFixed(3)})`);
           points.push(`${newColor} ${position.toFixed(1)}%`);
@@ -92,40 +82,38 @@ const AmbientLight = memo(
 
       return {
         top: {
-          background: `radial-gradient(ellipse 120% 80% at 50% 0%, ${createSmoothGradient(colorTop, 20)})`,
-          filter: 'blur(180px)',
+          background: `radial-gradient(ellipse 120% 80% at 50% 0%, ${createSmoothGradient(colorTop, 8)})`,
+          filter: 'blur(60px)',
           opacity: 0.6,
-          transition: 'background 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'background 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
         },
         bottom: {
-          background: `radial-gradient(ellipse 120% 80% at 50% 100%, ${createSmoothGradient(colorBottom, 20)})`,
-          filter: 'blur(180px)',
+          background: `radial-gradient(ellipse 120% 80% at 50% 100%, ${createSmoothGradient(colorBottom, 8)})`,
+          filter: 'blur(60px)',
           opacity: 0.65,
-          transition: 'background 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'background 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
         },
         left: {
-          background: `linear-gradient(to right, ${createSmoothGradient(colorLeft, 20)})`,
-          filter: 'blur(160px)',
+          background: `linear-gradient(to right, ${createSmoothGradient(colorLeft, 8)})`,
+          filter: 'blur(50px)',
           opacity: 0.6,
-          transition: 'background 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'background 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
         },
         right: {
-          background: `linear-gradient(to left, ${createSmoothGradient(colorRight, 20)})`,
-          filter: 'blur(160px)',
+          background: `linear-gradient(to left, ${createSmoothGradient(colorRight, 8)})`,
+          filter: 'blur(50px)',
           opacity: 0.6,
-          transition: 'background 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'background 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
         },
       };
     }, [dominantColors]);
 
-    // Не показываем в fullscreen
-    if (isFullscreen) {
+    if (isFullscreen || !enabled) {
       return null;
     }
 
     return (
       <>
-        {/* Амбиент эффект */}
         <Box
           sx={{
             position: 'absolute',
@@ -141,14 +129,10 @@ const AmbientLight = memo(
             transition: 'opacity 0.8s ease',
             overflow: 'visible',
             mixBlendMode: 'screen',
-            willChange: 'opacity', // GPU acceleration hint
-            // Убираем рябь через CSS
             backfaceVisibility: 'hidden',
             transform: 'translateZ(0)',
-            WebkitFontSmoothing: 'subpixel-antialiased',
           }}
         >
-          {/* Верхний градиент */}
           <Box
             sx={{
               position: 'absolute',
@@ -157,11 +141,9 @@ const AmbientLight = memo(
               right: 0,
               height: '300px',
               ...gradientStyles.top,
-              willChange: 'background',
             }}
           />
 
-          {/* Нижний градиент */}
           <Box
             sx={{
               position: 'absolute',
@@ -170,11 +152,9 @@ const AmbientLight = memo(
               right: 0,
               height: '350px',
               ...gradientStyles.bottom,
-              willChange: 'background',
             }}
           />
 
-          {/* Левая сторона */}
           <Box
             sx={{
               position: 'absolute',
@@ -183,11 +163,9 @@ const AmbientLight = memo(
               left: 0,
               width: '40%',
               ...gradientStyles.left,
-              willChange: 'background',
             }}
           />
 
-          {/* Правая сторона */}
           <Box
             sx={{
               position: 'absolute',
@@ -196,7 +174,6 @@ const AmbientLight = memo(
               right: 0,
               width: '40%',
               ...gradientStyles.right,
-              willChange: 'background',
             }}
           />
         </Box>

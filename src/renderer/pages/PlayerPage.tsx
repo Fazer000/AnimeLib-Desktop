@@ -78,6 +78,16 @@ function PlayerPageRefactored({
     }
   });
 
+  const [ambientLightEnabled, setAmbientLightEnabled] = useState<boolean>(() => {
+      try {
+        const stored = localStorage.getItem('playerAmbientLightEnabled');
+        return stored === null ? true : stored === 'true';
+      } catch {
+        return true;
+      }
+    },
+  );
+
   // Related anime state
   const [relatedAnime, setRelatedAnime] = useState<RelatedAnimeType[]>([]);
 
@@ -593,6 +603,15 @@ function PlayerPageRefactored({
     }
   }, []);
 
+  const handleAmbientLightChange = useCallback((enabled: boolean) => {
+    setAmbientLightEnabled(enabled);
+    try {
+      localStorage.setItem('playerAmbientLightEnabled', enabled.toString());
+    } catch (error) {
+      console.error('[PlayerPage] Error saving ambient light setting:', error);
+    }
+  }, []);
+
   /**
    * Handle sidebar toggle
    */
@@ -1001,6 +1020,7 @@ function PlayerPageRefactored({
                   videoRef={videoPlayerRef.current.videoRef}
                   isPlaying={isVideoPlaying}
                   isFullscreen={false}
+                  enabled={ambientLightEnabled}
                 />
               </Box>
             </Box>
@@ -1140,6 +1160,8 @@ function PlayerPageRefactored({
                       bookmarkedEpisodeId={bookmarkedEpisodeId}
                       autoplayEnabled={autoplayEnabled}
                       onAutoplayChange={handleAutoplayChange}
+                      ambientLightEnabled={ambientLightEnabled}
+                      onAmbientLightChange={handleAmbientLightChange}
                       selectedPlayer={selectedPlayer}
                       timecode={selectedPlayer?.timecode || []}
                       sidebarCollapsed={sidebarCollapsed}

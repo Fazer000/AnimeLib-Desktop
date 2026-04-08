@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import { Star } from '@mui/icons-material';
 import { animeApi, AnimeInfo } from '../../api/animeApi';
+import useImageWithReferer from '../../hooks/useImageWithReferer';
 
 interface AnimeInfoCardProps {
   animeId: string;
@@ -11,22 +12,17 @@ interface AnimeInfoCardProps {
   onMouseLeave: () => void;
 }
 
-/**
- * Карточка с подробной информацией об аниме
- * Отображается при наведении на toolbar
- */
 function AnimeInfoCard({
-  animeId,
-  isVisible,
-  onMouseEnter,
-  onMouseLeave,
-}: AnimeInfoCardProps) {
+                         animeId,
+                         isVisible,
+                         onMouseEnter,
+                         onMouseLeave,
+                       }: AnimeInfoCardProps) {
   const [animeInfo, setAnimeInfo] = useState<AnimeInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  /**
-   * Загрузка информации об аниме
-   */
+  const coverUrl = useImageWithReferer(animeInfo?.cover?.default);
+
   useEffect(() => {
     if (!isVisible || !animeId || animeInfo) return;
 
@@ -131,7 +127,7 @@ function AnimeInfoCard({
             }}
           >
             <img
-              src={animeInfo.cover.default}
+              src={coverUrl || animeInfo.cover.default}
               alt={animeInfo.rus_name || animeInfo.name}
               style={{
                 width: '100%',
@@ -182,7 +178,6 @@ function AnimeInfoCard({
                   alignItems: 'center',
                 }}
               >
-                {/* Type */}
                 <Box
                   sx={{
                     display: 'flex',
@@ -200,7 +195,6 @@ function AnimeInfoCard({
                   </Typography>
                 </Box>
 
-                {/* Separator */}
                 <Box
                   sx={{
                     width: 4,
@@ -210,7 +204,6 @@ function AnimeInfoCard({
                   }}
                 />
 
-                {/* Status */}
                 <Typography
                   sx={{
                     color: animeInfo.status.id === 2 ? '#4ade80' : '#fbbf24',
@@ -221,7 +214,6 @@ function AnimeInfoCard({
                   {animeInfo.status.label}
                 </Typography>
 
-                {/* Separator */}
                 <Box
                   sx={{
                     width: 4,
@@ -231,7 +223,6 @@ function AnimeInfoCard({
                   }}
                 />
 
-                {/* Release Date */}
                 <Typography
                   sx={{
                     color: 'rgba(255, 255, 255, 0.6)',
@@ -262,7 +253,6 @@ function AnimeInfoCard({
                 >
                   {animeInfo.rating.votesFormated}
                 </Typography>
-                {/* Age Restriction */}
                 {animeInfo.ageRestriction && (
                   <>
                     <Box

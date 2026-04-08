@@ -33,6 +33,8 @@ interface SettingsMenuProps {
   showEpisodes: boolean;
   autoplayEnabled: boolean;
   onAutoplayChange?: (enabled: boolean) => void;
+  ambientLightEnabled: boolean;
+  onAmbientLightChange?: (enabled: boolean) => void;
   autoSkipSettings?: {
     skipOpenings: boolean;
     skipEndings: boolean;
@@ -65,6 +67,8 @@ function SettingsMenu({
   showEpisodes = false,
   autoplayEnabled,
   onAutoplayChange,
+  ambientLightEnabled,
+  onAmbientLightChange,
   autoSkipSettings = {
     skipOpenings: false,
     skipEndings: false,
@@ -395,6 +399,67 @@ function SettingsMenu({
                   onChange={(e) => {
                     e.stopPropagation();
                     onAutoplayChange?.(e.target.checked);
+                  }}
+                  sx={{
+                    '& .MuiSwitch-switchBase': {
+                      color: '#BDBDBD',
+                      '&.Mui-checked': {
+                        color: '#BB86FC',
+                        '& + .MuiSwitch-track': {
+                          backgroundColor: 'rgba(187, 134, 252, 0.3)',
+                          border: '1px solid #BB86FC',
+                        },
+                      },
+                    },
+                    '& .MuiSwitch-track': {
+                      backgroundColor: 'rgba(189, 189, 189, 0.3)',
+                      border: '1px solid #BDBDBD',
+                    },
+                    '& .MuiSwitch-thumb': {
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                    },
+                  }}
+                  size="small"
+                />
+              </Box>
+            </MenuItem>
+
+            {/* Ambient Light */}
+            <MenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                onAmbientLightChange?.(!ambientLightEnabled);
+              }}
+              sx={{
+                color: 'white',
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '0.875rem',
+                py: 0.75,
+                px: 1.5,
+                minHeight: 'auto',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                  gap: 1,
+                }}
+              >
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    Адаптивная подсветка
+                  </Typography>
+                </Box>
+                <Switch
+                  checked={ambientLightEnabled}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onAmbientLightChange?.(e.target.checked);
                   }}
                   sx={{
                     '& .MuiSwitch-switchBase': {
@@ -1139,6 +1204,7 @@ function SettingsMenu({
 
 SettingsMenu.defaultProps = {
   onAutoplayChange: undefined,
+  onAmbientLightChange: undefined,
   autoSkipSettings: {
     skipOpenings: false,
     skipEndings: false,
