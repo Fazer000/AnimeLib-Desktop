@@ -7,11 +7,7 @@ import WindowControls from './toolbar/WindowControls';
 import AnimeInfoCard from './toolbar/AnimeInfoCard';
 import SearchModal from './toolbar/SearchModal';
 
-/**
- * Props for Toolbar component
- */
 interface ToolbarProps {
-  // Navigation
   onBack?: () => void;
   onForward?: () => void;
   onRefresh?: () => void;
@@ -19,60 +15,29 @@ interface ToolbarProps {
   canGoBack?: boolean;
   canGoForward?: boolean;
 
-  // Display
   currentUrl?: string;
 
-  // URL Input
   showUrlInput?: boolean;
   onUrlChange?: (url: string) => void;
   onToggleUrlInput?: () => void;
 
-  // Window Controls
   onMinimize?: () => void;
   onMaximize?: () => void;
   onClose?: () => void;
 
-  // Styling
   backgroundColor?: string;
   height?: number;
 
-  // Page State
   isPlayerPage?: boolean;
 
-  // Anime Info
   animeId?: string;
 
-  // Search Navigation
+  sidebarCollapsed?: boolean;
+
   onPlayerButtonClick?: (url: string, animeId?: string) => void;
 }
 
-/**
- * Toolbar - Custom window toolbar with drag support
- *
- * @description
- * Modular toolbar component with Material Design styling.
- * Supports drag-to-move window functionality and contains:
- * - Navigation buttons (back, forward, refresh, home, play/pause)
- * - URL bar with toggle between display and input modes
- * - Window controls (minimize, maximize, close)
- *
- * @component
- * @example
- * ```tsx
- * <Toolbar
- *   onBack={handleBack}
- *   canGoBack={true}
- *   title="Episode 7"
- *   currentUrl="https://example.com"
- *   selectedPlayer={player}
- *   onMinimize={minimize}
- *   onMaximize={maximize}
- *   onClose={close}
- * />
- * ```
- */
 function ToolbarRefactored({
-  // Navigation
   onBack,
   onForward,
   onRefresh,
@@ -80,30 +45,25 @@ function ToolbarRefactored({
   canGoBack = false,
   canGoForward = false,
 
-  // Display
   currentUrl = '',
 
-  // URL Input
   showUrlInput = false,
   onUrlChange,
   onToggleUrlInput,
 
-  // Window Controls
   onMinimize,
   onMaximize,
   onClose,
 
-  // Styling
   backgroundColor = '#252527',
   height = 32,
 
-  // Page State
   isPlayerPage = false,
 
-  // Anime Info
   animeId,
 
-  // Search Navigation
+  sidebarCollapsed = false,
+
   onPlayerButtonClick,
 }: ToolbarProps) {
   const [showAnimeInfo, setShowAnimeInfo] = useState<boolean>(false);
@@ -144,20 +104,17 @@ function ToolbarRefactored({
       openInPlayer,
     );
 
-    // Получаем базовый URL из localStorage и убираем лишний слеш на конце
     let baseUrl =
       localStorage.getItem('animeLibUrl') || 'https://v3.animelib.org';
     if (baseUrl.endsWith('/')) {
       baseUrl = baseUrl.slice(0, -1);
     }
 
-    // Формируем полный URL для аниме
     const fullUrl = `${baseUrl}/ru/anime/${slugUrl}`;
 
     // eslint-disable-next-line no-console
     console.log('[Toolbar] Navigating to:', fullUrl);
 
-    // Если нужно открыть в плеере, вызываем onPlayerButtonClick
     if (openInPlayer) {
       if (!onPlayerButtonClick) {
         // eslint-disable-next-line no-console
@@ -166,7 +123,6 @@ function ToolbarRefactored({
       }
       onPlayerButtonClick(fullUrl, slugUrl);
     } else if (onUrlChange) {
-      // Если в WebView, используем onUrlChange для навигации
       // eslint-disable-next-line no-console
       console.log('[Toolbar] Navigating WebView to:', fullUrl);
       onUrlChange(fullUrl);
@@ -175,6 +131,8 @@ function ToolbarRefactored({
       console.warn('[Toolbar] onUrlChange not provided');
     }
   };
+
+  const sidebarWidth = sidebarCollapsed ? 0 : 260;
 
   return (
     <>
@@ -213,7 +171,6 @@ function ToolbarRefactored({
             gap: 1,
           }}
         >
-          {/* Left Section: Navigation */}
           <NavigationButtons
             onBack={onBack}
             onForward={onForward}
@@ -224,7 +181,6 @@ function ToolbarRefactored({
             canGoForward={canGoForward}
           />
 
-          {/* Center Section: URL Bar - Hide on player page */}
           {!isPlayerPage && (
             <UrlBar
               currentUrl={currentUrl}
@@ -234,10 +190,8 @@ function ToolbarRefactored({
             />
           )}
 
-          {/* Spacer for player page */}
           {isPlayerPage && <Box sx={{ flex: 1 }} />}
 
-          {/* Right Section: Window Controls */}
           <WindowControls
             onMinimize={onMinimize}
             onMaximize={onMaximize}
@@ -246,7 +200,6 @@ function ToolbarRefactored({
         </Toolbar>
       </AppBar>
 
-      {/* Invisible Hover Zone */}
       {animeId && (
         <Box
           onMouseEnter={handleShowAnimeInfo}
@@ -255,28 +208,26 @@ function ToolbarRefactored({
             position: 'fixed',
             top: 32,
             left: 0,
-            right: 0,
+            right: sidebarWidth,
             height: 30,
             zIndex: 999,
             margin: '0 auto',
             width: '60%',
             pointerEvents: 'auto',
-            // backgroundColor: 'rgba(255, 0, 0, 0.1)', // Debug
           }}
         />
       )}
 
-      {/* Anime Info Card */}
       {animeId && (
         <AnimeInfoCard
           animeId={animeId}
           isVisible={showAnimeInfo}
           onMouseEnter={handleShowAnimeInfo}
           onMouseLeave={handleHideAnimeInfo}
+          sidebarCollapsed={sidebarCollapsed}
         />
       )}
 
-      {/* Search Modal */}
       <SearchModal
         open={showSearchModal}
         onClose={handleCloseSearch}

@@ -77,7 +77,9 @@ interface VideoPlayerProps {
   onSidebarToggle?: () => void; // Callback для переключения сайдбара
   // eslint-disable-next-line react/require-default-props
   onAspectRatioChange?: (aspectRatio: number | null) => void; // Callback при изменении aspect ratio
+  // eslint-disable-next-line react/require-default-props
   ambientLightEnabled?: boolean;
+  // eslint-disable-next-line react/require-default-props
   onAmbientLightChange?: (enabled: boolean) => void;
 }
 
@@ -404,22 +406,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         return;
       }
 
-      if (!autoplayEnabled) {
-        // Если автовоспроизведение ВЫКЛЮЧЕНО, отключаем AutoplayManager
-        // Уведомление само управляет переключением
-        console.log(
-          '[VideoPlayer] Autoplay disabled, notification will handle next episode',
-        );
-        autoplayManager.updateConfig({ enabled: false });
-        autoplayManager.setupAutoAdvance(currentEpisodeIndex, episodes.length);
-        return;
-      }
-
-      // Если автовоспроизведение ВКЛЮЧЕНО, используем стандартный автопереход
-      console.log(
-        '[VideoPlayer] Autoplay enabled, AutoplayManager will handle next episode',
-      );
-      autoplayManager.updateConfig({ enabled: true });
+      // AutoplayManager всегда отключён — диалог управляет переходом
+      autoplayManager.updateConfig({ enabled: false });
       autoplayManager.setupAutoAdvance(currentEpisodeIndex, episodes.length);
     }, [
       autoplayEnabled,
@@ -428,11 +416,11 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       autoplayManager,
     ]);
 
-    // Show next episode notification after video ends (ONLY if autoplay is DISABLED)
+    // Show next episode notification after video ends (ONLY if autoplay is ENABLED)
     useEffect(() => {
       const video = videoRef.current;
 
-      if (!video || autoplayEnabled) {
+      if (!video || !autoplayEnabled) {
         return undefined;
       }
 
@@ -540,7 +528,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
           // Setup video headers BEFORE loading video to avoid 403
           const rawSiteUrl = localStorage.getItem('animeLibUrl');
-          const siteUrl = new URL(rawSiteUrl || 'https://v3.animelib.org').origin;
+          const siteUrl = new URL(rawSiteUrl || 'https://v3.animelib.org')
+            .origin;
           const bearerToken = localStorage.getItem('animeLibAuthToken');
 
           let authToken: string | undefined;
@@ -791,25 +780,24 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     }, []);
 
     const handleNextEpisodePlayNow = useCallback(() => {
-      // Проверяем, не была ли нажата кнопка отмены
       if (nextEpisodeCancelledRef.current) {
-        console.log(
-          '[VideoPlayer] Next episode playback cancelled, ignoring timer',
-        );
         return;
       }
 
       setShowNextEpisodeNotification(false);
-      // Сразу переключаем на следующий эпизод
+
       const hasNextEpisode = currentEpisodeIndex < episodes.length - 1;
       if (hasNextEpisode) {
-        console.log(
-          '[VideoPlayer] Playing next episode:',
-          currentEpisodeIndex + 1,
-        );
-        onEpisodeSelect(currentEpisodeIndex + 1);
+        const selectWithAutoplay =
+          onEpisodeSelectWithAutoplay ?? onEpisodeSelect;
+        selectWithAutoplay(currentEpisodeIndex + 1);
       }
-    }, [currentEpisodeIndex, episodes.length, onEpisodeSelect]);
+    }, [
+      currentEpisodeIndex,
+      episodes.length,
+      onEpisodeSelect,
+      onEpisodeSelectWithAutoplay,
+    ]);
 
     return (
       <Box
@@ -834,6 +822,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           if (!uiState.showControls) {
             uiStateManager.showPlayerControls();
           }
+          uiStateManager.startAutoHide(videoState.isPlaying);
         }}
         onClick={handlePlayerClick}
         onDoubleClick={handlePlayerDoubleClick}
@@ -1056,6 +1045,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               if (!uiState.showControls) {
                 uiStateManager.showPlayerControls();
               }
+              uiStateManager.startAutoHide(videoState.isPlaying);
             }}
             onMouseLeave={() => {
               // Auto-hide will handle this

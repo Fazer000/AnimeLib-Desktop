@@ -396,6 +396,7 @@ function SettingsMenu({
                 </Box>
                 <Switch
                   checked={autoplayEnabled}
+                  onClick={(e) => e.stopPropagation()}
                   onChange={(e) => {
                     e.stopPropagation();
                     onAutoplayChange?.(e.target.checked);
@@ -457,6 +458,7 @@ function SettingsMenu({
                 </Box>
                 <Switch
                   checked={ambientLightEnabled}
+                  onClick={(e) => e.stopPropagation()}
                   onChange={(e) => {
                     e.stopPropagation();
                     onAmbientLightChange?.(e.target.checked);

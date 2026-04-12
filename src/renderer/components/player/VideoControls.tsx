@@ -228,8 +228,6 @@ function VideoControls({
 
   const handleEpisodeSelect = (index: number) => {
     onEpisodeSelect(index);
-    onShowEpisodesChange?.(false);
-    onMenuOpenChange(false);
   };
 
   return (

@@ -6,7 +6,6 @@
   box-sizing: border-box;
 }
 
-/* КРИТИЧНО: Отключаем композитинг для избежания фризов в fullscreen */
 html,
 body,
 #root {
@@ -17,7 +16,6 @@ body,
   perspective: 1000;
   -webkit-perspective: 1000;
   will-change: auto;
-  /* Отключаем аппаратное композитирование для стабильности */
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
 }
@@ -85,11 +83,9 @@ webview {
   left: 0;
   right: 0;
   bottom: 0;
-  /* КРИТИЧНО: Отключаем композитинг для WebView */
   transform: translateZ(0);
   will-change: auto;
   backface-visibility: hidden;
-  /* Предотвращаем repaints */
   contain: layout style paint;
   content-visibility: auto;
 }
@@ -123,7 +119,6 @@ webview {
   height: 100% !important;
   min-width: 400px !important;
   min-height: 300px !important;
-  /* Отключаем композитинг для видео */
   transform: translateZ(0);
   backface-visibility: hidden;
 }
@@ -138,12 +133,10 @@ webview {
   height: 100% !important;
 }
 
-/* КРИТИЧНО: Оптимизация video элементов для fullscreen */
 video {
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  /* Отключаем композитинг */
   will-change: auto;
 }

@@ -13,25 +13,21 @@ interface EpisodeCarouselProps {
   currentEpisodeIndex: number;
   showEpisodes: boolean;
   onEpisodeSelect: (index: number) => void;
+  // eslint-disable-next-line react/no-unused-prop-types
   onMenuOpenChange: (isOpen: boolean) => void;
   bookmarkedEpisodeId?: number | null;
 }
 
-/**
- * Карусель эпизодов в fullscreen режиме
- */
 function ControlsEpisodeSlider({
   episodes,
   currentEpisodeIndex,
   showEpisodes,
   onEpisodeSelect,
-  onMenuOpenChange,
   bookmarkedEpisodeId = null,
 }: EpisodeCarouselProps) {
   const theme = useTheme();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Drag states
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragStart, setDragStart] = useState<{ x: number; scrollLeft: number }>(
     {
@@ -40,15 +36,43 @@ function ControlsEpisodeSlider({
     },
   );
 
-  // Wheel scroll state
   const [isWheelScrolling, setIsWheelScrolling] = useState<boolean>(false);
 
-  // Drag movement flag
   const [dragMoved, setDragMoved] = useState<boolean>(false);
 
-  /**
-   * Drag-to-scroll handlers
-   */
+  const scrollToActiveEpisode = useCallback(
+    // eslint-disable-next-line no-undef
+    (behavior: ScrollBehavior = 'smooth') => {
+      if (!scrollRef.current) return;
+      const container = scrollRef.current;
+      const activeButton =
+        container.querySelectorAll<HTMLElement>('.episode-button')[
+          currentEpisodeIndex
+        ];
+      if (!activeButton) return;
+
+      const containerWidth = container.clientWidth;
+      const buttonLeft = activeButton.offsetLeft;
+      const buttonWidth = activeButton.offsetWidth;
+      const targetScroll = buttonLeft - containerWidth / 2 + buttonWidth / 2;
+
+      container.scrollTo({ left: targetScroll, behavior });
+    },
+    [currentEpisodeIndex],
+  );
+
+  useEffect(() => {
+    if (episodes.length > 0) {
+      setTimeout(() => scrollToActiveEpisode('instant'), 100);
+    }
+  }, [episodes]);
+
+  useEffect(() => {
+    if (showEpisodes) {
+      setTimeout(() => scrollToActiveEpisode('smooth'), 50);
+    }
+  }, [showEpisodes, currentEpisodeIndex]);
+
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);
     setDragMoved(false);
@@ -66,10 +90,9 @@ function ControlsEpisodeSlider({
       if (!isDragging) return;
       e.preventDefault();
       const x = e.pageX;
-      const walk = (x - dragStart.x) * 1; // 1:1 чувствительность для точного следования
+      const walk = (x - dragStart.x) * 1;
       e.currentTarget.scrollLeft = dragStart.scrollLeft - walk;
 
-      // Если переместили больше чем на 5px, считаем что это драг
       if (Math.abs(walk) > 5) {
         setDragMoved(true);
       }
@@ -83,7 +106,6 @@ function ControlsEpisodeSlider({
     (e.currentTarget as HTMLElement).style.userSelect = 'auto';
     (e.currentTarget as HTMLElement).style.scrollBehavior = 'smooth';
 
-    // Сбрасываем флаг движения через небольшую задержку
     setTimeout(() => setDragMoved(false), 100);
   }, []);
 
@@ -99,19 +121,14 @@ function ControlsEpisodeSlider({
   const handleEpisodeClick = useCallback(
     (index: number, e: React.MouseEvent) => {
       e.stopPropagation();
-      // Не вызываем клик если был драг
       if (dragMoved) {
         return;
       }
       onEpisodeSelect(index);
-      onMenuOpenChange(false);
     },
-    [dragMoved, onEpisodeSelect, onMenuOpenChange],
+    [dragMoved, onEpisodeSelect],
   );
 
-  /**
-   * Add native wheel event listener to prevent page scroll
-   */
   useEffect(() => {
     const element = scrollRef.current;
     if (!element) return undefined;

@@ -78,7 +78,8 @@ function PlayerPageRefactored({
     }
   });
 
-  const [ambientLightEnabled, setAmbientLightEnabled] = useState<boolean>(() => {
+  const [ambientLightEnabled, setAmbientLightEnabled] = useState<boolean>(
+    () => {
       try {
         const stored = localStorage.getItem('playerAmbientLightEnabled');
         return stored === null ? true : stored === 'true';
@@ -950,6 +951,7 @@ function PlayerPageRefactored({
         onMinimize={handleMinimize}
         onMaximize={handleMaximize}
         onClose={handleClose}
+        sidebarCollapsed={sidebarCollapsed}
       />
 
       {/* Padding for fixed toolbar */}

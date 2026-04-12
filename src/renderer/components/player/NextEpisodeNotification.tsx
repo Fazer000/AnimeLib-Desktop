@@ -9,20 +9,16 @@ interface NextEpisodeNotificationProps {
   onPlayNow: () => void;
 }
 
-/**
- * Уведомление о следующем эпизоде с обратным отсчётом
- */
 function NextEpisodeNotification({
-  nextEpisodeNumber,
-  nextEpisodeName,
-  countdownSeconds: initialCountdown,
-  onCancel,
-  onPlayNow,
-}: NextEpisodeNotificationProps) {
+                                   nextEpisodeNumber,
+                                   nextEpisodeName,
+                                   countdownSeconds: initialCountdown,
+                                   onCancel,
+                                   onPlayNow,
+                                 }: NextEpisodeNotificationProps) {
   const theme = useTheme();
   const [countdown, setCountdown] = useState(initialCountdown);
 
-  // Обратный отсчёт
   useEffect(() => {
     if (countdown <= 0) {
       onPlayNow();
@@ -43,10 +39,17 @@ function NextEpisodeNotification({
     return () => clearInterval(timer);
   }, [countdown, onPlayNow]);
 
+  const stopEvent = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — перехватывает все клики, блокируя управление плеером */}
       <Box
+        onClick={stopEvent}
+        onMouseDown={stopEvent}
         sx={{
           position: 'absolute',
           top: 0,
@@ -66,6 +69,8 @@ function NextEpisodeNotification({
 
       {/* Notification Card */}
       <Box
+        onClick={stopEvent}
+        onMouseDown={stopEvent}
         sx={{
           position: 'absolute',
           top: '50%',
@@ -92,7 +97,6 @@ function NextEpisodeNotification({
           },
         }}
       >
-        {/* Заголовок */}
         <Typography
           sx={{
             fontSize: '1.25rem',
@@ -105,7 +109,6 @@ function NextEpisodeNotification({
           Следующий эпизод {nextEpisodeNumber}
         </Typography>
 
-        {/* Название эпизода */}
         {nextEpisodeName && (
           <Typography
             sx={{
@@ -120,7 +123,6 @@ function NextEpisodeNotification({
           </Typography>
         )}
 
-        {/* Таймер */}
         <Typography
           sx={{
             fontSize: '1rem',
@@ -133,7 +135,6 @@ function NextEpisodeNotification({
           <strong style={{ fontSize: '1.25rem' }}>{countdown}</strong>
         </Typography>
 
-        {/* Кнопки */}
         <Box
           sx={{
             display: 'flex',
@@ -142,7 +143,10 @@ function NextEpisodeNotification({
           }}
         >
           <Button
-            onClick={onCancel}
+            onClick={(e) => {
+              e.stopPropagation();
+              onCancel();
+            }}
             sx={{
               color: theme.palette.customColors.dtAccentTextColor,
               textTransform: 'none',
@@ -160,7 +164,10 @@ function NextEpisodeNotification({
           </Button>
 
           <Button
-            onClick={onPlayNow}
+            onClick={(e) => {
+              e.stopPropagation();
+              onPlayNow();
+            }}
             variant="contained"
             sx={{
               backgroundColor: theme.palette.customColors.dtSecondaryColor,

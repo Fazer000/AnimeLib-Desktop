@@ -10,18 +10,23 @@ interface AnimeInfoCardProps {
   isVisible: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  // eslint-disable-next-line react/require-default-props
+  sidebarCollapsed?: boolean;
 }
 
 function AnimeInfoCard({
-                         animeId,
-                         isVisible,
-                         onMouseEnter,
-                         onMouseLeave,
-                       }: AnimeInfoCardProps) {
+  animeId,
+  isVisible,
+  onMouseEnter,
+  onMouseLeave,
+  sidebarCollapsed = false,
+}: AnimeInfoCardProps) {
   const [animeInfo, setAnimeInfo] = useState<AnimeInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   const coverUrl = useImageWithReferer(animeInfo?.cover?.default);
+
+  const sidebarWidth = sidebarCollapsed ? 0 : 260;
 
   useEffect(() => {
     if (!isVisible || !animeId || animeInfo) return;
@@ -49,7 +54,7 @@ function AnimeInfoCard({
           position: 'fixed',
           top: 40,
           left: 0,
-          right: 0,
+          right: sidebarWidth,
           zIndex: 9999,
           display: 'flex',
           justifyContent: 'center',
@@ -85,7 +90,7 @@ function AnimeInfoCard({
         position: 'fixed',
         top: 50,
         left: 0,
-        right: 0,
+        right: sidebarWidth,
         zIndex: 9999,
         display: 'flex',
         justifyContent: 'center',
@@ -115,7 +120,6 @@ function AnimeInfoCard({
         }}
       >
         <Box sx={{ display: 'flex', gap: 3 }}>
-          {/* Cover Image */}
           <Box
             sx={{
               width: 100,
@@ -137,7 +141,6 @@ function AnimeInfoCard({
             />
           </Box>
 
-          {/* Info Section */}
           <Box
             sx={{
               flex: 1,
@@ -156,7 +159,6 @@ function AnimeInfoCard({
                 justifyContent: 'center',
               }}
             >
-              {/* Title */}
               <Typography
                 variant="h5"
                 sx={{
@@ -169,7 +171,6 @@ function AnimeInfoCard({
                 {animeInfo.rus_name || animeInfo.name}
               </Typography>
 
-              {/* Meta Info */}
               <Box
                 sx={{
                   display: 'flex',
@@ -233,7 +234,6 @@ function AnimeInfoCard({
                 </Typography>
               </Box>
 
-              {/* Rating */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Star sx={{ color: '#fbbf24', fontSize: 20 }} />
                 <Typography

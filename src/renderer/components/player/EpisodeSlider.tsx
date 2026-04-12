@@ -15,15 +15,6 @@ interface EpisodeSliderProps {
   bookmarkedEpisodeId: number | null;
 }
 
-/**
- * EpisodeSlider - Redesigned Material Design episode selector
- *
- * Features:
- * - Clean Material Design interface
- * - Theme-based colors
- * - Smooth animations and transitions
- * - Better visual hierarchy
- */
 function EpisodeSliderRefactored({
   episodes,
   currentEpisodeIndex,
@@ -33,7 +24,6 @@ function EpisodeSliderRefactored({
   const theme = useTheme();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Drag states
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragMoved, setDragMoved] = useState<boolean>(false);
   const [dragStart, setDragStart] = useState<{ x: number; scrollLeft: number }>(
@@ -43,16 +33,11 @@ function EpisodeSliderRefactored({
     },
   );
 
-  // Wheel scroll state
   const [isWheelScrolling, setIsWheelScrolling] = useState<boolean>(false);
 
-  // Scroll states
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  /**
-   * Check if scrolling is possible in either direction
-   */
   const checkScrollState = useCallback(() => {
     if (scrollRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
@@ -61,9 +46,28 @@ function EpisodeSliderRefactored({
     }
   }, []);
 
-  /**
-   * Scroll left or right by a fixed amount
-   */
+  const scrollToActiveEpisode = useCallback(
+    // eslint-disable-next-line no-undef
+    (behavior: ScrollBehavior = 'smooth') => {
+      if (!scrollRef.current) return;
+      const container = scrollRef.current;
+      const activeButton =
+        container.querySelectorAll<HTMLElement>('.episode-button')[
+          currentEpisodeIndex
+        ];
+      if (!activeButton) return;
+
+      const containerWidth = container.clientWidth;
+      const buttonLeft = activeButton.offsetLeft;
+      const buttonWidth = activeButton.offsetWidth;
+      const targetScroll = buttonLeft - containerWidth / 2 + buttonWidth / 2;
+
+      container.scrollTo({ left: targetScroll, behavior });
+      setTimeout(checkScrollState, 300);
+    },
+    [currentEpisodeIndex, checkScrollState],
+  );
+
   const handleScroll = useCallback(
     (direction: 'left' | 'right') => {
       if (scrollRef.current) {
@@ -85,9 +89,6 @@ function EpisodeSliderRefactored({
     [checkScrollState],
   );
 
-  /**
-   * Drag-to-scroll handlers
-   */
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);
     setDragMoved(false);
@@ -105,10 +106,9 @@ function EpisodeSliderRefactored({
       if (!isDragging) return;
       e.preventDefault();
       const x = e.pageX;
-      const walk = (x - dragStart.x) * 1; // 1:1 чувствительность для точного следования
+      const walk = (x - dragStart.x) * 1;
       e.currentTarget.scrollLeft = dragStart.scrollLeft - walk;
 
-      // Если переместили больше чем на 5px, считаем что это драг
       if (Math.abs(walk) > 5) {
         setDragMoved(true);
       }
@@ -122,7 +122,6 @@ function EpisodeSliderRefactored({
     (e.currentTarget as HTMLElement).style.userSelect = 'auto';
     (e.currentTarget as HTMLElement).style.scrollBehavior = 'smooth';
 
-    // Сбрасываем флаг движения через небольшую задержку
     setTimeout(() => setDragMoved(false), 100);
   }, []);
 
@@ -138,7 +137,6 @@ function EpisodeSliderRefactored({
   const handleEpisodeClick = useCallback(
     (index: number, e: React.MouseEvent) => {
       e.stopPropagation();
-      // Не вызываем клик если был драг
       if (dragMoved) {
         return;
       }
@@ -147,18 +145,16 @@ function EpisodeSliderRefactored({
     [dragMoved, onEpisodeSelect],
   );
 
-  /**
-   * Check scroll state when episodes change
-   */
   useEffect(() => {
     if (episodes.length > 0) {
-      setTimeout(checkScrollState, 100);
+      setTimeout(() => scrollToActiveEpisode('instant'), 100);
     }
-  }, [episodes, checkScrollState]);
+  }, [episodes]);
 
-  /**
-   * Add native wheel event listener to prevent page scroll
-   */
+  useEffect(() => {
+    scrollToActiveEpisode('smooth');
+  }, [currentEpisodeIndex]);
+
   useEffect(() => {
     const element = scrollRef.current;
     if (!element) return undefined;
@@ -210,7 +206,6 @@ function EpisodeSliderRefactored({
           position: 'relative',
         }}
       >
-        {/* Left arrow */}
         {canScrollLeft && (
           <IconButton
             onClick={() => handleScroll('left')}
@@ -232,7 +227,6 @@ function EpisodeSliderRefactored({
           </IconButton>
         )}
 
-        {/* Left gradient */}
         {canScrollLeft && (
           <Box
             sx={{
@@ -250,7 +244,6 @@ function EpisodeSliderRefactored({
           />
         )}
 
-        {/* Episodes container */}
         <Box
           ref={scrollRef}
           sx={{
@@ -267,7 +260,6 @@ function EpisodeSliderRefactored({
             },
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
-            // Smooth scrolling
             scrollBehavior: 'smooth',
           }}
           onMouseDown={handleMouseDown}
@@ -372,7 +364,6 @@ function EpisodeSliderRefactored({
           })}
         </Box>
 
-        {/* Right gradient */}
         {canScrollRight && (
           <Box
             sx={{
@@ -390,7 +381,6 @@ function EpisodeSliderRefactored({
           />
         )}
 
-        {/* Right arrow */}
         {canScrollRight && (
           <IconButton
             onClick={() => handleScroll('right')}
