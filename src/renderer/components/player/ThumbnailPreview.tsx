@@ -1,18 +1,24 @@
-import React, { useState, useEffect, memo, useRef } from 'react';
+import React, { useState, useLayoutEffect, memo, useRef } from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
 
 interface ThumbnailPreviewProps {
   thumbnailUrl: string | null;
   time: number;
+  duration: number;
   isLoading: boolean;
+  isApproximate: boolean;
   position: { x: string | number; y: number };
 }
 
-/**
- * ThumbnailPreview - компонент для отображения превью кадра над прогресс-баром
- */
 const ThumbnailPreview = memo(
-  ({ thumbnailUrl, time, isLoading, position }: ThumbnailPreviewProps) => {
+  ({
+    thumbnailUrl,
+    time,
+    duration,
+    isLoading,
+    isApproximate,
+    position,
+  }: ThumbnailPreviewProps) => {
     const [isVisible, setIsVisible] = useState(false);
     const previewRef = useRef<HTMLDivElement>(null);
     const [adjustedPosition, setAdjustedPosition] = useState({
@@ -20,27 +26,25 @@ const ThumbnailPreview = memo(
       transform: 'translateX(-50%)',
     });
 
-    useEffect(() => {
-      // Плавное появление
-      const timer = setTimeout(() => setIsVisible(true), 50);
+    const PREVIEW_WIDTH = 240;
+    const PREVIEW_HEIGHT = 135;
+
+    useLayoutEffect(() => {
+      const timer = setTimeout(() => setIsVisible(true), 30);
       return () => clearTimeout(timer);
     }, []);
 
-    // Корректировка позиции чтобы не выходить за края
-    useEffect(() => {
+    useLayoutEffect(() => {
       if (!previewRef.current) return;
 
       const previewElement = previewRef.current;
-      const previewWidth = 160; // Ширина превью из стилей
-      const padding = 12; // Отступ от края
+      const padding = 12;
 
-      // Получаем позицию X в пикселях
       let xPosition: number;
       if (typeof position.x === 'string') {
-        // Если это строка (например "50%"), парсим её
-        const match = position.x.match(/(\d+)/);
+        const match = position.x.match(/(\d+(?:\.\d+)?)/);
         if (match) {
-          const percent = parseInt(match[1], 10);
+          const percent = parseFloat(match[1]);
           const containerWidth = previewElement.parentElement?.offsetWidth || 0;
           xPosition = (containerWidth * percent) / 100;
         } else {
@@ -51,25 +55,23 @@ const ThumbnailPreview = memo(
       }
 
       const containerWidth = previewElement.parentElement?.offsetWidth || 0;
-      const halfWidth = previewWidth / 2;
+      const halfWidth = PREVIEW_WIDTH / 2;
 
-      let newLeft = position.x;
+      let newLeft: string | number = position.x;
       let newTransform = 'translateX(-50%)';
 
-      // Проверка левого края
       if (xPosition - halfWidth < padding) {
         newLeft = padding;
         newTransform = 'translateX(0)';
-      }
-      // Проверка правого края
-      else if (xPosition + halfWidth > containerWidth - padding) {
+      } else if (xPosition + halfWidth > containerWidth - padding) {
         newLeft = containerWidth - padding;
         newTransform = 'translateX(-100%)';
       }
 
-      setAdjustedPosition({
-        left: newLeft,
-        transform: newTransform,
+      setAdjustedPosition((prev) => {
+        if (prev.left === newLeft && prev.transform === newTransform)
+          return prev;
+        return { left: newLeft, transform: newTransform };
       });
     }, [position.x]);
 
@@ -94,30 +96,30 @@ const ThumbnailPreview = memo(
           transform: adjustedPosition.transform,
           zIndex: 1500,
           opacity: isVisible ? 1 : 0,
-          transition: 'opacity 0.15s ease-in-out',
+          transition: 'opacity 0.12s ease-in-out',
           pointerEvents: 'none',
         }}
       >
-        {/* Превью кадра */}
         <Box
           sx={{
             position: 'relative',
+            width: PREVIEW_WIDTH,
+            height: PREVIEW_HEIGHT,
             backgroundColor: '#1a1a1a',
             borderRadius: 1,
             overflow: 'hidden',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.6)',
-            border: '2px solid rgba(124, 58, 237, 0.3)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.7)',
+            border: '2px solid rgba(124, 58, 237, 0.4)',
           }}
         >
-          {/* Время */}
           <Box
             sx={{
               position: 'absolute',
-              top: 6,
+              bottom: 6,
               right: 6,
               backgroundColor: 'rgba(0, 0, 0, 0.85)',
               borderRadius: '6px',
-              padding: '4px 8px',
+              padding: '3px 8px',
               zIndex: 2,
             }}
           >
@@ -133,40 +135,44 @@ const ThumbnailPreview = memo(
             </Typography>
           </Box>
 
-          {/* Превью изображение */}
-          {isLoading && (
+          {thumbnailUrl && (
+            <img
+              src={thumbnailUrl}
+              alt="Preview"
+              style={{
+                width: PREVIEW_WIDTH,
+                height: PREVIEW_HEIGHT,
+                display: 'block',
+                objectFit: 'cover',
+                opacity: isLoading ? 0.6 : 1,
+                filter: isApproximate ? 'blur(3px)' : 'none',
+                transform: isApproximate ? 'scale(1.04)' : 'scale(1)',
+                transition:
+                  'filter 0.15s ease, transform 0.15s ease, opacity 0.1s',
+              }}
+            />
+          )}
+
+          {isLoading && !thumbnailUrl && (
             <Box
               sx={{
-                width: 160,
-                height: 90,
+                position: 'absolute',
+                inset: 0,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: '#2a2a2a',
               }}
             >
-              <CircularProgress size={24} sx={{ color: '#7C3AED' }} />
+              <CircularProgress size={28} sx={{ color: '#7C3AED' }} />
             </Box>
-          )}
-
-          {!isLoading && thumbnailUrl && (
-            <img
-              src={thumbnailUrl}
-              alt="Preview"
-              style={{
-                width: 160,
-                height: 90,
-                display: 'block',
-                objectFit: 'cover',
-              }}
-            />
           )}
 
           {!isLoading && !thumbnailUrl && (
             <Box
               sx={{
-                width: 160,
-                height: 90,
+                position: 'absolute',
+                inset: 0,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -174,15 +180,24 @@ const ThumbnailPreview = memo(
               }}
             >
               <Typography
-                sx={{
-                  fontSize: '0.75rem',
-                  color: 'rgba(255, 255, 255, 0.5)',
-                }}
+                sx={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}
               >
                 Нет превью
               </Typography>
             </Box>
           )}
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              height: 3,
+              width: `${duration > 0 ? (time / duration) * 100 : 0}%`,
+              backgroundColor: '#7C3AED',
+              zIndex: 3,
+              transition: 'width 0.1s ease',
+            }}
+          />
         </Box>
       </Box>
     );

@@ -261,25 +261,6 @@ animeApiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Создаем экземпляр axios для Kodik API
-const kodikApiClient = axios.create({
-  baseURL: 'https://anilib-kodik-api.burntv.ru/api',
-  timeout: 10000, // Увеличиваем таймаут до 30 секунд
-});
-
-// Добавляем interceptor для заголовков Kodik API
-kodikApiClient.interceptors.request.use((config) => {
-  // Добавляем общие заголовки
-  config.headers.Accept = '*/*';
-  config.headers['Accept-Language'] = 'ru,en;q=0.9,de;q=0.8,zh;q=0.7';
-  config.headers['Content-Type'] = 'application/json';
-  config.headers['Site-Id'] = '5';
-  config.headers['Client-Time-Zone'] = 'Europe/Samara';
-  config.headers.Priority = 'u=1, i';
-
-  return config;
-});
-
 // API функции
 export const animeApi = {
   // Получить список эпизодов аниме
@@ -306,46 +287,20 @@ export const animeApi = {
   getKodikVideoLinks: async (kodikSrc: string): Promise<KodikVideoLinks> => {
     console.log('[AnimeAPI] Loading Kodik links for src:', kodikSrc);
 
-    const maxRetries = 3;
-    let lastError: any;
+    const electronAPI = (window as any).electron?.electronAPI;
 
-    const makeRequest = async (attempt: number): Promise<KodikVideoLinks> => {
-      try {
-        console.log(
-          `[AnimeAPI] Kodik request attempt ${attempt}/${maxRetries}`,
-        );
-
-        const response = await kodikApiClient.get(
-          `/video-links?link=${encodeURIComponent(kodikSrc)}`,
-        );
-        console.log('[AnimeAPI] Kodik links loaded:', response.data);
-
-        return response.data;
-      } catch (error: any) {
-        lastError = error;
-        console.error(
-          `[AnimeAPI] Kodik request attempt ${attempt} failed:`,
-          error.message,
-        );
-
-        if (attempt < maxRetries) {
-          const delay = attempt * 2000; // 2s, 4s, 6s
-          console.log(`[AnimeAPI] Retrying in ${delay}ms...`);
-          await new Promise<void>((resolve) => {
-            setTimeout(() => resolve(), delay);
-          });
-          return makeRequest(attempt + 1);
-        }
-        throw error;
-      }
-    };
-
-    try {
-      return await makeRequest(1);
-    } catch {
-      console.error('[AnimeAPI] All Kodik request attempts failed:', lastError);
-      throw lastError;
+    if (!electronAPI?.getKodikLinks) {
+      throw new Error('[AnimeAPI] getKodikLinks IPC not available');
     }
+
+    const result = await electronAPI.getKodikLinks(kodikSrc);
+
+    if (!result || !result.success) {
+      throw new Error(result?.error || 'Failed to get Kodik links');
+    }
+
+    console.log('[AnimeAPI] Kodik links loaded successfully');
+    return result;
   },
 
   // Получить информацию об аниме

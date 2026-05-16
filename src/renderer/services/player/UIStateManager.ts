@@ -64,6 +64,13 @@ export class UIStateManager {
    * Обновить состояние и уведомить подписчиков
    */
   private updateState(updates: Partial<UIState>): void {
+    const keys = Object.keys(updates) as (keyof UIState)[];
+    const hasChanges = keys.some(
+      (key) => (this as any)[key] !== (updates as any)[key],
+    );
+
+    if (!hasChanges) return;
+
     Object.assign(this, updates);
     this.onStateChange?.(this.getState());
   }
@@ -133,7 +140,7 @@ export class UIStateManager {
   /**
    * Запустить автоскрытие контролов
    */
-  startAutoHide(isPlaying: boolean, delay: number = 4000): void {
+  startAutoHide(isPlaying: boolean, delay: number = 2000): void {
     // Очищаем предыдущий таймер
     if (this.autoHideTimer) {
       clearTimeout(this.autoHideTimer);

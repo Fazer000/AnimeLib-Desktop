@@ -34,9 +34,7 @@ const VIDEO_URLS = {
     'https://video2.cdnlibs.org/*',
     'https://video1.cdnlibs.org/.%D0%B0s/*',
   ],
-  ANIMELIB_API: [
-    'https://api.cdnlibs.org/*',
-  ],
+  ANIMELIB_API: ['https://api.cdnlibs.org/*'],
   KODIK: [
     'https://cloud.kodik-storage.com/*',
     'https://kodik-storage.com/*',
@@ -286,6 +284,21 @@ ipcMain.on('webview-log', (event, message) => {
   console.log('[WEBVIEW LOG]:', message);
 });
 
+// ===== IPC HANDLERS - KODIK =====
+
+ipcMain.handle('get-kodik-links', async (event, kodikSrc: string) => {
+  try {
+    console.log('[AnimeLIB] Getting Kodik links for:', kodikSrc);
+    const { VideoLinks } = await import('kodikwrapper');
+    const links = await VideoLinks.getLinks({ link: kodikSrc });
+    console.log('[AnimeLIB] Kodik links received successfully');
+    return { success: true, data: links };
+  } catch (error: any) {
+    console.error('[AnimeLIB] Error getting Kodik links:', error.message);
+    return { success: false, error: error.message };
+  }
+});
+
 // ===== IPC HANDLERS - VIDEO HEADERS =====
 
 /**
@@ -362,18 +375,28 @@ ipcMain.handle('setup-video-headers', async (event, { siteUrl, authToken }) => {
 
   // Регистрируем перехватчики
   session.fromPartition('persist:webview').webRequest.onBeforeSendHeaders(
-    { urls: [...VIDEO_URLS.ANIMELIB_CDN, ...VIDEO_URLS.ANIMELIB_API, ...VIDEO_URLS.KODIK] },
+    {
+      urls: [
+        ...VIDEO_URLS.ANIMELIB_CDN,
+        ...VIDEO_URLS.ANIMELIB_API,
+        ...VIDEO_URLS.KODIK,
+      ],
+    },
     headerInterceptor,
   );
 
-  session.fromPartition('persist:webview').webRequest.onHeadersReceived(
-    { urls: [...VIDEO_URLS.ANIMELIB_API, ...VIDEO_URLS.KODIK] },
-    corsInterceptor,
-  );
+  session
+    .fromPartition('persist:webview')
+    .webRequest.onHeadersReceived(
+      { urls: [...VIDEO_URLS.ANIMELIB_API, ...VIDEO_URLS.KODIK] },
+      corsInterceptor,
+    );
 
   // Сохраняем функцию для очистки
   currentInterceptor = () => {
-    session.fromPartition('persist:webview').webRequest.onBeforeSendHeaders(null);
+    session
+      .fromPartition('persist:webview')
+      .webRequest.onBeforeSendHeaders(null);
     session.fromPartition('persist:webview').webRequest.onHeadersReceived(null);
   };
 
@@ -384,6 +407,7 @@ ipcMain.handle('setup-video-headers', async (event, { siteUrl, authToken }) => {
 ipcMain.handle('clear-video-headers', async () => {
   console.log('[AnimeLIB] Clearing video headers');
   clearCurrentInterceptor();
+  // eslint-disable-next-line no-use-before-define
   registerApiInterceptor();
   return { success: true };
 });
@@ -526,6 +550,7 @@ const createWindow = async (): Promise<void> => {
   const iconPath = getAssetPath('icon.png');
   const windowConfig = createWindowConfig(iconPath);
 
+  // @ts-ignore
   mainWindow = new BrowserWindow(windowConfig);
   mainWindow.loadURL(resolveHtmlPath('index.html'));
 
@@ -540,45 +565,20 @@ const createWindow = async (): Promise<void> => {
 
 // ===== PERFORMANCE OPTIMIZATIONS =====
 
-/**
- * Оптимизации производительности для Windows
- * Решает проблемы с зависанием в fullscreen режиме
- *
- * КРИТИЧНО:
- * - НЕ отключаем аппаратное ускорение (это убивает FPS на развернутом окне)
- * - Отключаем Windows DWM compositor, который вызывает лаги
- * - Используем GPU для рендеринга
- */
-/**
- * СТРАТЕГИЯ 1: WebView-специфичные оптимизации
- */
 const applyRadicalFix = (): void => {
   const switches = [
-    // КРИТИЧНО для WebView производительности
-    ['disable-gpu-compositing'],
     ['disable-gpu-vsync'],
     ['disable-frame-rate-limit'],
-
-    // Отключаем проблемные фичи
-    [
-      'disable-features',
-      'VizDisplayCompositor,CalculateNativeWinOcclusion,HardwareMediaKeyHandling,UseDCOverlays,DirectComposition',
-    ],
-
-    // GPU для видео
+    ['disable-features', 'CalculateNativeWinOcclusion'],
     ['ignore-gpu-blocklist'],
     ['enable-accelerated-video-decode'],
-
-    // Критично для Windows fullscreen
+    ['enable-features', 'D3D11VideoDecoder'],
+    ['enable-zero-copy'],
     ['disable-backgrounding-occluded-windows'],
     ['disable-renderer-backgrounding'],
-
-    // WebView-специфичные флаги
     ['disable-blink-features', 'AutomationControlled'],
-    ['disable-dev-shm-usage'], // Предотвращает использование /dev/shm
-    ['no-sandbox'], // Отключаем sandbox для WebView (может помочь)
-
-    // Оптимизация памяти для WebView
+    ['disable-dev-shm-usage'],
+    ['no-sandbox'],
     ['js-flags', '--max-old-space-size=4096'],
   ] as const;
 
@@ -590,44 +590,13 @@ const applyRadicalFix = (): void => {
     }
   });
 
-  console.log('[Performance] STRATEGY 1: WebView optimizations APPLIED');
-};
-
-/**
- * СТРАТЕГИЯ 2: Минималистичный подход (используй эту если Strategy 1 не помогла)
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const applyMinimalFix = (): void => {
-  // Полностью отключаем аппаратное ускорение - последний шанс
-  app.disableHardwareAcceleration();
-
-  const switches = [
-    ['disable-frame-rate-limit'],
-    ['disable-backgrounding-occluded-windows'],
-    ['disable-renderer-backgrounding'],
-    [
-      'disable-features',
-      'CalculateNativeWinOcclusion,HardwareMediaKeyHandling',
-    ],
-  ] as const;
-
-  switches.forEach(([key, value]) => {
-    if (value) {
-      app.commandLine.appendSwitch(key, value);
-    } else {
-      app.commandLine.appendSwitch(key);
-    }
-  });
-
-  console.log('[Performance] STRATEGY 2: Software rendering mode');
+  console.log(
+    '[Performance] STRATEGY 1: WebView optimizations + NVIDIA RTX VSR APPLIED',
+  );
 };
 
 const applyPerformanceOptimizations = (): void => {
-  // ПОПРОБУЙ СТРАТЕГИЮ 1 СНАЧАЛА
   applyRadicalFix();
-
-  // Если Strategy 1 не помогла - закомментируй строку выше и раскомментируй эту:
-  // applyMinimalFix();
 };
 
 applyPerformanceOptimizations();
@@ -674,34 +643,38 @@ const registerCustomProtocol = (): void => {
 const registerApiInterceptor = (): void => {
   const defaultSiteUrl = 'https://animelib.org';
 
-  session.fromPartition('persist:webview').webRequest.onBeforeSendHeaders(
-    { urls: [...VIDEO_URLS.ANIMELIB_API] },
-    (details, callback) => {
-      if (isAnimelibApiUrl(details.url)) {
-        callback({
-          requestHeaders: {
-            ...details.requestHeaders,
-            ...COMMON_HEADERS,
-            Referer: `${defaultSiteUrl}/`,
-            Origin: defaultSiteUrl,
-          },
-        });
-      } else {
-        callback({});
-      }
-    },
-  );
+  session
+    .fromPartition('persist:webview')
+    .webRequest.onBeforeSendHeaders(
+      { urls: [...VIDEO_URLS.ANIMELIB_API] },
+      (details, callback) => {
+        if (isAnimelibApiUrl(details.url)) {
+          callback({
+            requestHeaders: {
+              ...details.requestHeaders,
+              ...COMMON_HEADERS,
+              Referer: `${defaultSiteUrl}/`,
+              Origin: defaultSiteUrl,
+            },
+          });
+        } else {
+          callback({});
+        }
+      },
+    );
 
-  session.fromPartition('persist:webview').webRequest.onHeadersReceived(
-    { urls: [...VIDEO_URLS.ANIMELIB_API] },
-    (details, callback) => {
-      const { responseHeaders } = details;
-      if (responseHeaders) {
-        addCorsHeaders(responseHeaders);
-      }
-      callback({ responseHeaders });
-    },
-  );
+  session
+    .fromPartition('persist:webview')
+    .webRequest.onHeadersReceived(
+      { urls: [...VIDEO_URLS.ANIMELIB_API] },
+      (details, callback) => {
+        const { responseHeaders } = details;
+        if (responseHeaders) {
+          addCorsHeaders(responseHeaders);
+        }
+        callback({ responseHeaders });
+      },
+    );
 
   console.log('[AnimeLIB] Base API interceptor registered');
 };

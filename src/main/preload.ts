@@ -12,7 +12,8 @@ export type Channels =
   | 'webview-log'
   | 'setup-video-headers'
   | 'clear-video-headers'
-  | 'get-maximize-state';
+  | 'get-maximize-state'
+  | 'get-kodik-links'
 
 const electronHandler = {
   ipcRenderer: {
@@ -55,6 +56,10 @@ const electronHandler = {
     getMaximizeState: async (): Promise<boolean> => {
       console.log('[AnimeLIB] Preload: Getting maximize state');
       return ipcRenderer.invoke('get-maximize-state');
+    },
+    getKodikLinks: async (kodikSrc: string) => {
+      console.log('[AnimeLIB] Preload: Getting Kodik links for:', kodikSrc);
+      return ipcRenderer.invoke('get-kodik-links', kodikSrc);
     },
   },
 };

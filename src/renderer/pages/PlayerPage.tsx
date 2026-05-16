@@ -60,6 +60,7 @@ function PlayerPageRefactored({
   const [selectedPlayerType, setSelectedPlayerType] = useState<string>('');
   const [showUrlInput, setShowUrlInput] = useState<boolean>(false);
   const [show404, setShow404] = useState<boolean>(false);
+  const [kodikError, setKodikError] = useState<boolean>(false);
 
   // Bookmark state
   const [initialTimecode, setInitialTimecode] = useState<number | null>(null);
@@ -256,12 +257,18 @@ function PlayerPageRefactored({
   const loadKodikLinks = useCallback(
     async (kodikSrc: string): Promise<KodikVideoLinks | null> => {
       setLoading(true);
+      setKodikError(false);
       try {
         const data = await animeApi.getKodikVideoLinks(kodikSrc);
         console.log('[PlayerPage] Loaded Kodik links:', data.success);
+        if (!data.success) {
+          setKodikError(true);
+          return null;
+        }
         return data;
       } catch (err) {
         console.error('[PlayerPage] Error loading Kodik links:', err);
+        setKodikError(true);
         return null;
       } finally {
         setLoading(false);
@@ -423,11 +430,10 @@ function PlayerPageRefactored({
         shouldAutoplayNextEpisodeRef.current = false; // Reset flag
 
         if (autoSelected.player === 'Kodik' && autoSelected.src) {
-          // Load Kodik links first, then load player
           console.log('[PlayerPage] Loading Kodik player');
           const kodikData = await loadKodikLinks(autoSelected.src);
 
-          if (kodikData && kodikData.success) {
+          if (kodikData) {
             videoPlayerRef.current.loadPlayer(
               autoSelected,
               kodikData,
@@ -435,7 +441,6 @@ function PlayerPageRefactored({
             );
           }
         } else {
-          // Load non-Kodik player immediately
           console.log(
             '[PlayerPage] Loading non-Kodik player:',
             autoSelected.team.name,
@@ -492,23 +497,20 @@ function PlayerPageRefactored({
         player.player,
       );
 
-      // Reset 404 when switching voice teams
       setShow404(false);
-
+      setKodikError(false);
       setSelectedPlayer(player);
 
-      // Save user preferences
       playerSelectionManager.savePreference(player.team.name, player.player);
 
-      // Load player in VideoPlayer
       if (videoPlayerRef.current) {
         if (player.player === 'Kodik' && player.src) {
-          // Load Kodik links first, then load player
           console.log('[PlayerPage] Loading Kodik player');
           const kodikData = await loadKodikLinks(player.src);
-          videoPlayerRef.current.loadPlayer(player, kodikData);
+          if (kodikData) {
+            videoPlayerRef.current.loadPlayer(player, kodikData);
+          }
         } else {
-          // Load non-Kodik player immediately
           console.log(
             '[PlayerPage] Loading non-Kodik player:',
             player.team.name,
@@ -531,14 +533,15 @@ function PlayerPageRefactored({
       return;
     }
 
-    // Reset 404 error
     setShow404(false);
+    setKodikError(false);
 
-    // Reload current player
     if (selectedPlayer.player === 'Kodik' && selectedPlayer.src) {
       console.log('[PlayerPage] Refreshing Kodik player');
       const kodikData = await loadKodikLinks(selectedPlayer.src);
-      videoPlayerRef.current.loadPlayer(selectedPlayer, kodikData);
+      if (kodikData) {
+        videoPlayerRef.current.loadPlayer(selectedPlayer, kodikData);
+      }
     } else {
       console.log('[PlayerPage] Refreshing non-Kodik player');
       videoPlayerRef.current.loadPlayer(selectedPlayer, null);
@@ -1080,8 +1083,6 @@ function PlayerPageRefactored({
                     : {},
                   backgroundColor: '#000',
                   position: 'relative',
-                  overflow: 'hidden',
-                  borderRadius: 2,
                   boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
                   margin: 1,
                   marginRight: 0,
@@ -1130,12 +1131,61 @@ function PlayerPageRefactored({
                     </Box>
                   )}
 
-                  {/* VideoPlayer - Always mounted, hidden when 404 overlay is shown */}
+                  {kodikError && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#000',
+                        color: '#ffffff',
+                        textAlign: 'center',
+                        zIndex: 10,
+                        gap: 2,
+                      }}
+                    >
+                      <Typography
+                        variant="h4"
+                        sx={{ color: '#7C3AED', fontWeight: 'bold' }}
+                      >
+                        Ошибка Kodik
+                      </Typography>
+                      <Typography variant="body1" color="#bfbfbf">
+                        Не удалось получить ссылку на видео. Сервис недоступен или превышено время ожидания.
+                      </Typography>
+                      <Box
+                        component="button"
+                        onClick={handleRefresh}
+                        sx={{
+                          mt: 1,
+                          px: 3,
+                          py: 1,
+                          backgroundColor: '#7C3AED',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          cursor: 'pointer',
+                          '&:hover': { backgroundColor: '#6D28D9' },
+                        }}
+                      >
+                        Повторить
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* VideoPlayer - Always mounted, hidden when overlay is shown */}
                   <Box
                     sx={{
                       width: '100%',
                       height: '100%',
-                      visibility: show404 ? 'hidden' : 'visible',
+                      visibility: show404 || kodikError ? 'hidden' : 'visible',
                     }}
                   >
                     <VideoPlayer

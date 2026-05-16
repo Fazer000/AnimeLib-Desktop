@@ -135,6 +135,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       player: Player;
       kodikLinks?: KodikVideoLinks | null;
     } | null>(null);
+    const isPlayingRef = useRef<boolean>(false);
 
     // UI states
     const [isControllerReady, setIsControllerReady] = useState<boolean>(false);
@@ -237,8 +238,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           onQualityOptionsChange: setQualityOptions,
           onSelectedQualityChange: setSelectedQuality,
           onKeyPress: () => {
-            // Show controls when hotkey is pressed
             uiStateManager.showPlayerControls();
+            uiStateManager.startAutoHide(isPlayingRef.current);
           },
           onSkipForward: (seconds: number) => {
             // Handle custom skip forward
@@ -371,7 +372,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       if (!video) return undefined;
 
       const handleLoadedMetadata = () => {
-        const { videoWidth, videoHeight } = video;
+        const { videoWidth, videoHeight, duration } = video;
         if (videoWidth && videoHeight) {
           const aspectRatio = videoWidth / videoHeight;
           console.log('[VideoPlayer] Video aspect ratio:', aspectRatio, {
@@ -383,6 +384,12 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         } else {
           videoAspectRatioRef.current = null;
           onAspectRatioChange?.(null);
+        }
+
+        if (duration && duration > 0) {
+          const thumbnailManager =
+            controllerRef.current?.getThumbnailManager();
+          thumbnailManager?.startPreCaching(duration);
         }
       };
 
@@ -487,18 +494,13 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     // Auto-hide controls
     useEffect(() => {
+      isPlayingRef.current = videoState.isPlaying;
       uiStateManager.startAutoHide(videoState.isPlaying);
 
       return () => {
         uiStateManager.stopAutoHide();
       };
-    }, [
-      videoState.isPlaying,
-      uiState.showControls,
-      uiState.isMenuOpen,
-      uiState.hoverTime,
-      uiStateManager,
-    ]);
+    }, [videoState.isPlaying, uiStateManager]);
 
     // Imperative handle
     useImperativeHandle(
@@ -798,6 +800,52 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       onEpisodeSelect,
       onEpisodeSelectWithAutoplay,
     ]);
+
+    useEffect(() => {
+      if (!('mediaSession' in navigator)) return;
+
+      navigator.mediaSession.setActionHandler('play', () => {
+        handleTogglePlay();
+      });
+
+      navigator.mediaSession.setActionHandler('pause', () => {
+        handleTogglePlay();
+      });
+
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        if (currentEpisodeIndex < episodes.length - 1) {
+          const selectWithAutoplay =
+            onEpisodeSelectWithAutoplay ?? onEpisodeSelect;
+          selectWithAutoplay(currentEpisodeIndex + 1);
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        if (currentEpisodeIndex > 0) {
+          onEpisodeSelect(currentEpisodeIndex - 1);
+        }
+      });
+
+      return () => {
+        navigator.mediaSession.setActionHandler('play', null);
+        navigator.mediaSession.setActionHandler('pause', null);
+        navigator.mediaSession.setActionHandler('nexttrack', null);
+        navigator.mediaSession.setActionHandler('previoustrack', null);
+      };
+    }, [
+      handleTogglePlay,
+      currentEpisodeIndex,
+      episodes.length,
+      onEpisodeSelect,
+      onEpisodeSelectWithAutoplay,
+    ]);
+
+    useEffect(() => {
+      if (!('mediaSession' in navigator)) return;
+      navigator.mediaSession.playbackState = videoState.isPlaying
+        ? 'playing'
+        : 'paused';
+    }, [videoState.isPlaying]);
 
     return (
       <Box

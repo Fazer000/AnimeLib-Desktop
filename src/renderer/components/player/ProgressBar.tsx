@@ -29,9 +29,6 @@ interface ProgressBarProps {
   thumbnailManager?: ThumbnailManager | null;
 }
 
-/**
- * Прогресс бар видеоплеера
- */
 function ProgressBar({
   currentTime,
   duration,
@@ -43,21 +40,19 @@ function ProgressBar({
   timecode = [],
   thumbnailManager = null,
 }: ProgressBarProps) {
-  // Локальное состояние для плавного драга без запросов
   const [dragTime, setDragTime] = React.useState<number | null>(null);
   const [isDragging, setIsDragging] = React.useState(false);
   const dragTimeRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
 
-  // Thumbnail state
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [isThumbnailLoading, setIsThumbnailLoading] = useState(false);
+  const [isApproximate, setIsApproximate] = useState(false);
   const thumbnailTimeRef = useRef<number | null>(null);
   const thumbnailTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
 
-  // Мемоизация сегментов - пересчитываем только при изменении timecode или duration
   const segments = useMemo(() => {
     if (!duration || duration <= 0) {
       return [{ start: 0, end: 0, type: 'normal' as const }];
@@ -74,39 +69,31 @@ function ProgressBar({
     }> = [];
     let lastEnd = 0;
 
-    // Сортируем timecode по времени начала и фильтруем некорректные
     const sortedTimecode = [...timecode]
       .filter((tc) => tc.from < tc.to && tc.from >= 0 && tc.to <= duration)
       .sort((a, b) => a.from - b.from);
 
     sortedTimecode.forEach((tc) => {
-      // Ограничиваем сегмент границами видео
       const segmentStart = Math.max(0, tc.from);
       const segmentEnd = Math.min(duration, tc.to);
 
-      // Пропускаем если сегмент уже прошли (перекрытие)
       if (segmentStart < lastEnd) {
-        // Обновляем lastEnd если текущий сегмент заканчивается позже
         lastEnd = Math.max(lastEnd, segmentEnd);
         return;
       }
 
-      // Добавляем обычный сегмент перед этим timecode (если есть зазор)
       if (segmentStart > lastEnd) {
         segs.push({ start: lastEnd, end: segmentStart, type: 'normal' });
       }
 
-      // Добавляем сегмент timecode
       segs.push({ start: segmentStart, end: segmentEnd, type: tc.type });
       lastEnd = segmentEnd;
     });
 
-    // Добавляем последний обычный сегмент (если есть)
     if (lastEnd < duration) {
       segs.push({ start: lastEnd, end: duration, type: 'normal' });
     }
 
-    // Важно: корректируем последний сегмент чтобы он заканчивался ТОЧНО на duration
     if (segs.length > 0) {
       segs[segs.length - 1].end = duration;
     }
@@ -114,27 +101,22 @@ function ProgressBar({
     return segs;
   }, [timecode, duration]);
 
-  // Используем dragTime для плавного визуального драга, иначе currentTime
   const displayTime = dragTime !== null ? dragTime : currentTime;
   const sliderValue = duration > 0 ? displayTime : 0;
 
-  // Оптимизированный обработчик для драга с requestAnimationFrame
   const handleDragChange = useCallback((time: number) => {
     dragTimeRef.current = time;
 
-    // Отменяем предыдущий RAF если есть
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
     }
 
-    // Обновляем состояние через RAF для плавности
     rafRef.current = requestAnimationFrame(() => {
       setDragTime(dragTimeRef.current);
       rafRef.current = null;
     });
   }, []);
 
-  // Cleanup RAF при unmount
   React.useEffect(() => {
     return () => {
       if (rafRef.current !== null) {
@@ -146,11 +128,11 @@ function ProgressBar({
     };
   }, []);
 
-  // Load thumbnail when hover time changes (ТОЛЬКО на паузе!)
   useEffect(() => {
     if (!thumbnailManager || hoverTime === null) {
       setThumbnailUrl(null);
       setIsThumbnailLoading(false);
+      setIsApproximate(false);
       thumbnailTimeRef.current = null;
       if (thumbnailTimeoutRef.current) {
         clearTimeout(thumbnailTimeoutRef.current);
@@ -161,37 +143,54 @@ function ProgressBar({
 
     const roundedTime = Math.floor(hoverTime);
 
-    // Если время не изменилось значительно, не загружаем новое превью
     if (thumbnailTimeRef.current === roundedTime) {
       return;
     }
 
     thumbnailTimeRef.current = roundedTime;
 
-    // Debounce для предотвращения слишком частых запросов
     if (thumbnailTimeoutRef.current) {
       clearTimeout(thumbnailTimeoutRef.current);
     }
 
-    thumbnailTimeoutRef.current = setTimeout(() => {
-      setIsThumbnailLoading(true);
+    // 1. Точный кадр уже в кэше — показываем сразу без blur
+    const exactCached = thumbnailManager.getExactCached(roundedTime);
+    if (exactCached) {
+      setThumbnailUrl(exactCached);
+      setIsThumbnailLoading(false);
+      setIsApproximate(false);
+      return;
+    }
 
+    // 2. Ближайший кадр — показываем сразу с blur как placeholder
+    const nearest = thumbnailManager.getNearestCached(roundedTime);
+    if (nearest) {
+      setThumbnailUrl(nearest);
+      setIsThumbnailLoading(false);
+      setIsApproximate(true);
+    } else {
+      setIsThumbnailLoading(true);
+      setIsApproximate(false);
+    }
+
+    // 3. Грузим точный кадр
+    thumbnailTimeoutRef.current = setTimeout(() => {
       thumbnailManager
-        .getThumbnail(roundedTime)
+        .getThumbnail(roundedTime, 10)
         .then((url) => {
-          // Проверяем что время все еще актуально
           if (thumbnailTimeRef.current === roundedTime) {
             setThumbnailUrl(url);
             setIsThumbnailLoading(false);
+            setIsApproximate(false);
           }
           return url;
         })
         .catch(() => {
-          // Если видео играет - это ожидаемо, не показываем превью
-          setThumbnailUrl(null);
-          setIsThumbnailLoading(false);
+          if (thumbnailTimeRef.current === roundedTime) {
+            setIsThumbnailLoading(false);
+          }
         });
-    }, 150); // Debounce 150ms
+    }, 40);
   }, [hoverTime, thumbnailManager]);
 
   return (
@@ -216,7 +215,7 @@ function ProgressBar({
           display: 'flex',
           gap: '3px',
           transition: 'height 0.2s ease',
-          overflow: 'hidden', // Важно! Предотвращает выход сегментов за пределы
+          overflow: 'hidden',
           '&:hover': {
             height: 8,
           },
@@ -225,16 +224,12 @@ function ProgressBar({
         {segments.map((segment, index) => {
           const segmentDuration = segment.end - segment.start;
 
-          // Защита от деления на 0
           if (segmentDuration <= 0 || duration <= 0) {
             return null;
           }
 
-          // Рассчитываем ширину сегмента
           let segmentWidth = (segmentDuration / duration) * 100;
 
-          // Для последнего сегмента вычисляем оставшуюся ширину
-          // чтобы гарантировать что сумма всех сегментов = 100%
           if (index === segments.length - 1) {
             const previousWidths = segments
               .slice(0, index)
@@ -243,27 +238,21 @@ function ProgressBar({
                 return sum + (dur / duration) * 100;
               }, 0);
             segmentWidth = 100 - previousWidths;
-            segmentWidth = Math.max(0.1, segmentWidth); // Минимум 0.1% чтобы сегмент был виден
+            segmentWidth = Math.max(0.1, segmentWidth);
           }
 
-          // Ограничиваем ширину в разумных пределах
           segmentWidth = Math.max(0, Math.min(100, segmentWidth));
 
-          // Расчет прогресса - ТОЛЬКО если displayTime в пределах или после сегмента
           let segmentProgress = 0;
           if (displayTime >= segment.start) {
             if (displayTime <= segment.end) {
-              // Внутри сегмента - считаем прогресс
               segmentProgress =
                 ((displayTime - segment.start) / segmentDuration) * 100;
             } else {
-              // После сегмента - 100%
               segmentProgress = 100;
             }
           }
-          // До сегмента - 0% (по умолчанию)
 
-          // Расчет буферизации - аналогично прогрессу
           const bufferedTime = buffered * duration;
           let segmentBuffered = 0;
           if (bufferedTime >= segment.start) {
@@ -275,11 +264,9 @@ function ProgressBar({
             }
           }
 
-          // Ограничиваем значения в пределах 0-100%
           segmentProgress = Math.max(0, Math.min(100, segmentProgress));
           segmentBuffered = Math.max(0, Math.min(100, segmentBuffered));
 
-          // Единые цвета для всех сегментов
           const colors = {
             bg: 'rgba(255, 255, 255, 0.15)',
             buffered: 'rgba(255, 255, 255, 0.25)',
@@ -293,11 +280,10 @@ function ProgressBar({
                 position: 'relative',
                 width: `${segmentWidth}%`,
                 height: '100%',
-                flexShrink: 1, // Позволяем сегментам сжиматься если нужно
-                minWidth: 0, // Важно для корректной работы flex-shrink
+                flexShrink: 1,
+                minWidth: 0,
               }}
             >
-              {/* Фон сегмента */}
               <Box
                 sx={{
                   position: 'absolute',
@@ -311,7 +297,6 @@ function ProgressBar({
                 }}
               />
 
-              {/* Буферизация сегмента */}
               {segmentBuffered > 0 && (
                 <Box
                   sx={{
@@ -327,7 +312,6 @@ function ProgressBar({
                 />
               )}
 
-              {/* Прогресс сегмента */}
               {segmentProgress > 0 && (
                 <Box
                   sx={{
@@ -357,15 +341,12 @@ function ProgressBar({
         onChange={(event: Event, value: number | number[]) => {
           const time = Array.isArray(value) ? value[0] : value;
 
-          // Устанавливаем флаг драга
           if (!isDragging) {
             setIsDragging(true);
           }
 
-          // Обновляем локальное состояние через RAF для плавности
           handleDragChange(time);
 
-          // Показываем tooltip во время перетаскивания
           onProgressMouseMove({
             currentTarget: {
               getBoundingClientRect: () => ({
@@ -382,22 +363,16 @@ function ProgressBar({
         ) => {
           const time = Array.isArray(value) ? value[0] : value;
 
-          // Отменяем любые pending RAF
           if (rafRef.current !== null) {
             cancelAnimationFrame(rafRef.current);
             rafRef.current = null;
           }
 
-          // Сбрасываем локальное состояние драга
           dragTimeRef.current = null;
           setDragTime(null);
           setIsDragging(false);
 
-          // ЕДИНСТВЕННЫЙ запрос на перемотку при отпускании
           onSeek(time);
-
-          // Скрываем tooltip после завершения перетаскивания
-          onProgressMouseLeave();
         }}
         onMouseMove={(event: React.MouseEvent) => {
           if (duration > 0) {
@@ -452,13 +427,32 @@ function ProgressBar({
         }}
       />
 
-      {/* Thumbnail Preview или Tooltip с временем при наведении */}
+      {hoverTime !== null && duration > 0 && (
+        <Box
+          sx={{
+            position: 'absolute',
+            left: `${(hoverTime / duration) * 100}%`,
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 2,
+            height: 12,
+            backgroundColor: 'rgba(255, 255, 255, 0.85)',
+            borderRadius: 1,
+            pointerEvents: 'none',
+            zIndex: 10,
+          }}
+        />
+      )}
+
+      {/* Thumbnail Preview или Tooltip */}
       {hoverTime !== null &&
         (thumbnailManager ? (
           <ThumbnailPreview
             thumbnailUrl={thumbnailUrl}
             time={hoverTime}
+            duration={duration}
             isLoading={isThumbnailLoading}
+            isApproximate={isApproximate}
             position={{
               x: `${(hoverTime / duration) * 100}%`,
               y: 24,

@@ -1,18 +1,11 @@
 /* eslint-disable no-console */
 
-/**
- * ThumbnailManager - генерация превью через Range запросы
- *
- * Правильный подход как в YouTube:
- * - Загружаем ТОЛЬКО нужный сегмент видео (Range requests)
- * - Не трогаем основное видео
- * - Минимальная нагрузка на сервер
- * - Работает во время воспроизведения
- */
 class ThumbnailManager {
   private videoSrc: string | null = null;
 
   private seekVideo: HTMLVideoElement | null = null;
+
+  private seekVideoReady = false;
 
   private canvas: HTMLCanvasElement | null = null;
 
@@ -26,32 +19,31 @@ class ThumbnailManager {
     time: number;
     resolve: (url: string) => void;
     reject: (error: Error) => void;
-    priority?: number;
+    priority: number;
   }> = [];
 
-  private lastGenerationTime = 0;
+  private currentAbortController: AbortController | null = null;
 
-  private readonly throttleMs = 100;
+  private currentGeneratingTime: number | null = null;
 
-  private readonly thumbnailWidth = 120;
+  private currentPriority: number = 0;
 
-  private readonly thumbnailHeight = 68;
+  private readonly thumbnailWidth = 240;
 
-  private readonly maxCacheSize = 200;
+  private readonly thumbnailHeight = 135;
 
-  private readonly jpegQuality = 0.5;
+  private readonly maxCacheSize = 300;
+
+  private readonly jpegQuality = 0.7;
+
+  private readonly seekTimeout = 1200;
 
   private isDestroyed = false;
-
-  private activeSeeks = new Map<HTMLVideoElement, AbortController>();
 
   constructor() {
     this.initCanvas();
   }
 
-  /**
-   * Инициализация canvas для захвата кадров
-   */
   private initCanvas(): void {
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.thumbnailWidth;
@@ -61,165 +53,130 @@ class ThumbnailManager {
       willReadFrequently: false,
     });
 
-    if (!this.ctx) {
+    if (this.ctx) {
+      this.ctx.imageSmoothingEnabled = true;
+      this.ctx.imageSmoothingQuality = 'high';
+    } else {
       console.error('[ThumbnailManager] Failed to get canvas context');
     }
   }
 
-  /**
-   * Создание временного видео для превью с Range запросом
-   */
-  private createSeekVideo(
-    src: string,
-    targetTime: number,
-  ): {
-    video: HTMLVideoElement;
-    abort: AbortController;
-  } {
-    const video = document.createElement('video');
-    const abort = new AbortController();
+  private async getOrCreateSeekVideo(): Promise<HTMLVideoElement> {
+    if (this.seekVideo && this.seekVideoReady) {
+      return this.seekVideo;
+    }
 
-    video.crossOrigin = 'anonymous';
-    video.preload = 'auto'; // Важно для загрузки сегмента
-    video.muted = true;
-    video.playsInline = true;
-    video.style.display = 'none';
-    video.style.position = 'absolute';
-    video.style.pointerEvents = 'none';
+    if (!this.videoSrc) {
+      throw new Error('No video source');
+    }
 
-    // Устанавливаем время ДО загрузки для оптимизации
-    video.currentTime = targetTime;
-    video.src = src;
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      video.crossOrigin = 'anonymous';
+      video.preload = 'auto';
+      video.muted = true;
+      video.playsInline = true;
+      video.style.cssText =
+        'display:none;position:absolute;pointer-events:none;';
 
-    this.activeSeeks.set(video, abort);
-    document.body.appendChild(video);
+      const timeout = setTimeout(() => {
+        video.remove();
+        reject(new Error('Seek video metadata timeout'));
+      }, 5000);
 
-    return { video, abort };
+      video.addEventListener(
+        'loadedmetadata',
+        () => {
+          clearTimeout(timeout);
+          this.seekVideo = video;
+          this.seekVideoReady = true;
+          resolve(video);
+        },
+        { once: true },
+      );
+
+      video.addEventListener(
+        'error',
+        () => {
+          clearTimeout(timeout);
+          video.remove();
+          reject(new Error('Seek video load error'));
+        },
+        { once: true },
+      );
+
+      video.src = this.videoSrc!;
+      document.body.appendChild(video);
+    });
   }
 
-  /**
-   * Генерация превью для указанного времени
-   */
-  private async generateThumbnailInternal(time: number): Promise<string> {
-    if (!this.videoSrc || !this.canvas || !this.ctx) {
-      throw new Error('ThumbnailManager not initialized');
+  private destroySeekVideo(): void {
+    if (this.seekVideo) {
+      this.seekVideo.src = '';
+      this.seekVideo.load();
+      this.seekVideo.remove();
+      this.seekVideo = null;
+    }
+    this.seekVideoReady = false;
+  }
+
+  private async generateThumbnailInternal(
+    time: number,
+    signal: AbortSignal,
+  ): Promise<string> {
+    if (!this.canvas || !this.ctx) {
+      throw new Error('Canvas not initialized');
     }
 
-    // Throttling
-    const now = Date.now();
-    if (now - this.lastGenerationTime < this.throttleMs) {
-      await new Promise((resolve) => {
-        setTimeout(resolve, this.throttleMs - (now - this.lastGenerationTime));
-      });
-    }
+    const video = await this.getOrCreateSeekVideo();
 
-    this.lastGenerationTime = Date.now();
+    if (signal.aborted) throw new Error('Aborted');
 
-    // Создаём временное видео для этого seek'а
-    const { video, abort } = this.createSeekVideo(this.videoSrc, time);
+    if (Math.abs(video.currentTime - time) > 0.5) {
+      if ('fastSeek' in video) {
+        (video as any).fastSeek(time);
+      } else {
+        // @ts-ignore
+        video.currentTime = time;
+      }
 
-    try {
-      // Ждём загрузку метаданных
       await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('Metadata timeout'));
-        }, 3000);
+        const timeout = setTimeout(resolve, this.seekTimeout);
 
-        const onLoadedMetadata = () => {
-          clearTimeout(timeout);
-          // Устанавливаем время после загрузки метаданных
-          video.currentTime = time;
-        };
-
-        const onLoadedData = () => {
+        const onSeeked = () => {
           clearTimeout(timeout);
           resolve();
         };
 
-        const onError = () => {
+        signal.addEventListener('abort', () => {
           clearTimeout(timeout);
-          reject(new Error('Video load error'));
-        };
-
-        video.addEventListener('loadedmetadata', onLoadedMetadata, {
-          once: true,
-        });
-        video.addEventListener('loadeddata', onLoadedData, { once: true });
-        video.addEventListener('error', onError, { once: true });
-
-        abort.signal.addEventListener('abort', () => {
-          clearTimeout(timeout);
+          video.removeEventListener('seeked', onSeeked);
           reject(new Error('Aborted'));
         });
+
+        video.addEventListener('seeked', onSeeked, { once: true });
       });
-
-      // Seek к нужному времени если ещё не там
-      if (Math.abs(video.currentTime - time) > 0.1) {
-        video.currentTime = time;
-
-        await new Promise<void>((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error('Seeked timeout'));
-          }, 2000);
-
-          const onSeeked = () => {
-            clearTimeout(timeout);
-            resolve();
-          };
-
-          video.addEventListener('seeked', onSeeked, { once: true });
-
-          abort.signal.addEventListener('abort', () => {
-            clearTimeout(timeout);
-            reject(new Error('Aborted'));
-          });
-        });
-      }
-
-      // Захват кадра
-      this.ctx.drawImage(
-        video,
-        0,
-        0,
-        this.thumbnailWidth,
-        this.thumbnailHeight,
-      );
-
-      // Конвертация в base64
-      const dataUrl = this.canvas.toDataURL('image/jpeg', this.jpegQuality);
-
-      // Сохранение в кэш
-      this.addToCache(time, dataUrl);
-
-      return dataUrl;
-    } finally {
-      // Очистка временного видео
-      this.activeSeeks.delete(video);
-      abort.abort();
-      video.src = '';
-      video.load();
-      video.remove();
     }
+
+    if (signal.aborted) throw new Error('Aborted');
+
+    this.ctx.drawImage(video, 0, 0, this.thumbnailWidth, this.thumbnailHeight);
+    const dataUrl = this.canvas.toDataURL('image/jpeg', this.jpegQuality);
+
+    this.addToCache(time, dataUrl);
+    return dataUrl;
   }
 
-  /**
-   * Добавление превью в кэш с LRU стратегией
-   */
   private addToCache(time: number, dataUrl: string): void {
-    // Если кэш переполнен, удаляем самый старый элемент
     if (this.cache.size >= this.maxCacheSize) {
       const firstKey = this.cache.keys().next().value;
       if (firstKey !== undefined) {
         this.cache.delete(firstKey);
       }
     }
-
     this.cache.set(time, dataUrl);
   }
 
-  /**
-   * Обработка очереди генерации (с приоритетом)
-   */
   private async processQueue(): Promise<void> {
     if (this.isGenerating || this.generationQueue.length === 0) {
       return;
@@ -229,37 +186,91 @@ class ThumbnailManager {
 
     // eslint-disable-next-line no-await-in-loop
     while (this.generationQueue.length > 0) {
-      // Сортируем по приоритету (больше = важнее)
-      this.generationQueue.sort(
-        (a, b) => (b.priority || 0) - (a.priority || 0),
-      );
+      this.generationQueue.sort((a, b) => b.priority - a.priority);
 
       const request = this.generationQueue.shift();
       if (!request) break;
 
+      const abort = new AbortController();
+      this.currentAbortController = abort;
+      this.currentGeneratingTime = request.time;
+      this.currentPriority = request.priority;
+
       try {
         // eslint-disable-next-line no-await-in-loop
-        const dataUrl = await this.generateThumbnailInternal(request.time);
+        const dataUrl = await this.generateThumbnailInternal(
+          request.time,
+          abort.signal,
+        );
         request.resolve(dataUrl);
-      } catch (error) {
-        request.reject(error as Error);
+      } catch (error: any) {
+        if (error?.message !== 'Aborted') {
+          request.reject(error as Error);
+        } else {
+          request.reject(new Error('Aborted'));
+        }
+      } finally {
+        if (this.currentAbortController === abort) {
+          this.currentAbortController = null;
+        }
+        this.currentGeneratingTime = null;
+        this.currentPriority = 0;
       }
     }
 
     this.isGenerating = false;
   }
 
-  /**
-   * Загрузка видео источника
-   */
   loadVideo(src: string): void {
     console.log('[ThumbnailManager] Video source set:', src);
+
+    if (this.videoSrc !== src) {
+      this.destroySeekVideo();
+      this.cache.clear();
+      this.generationQueue = [];
+      this.currentAbortController?.abort();
+    }
+
     this.videoSrc = src;
+
+    this.getOrCreateSeekVideo().catch(() => {});
   }
 
-  /**
-   * Получение превью (из кэша или генерация)
-   */
+  startPreCaching(duration: number, intervalSeconds: number = 10): void {
+    if (duration <= 0 || !this.videoSrc) return;
+
+    this.generationQueue = this.generationQueue.filter(
+      (item) => item.priority !== 1,
+    );
+
+    const times: number[] = [];
+    for (let t = 0; t < duration; t += intervalSeconds) {
+      const roundedTime = Math.floor(t);
+      if (!this.cache.has(roundedTime)) {
+        times.push(roundedTime);
+      }
+    }
+
+    if (times.length === 0) return;
+
+    console.log(
+      `[ThumbnailManager] Pre-caching ${times.length} frames every ${intervalSeconds}s`,
+    );
+
+    times.forEach((time) => {
+      // eslint-disable-next-line no-new
+      new Promise<string>((resolve, reject) => {
+        this.generationQueue.push({ time, resolve, reject, priority: 1 });
+      }).catch(() => {});
+    });
+
+    this.processQueue();
+  }
+
+  getExactCached(time: number): string | null {
+    return this.cache.get(Math.floor(time)) || null;
+  }
+
   async getThumbnail(time: number, priority: number = 10): Promise<string> {
     if (this.isDestroyed) {
       throw new Error('ThumbnailManager is destroyed');
@@ -269,16 +280,19 @@ class ThumbnailManager {
       throw new Error('Video source not set');
     }
 
-    // Округляем время
     const roundedTime = Math.floor(time);
 
-    // Проверка кэша
     const cached = this.cache.get(roundedTime);
-    if (cached) {
-      return cached;
+    if (cached) return cached;
+
+    this.generationQueue = this.generationQueue.filter(
+      (item) => item.priority === 1,
+    );
+
+    if (this.currentAbortController && this.currentPriority < priority) {
+      this.currentAbortController.abort();
     }
 
-    // Добавление в очередь
     return new Promise((resolve, reject) => {
       this.generationQueue.push({
         time: roundedTime,
@@ -290,32 +304,49 @@ class ThumbnailManager {
     });
   }
 
-  /**
-   * Очистка кэша
-   */
-  clearCache(): void {
-    console.log('[ThumbnailManager] Clearing cache');
+  getNearestCached(time: number): string | null {
+    if (this.cache.size === 0) return null;
 
-    // Отменяем все активные seek'и
-    this.activeSeeks.forEach((abort) => abort.abort());
-    this.activeSeeks.clear();
+    const roundedTime = Math.floor(time);
 
-    this.cache.clear();
-    this.generationQueue = [];
-    this.isGenerating = false;
+    const exact = this.cache.get(roundedTime);
+    if (exact) return exact;
+
+    let nearestTime = -1;
+    let nearestDiff = Infinity;
+
+    this.cache.forEach((_, cachedTime) => {
+      const diff = Math.abs(cachedTime - roundedTime);
+      if (diff < nearestDiff) {
+        nearestDiff = diff;
+        nearestTime = cachedTime;
+      }
+    });
+
+    if (nearestTime >= 0 && nearestDiff <= 15) {
+      return this.cache.get(nearestTime) || null;
+    }
+
+    return null;
   }
 
-  /**
-   * Полное уничтожение менеджера
-   */
+  clearCache(): void {
+    console.log('[ThumbnailManager] Clearing cache');
+    this.generationQueue.forEach((item) =>
+      item.reject(new Error('Cache cleared')),
+    );
+    this.generationQueue = [];
+    this.isGenerating = false;
+    this.currentAbortController?.abort();
+    this.cache.clear();
+  }
+
   destroy(): void {
     console.log('[ThumbnailManager] Destroying');
     this.isDestroyed = true;
-
-    // Очистка кэша и активных запросов
     this.clearCache();
+    this.destroySeekVideo();
 
-    // Очистка canvas
     if (this.canvas) {
       this.ctx = null;
       this.canvas = null;
