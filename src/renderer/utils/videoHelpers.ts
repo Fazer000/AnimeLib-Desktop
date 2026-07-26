@@ -1,3 +1,14 @@
+import { PLAYER_INSET_X, PLAYER_INSET_Y } from '../../constants';
+
+/**
+ * Возвращает CSS-ширину блока с заданным соотношением сторон,
+ * вписанного в размерный контейнер (container-type: size)
+ */
+export function getFittedWidth(aspectRatio: number): string {
+  const ratio = aspectRatio.toFixed(4);
+  return `min(calc(100cqw - ${PLAYER_INSET_X}px), calc((100cqh - ${PLAYER_INSET_Y}px) * ${ratio}))`;
+}
+
 /**
  * Форматирует время в формат MM:SS
  */

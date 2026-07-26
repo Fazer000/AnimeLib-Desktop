@@ -20,12 +20,25 @@ import {
   BeforeSendResponse,
   OnHeadersReceivedListenerDetails,
   HeadersReceivedResponse,
+  Rectangle,
 } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-import { APP_NAME, APP_VERSION } from '../constants';
+import {
+  WindowStore,
+  getSavedMaximized,
+  getSavedWindowBounds,
+  restoreWindowState,
+  trackWindowState,
+} from './windowState';
+import {
+  APP_NAME,
+  APP_VERSION,
+  MIN_WINDOW_HEIGHT,
+  MIN_WINDOW_WIDTH,
+} from '../constants';
 
 // ===== CONSTANTS =====
 const VIDEO_URLS = {
@@ -56,11 +69,6 @@ const COMMON_HEADERS = {
 const WINDOW_CONFIG = {
   DEFAULT_WIDTH: 1600,
   DEFAULT_HEIGHT: 900,
-  FULLSCREEN_RESTORE_DELAY: 100,
-} as const;
-
-const STORE_KEYS = {
-  WINDOW_MAXIMIZED: 'windowMaximized',
 } as const;
 
 // ===== STORE MANAGEMENT =====
@@ -195,18 +203,14 @@ ipcMain.on('window-close', () => {
   mainWindow?.close();
 });
 
-ipcMain.on('window-fullscreen', async (event, isFullscreen: boolean) => {
+ipcMain.on('window-fullscreen', (event, isFullscreen: boolean) => {
   console.log(`[Main IPC] Toggle window fullscreen: ${isFullscreen}`);
-  if (mainWindow) {
-    mainWindow.setFullScreen(isFullscreen);
-    const storeInstance = await initStore();
-    storeInstance.set(STORE_KEYS.WINDOW_MAXIMIZED, isFullscreen);
-  }
+  mainWindow?.setFullScreen(isFullscreen);
 });
 
 ipcMain.handle('get-maximize-state', async () => {
   const storeInstance = await initStore();
-  return storeInstance.get(STORE_KEYS.WINDOW_MAXIMIZED, false);
+  return getSavedMaximized(storeInstance);
 });
 
 // ===== IPC HANDLERS - MISC =====
@@ -454,10 +458,13 @@ const getResourcesPath = (): string => {
 /**
  * Создает конфигурацию BrowserWindow
  */
-const createWindowConfig = (iconPath: string) => ({
+const createWindowConfig = (iconPath: string, bounds: Rectangle | null) => ({
   show: false,
-  width: WINDOW_CONFIG.DEFAULT_WIDTH,
-  height: WINDOW_CONFIG.DEFAULT_HEIGHT,
+  width: bounds?.width ?? WINDOW_CONFIG.DEFAULT_WIDTH,
+  height: bounds?.height ?? WINDOW_CONFIG.DEFAULT_HEIGHT,
+  minWidth: MIN_WINDOW_WIDTH,
+  minHeight: MIN_WINDOW_HEIGHT,
+  ...(bounds ? { x: bounds.x, y: bounds.y } : {}),
   title: `${APP_NAME} v${APP_VERSION}`,
   icon: iconPath,
   titleBarStyle: 'hidden' as const,
@@ -490,43 +497,20 @@ const createWindowConfig = (iconPath: string) => ({
 /**
  * Настраивает обработчики событий окна
  */
-const setupWindowEvents = (window: BrowserWindow): void => {
-  window.on('ready-to-show', async () => {
+// eslint-disable-next-line @typescript-eslint/no-shadow
+const setupWindowEvents = (window: BrowserWindow, store: WindowStore): void => {
+  window.on('ready-to-show', () => {
     if (process.env.START_MINIMIZED) {
       window.minimize();
     } else {
       window.show();
     }
 
-    // Восстанавливаем maximize состояние окна
-    const storeInstance = await initStore();
-    const savedMaximizeState = storeInstance.get(
-      STORE_KEYS.WINDOW_MAXIMIZED,
-      false,
-    ) as boolean;
-
-    if (savedMaximizeState) {
-      console.log('[Main] Restoring maximize state');
-      setTimeout(() => {
-        window.maximize();
-      }, WINDOW_CONFIG.FULLSCREEN_RESTORE_DELAY);
-    }
+    restoreWindowState(window, store);
   });
 
   window.on('closed', () => {
     mainWindow = null;
-  });
-
-  window.on('maximize', async () => {
-    const storeInstance = await initStore();
-    storeInstance.set(STORE_KEYS.WINDOW_MAXIMIZED, true);
-    console.log('[Main] Window maximized - state saved');
-  });
-
-  window.on('unmaximize', async () => {
-    const storeInstance = await initStore();
-    storeInstance.set(STORE_KEYS.WINDOW_MAXIMIZED, false);
-    console.log('[Main] Window unmaximized - state saved');
   });
 
   window.webContents.setWindowOpenHandler((edata) => {
@@ -548,13 +532,16 @@ const createWindow = async (): Promise<void> => {
     path.join(resourcesPath, ...paths);
 
   const iconPath = getAssetPath('icon.png');
-  const windowConfig = createWindowConfig(iconPath);
+  const storeInstance = await initStore();
+  const savedBounds = getSavedWindowBounds(storeInstance);
+  const windowConfig = createWindowConfig(iconPath, savedBounds);
 
   // @ts-ignore
   mainWindow = new BrowserWindow(windowConfig);
   mainWindow.loadURL(resolveHtmlPath('index.html'));
 
-  setupWindowEvents(mainWindow);
+  setupWindowEvents(mainWindow, storeInstance);
+  trackWindowState(mainWindow, storeInstance);
 
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();

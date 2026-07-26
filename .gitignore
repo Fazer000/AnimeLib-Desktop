@@ -1,10 +1,6 @@
 # Logs
 logs
 *.log
-npm-debug.log.*
-yarn-debug.log*
-yarn-error.log*
-localhost-*.log
 
 # Runtime data
 pids
@@ -17,14 +13,15 @@ coverage
 
 # Dependencies
 node_modules
-release/app/node_modules
 
 # Build directories
 release/app/dist
 release/build
 .erb/dll
+develop/
 dist
 build
+out/
 
 # TypeScript
 *.tsbuildinfo
@@ -38,12 +35,9 @@ build
 
 # OS
 .DS_Store
-.DS_Store?
 ._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
+ehthumbs.db
 
 # Environment & Config
 .env
@@ -52,9 +46,8 @@ Thumbs.db
 
 # Auth & Test data
 auth.json
-response.json
-response2.json
-response3.json
+response*.json
+resoponse.json
 headers.txt
 
 # Type definitions
@@ -63,10 +56,5 @@ headers.txt
 *.scss.d.ts
 
 # Package manager
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
-
-# Electron
-out/
-app/

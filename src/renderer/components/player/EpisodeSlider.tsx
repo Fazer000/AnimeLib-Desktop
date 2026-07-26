@@ -7,6 +7,7 @@ import {
   BookmarkRounded,
 } from '@mui/icons-material';
 import { Episode } from '../../api/animeApi';
+import { EPISODE_SLIDER_HEIGHT } from '../../../constants';
 
 interface EpisodeSliderProps {
   episodes: Episode[];
@@ -149,11 +150,11 @@ function EpisodeSliderRefactored({
     if (episodes.length > 0) {
       setTimeout(() => scrollToActiveEpisode('instant'), 100);
     }
-  }, [episodes]);
+  }, [episodes, scrollToActiveEpisode]);
 
   useEffect(() => {
     scrollToActiveEpisode('smooth');
-  }, [currentEpisodeIndex]);
+  }, [currentEpisodeIndex, scrollToActiveEpisode]);
 
   useEffect(() => {
     const element = scrollRef.current;
@@ -197,6 +198,7 @@ function EpisodeSliderRefactored({
     <Box
       sx={{
         position: 'relative',
+        height: EPISODE_SLIDER_HEIGHT,
       }}
     >
       <Box

@@ -1,6 +1,6 @@
 {
   "name": "animelib-desktop",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "AnimeLib Desktop - Desktop anime player",
   "keywords": [
     "electron",
@@ -34,6 +34,7 @@
   "scripts": {
     "sync-version": "ts-node .erb/scripts/sync-version.ts",
     "build": "npm run sync-version && concurrently \"npm run build:main\" \"npm run build:renderer\"",
+    "build:icons": "node .erb/scripts/build-icons.js",
     "build:dll": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true NODE_OPTIONS=\"-r ts-node/register --no-warnings\" webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true NODE_OPTIONS=\"-r ts-node/register --no-warnings\" webpack --config ./.erb/configs/webpack.config.main.prod.ts",
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true NODE_OPTIONS=\"-r ts-node/register --no-warnings\" webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
@@ -164,12 +165,15 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "mini-css-extract-plugin": "^2.9.2",
+    "png-to-ico": "^3.0.2",
+    "png2icons": "^2.0.1",
     "prettier": "^3.5.3",
     "react-refresh": "^0.16.0",
     "react-test-renderer": "^19.0.0",
     "rimraf": "^6.0.1",
     "sass": "^1.86.0",
     "sass-loader": "^16.0.5",
+    "sharp": "^0.35.3",
     "style-loader": "^4.0.0",
     "terser-webpack-plugin": "^5.3.14",
     "ts-jest": "^29.2.6",
@@ -185,7 +189,7 @@
     "webpack-merge": "^6.0.1"
   },
   "build": {
-    "productName": "AnimeLib Desktop",
+    "productName": "AnimeLib-Desktop",
     "appId": "org.animelib.desktop",
     "asar": true,
     "afterSign": ".erb/scripts/notarize.js",
@@ -196,6 +200,7 @@
       "package.json"
     ],
     "mac": {
+      "icon": "assets/icon.icns",
       "notarize": false,
       "target": {
         "target": "default",
@@ -250,7 +255,7 @@
       "runAfterFinish": true,
       "menuCategory": false,
       "license": "LICENSE",
-      "artifactName": "${productName} Setup ${version}.${ext}",
+      "artifactName": "${productName}-Setup-${version}.${ext}",
       "warningsAsErrors": false,
       "installerSidebar": "assets/icon.png",
       "uninstallerSidebar": "assets/icon.png",
@@ -261,6 +266,7 @@
       "target": [
         "AppImage"
       ],
+      "icon": "assets/icons",
       "category": "Development"
     },
     "directories": {

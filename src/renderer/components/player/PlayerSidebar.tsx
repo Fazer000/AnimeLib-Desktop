@@ -14,6 +14,7 @@ import {
 import { BookmarkAddRounded } from '@mui/icons-material';
 import { Player } from '../../api/animeApi';
 import { PlayerSelectionManager } from '../../services/player/PlayerSelectionManager';
+import { SIDEBAR_WIDTH } from '../../../constants';
 
 interface PlayerSidebarProps {
   players: Player[];
@@ -70,7 +71,7 @@ function PlayerSidebarRefactored({
     <Box
       sx={{
         position: 'relative',
-        width: isCollapsed ? '0px' : '260px',
+        width: isCollapsed ? '0px' : `${SIDEBAR_WIDTH}px`,
         height: 'calc(100% - 16px)',
         margin: 1,
         marginLeft: isCollapsed ? 0 : 1,

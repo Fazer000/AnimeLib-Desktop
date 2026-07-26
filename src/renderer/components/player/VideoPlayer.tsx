@@ -31,6 +31,7 @@ import {
   SegmentManager,
   TimeCodeSegment,
 } from '../../services/player';
+import { PLAYER_BORDER_RADIUS } from '../../../constants';
 
 interface TimeCode {
   type: 'opening' | 'ending' | 'compilation' | 'splashScreen';
@@ -387,8 +388,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         }
 
         if (duration && duration > 0) {
-          const thumbnailManager =
-            controllerRef.current?.getThumbnailManager();
+          const thumbnailManager = controllerRef.current?.getThumbnailManager();
           thumbnailManager?.startPreCaching(duration);
         }
       };
@@ -826,6 +826,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         }
       });
 
+      // eslint-disable-next-line consistent-return
       return () => {
         navigator.mediaSession.setActionHandler('play', null);
         navigator.mediaSession.setActionHandler('pause', null);
@@ -854,11 +855,9 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           position: 'relative',
           width: '100%',
           height: '100%',
-          minWidth: '400px',
-          minHeight: '300px',
           backgroundColor: '#1c1c1c',
           overflow: 'hidden',
-          borderRadius: 2,
+          borderRadius: PLAYER_BORDER_RADIUS,
           cursor: uiState.showControls ? 'default' : 'none',
           '&:hover': {
             '& .player-controls': {
@@ -901,7 +900,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             visibility: 'visible',
             backgroundColor: '#000',
             cursor: 'inherit',
-            objectFit: uiState.isFullscreen ? 'contain' : 'fill',
+            objectFit: 'contain',
           }}
           onClick={handlePlayerClick}
           onDoubleClick={handlePlayerDoubleClick}

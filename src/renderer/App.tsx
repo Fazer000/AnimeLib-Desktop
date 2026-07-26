@@ -211,15 +211,12 @@ function App() {
       console.log('[AnimeLIB] Opening player page for URL:', url);
       console.log('[AnimeLIB] Provided anime ID:', providedAnimeId);
 
-      // Используем предоставленный ID аниме или извлекаем из URL
       let finalAnimeId = providedAnimeId;
       if (!finalAnimeId) {
-        // Сначала пытаемся извлечь из переданного URL
         const animeIdMatch = url.match(/\/anime\/([^/?]+)/);
         if (animeIdMatch) {
           [, finalAnimeId] = animeIdMatch;
         } else {
-          // Если не нашли в URL, пытаемся взять из localStorage
           const savedPageUrl = localStorage.getItem('animeLibCurrentPage');
           if (savedPageUrl) {
             const savedAnimeIdMatch = savedPageUrl.match(/\/anime\/([^/?]+)/);
@@ -247,7 +244,6 @@ function App() {
       setSavedUrl(storedUrl);
     }
 
-    // Слушаем события от главного процесса
     if ((window as any).electron?.ipcRenderer) {
       const unsubscribe = (window as any).electron.ipcRenderer.on(
         'open-player-page',
@@ -264,7 +260,6 @@ function App() {
     return undefined;
   }, [handlePlayerButtonClick]);
 
-  // Слушаем IPC события от webview
   useEffect(() => {
     if ((window as any).electron?.ipcRenderer) {
       const unsubscribe = (window as any).electron.ipcRenderer.on(
@@ -283,14 +278,12 @@ function App() {
   }, [handlePlayerButtonClick]);
 
   const handleUrlSubmit = useCallback((url: string) => {
-    // Извлекаем только домен из URL
     const urlObj = new URL(url);
     const cleanUrl = `${urlObj.protocol}//${urlObj.host}/`;
     localStorage.setItem('animeLibUrl', cleanUrl);
     setSavedUrl(cleanUrl);
   }, []);
 
-  // Если открыта страница плеера
   if (playerUrl) {
     return (
       <ThemeProvider theme={darkTheme}>
@@ -323,7 +316,9 @@ function App() {
                 }
               }
             } else {
-              const savedCurrentPage = localStorage.getItem('animeLibCurrentPage');
+              const savedCurrentPage = localStorage.getItem(
+                'animeLibCurrentPage',
+              );
 
               if (savedCurrentPage) {
                 console.log('[App] Returning to saved page:', savedCurrentPage);

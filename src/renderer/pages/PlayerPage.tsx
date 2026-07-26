@@ -18,6 +18,13 @@ import ScrollToTopButton from '../components/player/ScrollToTopButton';
 import RelatedAnime from '../components/player/RelatedAnime';
 import AmbientLight from '../components/player/AmbientLight';
 import { PlayerSelectionManager, BookmarkManager } from '../services/player';
+import {
+  MIN_VIDEO_AREA_HEIGHT,
+  PLAYER_BORDER_RADIUS,
+  SIDEBAR_WIDTH,
+  TOOLBAR_HEIGHT,
+} from '../../constants';
+import { getFittedWidth } from '../utils/videoHelpers';
 
 interface PlayerPageProps {
   playerUrl: string;
@@ -944,7 +951,7 @@ function PlayerPageRefactored({
         }}
         canGoBack
         backgroundColor="#252527"
-        height={32}
+        height={TOOLBAR_HEIGHT}
         isPlayerPage
         showUrlInput={showUrlInput}
         currentUrl={playerUrl}
@@ -963,14 +970,14 @@ function PlayerPageRefactored({
         sx={{
           flex: 1,
           position: 'relative',
-          marginTop: '32px',
+          marginTop: `${TOOLBAR_HEIGHT}px`,
           overflow: 'auto',
         }}
       >
         {/* Player section - Fixed height container */}
         <Box
           sx={{
-            height: 'calc(100vh - 32px)',
+            height: `calc(100vh - ${TOOLBAR_HEIGHT}px)`,
             display: 'flex',
             flexDirection: 'column',
             position: 'relative',
@@ -984,40 +991,27 @@ function PlayerPageRefactored({
                 position: 'absolute',
                 top: 0,
                 left: 0,
-                right: sidebarCollapsed ? 0 : '260px',
+                right: sidebarCollapsed ? 0 : `${SIDEBAR_WIDTH}px`,
                 bottom: 0,
                 pointerEvents: 'none',
                 zIndex: 0,
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
+                containerType: 'size',
               }}
             >
               <Box
                 sx={{
-                  width: videoAspectRatio ? 'fit-content' : 'calc(100% - 8px)',
-                  height: videoAspectRatio
-                    ? 'fit-content'
-                    : 'calc(100% - 16px)',
-                  maxWidth: 'calc(100% - 8px)',
-                  maxHeight: 'calc(100% - 16px)',
+                  width: videoAspectRatio
+                    ? getFittedWidth(videoAspectRatio)
+                    : 'calc(100% - 8px)',
+                  height: videoAspectRatio ? 'auto' : 'calc(100% - 16px)',
                   aspectRatio: (() => {
                     if (videoAspectRatio) return videoAspectRatio.toFixed(4);
                     if (sidebarCollapsed) return '16 / 9';
                     return 'auto';
                   })(),
-                  '@media (min-aspect-ratio: 1/1)': videoAspectRatio
-                    ? {
-                        height: 'calc(100% - 16px)',
-                        width: 'auto',
-                      }
-                    : {},
-                  '@media (max-aspect-ratio: 1/1)': videoAspectRatio
-                    ? {
-                        width: 'calc(100% - 8px)',
-                        height: 'auto',
-                      }
-                    : {},
                   position: 'relative',
                 }}
               >
@@ -1048,41 +1042,30 @@ function PlayerPageRefactored({
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'relative',
-                width: 'calc(100% - 260px)',
+                width: `calc(100% - ${SIDEBAR_WIDTH}px)`,
                 height: '100%',
-                minHeight: '400px',
+                minHeight: `${MIN_VIDEO_AREA_HEIGHT}px`,
                 justifyContent: 'center',
                 alignItems: 'center',
                 overflow: 'hidden',
                 zIndex: 0,
+                containerType: 'size',
               }}
             >
               <Box
                 sx={{
-                  width: videoAspectRatio ? 'fit-content' : '100%',
-                  height: videoAspectRatio ? 'fit-content' : '100%',
-                  maxWidth: 'calc(100% - 8px)',
-                  maxHeight: 'calc(100% - 16px)',
+                  width: videoAspectRatio
+                    ? getFittedWidth(videoAspectRatio)
+                    : '100%',
+                  height: videoAspectRatio ? 'auto' : '100%',
                   aspectRatio: (() => {
                     if (videoAspectRatio) return videoAspectRatio.toFixed(4);
                     if (sidebarCollapsed) return '16 / 9';
                     return 'auto';
                   })(),
-                  // Make it grow to fill available space while respecting aspect ratio
-                  '@media (min-aspect-ratio: 1/1)': videoAspectRatio
-                    ? {
-                        height: 'calc(100% - 16px)',
-                        width: 'auto',
-                      }
-                    : {},
-                  '@media (max-aspect-ratio: 1/1)': videoAspectRatio
-                    ? {
-                        width: 'calc(100% - 8px)',
-                        height: 'auto',
-                      }
-                    : {},
-                  backgroundColor: '#000',
                   position: 'relative',
+                  borderRadius: PLAYER_BORDER_RADIUS,
+                  overflow: 'hidden',
                   boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
                   margin: 1,
                   marginRight: 0,
@@ -1157,7 +1140,8 @@ function PlayerPageRefactored({
                         Ошибка Kodik
                       </Typography>
                       <Typography variant="body1" color="#bfbfbf">
-                        Не удалось получить ссылку на видео. Сервис недоступен или превышено время ожидания.
+                        Не удалось получить ссылку на видео. Сервис недоступен
+                        или превышено время ожидания.
                       </Typography>
                       <Box
                         component="button"
@@ -1252,7 +1236,7 @@ function PlayerPageRefactored({
           </Box>
 
           {/* Episode slider */}
-          <Box sx={{ position: 'relative', zIndex: 3 }}>
+          <Box sx={{ position: 'relative', zIndex: 3, flexShrink: 0 }}>
             <EpisodeSlider
               episodes={episodes}
               currentEpisodeIndex={currentEpisodeIndex}
