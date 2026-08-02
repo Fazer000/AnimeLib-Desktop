@@ -1,13 +1,37 @@
 /* eslint-disable no-console */
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useImperativeHandle,
+} from 'react';
 import { Box } from '@mui/material';
 import CustomToolbar from '../components/Toolbar';
 import { extractAuthToken, injectClickInterceptor } from '../scripts';
-import { WebViewManager, ScriptInjectionManager } from '../services/webview';
+import {
+  WebViewManager,
+  ScriptInjectionManager,
+  playerHistoryManager,
+} from '../services/webview';
+import { PLAYER_PROTOCOL_PREFIX } from '../../constants';
+
+export interface WebViewPageRef {
+  navigateTo: (url: string) => void;
+  goHome: () => void;
+  goBack: () => void;
+  getCurrentUrl: () => string;
+}
 
 interface WebViewProps {
   savedUrl: string;
   onPlayerButtonClick: (url: string, animeId?: string) => void;
+  // eslint-disable-next-line react/require-default-props
+  hidden?: boolean;
+  // eslint-disable-next-line react/require-default-props
+  pageRef?: React.Ref<WebViewPageRef>;
+  // eslint-disable-next-line react/require-default-props
+  onBeforeGoBack?: () => boolean;
 }
 
 /**
@@ -17,17 +41,20 @@ interface WebViewProps {
  * - WebViewManager for navigation and URL management
  * - ScriptInjectionManager for script injection
  */
-function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
+function WebViewRefactored({
+  savedUrl,
+  onPlayerButtonClick,
+  hidden = false,
+  pageRef,
+  onBeforeGoBack,
+}: WebViewProps) {
   const [currentUrl, setCurrentUrl] = useState(savedUrl);
   const [canGoBack, setCanGoBack] = useState(false);
-  const [canGoForward, setCanGoForward] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
 
   const webviewRef = useRef<any>(null);
   const webViewManagerRef = useRef<WebViewManager | null>(null);
   const scriptManagerRef = useRef<ScriptInjectionManager | null>(null);
-
-  // ==================== Manager Initialization ====================
 
   /**
    * Initialize managers when webview is ready
@@ -40,15 +67,12 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
     }
 
     try {
-      // Initialize WebViewManager
       const webViewManager = new WebViewManager(webview);
       webViewManagerRef.current = webViewManager;
 
-      // Subscribe to navigation state changes
       webViewManager.subscribe({
-        onNavigationStateChange: (back, forward) => {
+        onNavigationStateChange: (back) => {
           setCanGoBack(back);
-          setCanGoForward(forward);
         },
         onUrlChange: (url) => {
           console.log('[WebView] URL changed:', url);
@@ -61,11 +85,9 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
         },
       });
 
-      // Initialize ScriptInjectionManager
       const scriptManager = new ScriptInjectionManager(webview);
       scriptManagerRef.current = scriptManager;
 
-      // Register script injection callbacks
       scriptManager.registerCallback(() => {
         console.log('[WebView] Injecting click interceptor...');
         try {
@@ -117,8 +139,6 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
     }
   }, []);
 
-  // ==================== WebView Event Handlers ====================
-
   /**
    * Setup webview event listeners
    */
@@ -131,7 +151,6 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
 
     const handleDomReady = () => {
       console.log('[WebView] ===== DOM READY =====');
-      // Now webview is ready, update navigation state
       webViewManager.updateNavigationState();
     };
 
@@ -144,6 +163,12 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
     };
 
     const handleError = (e: any) => {
+      const failedUrl = String(e?.validatedURL || '');
+      if (failedUrl.startsWith(PLAYER_PROTOCOL_PREFIX)) {
+        console.log('[WebView] Player protocol navigation ignored');
+        return;
+      }
+
       console.error('[WebView] ===== WEBVIEW ERROR =====');
       console.error('[WebView] Error:', e);
       webViewManager.handleError(e);
@@ -161,7 +186,7 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
       console.log('[WebView] ===== WEBVIEW IN-PAGE NAVIGATION =====');
       console.log('[WebView] URL:', e.url);
 
-      webViewManager.handleNavigation(e.url);
+      webViewManager.handleNavigation(e.url, 'in-page');
       scriptManager.inject();
     };
 
@@ -181,7 +206,6 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
       webview.removeEventListener('did-navigate', handleNavigate);
       webview.removeEventListener('did-navigate-in-page', handleInPageNavigate);
 
-      // Очищаем ScriptInjectionManager
       if (scriptManager) {
         scriptManager.destroy();
       }
@@ -238,7 +262,6 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
    */
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // Only log auth-related messages
       if (event.data && event.data.type && event.data.type.includes('auth')) {
         console.log('[WebView] Auth-related message received:', event.data);
       }
@@ -267,19 +290,13 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
     return () => window.removeEventListener('message', handleMessage);
   }, [onPlayerButtonClick]);
 
-  // ==================== Navigation Handlers ====================
-
   const handleGoBack = useCallback(() => {
-    if (webViewManagerRef.current) {
-      webViewManagerRef.current.goBack();
+    if (onBeforeGoBack?.()) {
+      return;
     }
-  }, []);
 
-  const handleGoForward = useCallback(() => {
-    if (webViewManagerRef.current) {
-      webViewManagerRef.current.goForward();
-    }
-  }, []);
+    webViewManagerRef.current?.goBack();
+  }, [onBeforeGoBack]);
 
   const handleRefresh = useCallback(() => {
     if (webViewManagerRef.current) {
@@ -288,10 +305,33 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
   }, []);
 
   const handleHome = useCallback(() => {
-    if (webViewManagerRef.current) {
-      webViewManagerRef.current.navigateToHome();
-    }
+    playerHistoryManager.clear();
+    webViewManagerRef.current?.navigateToHome();
   }, []);
+
+  useImperativeHandle(
+    pageRef,
+    () => ({
+      navigateTo: (url: string) => {
+        webViewManagerRef.current?.navigateTo(url);
+        setCurrentUrl(url);
+      },
+      goHome: handleHome,
+      goBack: () => {
+        webViewManagerRef.current?.goBack();
+      },
+      getCurrentUrl: () => webViewManagerRef.current?.getTrackedUrl() ?? '',
+    }),
+    [handleHome],
+  );
+
+  useEffect(() => {
+    webViewManagerRef.current?.setAudioMuted(hidden);
+
+    if (!hidden) {
+      webViewManagerRef.current?.updateNavigationState();
+    }
+  }, [hidden]);
 
   const handleUrlChange = useCallback((newUrl: string) => {
     if (webViewManagerRef.current && newUrl.trim()) {
@@ -299,8 +339,6 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
       setCurrentUrl(newUrl.trim());
     }
   }, []);
-
-  // ==================== Window Controls ====================
 
   const handleWindowMinimize = useCallback(() => {
     if ((window as any).electron?.ipcRenderer) {
@@ -320,17 +358,14 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
     }
   }, []);
 
-  // ==================== Render ====================
-
+  // @ts-ignore
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <CustomToolbar
         onBack={handleGoBack}
-        onForward={handleGoForward}
         onRefresh={handleRefresh}
         onHome={handleHome}
         canGoBack={canGoBack}
-        canGoForward={canGoForward}
         showUrlInput={showUrlInput}
         currentUrl={currentUrl}
         onUrlChange={handleUrlChange}
@@ -343,7 +378,6 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
         height={32}
       />
 
-      {/* Padding for fixed toolbar */}
       <Box sx={{ flex: 1, position: 'relative', marginTop: '32px' }}>
         <webview
           ref={webviewRef}
@@ -352,21 +386,16 @@ function WebViewRefactored({ savedUrl, onPlayerButtonClick }: WebViewProps) {
             width: '100%',
             height: '100%',
             border: 'none',
-            // КРИТИЧНО: Отключаем композитинг для WebView
             transform: 'translateZ(0)',
             willChange: 'auto',
             backfaceVisibility: 'hidden',
-            // Улучшения для качества рендера
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
           }}
           // eslint-disable-next-line react/no-unknown-property
           allowpopups
-          // КРИТИЧНО для производительности
           // eslint-disable-next-line react/no-unknown-property
-          disablewebsecurity="true"
-          // eslint-disable-next-line react/no-unknown-property
-          nodeintegration="false"
+          disablewebsecurity
         />
       </Box>
     </Box>

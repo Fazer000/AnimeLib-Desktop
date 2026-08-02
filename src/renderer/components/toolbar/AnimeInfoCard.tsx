@@ -4,6 +4,7 @@ import { Box, Typography, CircularProgress } from '@mui/material';
 import { Star } from '@mui/icons-material';
 import { animeApi, AnimeInfo } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
+import { SIDEBAR_WIDTH_CSS } from '../../../constants';
 
 interface AnimeInfoCardProps {
   animeId: string;
@@ -12,6 +13,8 @@ interface AnimeInfoCardProps {
   onMouseLeave: () => void;
   // eslint-disable-next-line react/require-default-props
   sidebarCollapsed?: boolean;
+  // eslint-disable-next-line react/require-default-props
+  onClick?: () => void;
 }
 
 function AnimeInfoCard({
@@ -20,13 +23,14 @@ function AnimeInfoCard({
   onMouseEnter,
   onMouseLeave,
   sidebarCollapsed = false,
+  onClick,
 }: AnimeInfoCardProps) {
   const [animeInfo, setAnimeInfo] = useState<AnimeInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   const coverUrl = useImageWithReferer(animeInfo?.cover?.default);
 
-  const sidebarWidth = sidebarCollapsed ? 0 : 260;
+  const sidebarWidth = sidebarCollapsed ? '0px' : SIDEBAR_WIDTH_CSS;
 
   useEffect(() => {
     if (!isVisible || !animeId || animeInfo) return;
@@ -84,8 +88,6 @@ function AnimeInfoCard({
 
   return (
     <Box
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
       sx={{
         position: 'fixed',
         top: 50,
@@ -94,7 +96,7 @@ function AnimeInfoCard({
         zIndex: 9999,
         display: 'flex',
         justifyContent: 'center',
-        pointerEvents: 'auto',
+        pointerEvents: 'none',
         animation: 'fadeInDown 0.2s ease-out',
         '@keyframes fadeInDown': {
           '0%': {
@@ -109,14 +111,26 @@ function AnimeInfoCard({
       }}
     >
       <Box
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
         sx={{
           width: '90%',
           maxWidth: '900px',
+          pointerEvents: 'auto',
           backgroundColor: 'rgba(35, 34, 34, 0.66)',
           backdropFilter: 'blur(4px)',
           border: '1px solid rgba(24, 24, 24, 0.35)',
           borderRadius: 2,
           padding: 2,
+          cursor: onClick ? 'pointer' : 'default',
+          transition: 'background-color 0.2s ease, border-color 0.2s ease',
+          '&:hover': onClick
+            ? {
+                backgroundColor: 'rgba(45, 43, 43, 0.75)',
+                borderColor: 'rgba(124, 58, 237, 0.4)',
+              }
+            : undefined,
         }}
       >
         <Box sx={{ display: 'flex', gap: 3 }}>

@@ -99,7 +99,6 @@ function CommentEditorComponent({
   const [spoilerTitle, setSpoilerTitle] = useState('');
   const [editingSpoilerId, setEditingSpoilerId] = useState<string | null>(null);
 
-  // Мемоизируем конфигурацию расширений
   const extensions = useMemo(
     () => [
       StarterKit.configure({
@@ -117,7 +116,6 @@ function CommentEditorComponent({
     [],
   );
 
-  // Мемоизируем editorProps
   const editorProps = useMemo(
     () => ({
       attributes: {
@@ -156,7 +154,6 @@ function CommentEditorComponent({
     [theme.palette.customColors.dtPrimaryTextColor],
   );
 
-  // Создаем редактор
   const editor = useEditor({
     extensions,
     editorProps,
@@ -167,7 +164,6 @@ function CommentEditorComponent({
     if (editor && editingSpoilerId) {
       const title = spoilerTitle.trim() || 'спойлер';
 
-      // Находим и обновляем атрибут visibleText у конкретного спойлера
       const { state, view } = editor;
       const { tr } = state;
 
@@ -195,12 +191,10 @@ function CommentEditorComponent({
 
     const json = editor.getJSON();
 
-    // Check if editor is empty
     if (!json.content || json.content.length === 0) {
       return;
     }
 
-    // Check if only empty paragraphs
     const isEmpty = json.content.every(
       (node) =>
         node.type === 'paragraph' &&
@@ -248,7 +242,6 @@ function CommentEditorComponent({
         mb: 2.5,
       }}
     >
-      {/* Toolbar */}
       <Box
         sx={{
           display: 'flex',
@@ -303,7 +296,6 @@ function CommentEditorComponent({
             const { from, to } = editor.state.selection;
             const text = editor.state.doc.textBetween(from, to);
             if (text.trim()) {
-              // Создаем спойлер с названием по умолчанию
               editor.chain().focus().insertSpoilerInline('спойлер', text).run();
             }
           }}
@@ -314,10 +306,8 @@ function CommentEditorComponent({
         </MenuButton>
       </Box>
 
-      {/* Editor */}
       <EditorContent editor={editor} />
 
-      {/* Submit Button */}
       <Box
         sx={{
           padding: 1,
@@ -348,7 +338,6 @@ function CommentEditorComponent({
         </Button>
       </Box>
 
-      {/* Spoiler Dialog */}
       <Dialog
         open={spoilerDialogOpen}
         onClose={() => {

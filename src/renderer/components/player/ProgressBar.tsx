@@ -153,7 +153,6 @@ function ProgressBar({
       clearTimeout(thumbnailTimeoutRef.current);
     }
 
-    // 1. Точный кадр уже в кэше — показываем сразу без blur
     const exactCached = thumbnailManager.getExactCached(roundedTime);
     if (exactCached) {
       setThumbnailUrl(exactCached);
@@ -162,7 +161,6 @@ function ProgressBar({
       return;
     }
 
-    // 2. Ближайший кадр — показываем сразу с blur как placeholder
     const nearest = thumbnailManager.getNearestCached(roundedTime);
     if (nearest) {
       setThumbnailUrl(nearest);
@@ -173,7 +171,6 @@ function ProgressBar({
       setIsApproximate(false);
     }
 
-    // 3. Грузим точный кадр
     thumbnailTimeoutRef.current = setTimeout(() => {
       thumbnailManager
         .getThumbnail(roundedTime, 10)
@@ -203,7 +200,6 @@ function ProgressBar({
         alignItems: 'center',
       }}
     >
-      {/* Сегментированный прогресс-бар */}
       <Box
         sx={{
           position: 'absolute',
@@ -332,7 +328,6 @@ function ProgressBar({
         })}
       </Box>
 
-      {/* Слайдер для взаимодействия */}
       <Slider
         value={sliderValue}
         min={0}
@@ -444,7 +439,6 @@ function ProgressBar({
         />
       )}
 
-      {/* Thumbnail Preview или Tooltip */}
       {hoverTime !== null &&
         (thumbnailManager ? (
           <ThumbnailPreview

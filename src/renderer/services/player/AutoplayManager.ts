@@ -9,8 +9,8 @@ export interface LoadContext {
   isVoiceChange: boolean;
   isEpisodeChange: boolean;
   hasBookmark: boolean;
-  isFromHint: boolean; // Переключение через хинты (боковые кнопки)
-  currentTime?: number; // Сохраненное время для voice change
+  isFromHint: boolean;
+  currentTime?: number;
 }
 
 /**
@@ -32,7 +32,6 @@ export class AutoplayManager {
 
   private shouldAutoplayOnLoad: boolean = false;
 
-  // Event handlers
   private canPlayHandler: (() => void) | null = null;
 
   private endedHandler: (() => void) | null = null;
@@ -45,7 +44,7 @@ export class AutoplayManager {
    * Прикрепить видео элемент
    */
   attachVideo(video: HTMLVideoElement): void {
-    this.detachVideo(); // Очищаем предыдущий
+    this.detachVideo();
     this.videoElement = video;
     console.log('[AutoplayManager] Video element attached');
   }
@@ -89,13 +88,11 @@ export class AutoplayManager {
    * Проверить нужно ли автопроигрывание
    */
   private shouldAutoplay(): boolean {
-    // Не автопроигрываем на первой загрузке
     if (this.isFirstLoad) {
       console.log('[AutoplayManager] First load - skipping autoplay');
       return false;
     }
 
-    // Не автопроигрываем если ждём закладку
     if (this.hasBookmarkPending) {
       console.log('[AutoplayManager] Bookmark pending - skipping autoplay');
       return false;
@@ -110,26 +107,22 @@ export class AutoplayManager {
   determineAutoplay(context: LoadContext): boolean {
     console.log('[AutoplayManager] Determining autoplay:', context);
 
-    // Первая загрузка - никогда не автовоспроизводим
     if (this.isFirstLoad) {
       this.isFirstLoad = false;
       console.log('[AutoplayManager] First load - no autoplay');
       return false;
     }
 
-    // Закладка - всегда автовоспроизводим
     if (context.hasBookmark) {
       console.log('[AutoplayManager] Bookmark - autoplay enabled');
       return true;
     }
 
-    // Переключение через хинты - ВСЕГДА автовоспроизводим
     if (context.isFromHint) {
       console.log('[AutoplayManager] From hint - autoplay enabled');
       return true;
     }
 
-    // Смена озвучки - сохраняем состояние воспроизведения
     if (context.isVoiceChange) {
       console.log(
         '[AutoplayManager] Voice change - preserving play state:',
@@ -138,7 +131,6 @@ export class AutoplayManager {
       return context.currentTime !== undefined;
     }
 
-    // Все остальные случаи - без автовоспроизведения
     console.log('[AutoplayManager] Default - no autoplay');
     return false;
   }
@@ -152,18 +144,15 @@ export class AutoplayManager {
       return;
     }
 
-    // Очищаем предыдущий handler
     if (this.canPlayHandler) {
       this.videoElement.removeEventListener('canplay', this.canPlayHandler);
     }
 
-    // Если не нужно автовоспроизведение, выходим
     if (!this.shouldAutoplayOnLoad) {
       console.log('[AutoplayManager] Autoplay not requested for this load');
       return;
     }
 
-    // Создаём новый handler
     this.canPlayHandler = () => {
       if (!this.videoElement) {
         return;
@@ -171,7 +160,6 @@ export class AutoplayManager {
 
       console.log('[AutoplayManager] Video ready - starting autoplay');
 
-      // Небольшая задержка для уверенности что видео готово
       setTimeout(() => {
         if (!this.videoElement || !this.videoElement.paused) {
           console.log('[AutoplayManager] Video already playing');
@@ -209,12 +197,10 @@ export class AutoplayManager {
       return;
     }
 
-    // Очищаем предыдущий handler
     if (this.endedHandler) {
       this.videoElement.removeEventListener('ended', this.endedHandler);
     }
 
-    // Создаём новый handler
     this.endedHandler = () => {
       console.log(
         '[AutoplayManager] Video ended, autoplay enabled, checking for next episode',

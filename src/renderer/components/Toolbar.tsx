@@ -1,19 +1,21 @@
 /* eslint-disable react/prop-types, react/require-default-props */
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AppBar, Toolbar, Box } from '@mui/material';
 import NavigationButtons from './toolbar/NavigationButtons';
 import UrlBar from './toolbar/UrlBar';
 import WindowControls from './toolbar/WindowControls';
 import AnimeInfoCard from './toolbar/AnimeInfoCard';
 import SearchModal from './toolbar/SearchModal';
+import { buildAnimePageUrl } from '../utils/urlHelpers';
+import { SIDEBAR_WIDTH_CSS } from '../../constants';
+
+const ANIME_INFO_HIDE_DELAY = 3000;
 
 interface ToolbarProps {
   onBack?: () => void;
-  onForward?: () => void;
   onRefresh?: () => void;
   onHome?: () => void;
   canGoBack?: boolean;
-  canGoForward?: boolean;
 
   currentUrl?: string;
 
@@ -35,15 +37,15 @@ interface ToolbarProps {
   sidebarCollapsed?: boolean;
 
   onPlayerButtonClick?: (url: string, animeId?: string) => void;
+
+  onOpenAnimePage?: () => void;
 }
 
 function ToolbarRefactored({
   onBack,
-  onForward,
   onRefresh,
   onHome,
   canGoBack = false,
-  canGoForward = false,
 
   currentUrl = '',
 
@@ -65,11 +67,27 @@ function ToolbarRefactored({
   sidebarCollapsed = false,
 
   onPlayerButtonClick,
+
+  onOpenAnimePage,
 }: ToolbarProps) {
   const [showAnimeInfo, setShowAnimeInfo] = useState<boolean>(false);
   const [showSearchModal, setShowSearchModal] = useState<boolean>(false);
 
+  const hideAnimeInfoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const clearHideAnimeInfoTimer = useCallback(() => {
+    if (hideAnimeInfoTimerRef.current) {
+      clearTimeout(hideAnimeInfoTimerRef.current);
+      hideAnimeInfoTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => clearHideAnimeInfoTimer, [clearHideAnimeInfoTimer]);
+
   const handleShowAnimeInfo = () => {
+    clearHideAnimeInfoTimer();
     // eslint-disable-next-line no-console
     console.log('[Toolbar] Show anime info, animeId:', animeId);
     if (animeId) {
@@ -78,9 +96,13 @@ function ToolbarRefactored({
   };
 
   const handleHideAnimeInfo = () => {
-    // eslint-disable-next-line no-console
-    console.log('[Toolbar] Hide anime info');
-    setShowAnimeInfo(false);
+    clearHideAnimeInfoTimer();
+    hideAnimeInfoTimerRef.current = setTimeout(() => {
+      // eslint-disable-next-line no-console
+      console.log('[Toolbar] Hide anime info');
+      setShowAnimeInfo(false);
+      hideAnimeInfoTimerRef.current = null;
+    }, ANIME_INFO_HIDE_DELAY);
   };
 
   const handleOpenSearch = () => {
@@ -104,13 +126,7 @@ function ToolbarRefactored({
       openInPlayer,
     );
 
-    let baseUrl =
-      localStorage.getItem('animeLibUrl') || 'https://v3.animelib.org';
-    if (baseUrl.endsWith('/')) {
-      baseUrl = baseUrl.slice(0, -1);
-    }
-
-    const fullUrl = `${baseUrl}/ru/anime/${slugUrl}`;
+    const fullUrl = buildAnimePageUrl(slugUrl);
 
     // eslint-disable-next-line no-console
     console.log('[Toolbar] Navigating to:', fullUrl);
@@ -132,7 +148,7 @@ function ToolbarRefactored({
     }
   };
 
-  const sidebarWidth = sidebarCollapsed ? 0 : 260;
+  const sidebarWidth = sidebarCollapsed ? '0px' : SIDEBAR_WIDTH_CSS;
 
   return (
     <>
@@ -173,12 +189,10 @@ function ToolbarRefactored({
         >
           <NavigationButtons
             onBack={onBack}
-            onForward={onForward}
             onRefresh={onRefresh}
             onHome={onHome}
             onSearch={handleOpenSearch}
             canGoBack={canGoBack}
-            canGoForward={canGoForward}
           />
 
           {!isPlayerPage && (
@@ -209,10 +223,11 @@ function ToolbarRefactored({
             top: 32,
             left: 0,
             right: sidebarWidth,
-            height: 30,
+            height: 120,
             zIndex: 999,
             margin: '0 auto',
-            width: '60%',
+            width: '70%',
+            maxWidth: 1200,
             pointerEvents: 'auto',
           }}
         />
@@ -225,6 +240,7 @@ function ToolbarRefactored({
           onMouseEnter={handleShowAnimeInfo}
           onMouseLeave={handleHideAnimeInfo}
           sidebarCollapsed={sidebarCollapsed}
+          onClick={onOpenAnimePage}
         />
       )}
 

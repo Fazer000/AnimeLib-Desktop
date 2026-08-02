@@ -28,13 +28,12 @@ function WindowControls({
     WebkitAppRegion: 'no-drag' as const,
     appRegion: 'no-drag' as const,
     padding: 0.5,
-    minWidth: 24,
-    height: 24,
+    minWidth: 28,
+    height: 28,
   };
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-      {/* App version */}
       <Tooltip title={`${APP_NAME} v${APP_VERSION}`} arrow>
         <Typography
           sx={{
@@ -53,19 +52,19 @@ function WindowControls({
 
       {onMinimize && (
         <IconButton size="small" onClick={onMinimize} sx={buttonStyle}>
-          <Remove sx={{ fontSize: 16 }} />
+          <Remove sx={{ fontSize: 20 }} />
         </IconButton>
       )}
 
       {onMaximize && (
         <IconButton size="small" onClick={onMaximize} sx={buttonStyle}>
-          <Fullscreen sx={{ fontSize: 16 }} />
+          <Fullscreen sx={{ fontSize: 20 }} />
         </IconButton>
       )}
 
       {onClose && (
         <IconButton size="small" onClick={onClose} sx={buttonStyle}>
-          <Close sx={{ fontSize: 16 }} />
+          <Close sx={{ fontSize: 20 }} />
         </IconButton>
       )}
     </Box>

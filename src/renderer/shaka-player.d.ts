@@ -4,6 +4,42 @@ declare module 'shaka-player/dist/shaka-player.ui' {
       function installAll(): void;
     }
 
+    interface Request {
+      uris: string[];
+      allowCrossSiteCredentials: boolean;
+      headers: { [key: string]: string };
+      [key: string]: any;
+    }
+
+    interface Response {
+      uri: string;
+      status?: number;
+      headers: { [key: string]: string };
+      [key: string]: any;
+    }
+
+    interface NetworkingEngine {
+      registerRequestFilter(
+        filter: (type: number, request: Request) => Promise<any> | void,
+      ): any;
+      registerResponseFilter(
+        filter: (type: number, response: Response) => Promise<any> | void,
+      ): any;
+      unregisterRequestFilter(filter: (...args: any[]) => any): any;
+      unregisterResponseFilter(filter: (...args: any[]) => any): any;
+    }
+
+    interface Track {
+      active: boolean;
+      bandwidth: number;
+      height: number | null;
+      width: number | null;
+      id: number;
+      language: string;
+      type: string;
+      [key: string]: any;
+    }
+
     interface Player {
       attach(video: HTMLVideoElement): Promise<void>;
       load(uri: string): Promise<void>;
@@ -12,6 +48,10 @@ declare module 'shaka-player/dist/shaka-player.ui' {
       configure(config: any): void;
       addEventListener(type: string, listener: (event: any) => void): void;
       removeEventListener(type: string, listener: (event: any) => void): void;
+      getNetworkingEngine(): NetworkingEngine | null;
+      getVariantTracks(): Track[];
+      getStats(): any;
+      getBufferedInfo(): any;
     }
 
     interface PlayerConstructor {

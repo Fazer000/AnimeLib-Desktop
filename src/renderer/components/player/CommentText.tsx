@@ -35,14 +35,12 @@ function CommentText({ html }: CommentTextProps) {
         key += 1;
         const currentKey = key;
 
-        // Text node
         if (node.nodeType === Node.TEXT_NODE) {
           const text = node.textContent || '';
           if (text.trim() === '') return null;
           return <span key={currentKey}>{text}</span>;
         }
 
-        // Element node
         if (node.nodeType === Node.ELEMENT_NODE) {
           const element = node as HTMLElement;
           const children = Array.from(element.childNodes)
@@ -112,7 +110,6 @@ function CommentText({ html }: CommentTextProps) {
               return <br key={currentKey} />;
 
             case 'span':
-              // Check if it's an inline spoiler (new format from editor)
               if (element.hasAttribute('data-spoiler')) {
                 const spoilerText =
                   element.getAttribute('data-visible-text') || 'спойлер';
@@ -175,7 +172,6 @@ function CommentText({ html }: CommentTextProps) {
                 );
               }
 
-              // Check if it's an inline spoiler (old format from existing comments)
               if (
                 element.classList.contains('spoiler-node') &&
                 element.hasAttribute('data-spoiler-type')
@@ -184,7 +180,6 @@ function CommentText({ html }: CommentTextProps) {
                   element.getAttribute('data-spoiler-text') || 'спойлер';
                 const isRevealed = revealedSpoilers.has(currentKey);
 
-                // Find spoiler content
                 const spoilerContent = element.querySelector(
                   '.spoiler-node__text',
                 );
@@ -250,13 +245,11 @@ function CommentText({ html }: CommentTextProps) {
               return <span key={currentKey}>{children}</span>;
 
             case 'div':
-              // Check if it's a spoiler
               if (element.classList.contains('spoiler-node')) {
                 const spoilerText =
                   element.getAttribute('data-spoiler-text') || 'Спойлер';
                 const isRevealed = revealedSpoilers.has(currentKey);
 
-                // Find spoiler content
                 const spoilerContent = element.querySelector(
                   '.spoiler-node__text',
                 );
@@ -271,7 +264,6 @@ function CommentText({ html }: CommentTextProps) {
                       overflow: 'hidden',
                     }}
                   >
-                    {/* Spoiler header */}
                     <Box
                       onClick={() => {
                         setRevealedSpoilers((prev) => {
@@ -325,7 +317,6 @@ function CommentText({ html }: CommentTextProps) {
                       </Typography>
                     </Box>
 
-                    {/* Spoiler content */}
                     {isRevealed && (
                       <Box
                         sx={{

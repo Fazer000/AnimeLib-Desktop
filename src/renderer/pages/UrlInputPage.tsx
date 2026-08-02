@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Box, Typography, TextField, Button, Fade } from '@mui/material';
 import iconSvg from '../../../assets/icon.svg';
+import { DEFAULT_SITE_URL } from '../utils/urlHelpers';
 
 interface UrlInputProps {
   onSubmit: (url: string) => void;
 }
 
 function UrlInputPage({ onSubmit }: UrlInputProps) {
-  const [url, setUrl] = useState<string>('https://v3.animelib.org');
+  const [url, setUrl] = useState<string>(DEFAULT_SITE_URL);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,7 +70,6 @@ function UrlInputPage({ onSubmit }: UrlInputProps) {
             gap: 30,
           }}
         >
-          {/* Logo Section - Left */}
           <Box
             sx={{
               flex: '0 0 auto',
@@ -88,7 +88,6 @@ function UrlInputPage({ onSubmit }: UrlInputProps) {
             />
           </Box>
 
-          {/* Form Card - Right */}
           <Box
             sx={{
               flex: 1,
@@ -130,7 +129,7 @@ function UrlInputPage({ onSubmit }: UrlInputProps) {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 disabled={isLoading}
-                placeholder="https://v3.animelib.org"
+                placeholder={DEFAULT_SITE_URL}
                 sx={{
                   mb: 3,
                   '& .MuiOutlinedInput-root': {

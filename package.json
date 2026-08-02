@@ -1,6 +1,6 @@
 {
   "name": "animelib-desktop",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "AnimeLib Desktop - Desktop anime player",
   "keywords": [
     "electron",
@@ -251,7 +251,7 @@
       "uninstallerIcon": "assets/icon.ico",
       "installerHeaderIcon": "assets/icon.ico",
       "deleteAppDataOnUninstall": false,
-      "perMachine": true,
+      "perMachine": false,
       "runAfterFinish": true,
       "menuCategory": false,
       "license": "LICENSE",

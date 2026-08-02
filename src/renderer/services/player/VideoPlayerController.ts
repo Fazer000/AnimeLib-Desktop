@@ -6,6 +6,7 @@ import { QualityManager } from './QualityManager';
 import { KeyboardManager } from './KeyboardManager';
 import ThumbnailManager from './ThumbnailManager';
 import { AutoplayManager } from './AutoplayManager';
+import { WatchStatsManager } from './WatchStatsManager';
 
 export interface VideoPlayerControllerConfig {
   onError?: (error: string) => void;
@@ -13,19 +14,21 @@ export interface VideoPlayerControllerConfig {
   onStateChange?: (state: any) => void;
   onQualityOptionsChange?: (options: any[]) => void;
   onSelectedQualityChange?: (quality: string) => void;
-  onKeyPress?: () => void; // Callback when hotkey is pressed
-  onSkipForward?: (seconds: number) => void; // Custom skip forward
-  skipTime?: number; // Custom skip time in seconds
-  onToggleEpisodes?: () => void; // Toggle episodes list
-  autoplayManager?: AutoplayManager; // AutoplayManager для управления автовоспроизведением
+  onKeyPress?: () => void;
+  onPlayPause?: () => void;
+  onSkipForward?: (seconds: number) => void;
+  skipTime?: number;
+  onToggleEpisodes?: () => void;
+  autoplayManager?: AutoplayManager;
 }
 
 export interface PlayerLoadOptions {
+  animeId?: number;
   player: Player;
   kodikLinks?: KodikVideoLinks | null;
   initialTimecode?: number;
-  isFromHint?: boolean; // Переключение эпизода через хинты (боковые кнопки)
-  episodeId?: number; // ID эпизода для определения episode change
+  isFromHint?: boolean;
+  episodeId?: number;
 }
 
 /**
@@ -53,7 +56,6 @@ export class VideoPlayerController {
 
   private currentPlayerData: PlayerLoadOptions | null = null;
 
-  // State tracking for voice/episode changes
   private isInitialLoad: boolean = true;
 
   private lastLoadedPlayer: Player | null = null;
@@ -64,17 +66,24 @@ export class VideoPlayerController {
 
   private shouldAutoPlay: boolean = false;
 
+  private isNetworkBuffering: boolean = false;
+
+  private lastEmittedBuffering: boolean = false;
+
+  private watchStatsManager: WatchStatsManager = new WatchStatsManager();
+
   constructor(config: VideoPlayerControllerConfig = {}) {
     this.config = config;
 
-    // Initialize managers
     this.shakaManager = new ShakaPlayerManager({
       onError: config.onError,
       onLoadingChange: config.onLoadingChange,
+      onBufferingChange: (isBuffering) =>
+        this.handleNetworkBuffering(isBuffering),
     });
 
     this.stateManager = new VideoStateManager({
-      onStateChange: config.onStateChange,
+      onStateChange: (updates) => this.handleStateManagerUpdate(updates),
     });
 
     this.qualityManager = new QualityManager({
@@ -83,7 +92,10 @@ export class VideoPlayerController {
     });
 
     this.keyboardManager = new KeyboardManager({
-      onPlayPause: () => this.stateManager.togglePlay(),
+      onPlayPause: () => {
+        this.config.onPlayPause?.();
+        this.stateManager.togglePlay();
+      },
       onSeek: (seconds) => this.stateManager.skip(seconds),
       onSeekToPercent: (percent) => this.stateManager.seekToPercent(percent),
       onVolumeChange: (delta) => {
@@ -97,13 +109,56 @@ export class VideoPlayerController {
         const newRate = this.stateManager.getState().playbackRate + delta;
         this.stateManager.setPlaybackRate(newRate);
       },
-      onSkipForward: config.onSkipForward, // Custom skip forward
-      skipTime: config.skipTime, // Custom skip time
-      onKeyPress: config.onKeyPress, // Pass the callback through
-      onToggleEpisodes: config.onToggleEpisodes, // Toggle episodes list
+      onSkipForward: config.onSkipForward,
+      skipTime: config.skipTime,
+      onKeyPress: config.onKeyPress,
+      onToggleEpisodes: config.onToggleEpisodes,
     });
 
     this.thumbnailManager = new ThumbnailManager();
+  }
+
+  /**
+   * Считает итоговую буферизацию: сетевая учитывается только при воспроизведении
+   */
+  private computeBuffering(): boolean {
+    const state = this.stateManager.getState();
+    return state.isBuffering || (this.isNetworkBuffering && state.isPlaying);
+  }
+
+  /**
+   * Объединяет буферизацию медиаэлемента и потока в единый флаг состояния
+   */
+  private handleStateManagerUpdate(updates: any): void {
+    if (updates.currentTime !== undefined) {
+      const state = this.stateManager.getState();
+      this.watchStatsManager.updateProgress(state.currentTime, state.duration);
+    }
+
+    if (updates.isBuffering === undefined && updates.isPlaying === undefined) {
+      this.config.onStateChange?.(updates);
+      return;
+    }
+
+    const effective = this.computeBuffering();
+    this.lastEmittedBuffering = effective;
+
+    this.config.onStateChange?.({ ...updates, isBuffering: effective });
+  }
+
+  /**
+   * Обрабатывает сигнал буферизации от Shaka Player
+   */
+  private handleNetworkBuffering(isBuffering: boolean): void {
+    this.isNetworkBuffering = isBuffering;
+
+    const effective = this.computeBuffering();
+    if (effective === this.lastEmittedBuffering) {
+      return;
+    }
+
+    this.lastEmittedBuffering = effective;
+    this.config.onStateChange?.({ isBuffering: effective });
   }
 
   /**
@@ -121,16 +176,13 @@ export class VideoPlayerController {
     this.videoElement = videoElement;
     this.containerElement = containerElement;
 
-    // Initialize Shaka Player
     const success = await this.shakaManager.initialize(videoElement);
     if (!success) {
       return false;
     }
 
-    // Attach state manager
     this.stateManager.attach(videoElement);
 
-    // Enable keyboard controls
     this.keyboardManager.enable();
 
     this.isInitialized = true;
@@ -153,8 +205,6 @@ export class VideoPlayerController {
       options.player.player,
     );
 
-    // Определяем контекст загрузки
-    // Voice change = тот же плеер И тот же эпизод
     const isSamePlayer =
       this.lastLoadedPlayer !== null &&
       this.lastLoadedPlayer.id === options.player.id;
@@ -165,7 +215,6 @@ export class VideoPlayerController {
 
     const isVoiceChange = !this.isInitialLoad && isSamePlayer && isSameEpisode;
 
-    // Episode change = не первая загрузка и не voice change
     const isEpisodeChange = !this.isInitialLoad && !isVoiceChange;
 
     const hasBookmark =
@@ -185,14 +234,12 @@ export class VideoPlayerController {
       isSameEpisode,
     });
 
-    // Получаем текущее время для voice change
     let currentTime: number | undefined;
     if (isVoiceChange && this.videoElement) {
       const state = this.stateManager.getState();
       currentTime = state.isPlaying ? state.currentTime : undefined;
     }
 
-    // Создаём контекст загрузки для AutoplayManager
     const loadContext = {
       isVoiceChange,
       isEpisodeChange,
@@ -201,14 +248,11 @@ export class VideoPlayerController {
       currentTime,
     };
 
-    // Определяем автовоспроизведение через AutoplayManager
     this.shouldAutoPlay =
       this.config.autoplayManager?.determineAutoplay(loadContext) || false;
 
-    // Устанавливаем флаг автовоспроизведения в AutoplayManager
     this.config.autoplayManager?.setShouldAutoplayOnLoad(this.shouldAutoPlay);
 
-    // Обрабатываем сохранённое время
     if (hasBookmark) {
       console.log(
         '[VideoPlayerController] Bookmark timecode provided:',
@@ -226,23 +270,24 @@ export class VideoPlayerController {
       this.isInitialLoad = false;
     }
 
-    // Stop current playback
     if (this.videoElement && !this.videoElement.paused) {
       this.videoElement.pause();
     }
 
-    // Set new player data
     this.currentPlayerData = options;
     this.lastLoadedPlayer = options.player;
     this.lastEpisodeId = options.episodeId || null;
 
-    // Create quality options
+    this.watchStatsManager.setContext(
+      options.animeId ?? null,
+      options.player.id,
+    );
+
     this.qualityManager.createQualityOptions(
       options.player,
       options.kodikLinks,
     );
 
-    // Load video with best quality
     await this.loadCurrentQuality();
   }
 
@@ -256,24 +301,20 @@ export class VideoPlayerController {
       return;
     }
 
-    // Reset state if not restoring
     if (this.savedTime === 0) {
       this.stateManager.reset();
     }
 
-    // Load video
-    await this.shakaManager.loadVideo(
+    const loaded = await this.shakaManager.loadVideo(
       qualityOption,
       this.savedTime > 0 ? this.savedTime : undefined,
       this.shouldAutoPlay,
     );
 
-    // Загрузка видео источника для thumbnail manager
-    if (this.videoElement?.src) {
+    if (loaded && this.videoElement?.src) {
       this.thumbnailManager.loadVideo(this.videoElement.src);
     }
 
-    // Reset saved state
     this.savedTime = 0;
     this.shouldAutoPlay = false;
   }
@@ -284,23 +325,19 @@ export class VideoPlayerController {
   async changeQuality(quality: string): Promise<void> {
     console.log('[VideoPlayerController] Changing quality to:', quality);
 
-    // Save current state
     const state = this.stateManager.getState();
     const savedTime = state.currentTime || 0;
     const wasPlaying = state.isPlaying;
 
-    // Set new quality
     if (!this.qualityManager.setSelectedQuality(quality)) {
       return;
     }
 
-    // Get new quality option
     const qualityOption = this.qualityManager.getSelectedQualityOption();
     if (!qualityOption) {
       return;
     }
 
-    // Load new quality with saved state
     await this.shakaManager.loadVideo(qualityOption, savedTime, wasPlaying);
   }
 
@@ -310,20 +347,22 @@ export class VideoPlayerController {
   clearPlayer(): void {
     console.log('[VideoPlayerController] Clearing player');
 
+    this.shakaManager.cancelLoad();
+
     this.isInitialLoad = true;
     this.savedTime = 0;
     this.shouldAutoPlay = false;
+    this.isNetworkBuffering = false;
+    this.lastEmittedBuffering = false;
+    this.watchStatsManager.reset();
     this.currentPlayerData = null;
 
-    // Stop playback
     if (this.videoElement && !this.videoElement.paused) {
       this.videoElement.pause();
     }
 
-    // Clear thumbnail cache
     this.thumbnailManager.clearCache();
 
-    // Reset managers
     this.stateManager.reset();
     this.qualityManager.reset();
   }
@@ -336,10 +375,8 @@ export class VideoPlayerController {
 
     this.clearPlayer();
 
-    // Unload Shaka Player
     await this.shakaManager.unload();
 
-    // Clear video source
     if (this.videoElement) {
       this.videoElement.src = '';
       this.videoElement.load();
@@ -430,16 +467,12 @@ export class VideoPlayerController {
   async destroy(): Promise<void> {
     console.log('[VideoPlayerController] Destroying controller');
 
-    // Disable keyboard
     this.keyboardManager.disable();
 
-    // Detach state manager
     this.stateManager.detach();
 
-    // Destroy thumbnail manager
     this.thumbnailManager.destroy();
 
-    // Destroy Shaka Player
     await this.shakaManager.destroy();
 
     this.isInitialized = false;

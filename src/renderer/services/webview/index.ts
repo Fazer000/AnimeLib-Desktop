@@ -11,3 +11,15 @@ export type {
   InjectionCallback,
   ScriptInjectionConfig,
 } from './ScriptInjectionManager';
+
+export { NavigationHistoryTracker } from './NavigationHistoryTracker';
+export type {
+  NavigationSource,
+  NavigationRecord,
+} from './NavigationHistoryTracker';
+
+export {
+  PlayerHistoryManager,
+  playerHistoryManager,
+} from './PlayerHistoryManager';
+export type { PlayerHistoryEntry } from './PlayerHistoryManager';

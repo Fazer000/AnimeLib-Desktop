@@ -5,19 +5,16 @@ export const clickInterceptorScript = `
   console.log('[AnimeLIB] ===== SIMPLE CLICK INTERCEPTOR =====');
 
   try {
-    // Перехватчик кликов с проверкой на драг
     var isDragging = false;
     var dragStartTime = 0;
     var dragStartPosition = { x: 0, y: 0 };
 
-    // Отслеживаем начало драга
     document.addEventListener('mousedown', function(e) {
       isDragging = false;
       dragStartTime = Date.now();
       dragStartPosition = { x: e.clientX, y: e.clientY };
     });
 
-    // Отслеживаем движение мыши
     document.addEventListener('mousemove', function(e) {
       if (dragStartTime > 0) {
         var distance = Math.sqrt(
@@ -25,39 +22,32 @@ export const clickInterceptorScript = `
           Math.pow(e.clientY - dragStartPosition.y, 2)
         );
 
-        // Если мышь переместилась больше чем на 5 пикселей, считаем это драгом
         if (distance > 5) {
           isDragging = true;
         }
       }
     });
 
-    // Отслеживаем отпускание мыши
     document.addEventListener('mouseup', function() {
-      // Сбрасываем состояние драга через небольшую задержку
       setTimeout(function() {
         isDragging = false;
         dragStartTime = 0;
       }, 100);
     });
 
-    // Основной перехватчик кликов
     document.addEventListener('click', function(e) {
       console.log('[AnimeLIB] Click detected on:', e.target.tagName);
       console.log('[AnimeLIB] Is dragging:', isDragging);
 
-      // Если это был драг, игнорируем клик
       if (isDragging) {
         console.log('[AnimeLIB] Ignoring click - was dragging');
         return;
       }
 
-      // Проверяем сам элемент и его родителей
       var element = e.target;
       for (var i = 0; i < 10; i++) {
         if (!element) break;
 
-        // Проверяем кнопки с текстом "Лицензирован"
         if (element.tagName === 'BUTTON') {
           var buttonText = element.textContent || element.innerText || '';
           console.log('[AnimeLIB] Button text:', buttonText);
@@ -69,7 +59,6 @@ export const clickInterceptorScript = `
             e.preventDefault();
             e.stopPropagation();
 
-            // Отправляем событие через postMessage
             try {
               console.log('[AnimeLIB] Sending postMessage...');
               window.parent.postMessage({
@@ -78,7 +67,6 @@ export const clickInterceptorScript = `
               }, '*');
               console.log('[AnimeLIB] PostMessage sent successfully');
 
-              // Дополнительно пытаемся через изменение URL
               console.log('[AnimeLIB] Trying URL change method...');
               window.location.href = 'anime-lib-player://' + encodeURIComponent(window.location.href);
               console.log('[AnimeLIB] URL change attempted');
@@ -90,7 +78,6 @@ export const clickInterceptorScript = `
           }
         }
 
-        // Проверяем ссылки
         if (element.tagName === 'A' && element.href) {
           var href = element.href;
           console.log('[AnimeLIB] Link found:', href);
@@ -102,7 +89,6 @@ export const clickInterceptorScript = `
             e.preventDefault();
             e.stopPropagation();
 
-            // Отправляем событие через postMessage
             try {
               console.log('[AnimeLIB] Sending postMessage...');
               window.parent.postMessage({
@@ -111,7 +97,6 @@ export const clickInterceptorScript = `
               }, '*');
               console.log('[AnimeLIB] PostMessage sent successfully');
 
-              // Дополнительно пытаемся через изменение URL
               console.log('[AnimeLIB] Trying URL change method...');
               window.location.href = 'anime-lib-player://' + encodeURIComponent(href);
               console.log('[AnimeLIB] URL change attempted');
@@ -123,7 +108,6 @@ export const clickInterceptorScript = `
           }
         }
 
-        // Проверяем data-атрибуты
         var dataUrl = element.getAttribute('data-url') || element.getAttribute('data-href');
         if (dataUrl && (dataUrl.indexOf('/watch') !== -1 || dataUrl.indexOf('episode') !== -1)) {
           console.log('[AnimeLIB] ===== PLAYER DATA CLICKED =====');
@@ -160,7 +144,6 @@ export const clickInterceptorScript = `
  * Инжектирует скрипт перехвата кликов в WebView
  */
 export function injectClickInterceptor(webview: any): Promise<void> {
-  // Check if webview is ready
   if (!webview) {
     // eslint-disable-next-line no-console
     console.error('[AnimeLIB] Cannot inject script: webview is null');
@@ -168,7 +151,6 @@ export function injectClickInterceptor(webview: any): Promise<void> {
   }
 
   try {
-    // Check if webview has executeJavaScript method
     if (!webview.executeJavaScript) {
       // eslint-disable-next-line no-console
       console.error(
@@ -177,7 +159,6 @@ export function injectClickInterceptor(webview: any): Promise<void> {
       return Promise.reject(new Error('executeJavaScript not available'));
     }
 
-    // Таймаут для executeJavaScript (5 секунд)
     const executeWithTimeout = Promise.race([
       webview.executeJavaScript(clickInterceptorScript),
       new Promise((resolve, reject) => {
@@ -194,7 +175,6 @@ export function injectClickInterceptor(webview: any): Promise<void> {
         return undefined;
       })
       .catch((err: any) => {
-        // Тихая обработка ошибок - не спамим консоль
         if (err.message !== 'Timeout') {
           // eslint-disable-next-line no-console
           console.warn(
@@ -202,7 +182,6 @@ export function injectClickInterceptor(webview: any): Promise<void> {
             err.message,
           );
         }
-        // НЕ throw err - просто игнорируем ошибку
       });
   } catch (error) {
     // eslint-disable-next-line no-console

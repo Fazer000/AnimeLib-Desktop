@@ -12,7 +12,7 @@ import Comments from './Comments';
 
 interface CommentsSectionProps {
   episodeId: number;
-  scrollContainerId: string; // ID родительского скролл-контейнера
+  scrollContainerId: string;
 }
 
 /**
@@ -41,7 +41,6 @@ const CommentsSection = memo(
     useEffect(() => {
       if (!commentsContainerRef.current) return undefined;
 
-      // Получаем корневой элемент для наблюдения
       const rootElement = scrollContainerId
         ? document.getElementById(scrollContainerId)
         : null;
@@ -69,8 +68,8 @@ const CommentsSection = memo(
           });
         },
         {
-          root: rootElement, // Используем кастомный контейнер или viewport
-          rootMargin: '300px', // Загружаем за 300px до видимости
+          root: rootElement,
+          rootMargin: '300px',
           threshold: 0,
         },
       );
@@ -124,7 +123,6 @@ const CommentsSection = memo(
               Комментарии
             </Typography>
 
-            {/* Sort selector */}
             <Box
               sx={{
                 display: 'flex',

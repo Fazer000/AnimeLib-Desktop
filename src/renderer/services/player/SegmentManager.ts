@@ -28,9 +28,9 @@ export class SegmentManager {
 
   private settings: SegmentSettings;
 
-  private skippedSegments: Set<string> = new Set(); // Треккинг пропущенных сегментов
+  private skippedSegments: Set<string> = new Set();
 
-  private videoDuration: number = 0; // Длительность видео для защиты от перемотки за границы
+  private videoDuration: number = 0;
 
   private onSegmentChange?: (segment: TimeCodeSegment | null) => void;
 
@@ -43,7 +43,6 @@ export class SegmentManager {
     this.onSegmentChange = callbacks?.onSegmentChange;
     this.onSkipSegment = callbacks?.onSkipSegment;
 
-    // Загружаем настройки из localStorage
     this.settings = SegmentManager.loadSettings();
   }
 
@@ -80,7 +79,7 @@ export class SegmentManager {
    */
   setSegments(segments: TimeCodeSegment[]): void {
     this.segments = segments;
-    this.skippedSegments.clear(); // Очищаем историю при смене сегментов
+    this.skippedSegments.clear();
     console.log('[SegmentManager] Segments set:', segments.length);
   }
 
@@ -88,7 +87,6 @@ export class SegmentManager {
    * Установить длительность видео
    */
   setDuration(duration: number): void {
-    // Если duration изменился (новое видео/эпизод), очищаем историю пропусков
     if (this.videoDuration !== duration && duration > 0) {
       this.skippedSegments.clear();
       console.log('[SegmentManager] Duration changed, cleared skip history');
@@ -108,21 +106,17 @@ export class SegmentManager {
       return;
     }
 
-    // Находим активный сегмент
     const activeSegment = this.segments.find(
       (segment) => currentTime >= segment.from && currentTime <= segment.to,
     );
 
-    // Обновляем только если изменился
     if (activeSegment !== this.currentSegment) {
       this.currentSegment = activeSegment || null;
       this.onSegmentChange?.(this.currentSegment);
 
-      // Проверяем автопропуск
       if (this.currentSegment && this.shouldAutoSkip(this.currentSegment)) {
         const segmentKey = `${this.currentSegment.from}-${this.currentSegment.to}-${this.currentSegment.type}`;
 
-        // Пропускаем только если еще не пропускали этот сегмент
         if (!this.skippedSegments.has(segmentKey)) {
           console.log(
             `[SegmentManager] Auto-skipping ${this.currentSegment.type} segment`,
@@ -186,9 +180,7 @@ export class SegmentManager {
 
     let skipToTime = this.currentSegment.to + 1;
 
-    // Защита: если сегмент идёт до конца видео (эндинг обычно)
     if (this.videoDuration > 0 && skipToTime >= this.videoDuration) {
-      // Перематываем на время чуть меньше конца, чтобы autoplay мог сработать
       skipToTime = this.videoDuration - 0.5;
       console.log(
         `[SegmentManager] Segment goes to end, skipping to ${skipToTime} (near end)`,

@@ -47,7 +47,6 @@ export const authExtractorScript = `
  * Извлекает токен аутентификации из WebView
  */
 export function extractAuthToken(webview: any): Promise<any> {
-  // Check if webview is ready
   if (!webview) {
     // eslint-disable-next-line no-console
     console.error('[AnimeLIB] Cannot extract token: webview is null');
@@ -55,7 +54,6 @@ export function extractAuthToken(webview: any): Promise<any> {
   }
 
   try {
-    // Check if webview has executeJavaScript method
     if (!webview.executeJavaScript) {
       // eslint-disable-next-line no-console
       console.error(
@@ -64,7 +62,6 @@ export function extractAuthToken(webview: any): Promise<any> {
       return Promise.reject(new Error('executeJavaScript not available'));
     }
 
-    // Таймаут для executeJavaScript (5 секунд)
     const executeWithTimeout = Promise.race([
       webview.executeJavaScript(authExtractorScript),
       new Promise((resolve, reject) => {
@@ -75,14 +72,12 @@ export function extractAuthToken(webview: any): Promise<any> {
     return executeWithTimeout
       .then((result: any) => {
         if (result && result.success && result.token) {
-          // Сохраняем токен
           try {
             localStorage.setItem(
               'animeLibAuthToken',
               JSON.stringify(result.token),
             );
 
-            // Проверяем сохранение
             const saved = localStorage.getItem('animeLibAuthToken');
             if (!saved) {
               // eslint-disable-next-line no-console
@@ -99,12 +94,10 @@ export function extractAuthToken(webview: any): Promise<any> {
         return result;
       })
       .catch((err: any) => {
-        // Тихая обработка ошибок - не спамим консоль
         if (err.message !== 'Timeout') {
           // eslint-disable-next-line no-console
           console.warn('[AnimeLIB] Auth extraction skipped:', err.message);
         }
-        // НЕ throw err - просто игнорируем ошибку
       });
   } catch (error) {
     // eslint-disable-next-line no-console

@@ -10,15 +10,16 @@ import {
 import {
   ArrowBackRounded,
   CheckRounded,
-  HdOutlined,
-  SdOutlined,
-  FourKOutlined,
+  HighQualityOutlined,
   SpeedOutlined,
   FastForwardOutlined,
   SkipNextOutlined,
 } from '@mui/icons-material';
 import { SkipManager } from '../../services/player';
-import { getQualityLevel } from '../../utils/videoHelpers';
+import {
+  getQualityTagColor,
+  getQualityTagFromResolution,
+} from '../../utils/videoHelpers';
 
 interface SettingsMenuProps {
   anchorEl: HTMLElement | null;
@@ -98,18 +99,10 @@ function SettingsMenu({
     setCurrentPage('main');
   };
 
-  const getQualityIcon = (quality: string) => {
-    const level = getQualityLevel(quality);
-    if (level === '4K') return FourKOutlined;
-    if (level === 'HD') return HdOutlined;
-    return SdOutlined;
-  };
-
   if (!anchorEl) return null;
 
   return (
     <>
-      {/* Backdrop */}
       <Box
         sx={{
           position: 'absolute',
@@ -126,7 +119,6 @@ function SettingsMenu({
         }}
       />
 
-      {/* Menu */}
       <Box
         sx={{
           position: 'absolute',
@@ -157,10 +149,8 @@ function SettingsMenu({
         }}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
-        {/* Main Page */}
         {currentPage === 'main' && (
           <Box>
-            {/* Quality */}
             <MenuItem
               onClick={(e) => {
                 e.stopPropagation();
@@ -186,7 +176,7 @@ function SettingsMenu({
                   gap: 1,
                 }}
               >
-                <HdOutlined sx={{ fontSize: 18, color: '#7C3AED' }} />
+                <HighQualityOutlined sx={{ fontSize: 18, color: '#7C3AED' }} />
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     Качество
@@ -211,7 +201,6 @@ function SettingsMenu({
               </Box>
             </MenuItem>
 
-            {/* Speed */}
             <MenuItem
               onClick={(e) => {
                 e.stopPropagation();
@@ -260,7 +249,6 @@ function SettingsMenu({
                 </Typography>
               </Box>
             </MenuItem>
-            {/* Skip */}
             <MenuItem
               onClick={(e) => {
                 e.stopPropagation();
@@ -310,7 +298,6 @@ function SettingsMenu({
               </Box>
             </MenuItem>
 
-            {/* Auto Skip */}
             <MenuItem
               onClick={(e) => {
                 e.stopPropagation();
@@ -363,7 +350,6 @@ function SettingsMenu({
 
             <Divider />
 
-            {/* Autoplay */}
             <MenuItem
               onClick={(e) => {
                 e.stopPropagation();
@@ -425,7 +411,6 @@ function SettingsMenu({
               </Box>
             </MenuItem>
 
-            {/* Ambient Light */}
             <MenuItem
               onClick={(e) => {
                 e.stopPropagation();
@@ -489,7 +474,6 @@ function SettingsMenu({
           </Box>
         )}
 
-        {/* Quality Page */}
         {currentPage === 'quality' && (
           <Box>
             <Box
@@ -565,16 +549,27 @@ function SettingsMenu({
                     gap: 1,
                   }}
                 >
-                  {React.createElement(getQualityIcon(option.value), {
-                    sx: {
-                      fontSize: 18,
-                      color:
-                        option.value === selectedQuality
-                          ? '#BB86FC'
-                          : '#7C3AED',
-                      opacity: 0.7,
-                    },
-                  })}
+                  {(() => {
+                    const tag = getQualityTagFromResolution(option.value);
+                    const tagColor = getQualityTagColor(tag);
+                    return (
+                      <Box
+                        sx={{
+                          minWidth: 36,
+                          textAlign: 'center',
+                          px: 0.75,
+                          py: '2px',
+                          borderRadius: 1,
+                          fontSize: '0.625rem',
+                          fontWeight: 700,
+                          color: tagColor,
+                          border: `1px solid ${tagColor}59`,
+                        }}
+                      >
+                        {tag}
+                      </Box>
+                    );
+                  })()}
                   <Typography
                     variant="body2"
                     sx={{
@@ -593,7 +588,6 @@ function SettingsMenu({
           </Box>
         )}
 
-        {/* Speed Page */}
         {currentPage === 'speed' && (
           <Box>
             <Box
@@ -694,7 +688,6 @@ function SettingsMenu({
           </Box>
         )}
 
-        {/* Skip Page */}
         {currentPage === 'skip' && (
           <Box>
             <Box
@@ -738,7 +731,6 @@ function SettingsMenu({
               </Typography>
             </Box>
 
-            {/* Minutes */}
             <Box
               sx={{
                 px: 1.5,
@@ -802,7 +794,6 @@ function SettingsMenu({
               </Box>
             </Box>
 
-            {/* Seconds */}
             <Box sx={{ px: 1.5, py: 0.5 }}>
               <Typography
                 variant="caption"
@@ -860,7 +851,6 @@ function SettingsMenu({
               </Box>
             </Box>
 
-            {/* Current value */}
             <Box
               sx={{
                 mx: 1.5,
@@ -886,7 +876,6 @@ function SettingsMenu({
           </Box>
         )}
 
-        {/* Auto Skip Page */}
         {currentPage === 'autoSkip' && (
           <Box>
             <Box
@@ -930,7 +919,6 @@ function SettingsMenu({
               </Typography>
             </Box>
 
-            {/* Skip Openings */}
             <MenuItem
               onClick={(e) => {
                 e.stopPropagation();
@@ -997,7 +985,6 @@ function SettingsMenu({
               </Box>
             </MenuItem>
 
-            {/* Skip Endings */}
             <MenuItem
               onClick={(e) => {
                 e.stopPropagation();
@@ -1064,7 +1051,6 @@ function SettingsMenu({
               </Box>
             </MenuItem>
 
-            {/* Skip Compilations */}
             <MenuItem
               onClick={(e) => {
                 e.stopPropagation();
@@ -1131,7 +1117,6 @@ function SettingsMenu({
               </Box>
             </MenuItem>
 
-            {/* Skip Splash Screens */}
             <MenuItem
               onClick={(e) => {
                 e.stopPropagation();

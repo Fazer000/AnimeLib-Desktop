@@ -6,15 +6,13 @@ import {
   CircularProgress,
   Typography,
   useTheme,
-  IconButton,
-  Tooltip,
   Tabs,
   Tab,
 } from '@mui/material';
-import { BookmarkAddRounded } from '@mui/icons-material';
 import { Player } from '../../api/animeApi';
 import { PlayerSelectionManager } from '../../services/player/PlayerSelectionManager';
-import { SIDEBAR_WIDTH } from '../../../constants';
+import { SIDEBAR_WIDTH_CSS, PLAYER_TYPE_KODIK } from '../../../constants';
+import { getQualityTagColor } from '../../utils/videoHelpers';
 
 interface PlayerSidebarProps {
   players: Player[];
@@ -23,19 +21,11 @@ interface PlayerSidebarProps {
   loading: boolean;
   onPlayerSelect: (player: Player) => void;
   onPlayerTypeSelect: (type: string) => void;
-  onSaveBookmark?: () => void;
-  hasBookmark?: boolean;
   isCollapsed?: boolean;
 }
 
 /**
- * PlayerSidebar - Redesigned Material Design sidebar
- *
- * Features:
- * - Clean Material Design interface
- * - Theme-based colors
- * - Smooth animations
- * - Better spacing and typography
+ * Сайдбар выбора озвучки и плеера
  */
 function PlayerSidebarRefactored({
   players,
@@ -44,22 +34,17 @@ function PlayerSidebarRefactored({
   loading,
   onPlayerSelect,
   onPlayerTypeSelect,
-  onSaveBookmark,
-  hasBookmark,
   isCollapsed = false,
 }: PlayerSidebarProps) {
   const theme = useTheme();
 
-  // Group players by type
   const groupedPlayers = PlayerSelectionManager.groupPlayersByType(players);
   const sortedPlayerTypes =
     PlayerSelectionManager.getSortedPlayerTypes(groupedPlayers);
 
-  // Find current tab index
   const currentTabIndex = sortedPlayerTypes.indexOf(selectedPlayerType);
   const tabValue = currentTabIndex >= 0 ? currentTabIndex : 0;
 
-  // Handle tab change
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     const newPlayerType = sortedPlayerTypes[newValue];
     if (newPlayerType) {
@@ -71,7 +56,7 @@ function PlayerSidebarRefactored({
     <Box
       sx={{
         position: 'relative',
-        width: isCollapsed ? '0px' : `${SIDEBAR_WIDTH}px`,
+        width: isCollapsed ? '0px' : SIDEBAR_WIDTH_CSS,
         height: 'calc(100% - 16px)',
         margin: 1,
         marginLeft: isCollapsed ? 0 : 1,
@@ -93,13 +78,11 @@ function PlayerSidebarRefactored({
           transition: 'opacity 0.2s ease, visibility 0.2s ease',
         }}
       >
-        {/* Header */}
         <Box
           sx={{
             p: 1.5,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
           }}
         >
           <Typography
@@ -109,32 +92,10 @@ function PlayerSidebarRefactored({
               fontWeight: 600,
             }}
           >
-            Озвучка
+            Плеер
           </Typography>
-
-          {/* Save bookmark button */}
-          {onSaveBookmark && (
-            <Tooltip title="Сохранить закладку" placement="left">
-              <IconButton
-                onClick={onSaveBookmark}
-                size="small"
-                sx={{
-                  color: hasBookmark
-                    ? '#7C3AED'
-                    : theme.palette.customColors.dtPrimaryTextColor,
-                  '&:hover': {
-                    backgroundColor: 'rgba(124, 58, 237, 0.1)',
-                    color: '#7C3AED',
-                  },
-                }}
-              >
-                <BookmarkAddRounded fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
         </Box>
 
-        {/* Player type tabs */}
         <Box
           sx={{
             height: '40px',
@@ -149,16 +110,16 @@ function PlayerSidebarRefactored({
                 display: 'flex',
                 justifyContent: 'center',
                 backgroundColor: 'transparent',
-                bottom: 3, // Приподнят на 1px от низа
+                bottom: 3,
               },
               children: (
                 <Box
                   sx={{
-                    width: '70%', // 70% от ширины таба (подстраивается под текст)
+                    width: '70%',
                     height: 3,
                     backgroundColor:
                       theme.palette.customColors.dtSecondaryColor,
-                    borderRadius: '8px', // Полностью скругленный
+                    borderRadius: '8px',
                   }}
                 />
               ),
@@ -254,7 +215,6 @@ function PlayerSidebarRefactored({
           </Tabs>
         </Box>
       </Box>
-      {/* Player list */}
       <Box
         sx={{
           flex: 1,
@@ -280,7 +240,6 @@ function PlayerSidebarRefactored({
           },
         }}
       >
-        {/* Loading indicator */}
         {loading && (
           <Box
             sx={{
@@ -305,7 +264,6 @@ function PlayerSidebarRefactored({
           </Box>
         )}
 
-        {/* Player list for selected type */}
         {selectedPlayerType && groupedPlayers[selectedPlayerType] && (
           <Box
             sx={{
@@ -318,7 +276,11 @@ function PlayerSidebarRefactored({
             {groupedPlayers[selectedPlayerType].map((player) => {
               const maxQuality = PlayerSelectionManager.getMaxQuality(player);
               const qualityTag =
-                PlayerSelectionManager.getQualityTag(maxQuality);
+                player.player === PLAYER_TYPE_KODIK
+                  ? 'HD'
+                  : PlayerSelectionManager.getQualityTag(maxQuality);
+              const isSubtitlesOnly =
+                PlayerSelectionManager.isSubtitlesOnly(player);
               const isSelected = selectedPlayer?.id === player.id;
 
               return (
@@ -355,6 +317,10 @@ function PlayerSidebarRefactored({
                         ? theme.palette.customColors.dtSecondaryTextColor
                         : theme.palette.customColors.dtPrimaryTextColor,
                       fontSize: '0.8125rem',
+                      minWidth: 0,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
                       backgroundColor: isSelected
                         ? 'rgba(116, 116, 128, .1)'
                         : 'transparent',
@@ -366,27 +332,51 @@ function PlayerSidebarRefactored({
                     {player.team.name}
                   </Typography>
 
-                  {qualityTag && (
-                    <Box
-                      sx={{
-                        color: theme.palette.customColors.dtSecondaryTextColor,
-                        padding: '2px 8px',
-                        borderRadius: 2,
-                        fontSize: '0.625rem',
-                        fontWeight: 700,
-                        border: `1px solid rgba(124, 58, 237, 0.3)`,
-                      }}
-                    >
-                      {qualityTag}
-                    </Box>
-                  )}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {isSubtitlesOnly && (
+                      <Box
+                        sx={{
+                          color: theme.palette.customColors.dtPrimaryTextColor,
+                          backgroundColor: 'rgba(116, 116, 128, 0.24)',
+                          padding: '2px 8px',
+                          borderRadius: 2,
+                          fontSize: '0.625rem',
+                          fontWeight: 700,
+                          letterSpacing: '0.03em',
+                        }}
+                      >
+                        SUB
+                      </Box>
+                    )}
+
+                    {qualityTag && (
+                      <Box
+                        sx={{
+                          color: getQualityTagColor(qualityTag),
+                          padding: '2px 8px',
+                          borderRadius: 2,
+                          fontSize: '0.625rem',
+                          fontWeight: 700,
+                          border: `1px solid ${getQualityTagColor(qualityTag)}59`,
+                        }}
+                      >
+                        {qualityTag}
+                      </Box>
+                    )}
+                  </Box>
                 </Button>
               );
             })}
           </Box>
         )}
 
-        {/* Empty state */}
         {players.length === 0 && !loading && (
           <Box
             sx={{
@@ -415,8 +405,6 @@ function PlayerSidebarRefactored({
 }
 
 PlayerSidebarRefactored.defaultProps = {
-  onSaveBookmark: undefined,
-  hasBookmark: false,
   isCollapsed: false,
 };
 

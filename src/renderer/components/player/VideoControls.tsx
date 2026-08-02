@@ -17,6 +17,21 @@ import VolumeControl from './VolumeControl';
 import ControlsEpisodeSlider from './ControlsEpisodeSlider';
 import SettingsMenu from './SettingsMenu';
 import { SkipManager, ThumbnailManager } from '../../services/player';
+import {
+  PLAYER_CONTROL_ICON_SIZE,
+  PLAYER_FULLSCREEN_EASING,
+  PLAYER_FULLSCREEN_TRANSITION,
+} from '../../../constants';
+
+const ICON_SX = { fontSize: `${PLAYER_CONTROL_ICON_SIZE}px` };
+
+const OVERLAY_APPEAR_SX = {
+  animation: `overlayAppear ${PLAYER_FULLSCREEN_TRANSITION}ms ${PLAYER_FULLSCREEN_EASING}`,
+  '@keyframes overlayAppear': {
+    from: { opacity: 0 },
+    to: { opacity: 1 },
+  },
+};
 
 interface TimeCode {
   type: 'opening' | 'ending' | 'compilation' | 'splashScreen';
@@ -25,7 +40,6 @@ interface TimeCode {
 }
 
 interface VideoControlsProps {
-  // Состояние плеера
   isPlaying: boolean;
   isLoading: boolean;
   currentTime: number;
@@ -43,7 +57,6 @@ interface VideoControlsProps {
   showEpisodes?: boolean;
   onShowEpisodesChange?: (show: boolean) => void;
 
-  // Опции качества
   qualityOptions: Array<{
     label: string;
     value: string;
@@ -51,13 +64,11 @@ interface VideoControlsProps {
   selectedQuality: string;
   playbackRate: number;
 
-  // Эпизоды
   episodes: Array<{ id: number; number: string; name: string }>;
   currentEpisodeIndex: number;
   onEpisodeSelect: (index: number) => void;
   bookmarkedEpisodeId?: number | null;
 
-  // Обработчики
   onTogglePlay: () => void;
   onVolumeChange: (volume: number) => void;
   onToggleMute: () => void;
@@ -68,26 +79,21 @@ interface VideoControlsProps {
   onSkipForward: (seconds: number) => void;
   onSkipTimeChange?: (time: number) => void;
 
-  // Обработчики мыши
   onMouseMove: () => void;
   onMouseLeave: () => void;
   onProgressMouseMove: (event: React.MouseEvent<HTMLDivElement>) => void;
   onProgressMouseLeave: () => void;
   onSeek: (time: number) => void;
 
-  // Состояние превью
   hoverTime: number | null;
 
-  // Сохранение закладки
   onSaveBookmark?: () => void;
   hasBookmark?: boolean;
 
-  // Сегменты (опенинг, эндинг)
   timecode: TimeCode[];
   currentSegment?: TimeCode | null;
   onSkipSegment?: () => void;
 
-  // Auto skip settings
   autoSkipSettings?: {
     skipOpenings: boolean;
     skipEndings: boolean;
@@ -101,10 +107,8 @@ interface VideoControlsProps {
     skipSplashScreens: boolean;
   }) => void;
 
-  // Thumbnail manager
   thumbnailManager?: ThumbnailManager | null;
 
-  // Sidebar toggle
   sidebarCollapsed: boolean;
   onSidebarToggle: () => void;
 }
@@ -164,20 +168,16 @@ function VideoControls({
   onSidebarToggle,
 }: VideoControlsProps) {
   const theme = useTheme();
-  // UI State
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [showVolumeTooltip, setShowVolumeTooltip] = useState(false);
 
-  // Skip Manager
   const [skipManager] = useState(() => new SkipManager());
   const [skipTime, setSkipTime] = useState(skipManager.getSkipTime());
 
-  // Volume tooltip timer
   const [volumeTooltipTimer, setVolumeTooltipTimer] = useState<ReturnType<
     typeof setTimeout
   > | null>(null);
 
-  // Cleanup timer on unmount
   useEffect(() => {
     return () => {
       if (volumeTooltipTimer) {
@@ -186,26 +186,21 @@ function VideoControls({
     };
   }, [volumeTooltipTimer]);
 
-  // Handle volume change with tooltip
   const handleVolumeChange = (vol: number) => {
     onVolumeChange(vol);
 
-    // Show tooltip
     setShowVolumeTooltip(true);
 
-    // Clear previous timer
     if (volumeTooltipTimer) {
       clearTimeout(volumeTooltipTimer);
     }
 
-    // Set new timer
     const timer = setTimeout(() => {
       setShowVolumeTooltip(false);
     }, 1500);
     setVolumeTooltipTimer(timer);
   };
 
-  // Handle settings menu
   const handleSettingsMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     event.stopPropagation();
     console.log('[VideoControls] Opening settings menu');
@@ -219,20 +214,34 @@ function VideoControls({
     onMenuOpenChange?.(false);
   };
 
-  // Handle episodes
   const handleToggleEpisodes = () => {
-    const newShowEpisodes = !showEpisodes;
-    onShowEpisodesChange?.(newShowEpisodes);
-    onMenuOpenChange(newShowEpisodes);
+    onShowEpisodesChange?.(!showEpisodes);
   };
 
   const handleEpisodeSelect = (index: number) => {
     onEpisodeSelect(index);
   };
 
+  const episodesVisible = isFullscreen && showEpisodes;
+
+  const overlayButtonSx = {
+    backgroundColor: 'rgba(20, 20, 20, 0.45)',
+    border: '1px solid rgba(116, 116, 128, 0.33)',
+    color: theme.palette.customColors.dtPrimaryTextColor,
+    padding: 1,
+    borderRadius: 4,
+    '&:hover': {
+      backgroundColor: 'rgba(55, 55, 55, 0.52)',
+    },
+    '&:active': {
+      transform: 'translateY(0px) scale(0.96)',
+      transition: 'all 0.1s ease',
+    },
+    transition: 'all 0.2s ease',
+  };
+
   return (
     <>
-      {/* Top gradient */}
       <Box
         sx={{
           position: 'absolute',
@@ -246,13 +255,48 @@ function VideoControls({
         }}
       />
 
-      {/* Skip Segment Button */}
+      {onSidebarToggle && !isFullscreen && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            opacity: showControls ? 1 : 0,
+            pointerEvents: showControls ? 'auto' : 'none',
+            transition: 'opacity 0.3s ease-in-out',
+            zIndex: 901,
+            ...OVERLAY_APPEAR_SX,
+          }}
+          onMouseMove={onMouseMove}
+        >
+          <Tooltip
+            title={sidebarCollapsed ? 'Показать озвучки' : 'Скрыть озвучки'}
+            placement="left"
+          >
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                onSidebarToggle();
+              }}
+              sx={{
+                ...overlayButtonSx,
+                color: sidebarCollapsed
+                  ? theme.palette.customColors.dtPrimaryTextColor
+                  : '#7C3AED',
+              }}
+            >
+              <GraphicEqRounded sx={ICON_SX} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )}
+
       {currentSegment && showControls && onSkipSegment && (
         <Box
           sx={{
             position: 'absolute',
-            bottom: showEpisodes ? 135 : 85,
-            right: isFullscreen ? 70 : 16,
+            bottom: episodesVisible ? 135 : 85,
+            right: 16,
             zIndex: 900,
             opacity: showControls ? 1 : 0,
             transition: 'opacity, bottom 0.3s ease-in-out',
@@ -311,56 +355,43 @@ function VideoControls({
         </Box>
       )}
 
-      {/* Episodes button (above progress bar) */}
       {isFullscreen && episodes && episodes.length > 0 && (
         <Box
           sx={{
             position: 'absolute',
-            bottom: isFullscreen && showEpisodes ? '130px' : '80px',
-            right: 16,
+            bottom: episodesVisible ? '130px' : '80px',
+            left: '50%',
+            transform: 'translateX(-50%)',
             opacity: showControls ? 1 : 0,
+            pointerEvents: showControls ? 'auto' : 'none',
             transition: 'opacity 0.3s ease-in-out, bottom 0.3s ease-in-out',
             zIndex: 901,
+            ...OVERLAY_APPEAR_SX,
           }}
           onMouseMove={onMouseMove}
         >
-          <Tooltip title="Эпизоды" placement="left">
+          <Tooltip title="Эпизоды" placement="top">
             <IconButton
               onClick={(e) => {
                 e.stopPropagation();
                 handleToggleEpisodes();
               }}
-              sx={{
-                backgroundColor: 'rgba(20, 20, 20, 0.45)',
-                border: '1px solid rgba(116, 116, 128, 0.33)',
-                color: theme.palette.customColors.dtPrimaryTextColor,
-                padding: 1,
-                borderRadius: 4,
-                '&:hover': {
-                  backgroundColor: 'rgba(55, 55, 55, 0.52)',
-                },
-                '&:active': {
-                  transform: 'translateY(0px) scale(0.96)',
-                  transition: 'all 0.1s ease',
-                },
-                transition: 'all 0.2s ease',
-              }}
+              sx={overlayButtonSx}
             >
-              <ListRounded fontSize="medium" />
+              <ListRounded sx={ICON_SX} />
             </IconButton>
           </Tooltip>
         </Box>
       )}
 
-      {/* Bottom gradient - отдельный блок */}
       <Box
         sx={{
           position: 'absolute',
           bottom: 0,
           left: 0,
           right: 0,
-          height: isFullscreen && showEpisodes ? '130px' : '70px',
-          opacity: showEpisodes ? 1 : 0.8,
+          height: episodesVisible ? '130px' : '70px',
+          opacity: episodesVisible ? 1 : 0.8,
           background:
             'linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 30%, transparent 100%)',
           transition: 'opacity 0.3s ease-in-out, height 0.3s ease-in-out',
@@ -369,12 +400,11 @@ function VideoControls({
         }}
       />
 
-      {/* Main controls container */}
       <Box
         className="player-controls video-controls"
         sx={{
           position: 'absolute',
-          bottom: isFullscreen && showEpisodes ? '50px' : 0,
+          bottom: episodesVisible ? '50px' : 0,
           left: 0,
           right: 0,
           padding: 1,
@@ -386,7 +416,6 @@ function VideoControls({
         onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}
       >
-        {/* Progress Bar */}
         <ProgressBar
           currentTime={currentTime}
           duration={duration}
@@ -399,7 +428,6 @@ function VideoControls({
           thumbnailManager={thumbnailManager}
         />
 
-        {/* Main controls row */}
         <Box
           sx={{
             display: 'flex',
@@ -410,7 +438,6 @@ function VideoControls({
             mx: 1,
           }}
         >
-          {/* Left: Playback controls */}
           <PlaybackControls
             isPlaying={isPlaying}
             isLoading={isLoading}
@@ -421,7 +448,6 @@ function VideoControls({
             onSkipForward={onSkipForward}
           />
 
-          {/* Right: Additional controls */}
           <Box
             sx={{
               display: 'flex',
@@ -430,7 +456,6 @@ function VideoControls({
               gap: 1,
             }}
           >
-            {/* Volume Control */}
             <VolumeControl
               volume={volume}
               isMuted={isMuted}
@@ -439,35 +464,6 @@ function VideoControls({
               onToggleMute={onToggleMute}
             />
 
-            {/* Toggle Sidebar */}
-            {onSidebarToggle && !isFullscreen && (
-              <Tooltip
-                title={sidebarCollapsed ? 'Показать озвучки' : 'Скрыть озвучки'}
-                placement="top"
-              >
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSidebarToggle();
-                  }}
-                  sx={{
-                    color: sidebarCollapsed ? 'white' : '#7C3AED',
-                    padding: 0.25,
-                    borderRadius: 2,
-                    '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      transform: 'scale(1.1)',
-                      color: '#7C3AED',
-                    },
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <GraphicEqRounded fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-
-            {/* Save Bookmark */}
             {onSaveBookmark && (
               <Tooltip title="Сохранить закладку" placement="top">
                 <IconButton
@@ -487,12 +483,11 @@ function VideoControls({
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  <BookmarkAddRounded fontSize="small" />
+                  <BookmarkAddRounded sx={ICON_SX} />
                 </IconButton>
               </Tooltip>
             )}
 
-            {/* Settings */}
             <Tooltip title="Настройки">
               <IconButton
                 onClick={handleSettingsMenuOpen}
@@ -508,11 +503,10 @@ function VideoControls({
                   transition: 'all 0.2s ease',
                 }}
               >
-                <TuneRounded fontSize="small" />
+                <TuneRounded sx={ICON_SX} />
               </IconButton>
             </Tooltip>
 
-            {/* Picture-in-Picture */}
             <Tooltip title="Миниокно">
               <IconButton
                 onClick={(e) => {
@@ -531,11 +525,10 @@ function VideoControls({
                   transition: 'all 0.2s ease',
                 }}
               >
-                <PictureInPictureAltRounded fontSize="small" />
+                <PictureInPictureAltRounded sx={ICON_SX} />
               </IconButton>
             </Tooltip>
 
-            {/* Fullscreen */}
             <Tooltip
               title={
                 isFullscreen
@@ -561,9 +554,9 @@ function VideoControls({
                 }}
               >
                 {isFullscreen ? (
-                  <FullscreenExitRounded fontSize="small" />
+                  <FullscreenExitRounded sx={ICON_SX} />
                 ) : (
-                  <FullscreenRounded fontSize="small" />
+                  <FullscreenRounded sx={ICON_SX} />
                 )}
               </IconButton>
             </Tooltip>
@@ -571,7 +564,6 @@ function VideoControls({
         </Box>
       </Box>
 
-      {/* Episode Carousel (fullscreen only) */}
       {isFullscreen && (
         <ControlsEpisodeSlider
           episodes={episodes}
@@ -583,7 +575,6 @@ function VideoControls({
         />
       )}
 
-      {/* Settings Menu */}
       <SettingsMenu
         anchorEl={anchorEl}
         onClose={handleSettingsMenuClose}
@@ -596,9 +587,9 @@ function VideoControls({
         onSkipTimeChange={(time) => {
           skipManager.setSkipTime(time);
           setSkipTime(time);
-          onSkipTimeChange?.(time); // Notify parent component
+          onSkipTimeChange?.(time);
         }}
-        showEpisodes={showEpisodes}
+        showEpisodes={episodesVisible}
         autoplayEnabled={autoplayEnabled}
         onAutoplayChange={onAutoplayChange}
         autoSkipSettings={autoSkipSettings}

@@ -68,7 +68,6 @@ function SearchResultCard({
         position: 'relative',
       }}
     >
-      {/* Main Card with Ripple */}
       <ButtonBase
         onClick={onCardClick}
         sx={{
@@ -136,7 +135,6 @@ function SearchResultCard({
         </Box>
       </ButtonBase>
 
-      {/* Player Button - Side Panel */}
       <Box
         sx={{
           position: 'relative',
@@ -190,10 +188,8 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
 
-  // Tabs configuration
   const tabs = ['Тайтлы'];
 
-  // Reset state when modal closes
   useEffect(() => {
     if (!open) {
       setSearchQuery('');
@@ -202,7 +198,6 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
     }
   }, [open]);
 
-  // Handle search with debounce
   useEffect(() => {
     if (searchQuery.length < 2) {
       setSearchResults([]);
@@ -267,7 +262,6 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
           flexDirection: 'column',
         }}
       >
-        {/* Logo and Search Input */}
         <Box
           sx={{
             padding: 1,
@@ -322,7 +316,6 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
           </IconButton>
         </Box>
 
-        {/* Tabs */}
         <Box
           sx={{
             borderBottom: '1px solid #2a2a2a',
@@ -376,7 +369,6 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
           </Tabs>
         </Box>
 
-        {/* Results */}
         <Box
           sx={{
             flex: 1,
@@ -472,7 +464,6 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
             </Box>
           )}
 
-          {/* Results List */}
           {searchResults.map((result) => (
             <SearchResultCard
               key={result.id}
@@ -483,7 +474,6 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
           ))}
         </Box>
 
-        {/* Show More Button (if needed) */}
         {searchResults.length > 0 && (
           <Box
             sx={{

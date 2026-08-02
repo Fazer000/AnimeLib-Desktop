@@ -28,6 +28,14 @@
  * ```
  */
 
+import {
+  getHomeUrl as getSiteHomeUrl,
+  isSiteUrl,
+  saveSiteUrl,
+} from '../../utils/urlHelpers';
+import { NavigationHistoryTracker } from './NavigationHistoryTracker';
+import type { NavigationSource } from './NavigationHistoryTracker';
+
 export interface NavigationState {
   canGoBack: boolean;
   canGoForward: boolean;
@@ -51,6 +59,10 @@ export class WebViewManager {
 
   private isInitialized: boolean = false;
 
+  private pendingHistoryResetUrl: string | null = null;
+
+  private historyResetArmed: boolean = false;
+
   constructor(webview?: any) {
     if (webview) {
       this.attachWebView(webview);
@@ -70,13 +82,9 @@ export class WebViewManager {
     this.isInitialized = true;
     console.log('[WebViewManager] WebView attached');
 
-    // Inject CSS for better rendering quality when DOM is ready
     webview.addEventListener('dom-ready', () => {
       this.injectRenderingImprovements();
     });
-
-    // Don't update state immediately - wait for dom-ready
-    // State will be updated when navigation events occur
   }
 
   /**
@@ -108,6 +116,8 @@ export class WebViewManager {
   public detach(): void {
     this.webview = null;
     this.isInitialized = false;
+    this.pendingHistoryResetUrl = null;
+    this.historyResetArmed = false;
     console.log('[WebViewManager] WebView detached');
   }
 
@@ -126,14 +136,12 @@ export class WebViewManager {
       return false;
     }
 
-    // Check if webview is attached to DOM and ready
     try {
       if (this.webview.getWebContentsId) {
         this.webview.getWebContentsId();
         return true;
       }
     } catch {
-      // WebView not ready yet
       return false;
     }
 
@@ -203,8 +211,11 @@ export class WebViewManager {
 
     try {
       if (this.webview.canGoBack()) {
+        NavigationHistoryTracker.record({
+          source: 'back',
+          url: this.getCurrentUrl(),
+        });
         this.webview.goBack();
-        // State will be updated by navigation event
         setTimeout(() => this.updateNavigationState(), 100);
         return true;
       }
@@ -226,8 +237,11 @@ export class WebViewManager {
 
     try {
       if (this.webview.canGoForward()) {
+        NavigationHistoryTracker.record({
+          source: 'forward',
+          url: this.getCurrentUrl(),
+        });
         this.webview.goForward();
-        // State will be updated by navigation event
         setTimeout(() => this.updateNavigationState(), 100);
         return true;
       }
@@ -248,6 +262,10 @@ export class WebViewManager {
     }
 
     try {
+      NavigationHistoryTracker.record({
+        source: 'reload',
+        url: this.getCurrentUrl(),
+      });
       this.webview.reload();
       console.log('[WebViewManager] Reloading webview');
     } catch (error) {
@@ -283,46 +301,86 @@ export class WebViewManager {
   }
 
   /**
-   * Navigate to home URL (from localStorage)
+   * Переходит на главную и сбрасывает историю переходов
    */
   public navigateToHome(): void {
     const homeUrl = WebViewManager.getHomeUrl();
-    if (homeUrl) {
-      console.log('[WebViewManager] Navigating to home URL:', homeUrl);
-      this.navigateTo(homeUrl);
-    } else {
-      console.warn('[WebViewManager] No home URL found in localStorage');
+    console.log('[WebViewManager] Navigating to home URL:', homeUrl);
+
+    if (this.getCurrentUrl() === homeUrl) {
+      this.clearHistory();
+      this.updateNavigationState();
+      return;
     }
+
+    this.pendingHistoryResetUrl = homeUrl;
+    this.historyResetArmed = false;
+    this.navigateTo(homeUrl);
   }
 
   /**
-   * Get home URL from localStorage
+   * Очищает историю переходов webview
    */
-  public static getHomeUrl(): string | null {
+  public clearHistory(): void {
+    if (!this.isReady()) {
+      return;
+    }
+
     try {
-      return localStorage.getItem('animeLibUrl');
+      this.webview.clearHistory();
+      NavigationHistoryTracker.record({
+        source: 'home-reset',
+        url: this.getCurrentUrl(),
+      });
+      console.log('[WebViewManager] Navigation history cleared');
     } catch (error) {
-      console.error('[WebViewManager] Error reading home URL:', error);
-      return null;
+      console.error('[WebViewManager] Error clearing history:', error);
     }
   }
 
   /**
-   * Save URL to localStorage
+   * Управляет звуком webview
+   */
+  public setAudioMuted(muted: boolean): void {
+    if (!this.isReady()) {
+      return;
+    }
+
+    try {
+      this.webview.setAudioMuted(muted);
+    } catch (error) {
+      console.error('[WebViewManager] Error setting audio muted:', error);
+    }
+  }
+
+  /**
+   * Get base site URL
+   */
+  public static getHomeUrl(): string {
+    return getSiteHomeUrl();
+  }
+
+  /**
+   * Save URL to localStorage; base URL updates only for site domains
    */
   public static saveUrl(url: string, isFullUrl: boolean = false): void {
     try {
       if (isFullUrl) {
-        // Save full URL for current page tracking
         localStorage.setItem('animeLibCurrentPage', url);
         console.log('[WebViewManager] Full URL saved:', url);
-      } else {
-        // Save clean domain URL
-        const urlObj = new URL(url);
-        const cleanUrl = `${urlObj.protocol}//${urlObj.host}/`;
-        localStorage.setItem('animeLibUrl', cleanUrl);
-        console.log('[WebViewManager] Clean URL saved:', cleanUrl);
+        return;
       }
+
+      if (!isSiteUrl(url)) {
+        console.log(
+          '[WebViewManager] Base URL not updated, foreign domain:',
+          url,
+        );
+        return;
+      }
+
+      const baseUrl = saveSiteUrl(url);
+      console.log('[WebViewManager] Base URL saved:', baseUrl);
     } catch (error) {
       console.error('[WebViewManager] Error saving URL:', error);
     }
@@ -334,6 +392,13 @@ export class WebViewManager {
   public getCurrentUrl(): string {
     if (!this.isReady()) return this.currentUrl;
     return this.webview.src || this.currentUrl;
+  }
+
+  /**
+   * Возвращает последний URL из событий навигации
+   */
+  public getTrackedUrl(): string {
+    return this.currentUrl;
   }
 
   /**
@@ -374,15 +439,34 @@ export class WebViewManager {
   /**
    * Handle navigation event
    */
-  public handleNavigation(url: string): void {
+  public handleNavigation(
+    url: string,
+    source: NavigationSource = 'navigate',
+  ): void {
     console.log('[WebViewManager] Navigation event:', url);
     this.currentUrl = url;
 
-    // Save both full and clean URLs
-    WebViewManager.saveUrl(url, true); // Full URL
-    WebViewManager.saveUrl(url, false); // Clean domain
+    WebViewManager.saveUrl(url, true);
+    WebViewManager.saveUrl(url, false);
+
+    if (
+      this.pendingHistoryResetUrl !== null &&
+      url === this.pendingHistoryResetUrl
+    ) {
+      this.pendingHistoryResetUrl = null;
+      this.historyResetArmed = true;
+      console.log('[WebViewManager] History reset armed for:', url);
+    }
 
     this.updateNavigationState();
+
+    const state = this.getNavigationState();
+    NavigationHistoryTracker.record({
+      source,
+      url,
+      canGoBack: state.canGoBack,
+      canGoForward: state.canGoForward,
+    });
 
     if (this.callbacks.onUrlChange) {
       this.callbacks.onUrlChange(url);
@@ -397,6 +481,12 @@ export class WebViewManager {
     console.log('[WebViewManager] Load stop:', url);
 
     WebViewManager.saveUrl(url, true);
+
+    if (this.historyResetArmed) {
+      this.historyResetArmed = false;
+      this.clearHistory();
+    }
+
     this.updateNavigationState();
 
     if (this.callbacks.onLoadStop) {

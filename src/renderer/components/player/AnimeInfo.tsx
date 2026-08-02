@@ -38,7 +38,6 @@ function AnimeInfoComponent({
         transition: 'opacity 0.3s ease',
       }}
     >
-      {/* Название */}
       <Typography
         variant="h6"
         sx={{
@@ -52,7 +51,6 @@ function AnimeInfoComponent({
         {animeInfo.rus_name || animeInfo.name}
       </Typography>
 
-      {/* Эпизод и озвучка */}
       {(episodeNumber || selectedPlayer) && (
         <Typography
           variant="body2"
@@ -79,7 +77,6 @@ function AnimeInfoComponent({
         </Typography>
       )}
 
-      {/* Информация в одну строку */}
       <Typography
         variant="body2"
         sx={{

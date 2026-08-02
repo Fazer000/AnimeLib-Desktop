@@ -10,9 +10,25 @@ import { PLAYER_INSET_X, PLAYER_INSET_Y } from './player';
 export const TOOLBAR_HEIGHT = 32;
 
 /**
- * Ширина сайдбара озвучек, px
+ * Границы резиновой ширины сайдбара озвучек, px
  */
-export const SIDEBAR_WIDTH = 260;
+export const SIDEBAR_MIN_WIDTH = 300;
+export const SIDEBAR_MAX_WIDTH = 360;
+
+/**
+ * Предпочтительная ширина сайдбара (доля ширины окна)
+ */
+export const SIDEBAR_PREFERRED_WIDTH = '24vw';
+
+/**
+ * CSS-ширина сайдбара с ограничениями min/max
+ */
+export const SIDEBAR_WIDTH_CSS = `clamp(${SIDEBAR_MIN_WIDTH}px, ${SIDEBAR_PREFERRED_WIDTH}, ${SIDEBAR_MAX_WIDTH}px)`;
+
+/**
+ * Ширина сайдбара для расчёта минимума окна (нижняя граница clamp), px
+ */
+export const SIDEBAR_WIDTH = SIDEBAR_MIN_WIDTH;
 
 /**
  * Отступ сайдбара с каждой стороны, px

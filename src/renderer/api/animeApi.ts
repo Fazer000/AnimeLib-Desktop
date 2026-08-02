@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 import axios from 'axios';
 
-// Интерфейсы для API
 export interface Episode {
   id: number;
   model: string;
@@ -161,8 +160,8 @@ export interface AnimeBookmark {
   id: number;
   type: string;
   media_id: number;
-  item_id: number; // episode_id
-  progress: string; // timecode (format: "MM:SS" or "HH:MM:SS")
+  item_id: number;
+  progress: string;
   status: number;
   created_at: string;
   updated_at: string;
@@ -170,6 +169,13 @@ export interface AnimeBookmark {
 
 export interface AnimeBookmarkResponse {
   data: AnimeBookmark | null;
+}
+
+export interface BookmarkItem {
+  animeSlugUrl: string;
+  title: string;
+  episodeNumber: string;
+  coverUrl: string | null;
 }
 
 export interface RelatedAnime {
@@ -214,7 +220,6 @@ export interface RelatedAnimeResponse {
   data: RelatedAnime[];
 }
 
-// Получаем токен из localStorage
 const getAuthToken = (): string | null => {
   try {
     const tokenData = localStorage.getItem('animeLibAuthToken');
@@ -228,29 +233,40 @@ const getAuthToken = (): string | null => {
   return null;
 };
 
-// Получаем Bearer токен
 const getBearerToken = (): string | null => {
   return getAuthToken();
 };
 
-// Создаем экземпляр axios для API AnimeLib
+/**
+ * Возвращает id пользователя из JWT-токена
+ */
+const getUserId = (): string | null => {
+  const token = getBearerToken();
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.sub ? String(payload.sub) : null;
+  } catch (error) {
+    console.error('[AnimeAPI] Error parsing user id from token:', error);
+    return null;
+  }
+};
+
 const animeApiClient = axios.create({
   baseURL: 'https://api.cdnlibs.org/api',
   timeout: 10000,
 });
 
-// Добавляем interceptor для авторизации и заголовков
 animeApiClient.interceptors.request.use((config) => {
   const token = getBearerToken();
 
-  // Добавляем авторизацию
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  // Добавляем общие заголовки
-  // ВАЖНО: Origin, Referer, User-Agent, Sec-* заголовки нельзя устанавливать вручную
-  // Браузер устанавливает их автоматически
   config.headers.Accept = '*/*';
   config.headers['Accept-Language'] = 'ru,en;q=0.9,de;q=0.8,zh;q=0.7';
   config.headers['Content-Type'] = 'application/json';
@@ -261,9 +277,27 @@ animeApiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// API функции
+const statsApiClient = axios.create({
+  baseURL: 'https://hapi.hentaicdn.org/api',
+  timeout: 10000,
+});
+
+statsApiClient.interceptors.request.use((config) => {
+  const token = getBearerToken();
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  config.headers.Accept = '*/*';
+  config.headers['Content-Type'] = 'application/json';
+  config.headers['Site-Id'] = '5';
+  config.headers['Client-Time-Zone'] = 'Europe/Samara';
+
+  return config;
+});
+
 export const animeApi = {
-  // Получить список эпизодов аниме
   getEpisodes: async (animeId: string): Promise<EpisodesResponse> => {
     console.log('[AnimeAPI] Loading episodes for anime_id:', animeId);
 
@@ -273,7 +307,6 @@ export const animeApi = {
     return response.data;
   },
 
-  // Получить плееры для эпизода
   getEpisodePlayers: async (episodeId: number): Promise<EpisodeResponse> => {
     console.log('[AnimeAPI] Loading players for episode_id:', episodeId);
 
@@ -283,7 +316,6 @@ export const animeApi = {
     return response.data;
   },
 
-  // Получить прямые ссылки на видео от Kodik
   getKodikVideoLinks: async (kodikSrc: string): Promise<KodikVideoLinks> => {
     console.log('[AnimeAPI] Loading Kodik links for src:', kodikSrc);
 
@@ -303,7 +335,6 @@ export const animeApi = {
     return result;
   },
 
-  // Получить информацию об аниме
   getAnimeInfo: async (animeId: string): Promise<AnimeInfoResponse> => {
     console.log('[AnimeAPI] Loading anime info for anime_id:', animeId);
 
@@ -325,7 +356,6 @@ export const animeApi = {
     return response.data;
   },
 
-  // Получить закладку аниме (текущий эпизод и таймкод)
   getAnimeBookmark: async (
     animeSlugUrl: string,
   ): Promise<AnimeBookmarkResponse> => {
@@ -338,7 +368,6 @@ export const animeApi = {
       console.log('[AnimeAPI] Bookmark loaded:', response.data);
       return response.data;
     } catch (error: any) {
-      // Если закладки нет (404), возвращаем null
       if (error.response && error.response.status === 404) {
         console.log('[AnimeAPI] No bookmark found for anime:', animeSlugUrl);
         return { data: null };
@@ -348,7 +377,6 @@ export const animeApi = {
     }
   },
 
-  // Сохранить закладку аниме (эпизод и таймкод)
   saveAnimeBookmark: async (
     animeSlugUrl: string,
     episodeId: number,
@@ -379,7 +407,6 @@ export const animeApi = {
         error,
       );
 
-      // Пробуем повторно с другим статусом (22)
       try {
         await animeApiClient.post('/bookmarks', {
           media_type: 'anime',
@@ -389,7 +416,6 @@ export const animeApi = {
           },
           meta: {},
         });
-        // После успешной попытки пробуем снова сохранить с нужными параметрами
         const responseFinal = await animeApiClient.post('/bookmarks', {
           media_type: 'anime',
           media_slug: animeSlugUrl,
@@ -412,6 +438,58 @@ export const animeApi = {
         );
         throw retryError;
       }
+    }
+  },
+
+  /**
+   * Отмечает плеер просмотренным для статистики профиля
+   */
+  markPlayerViewed: async (
+    animeId: number,
+    playerId: number,
+  ): Promise<boolean> => {
+    try {
+      await statsApiClient.post(`/anime/${animeId}/players/${playerId}/view`);
+      console.log('[AnimeAPI] Player marked as viewed:', animeId, playerId);
+      return true;
+    } catch (error) {
+      console.error('[AnimeAPI] Failed to mark player as viewed:', error);
+      return false;
+    }
+  },
+
+  /**
+   * Возвращает закладки со статусом «Смотрю», от свежих к старым
+   */
+  getWatchingBookmarks: async (limit: number = 50): Promise<BookmarkItem[]> => {
+    try {
+      const userId = getUserId();
+      if (!userId) {
+        return [];
+      }
+
+      const response = await statsApiClient.get(
+        `/bookmarks?page=1&user_id=${userId}&status=21&sort_by=updated_at&sort_type=desc`,
+      );
+
+      const items = response.data?.data;
+      if (!Array.isArray(items)) {
+        return [];
+      }
+
+      return items
+        .filter((item: any) => item?.media?.slug_url)
+        .slice(0, limit)
+        .map((item: any) => ({
+          animeSlugUrl: item.media.slug_url,
+          title: item.media.rus_name || item.media.name || '',
+          episodeNumber:
+            item.item?.number || String(item.meta?.item_number ?? ''),
+          coverUrl: item.media.cover?.thumbnail || null,
+        }));
+    } catch (error) {
+      console.error('[AnimeAPI] Failed to load bookmarks:', error);
+      return [];
     }
   },
 
@@ -544,7 +622,6 @@ export const animeApi = {
     try {
       console.log('[AnimeAPI] Searching anime:', query);
 
-      // Получаем Bearer токен из localStorage
       const bearerToken = localStorage.getItem('animeLibAuthToken');
       let authToken: string | undefined;
       if (bearerToken) {
@@ -558,13 +635,11 @@ export const animeApi = {
         }
       }
 
-      // Создаем отдельный axios instance без Site-Id для поиска
       const searchClient = axios.create({
         baseURL: 'https://api.cdnlibs.org/api',
         timeout: 10000,
       });
 
-      // Добавляем только необходимые заголовки без Site-Id
       searchClient.interceptors.request.use((config) => {
         config.headers.Accept = '*/*';
         config.headers['Accept-Language'] = 'ru,en;q=0.9,de;q=0.8,zh;q=0.7';
@@ -572,7 +647,6 @@ export const animeApi = {
         config.headers['Client-Time-Zone'] = 'Europe/Samara';
         config.headers.Priority = 'u=1, i';
 
-        // Добавляем Bearer токен если есть
         if (authToken) {
           config.headers.Authorization = `Bearer ${authToken}`;
         }

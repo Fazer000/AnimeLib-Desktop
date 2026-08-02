@@ -31,7 +31,6 @@ export class QualityManager {
     const options: QualityOption[] = [];
 
     if (player.player === 'Animelib' && player.video?.quality) {
-      // AnimeLib player with quality options
       player.video.quality.forEach((quality) => {
         const { primaryUrl, fallbackUrl, fallbackUrl2 } =
           this.buildAnimelibUrls(quality.href);
@@ -50,7 +49,6 @@ export class QualityManager {
       kodikLinks?.success &&
       kodikLinks.data
     ) {
-      // Kodik player with HLS links
       Object.entries(kodikLinks.data).forEach(([quality, sources]) => {
         if (sources.length > 0) {
           const src = sources[0].src.startsWith('//')
@@ -67,7 +65,6 @@ export class QualityManager {
       });
     }
 
-    // Sort by quality (highest first)
     options.sort((a, b) => {
       const qualityA = parseInt(a.value.replace('p', ''), 10);
       const qualityB = parseInt(b.value.replace('p', ''), 10);
@@ -77,7 +74,6 @@ export class QualityManager {
     this.qualityOptions = options;
     console.log('[QualityManager] Created quality options:', options.length);
 
-    // Auto-select highest quality
     if (options.length > 0) {
       this.selectedQuality = options[0].value;
       this.config.onSelectedQualityChange?.(this.selectedQuality);

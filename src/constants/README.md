@@ -67,6 +67,13 @@ console.log(APP_INFO);
 - **Значение**: `'Fazer'`
 - **Описание**: Автор приложения
 
+### `PLAYER_PROTOCOL_PREFIX`
+- **Тип**: `string`
+- **Значение**: `'anime-lib-player://'`
+- **Описание**: Служебная схема, которой перехватчик кликов сигналит об открытии
+  плеера. Переход по ней отменяется в главном процессе (`will-navigate`), чтобы
+  не попадать в историю webview
+
 ### `APP_INFO`
 - **Тип**: `object` (readonly)
 - **Описание**: Объект содержащий всю информацию о приложении
@@ -75,14 +82,28 @@ console.log(APP_INFO);
 
 - **`PLAYER_BORDER_RADIUS`** — радиус скругления плеера в единицах MUI spacing
 - **`PLAYER_INSET_X`** / **`PLAYER_INSET_Y`** — отступы плеера от краёв области, px
+- **`PLAYER_CONTROL_ICON_SIZE`** — размер значков нижней панели управления плеером, px
+  (используется в `PlaybackControls`, `VolumeControl`, `VideoControls`)
+- **`PLAYER_FULLSCREEN_TRANSITION`** / **`PLAYER_FULLSCREEN_EASING`** — длительность (мс)
+  и кривая плавности перехода в полноэкранный режим
+- **`PLAYER_CENTER_ICON_SIZE`** / **`PLAYER_CENTER_ICON_FONT_SIZE`** — размер области
+  и глифа центральной иконки плей/пауза, px
+- **`PLAYER_EPISODES_VISIBLE_BY_DEFAULT`** — начальное состояние слайдера эпизодов
+  (используется в `UIStateManager` и `VideoPlayer`); дальше состояние сохраняется
+  между входом и выходом из полноэкранного режима
 
 ### Метрики раскладки (`layout.ts`)
 
-- **`TOOLBAR_HEIGHT`**, **`SIDEBAR_WIDTH`**, **`SIDEBAR_MARGIN`**,
-  **`EPISODE_SLIDER_HEIGHT`**, **`SCROLLBAR_WIDTH`** — размеры элементов обвязки страницы плеера
+- **`TOOLBAR_HEIGHT`**, **`SIDEBAR_MARGIN`**, **`EPISODE_SLIDER_HEIGHT`**,
+  **`SCROLLBAR_WIDTH`** — размеры элементов обвязки страницы плеера
+- **`SIDEBAR_WIDTH_CSS`** — резиновая ширина сайдбара озвучек `clamp(min, 24vw, max)`;
+  **`SIDEBAR_MIN_WIDTH`** / **`SIDEBAR_MAX_WIDTH`** — её границы, px.
+  **`SIDEBAR_WIDTH`** равен минимуму и используется только для расчёта `MIN_WINDOW_WIDTH`
 - **`MIN_VIDEO_WIDTH`** / **`MIN_VIDEO_HEIGHT`** — минимальное видео, помещающееся целиком (360p)
 - **`MIN_VIDEO_AREA_HEIGHT`** — минимальная высота области видео
 - **`MIN_WINDOW_WIDTH`** / **`MIN_WINDOW_HEIGHT`** — минимальный размер окна, выводится из метрик выше
+- **`PLAYER_TYPE_ANIMELIB`** / **`PLAYER_TYPE_KODIK`** — идентификаторы плееров в API.
+    Регистр важен: API отдаёт `Animelib`, а не `AnimeLib`
 
 Значения выводятся друг из друга, поэтому при изменении обвязки достаточно поправить
 соответствующую метрику — минимум окна пересчитается сам.

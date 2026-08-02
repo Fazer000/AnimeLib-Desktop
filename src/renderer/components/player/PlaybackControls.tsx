@@ -3,6 +3,9 @@ import { Box, IconButton, Typography, Tooltip } from '@mui/material';
 import { PlayArrowRounded, PauseRounded } from '@mui/icons-material';
 import KeyboardDoubleArrowRightRoundedIcon from '@mui/icons-material/KeyboardDoubleArrowRightRounded';
 import { formatTime } from '../../utils/videoHelpers';
+import { PLAYER_CONTROL_ICON_SIZE } from '../../../constants';
+
+const ICON_SX = { fontSize: `${PLAYER_CONTROL_ICON_SIZE}px` };
 
 interface PlaybackControlsProps {
   isPlaying: boolean;
@@ -28,7 +31,6 @@ function PlaybackControls({
 }: PlaybackControlsProps) {
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-      {/* Play/Pause */}
       <IconButton
         onClick={(e) => {
           e.stopPropagation();
@@ -47,13 +49,12 @@ function PlaybackControls({
         }}
       >
         {isPlaying ? (
-          <PauseRounded fontSize="small" />
+          <PauseRounded sx={ICON_SX} />
         ) : (
-          <PlayArrowRounded fontSize="small" />
+          <PlayArrowRounded sx={ICON_SX} />
         )}
       </IconButton>
 
-      {/* Skip Forward */}
       <Tooltip
         title={`Перемотать на ${Math.floor(skipTime / 60)} мин ${skipTime % 60} сек`}
       >
@@ -76,12 +77,11 @@ function PlaybackControls({
               transition: 'all 0.2s ease',
             }}
           >
-            <KeyboardDoubleArrowRightRoundedIcon fontSize="small" />
+            <KeyboardDoubleArrowRightRoundedIcon sx={ICON_SX} />
           </IconButton>
         </span>
       </Tooltip>
 
-      {/* Time Display */}
       <Typography
         variant="caption"
         sx={{

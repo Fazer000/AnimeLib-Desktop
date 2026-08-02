@@ -20,6 +20,7 @@ import {
   BeforeSendResponse,
   OnHeadersReceivedListenerDetails,
   HeadersReceivedResponse,
+  OnCompletedListenerDetails,
   Rectangle,
 } from 'electron';
 import { autoUpdater } from 'electron-updater';
@@ -38,22 +39,27 @@ import {
   APP_VERSION,
   MIN_WINDOW_HEIGHT,
   MIN_WINDOW_WIDTH,
+  PLAYER_PROTOCOL_PREFIX,
 } from '../constants';
 
-// ===== CONSTANTS =====
 const VIDEO_URLS = {
   ANIMELIB_CDN: [
     'https://video1.cdnlibs.org/*',
     'https://video2.cdnlibs.org/*',
     'https://video1.cdnlibs.org/.%D0%B0s/*',
   ],
-  ANIMELIB_API: ['https://api.cdnlibs.org/*'],
+  ANIMELIB_API: ['https://api.cdnlibs.org/*', 'https://hapi.hentaicdn.org/*'],
   KODIK: [
     'https://cloud.kodik-storage.com/*',
     'https://kodik-storage.com/*',
     'https://kodik.info/*',
   ],
 };
+
+const BOOKMARKS_API_URLS = [
+  'https://api.cdnlibs.org/api/bookmarks*',
+  'https://hapi.hentaicdn.org/api/bookmarks*',
+];
 
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36';
@@ -71,7 +77,6 @@ const WINDOW_CONFIG = {
   DEFAULT_HEIGHT: 900,
 } as const;
 
-// ===== STORE MANAGEMENT =====
 let store: any = null;
 
 const initStore = async () => {
@@ -82,7 +87,6 @@ const initStore = async () => {
   return store;
 };
 
-// ===== APP UPDATER =====
 class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
@@ -91,11 +95,8 @@ class AppUpdater {
   }
 }
 
-// ===== GLOBAL STATE =====
 let mainWindow: BrowserWindow | null = null;
 let currentInterceptor: (() => void) | null = null;
-
-// ===== UTILITY FUNCTIONS =====
 
 /**
  * Создает заголовки для AnimeLib CDN запросов
@@ -150,7 +151,7 @@ const isAnimelibUrl = (url: string): boolean =>
  * Проверяет, является ли URL запросом к AnimeLib API
  */
 const isAnimelibApiUrl = (url: string): boolean =>
-  url.includes('api.cdnlibs.org');
+  url.includes('api.cdnlibs.org') || url.includes('hapi.hentaicdn.org');
 
 /**
  * Проверяет, является ли URL запросом к Kodik
@@ -178,12 +179,9 @@ const clearCurrentInterceptor = (): void => {
   }
 };
 
-// ===== APP INITIALIZATION =====
 console.log(`========================================`);
 console.log(`${APP_NAME} v${APP_VERSION}`);
 console.log(`========================================`);
-
-// ===== IPC HANDLERS - WINDOW MANAGEMENT =====
 
 ipcMain.on('window-minimize', () => {
   mainWindow?.minimize();
@@ -213,15 +211,11 @@ ipcMain.handle('get-maximize-state', async () => {
   return getSavedMaximized(storeInstance);
 });
 
-// ===== IPC HANDLERS - MISC =====
-
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
   console.log(msgTemplate(arg));
   event.reply('ipc-example', msgTemplate('pong'));
 });
-
-// ===== IPC HANDLERS - IMAGE FETCHING =====
 
 ipcMain.handle('fetch-image', async (event, { url, referer }) => {
   try {
@@ -277,8 +271,6 @@ ipcMain.handle('fetch-image', async (event, { url, referer }) => {
   }
 });
 
-// ===== IPC HANDLERS - PLAYER =====
-
 ipcMain.on('player-button-clicked', (event, url) => {
   console.log('[AnimeLIB] Player button clicked:', url);
   mainWindow?.webContents.send('open-player-page', url);
@@ -287,8 +279,6 @@ ipcMain.on('player-button-clicked', (event, url) => {
 ipcMain.on('webview-log', (event, message) => {
   console.log('[WEBVIEW LOG]:', message);
 });
-
-// ===== IPC HANDLERS - KODIK =====
 
 ipcMain.handle('get-kodik-links', async (event, kodikSrc: string) => {
   try {
@@ -302,8 +292,6 @@ ipcMain.handle('get-kodik-links', async (event, kodikSrc: string) => {
     return { success: false, error: error.message };
   }
 });
-
-// ===== IPC HANDLERS - VIDEO HEADERS =====
 
 /**
  * Создает обработчик для перехвата заголовков видео запросов
@@ -377,7 +365,6 @@ ipcMain.handle('setup-video-headers', async (event, { siteUrl, authToken }) => {
   const headerInterceptor = createVideoHeadersInterceptor(siteUrl, authToken);
   const corsInterceptor = createCorsHeadersInterceptor();
 
-  // Регистрируем перехватчики
   session.fromPartition('persist:webview').webRequest.onBeforeSendHeaders(
     {
       urls: [
@@ -396,7 +383,6 @@ ipcMain.handle('setup-video-headers', async (event, { siteUrl, authToken }) => {
       corsInterceptor,
     );
 
-  // Сохраняем функцию для очистки
   currentInterceptor = () => {
     session
       .fromPartition('persist:webview')
@@ -415,8 +401,6 @@ ipcMain.handle('clear-video-headers', async () => {
   registerApiInterceptor();
   return { success: true };
 });
-
-// ===== ENVIRONMENT SETUP =====
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -485,10 +469,8 @@ const createWindowConfig = (iconPath: string, bounds: Rectangle | null) => ({
     allowRunningInsecureContent: true,
     enableWebSQL: false,
     spellcheck: false,
-    // КРИТИЧНО для производительности
     backgroundThrottling: false,
     offscreen: false,
-    // WebView оптимизации
     partition: 'persist:webview',
     autoplayPolicy: 'no-user-gesture-required',
   },
@@ -550,8 +532,6 @@ const createWindow = async (): Promise<void> => {
   new AppUpdater();
 };
 
-// ===== PERFORMANCE OPTIMIZATIONS =====
-
 const applyRadicalFix = (): void => {
   const switches = [
     ['disable-gpu-vsync'],
@@ -588,8 +568,6 @@ const applyPerformanceOptimizations = (): void => {
 
 applyPerformanceOptimizations();
 
-// ===== APP EVENT LISTENERS =====
-
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
@@ -603,14 +581,14 @@ app.on('activate', () => {
 });
 
 /**
- * Регистрирует кастомный протокол для плеера
+ * Регистрирует кастомный протокол для плеера (резервный канал)
  */
 const registerCustomProtocol = (): void => {
   protocol.registerHttpProtocol('anime-lib-player', (request, callback) => {
     console.log('[AnimeLIB] Custom protocol intercepted:', request.url);
 
     const playerUrl = decodeURIComponent(
-      request.url.replace('anime-lib-player://', ''),
+      request.url.replace(PLAYER_PROTOCOL_PREFIX, ''),
     );
     console.log('[AnimeLIB] Player URL:', playerUrl);
 
@@ -621,7 +599,31 @@ const registerCustomProtocol = (): void => {
   });
 };
 
-// ===== APP INITIALIZATION =====
+/**
+ * Отменяет служебный переход в плеер, чтобы он не попадал в историю webview
+ */
+const registerPlayerNavigationGuard = (): void => {
+  app.on('web-contents-created', (_event, contents) => {
+    if (contents.getType() !== 'webview') {
+      return;
+    }
+
+    contents.on('will-navigate', (navigationEvent, url) => {
+      if (!url.startsWith(PLAYER_PROTOCOL_PREFIX)) {
+        return;
+      }
+
+      navigationEvent.preventDefault();
+
+      const playerUrl = decodeURIComponent(
+        url.replace(PLAYER_PROTOCOL_PREFIX, ''),
+      );
+      console.log('[AnimeLIB] Player navigation intercepted:', playerUrl);
+
+      mainWindow?.webContents.send('open-player-page', playerUrl);
+    });
+  });
+};
 
 /**
  * Регистрирует базовый перехватчик для API-запросов (Referer/Origin)
@@ -666,11 +668,40 @@ const registerApiInterceptor = (): void => {
   console.log('[AnimeLIB] Base API interceptor registered');
 };
 
+/**
+ * Сообщает renderer об изменении закладок на сайте или в плеере
+ */
+const registerBookmarksWatcher = (): void => {
+  const notifyBookmarksChanged = (
+    details: OnCompletedListenerDetails,
+  ): void => {
+    if (details.method === 'GET' || details.method === 'OPTIONS') {
+      return;
+    }
+
+    console.log('[AnimeLIB] Bookmarks changed:', details.method, details.url);
+    mainWindow?.webContents.send('bookmarks-changed');
+  };
+
+  [session.defaultSession, session.fromPartition('persist:webview')].forEach(
+    (targetSession) => {
+      targetSession.webRequest.onCompleted(
+        { urls: BOOKMARKS_API_URLS },
+        notifyBookmarksChanged,
+      );
+    },
+  );
+
+  console.log('[AnimeLIB] Bookmarks watcher registered');
+};
+
 app
   .whenReady()
   .then(() => {
+    registerPlayerNavigationGuard();
     registerCustomProtocol();
     registerApiInterceptor();
+    registerBookmarksWatcher();
     createWindow();
   })
   .catch(console.log);

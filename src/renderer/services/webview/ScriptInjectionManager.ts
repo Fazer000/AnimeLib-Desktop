@@ -140,12 +140,10 @@ export class ScriptInjectionManager {
         resolve();
       };
 
-      // Listen for dom-ready event
       this.webview.addEventListener('dom-ready', handleDomReady, {
         once: true,
       });
 
-      // Fallback timeout
       setTimeout(() => {
         console.log(
           '[ScriptInjectionManager] DOM ready timeout, resolving anyway',
@@ -205,22 +203,18 @@ export class ScriptInjectionManager {
     console.log('[ScriptInjectionManager] Starting injection process...');
 
     try {
-      // Wait for DOM if configured
       if (this.config.waitForDomReady) {
         console.log('[ScriptInjectionManager] Waiting for DOM to be ready...');
         await this.waitForDomReady();
       }
 
-      // Execute callbacks
       this.executeCallbacks();
 
-      // Reset retry count on success
       this.retryCount = 0;
       console.log('[ScriptInjectionManager] Injection completed successfully');
     } catch (error) {
       console.error('[ScriptInjectionManager] Injection error:', error);
 
-      // Retry logic
       if (this.retryCount < this.config.maxRetries) {
         this.retryCount += 1;
         console.log(
@@ -271,7 +265,6 @@ export class ScriptInjectionManager {
    */
   private static getCustomSelectScript(): string {
     return `
-      // Custom Select Injector Script
       class CustomSelectInjector {
         constructor() {
           this.injected = false;
@@ -522,29 +515,24 @@ export class ScriptInjectionManager {
 
             if (option.disabled) return;
 
-            // Находим wrapper через родительские элементы
             const wrapper = optionElement.closest('.custom-select-wrapper');
             if (!wrapper) return;
 
-            // Обновляем оригинальный select
             originalSelect.value = option.value;
             const changeEvent = new Event('change', { bubbles: true });
             originalSelect.dispatchEvent(changeEvent);
 
-            // Обновляем отображение
             const valueSpan = wrapper.querySelector('.custom-select-value');
             if (valueSpan) {
               this.updateDisplayValue(originalSelect, valueSpan);
             }
 
-            // Закрываем dropdown
             const dropdown = wrapper.querySelector('.custom-select-dropdown');
             const trigger = wrapper.querySelector('.custom-select-trigger');
 
             if (dropdown) dropdown.classList.remove('open');
             if (trigger) trigger.classList.remove('open');
 
-            // Обновляем выделение опций
             wrapper.querySelectorAll('.custom-select-option').forEach((opt) => {
               opt.classList.remove('selected');
               if (opt.dataset.value === option.value) {
@@ -575,7 +563,6 @@ export class ScriptInjectionManager {
               dropdown.classList.remove('open');
               trigger.classList.remove('open');
             } else {
-              // Позиционируем dropdown относительно триггера
               const triggerRect = trigger.getBoundingClientRect();
               const viewportHeight = window.innerHeight;
               const dropdownHeight = 200; // max-height из CSS
@@ -584,13 +571,10 @@ export class ScriptInjectionManager {
               dropdown.style.left = triggerRect.left + 'px';
               dropdown.style.width = triggerRect.width + 'px';
 
-              // Определяем, открывать вверх или вниз
               if (triggerRect.bottom + dropdownHeight > viewportHeight && triggerRect.top > dropdownHeight) {
-                // Открываем вверх
                 dropdown.style.top = (triggerRect.top - dropdownHeight - 2) + 'px';
                 dropdown.style.maxHeight = Math.min(dropdownHeight, triggerRect.top - 10) + 'px';
               } else {
-                // Открываем вниз
                 dropdown.style.top = (triggerRect.bottom + 2) + 'px';
                 dropdown.style.maxHeight = Math.min(dropdownHeight, viewportHeight - triggerRect.bottom - 10) + 'px';
               }
@@ -607,7 +591,6 @@ export class ScriptInjectionManager {
             }
           });
 
-          // Обновляем позицию при изменении размера окна или скролле
           const updatePosition = () => {
             if (dropdown.classList.contains('open')) {
               const triggerRect = trigger.getBoundingClientRect();
@@ -617,13 +600,10 @@ export class ScriptInjectionManager {
               dropdown.style.left = triggerRect.left + 'px';
               dropdown.style.width = triggerRect.width + 'px';
 
-              // Определяем, открывать вверх или вниз
               if (triggerRect.bottom + dropdownHeight > viewportHeight && triggerRect.top > dropdownHeight) {
-                // Открываем вверх
                 dropdown.style.top = (triggerRect.top - dropdownHeight - 2) + 'px';
                 dropdown.style.maxHeight = Math.min(dropdownHeight, triggerRect.top - 10) + 'px';
               } else {
-                // Открываем вниз
                 dropdown.style.top = (triggerRect.bottom + 2) + 'px';
                 dropdown.style.maxHeight = Math.min(dropdownHeight, viewportHeight - triggerRect.bottom - 10) + 'px';
               }
@@ -697,7 +677,6 @@ export class ScriptInjectionManager {
         }
       }
 
-      // Инициализируем инъекцию
       const injector = new CustomSelectInjector();
       injector.init();
     `;
@@ -716,7 +695,6 @@ export class ScriptInjectionManager {
       const script = `
         (function() {
           try {
-            // Инжектим скрипт кастомных select напрямую
             ${ScriptInjectionManager.getCustomSelectScript()}
             console.log('[ScriptInjectionManager] Custom selects injected successfully');
             return true;

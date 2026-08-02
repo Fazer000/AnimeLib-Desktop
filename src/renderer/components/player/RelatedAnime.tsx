@@ -12,7 +12,7 @@ import useImageWithReferer from '../../hooks/useImageWithReferer';
 
 interface RelatedAnimeProps {
   relatedAnime: RelatedAnimeType[];
-  onAnimeClick: (slugUrl: string, animeId: number) => void;
+  onAnimeClick: (slugUrl: string) => void;
 }
 
 /**
@@ -32,7 +32,6 @@ function RelatedAnimeCard({
   const isAnime = item.media.model === 'anime';
 
   const handleClick = (e: React.MouseEvent) => {
-    // Не вызываем клик если был драг или если не аниме
     if (isDragMoving || !isAnime) {
       e.preventDefault();
       e.stopPropagation();
@@ -66,7 +65,6 @@ function RelatedAnimeCard({
             },
       }}
     >
-      {/* Обложка слева */}
       <Box
         sx={{
           width: 100,
@@ -89,7 +87,6 @@ function RelatedAnimeCard({
         )}
       </Box>
 
-      {/* Информация справа */}
       <Box
         sx={{
           flex: 1,
@@ -100,9 +97,7 @@ function RelatedAnimeCard({
           justifyContent: 'space-between',
         }}
       >
-        {/* Верхняя часть */}
         <Box>
-          {/* Тип связи */}
           <Typography
             sx={{
               fontSize: '0.7rem',
@@ -115,7 +110,6 @@ function RelatedAnimeCard({
             {item.related_type.label}
           </Typography>
 
-          {/* Название */}
           <Typography
             sx={{
               fontSize: '1rem',
@@ -134,9 +128,7 @@ function RelatedAnimeCard({
           </Typography>
         </Box>
 
-        {/* Нижняя часть */}
         <Box>
-          {/* Тип и статус */}
           <Typography
             sx={{
               fontSize: '0.8rem',
@@ -160,7 +152,6 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  // Drag states
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragStart, setDragStart] = useState<{ x: number; scrollLeft: number }>(
     {
@@ -178,7 +169,6 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
   };
 
-  // Initialize scroll buttons on mount
   useEffect(() => {
     updateScrollButtons();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -191,7 +181,7 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollContainerRef.current) return;
 
-    const scrollAmount = 420; // 400px card width + 20px gap
+    const scrollAmount = 420;
     const newScrollLeft =
       direction === 'left'
         ? scrollContainerRef.current.scrollLeft - scrollAmount
@@ -202,11 +192,9 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
       behavior: 'smooth',
     });
 
-    // Update buttons after scroll animation
     setTimeout(updateScrollButtons, 300);
   };
 
-  // Drag-to-scroll handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
     setDragMoved(false);
@@ -227,10 +215,9 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
 
     e.preventDefault();
     const x = e.pageX;
-    const walk = (x - dragStart.x) * 1; // Чувствительность 1:1 для точного следования за курсором
+    const walk = (x - dragStart.x) * 1;
     scrollContainerRef.current.scrollLeft = dragStart.scrollLeft - walk;
 
-    // Если переместили больше чем на 5px, считаем что это драг
     if (Math.abs(walk) > 5) {
       setDragMoved(true);
     }
@@ -245,7 +232,6 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
       scrollContainerRef.current.style.scrollBehavior = 'smooth';
     }
 
-    // Сбрасываем флаг движения через небольшую задержку
     setTimeout(() => setDragMoved(false), 100);
   };
 
@@ -270,7 +256,6 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
         position: 'relative',
       }}
     >
-      {/* Заголовок */}
       <Box
         sx={{
           marginBottom: 2,
@@ -289,9 +274,7 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
         </Typography>
       </Box>
 
-      {/* Карусель */}
       <Box sx={{ position: 'relative' }}>
-        {/* Кнопка влево */}
         {canScrollLeft && (
           <IconButton
             onClick={() => scroll('left')}
@@ -315,7 +298,6 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
           </IconButton>
         )}
 
-        {/* Контейнер с прокруткой */}
         <Box
           ref={scrollContainerRef}
           onScroll={updateScrollButtons}
@@ -347,13 +329,12 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
               <RelatedAnimeCard
                 key={item.media.id}
                 item={item}
-                onClick={() => onAnimeClick(item.media.slug_url, item.media.id)}
+                onClick={() => onAnimeClick(item.media.slug_url)}
                 isDragMoving={dragMoved}
               />
             ))}
         </Box>
 
-        {/* Кнопка вправо */}
         {canScrollRight && (
           <IconButton
             onClick={() => scroll('right')}

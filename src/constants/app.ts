@@ -36,6 +36,11 @@ export const APP_HOMEPAGE = packageJson.homepage;
 export const APP_REPOSITORY = 'https://github.com/Fazer000/AnimeLib-Desktop';
 
 /**
+ * Служебная схема сигнала об открытии плеера
+ */
+export const PLAYER_PROTOCOL_PREFIX = 'anime-lib-player://';
+
+/**
  * Автор приложения
  */
 export const APP_AUTHOR = 'Fazer';

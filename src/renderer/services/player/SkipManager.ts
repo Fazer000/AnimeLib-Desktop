@@ -15,7 +15,6 @@ export class SkipManager {
 
   constructor(config: SkipManagerConfig = {}) {
     this.config = config;
-    // Load from storage or use default (85 seconds = 1 min 25 sec)
     this.skipTime = loadFromStorage('videoSkipTime', 85);
   }
 
@@ -31,7 +30,6 @@ export class SkipManager {
    */
   setSkipTime(time: number): void {
     if (time < 0 || time > 600) {
-      // Max 10 minutes
       console.warn('[SkipManager] Invalid skip time:', time);
       return;
     }

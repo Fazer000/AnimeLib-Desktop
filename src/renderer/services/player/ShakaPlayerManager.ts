@@ -13,8 +13,9 @@ export interface QualityOption {
 export interface ShakaPlayerConfig {
   onError?: (error: string) => void;
   onLoadingChange?: (isLoading: boolean) => void;
-  maxRetries?: number; // Максимальное количество попыток загрузки
-  retryDelay?: number; // Задержка между попытками (мс)
+  onBufferingChange?: (isBuffering: boolean) => void;
+  maxRetries?: number;
+  retryDelay?: number;
 }
 
 /**
@@ -29,6 +30,8 @@ export class ShakaPlayerManager {
 
   private isLoading: boolean = false;
 
+  private loadToken: number = 0;
+
   private config: ShakaPlayerConfig;
 
   private maxRetries: number;
@@ -37,8 +40,8 @@ export class ShakaPlayerManager {
 
   constructor(config: ShakaPlayerConfig = {}) {
     this.config = config;
-    this.maxRetries = config.maxRetries ?? 5; // По умолчанию 5 попыток для Kodik
-    this.retryDelay = config.retryDelay ?? 2000; // По умолчанию 2 секунды
+    this.maxRetries = config.maxRetries ?? 5;
+    this.retryDelay = config.retryDelay ?? 2000;
   }
 
   /**
@@ -55,39 +58,31 @@ export class ShakaPlayerManager {
     try {
       console.log('[ShakaPlayerManager] Starting initialization...');
 
-      // Install polyfills
       shaka.polyfill.installAll();
 
-      // Check browser support
       if (!shaka.Player.isBrowserSupported()) {
         console.error('[ShakaPlayerManager] Browser not supported!');
         this.config.onError?.('Браузер не поддерживается');
         return false;
       }
 
-      // Optimize video element for performance
       videoElement.setAttribute('playsinline', 'true');
       videoElement.setAttribute('preload', 'auto');
 
-      // Enable hardware acceleration hints
       if ('requestVideoFrameCallback' in videoElement) {
         console.log('[ShakaPlayerManager] requestVideoFrameCallback available');
       }
 
-      // Create player instance
       this.player = new shaka.Player();
       await this.player.attach(videoElement);
 
-      // Register network filters for Kodik HLS support
       this.player
         .getNetworkingEngine()
         ?.registerRequestFilter((type, request) => {
-          // Add headers for HLS requests
           if (request.uris[0]?.includes('kodik')) {
             request.allowCrossSiteCredentials = true;
             request.headers = request.headers || {};
 
-            // Only add safe headers that won't be blocked
             request.headers.Accept = '*/*';
             request.headers['Accept-Language'] =
               'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7';
@@ -98,7 +93,6 @@ export class ShakaPlayerManager {
           }
         });
 
-      // Register response filter to handle errors gracefully
       this.player
         .getNetworkingEngine()
         ?.registerResponseFilter((type, response) => {
@@ -110,77 +104,64 @@ export class ShakaPlayerManager {
           }
         });
 
-      // Configure player with performance optimizations
       this.player.configure({
         streaming: {
           retryParameters: {
-            maxAttempts: 5, // Увеличиваем попытки для Kodik
+            maxAttempts: 5,
             baseDelay: 1000,
             backoffFactor: 2,
             fuzzFactor: 0.5,
-            timeout: 45000, // Увеличиваем таймаут до 45 сек
+            timeout: 45000,
           },
-          // Buffer settings - оптимизированы для плавного воспроизведения
-          bufferingGoal: 30, // Увеличен буфер для плавности (30 сек)
-          rebufferingGoal: 2, // Быстрое восстановление после ребуферинга
-          bufferBehind: 30, // Держим 30 сек позади для перемотки назад
+          bufferingGoal: 30,
+          rebufferingGoal: 2,
+          bufferBehind: 30,
 
-          // Segment prefetch для более быстрой загрузки
-          segmentPrefetchLimit: 2, // Предзагружаем 2 сегмента вперёд
+          segmentPrefetchLimit: 2,
 
-          // Stall detection - быстрое обнаружение зависаний
           stallEnabled: true,
-          stallThreshold: 1, // Обнаружение зависания через 1 сек
-          stallSkip: 0.1, // Пропускаем 0.1 сек при зависании
+          stallThreshold: 1,
+          stallSkip: 0.1,
 
-          // Safe margin для избежания ребуферинга
-          safeSeekOffset: 5, // 5 сек безопасный отступ
+          safeSeekOffset: 5,
 
-          // Low latency оптимизации
-          lowLatencyMode: false, // Отключаем для Kodik
+          lowLatencyMode: false,
 
-          // Ignore text stream failures
           ignoreTextStreamFailures: true,
           alwaysStreamText: false,
 
-          // Start at high quality
           startAtSegmentBoundary: false,
 
-          // Fast switching между качествами
-          preferNativeHls: true, // Предпочитаем нативный HLS где возможно
+          preferNativeHls: true,
 
-          // HLS-specific settings for better compatibility
           inaccurateManifestTolerance: 2,
         },
 
         manifest: {
           retryParameters: {
-            maxAttempts: 5, // Увеличиваем попытки для манифеста
+            maxAttempts: 5,
             baseDelay: 1000,
             backoffFactor: 2,
             fuzzFactor: 0.5,
-            timeout: 45000, // Увеличиваем таймаут
+            timeout: 45000,
           },
-          // Быстрое обновление манифеста
           availabilityWindowOverride: 60,
           disableAudio: false,
           disableVideo: false,
-          disableText: true, // Отключаем субтитры для производительности
+          disableText: true,
           defaultPresentationDelay: 10,
-          // HLS-specific settings для Kodik
           hls: {
             ignoreManifestProgramDateTime: false,
           },
         },
 
-        // ABR (Adaptive Bitrate) оптимизации
         abr: {
           enabled: true,
-          useNetworkInformation: true, // Используем Network Information API
-          defaultBandwidthEstimate: 5000000, // 5 Mbps начальная оценка
-          switchInterval: 8, // Переключение каждые 8 сек
-          bandwidthUpgradeTarget: 0.85, // Повышаем качество при 85% запаса
-          bandwidthDowngradeTarget: 0.95, // Понижаем при 95% использования
+          useNetworkInformation: true,
+          defaultBandwidthEstimate: 5000000,
+          switchInterval: 8,
+          bandwidthUpgradeTarget: 0.85,
+          bandwidthDowngradeTarget: 0.95,
           restrictions: {
             minWidth: 0,
             maxWidth: Infinity,
@@ -195,14 +176,12 @@ export class ShakaPlayerManager {
           },
         },
 
-        // Preferenced settings для оптимизации
         preferredAudioLanguage: 'ru',
         preferredTextLanguage: 'ru',
         preferredAudioRole: '',
         preferredTextRole: '',
         preferForcedSubs: false,
 
-        // Streaming protocol settings
         drm: {
           retryParameters: {
             maxAttempts: 2,
@@ -213,14 +192,11 @@ export class ShakaPlayerManager {
           },
         },
 
-        // MediaSource configuration
         mediaSource: {
-          // Force transmux для лучшей совместимости с Kodik
-          forceTransmux: true, // Включаем transmuxing для HLS
+          forceTransmux: true,
         },
       });
 
-      // Setup error handler
       this.player.addEventListener('error', (event: any) => {
         const error = event.detail;
         console.error('[ShakaPlayerManager] Error details:', {
@@ -231,7 +207,6 @@ export class ShakaPlayerManager {
           message: error.message,
         });
 
-        // Provide more specific error messages
         let errorMessage = 'Ошибка загрузки видео';
         if (error.code === 3015) {
           errorMessage =
@@ -247,7 +222,6 @@ export class ShakaPlayerManager {
         this.setLoading(false);
       });
 
-      // Performance monitoring - buffering events
       this.player.addEventListener('buffering', (event: any) => {
         const isBuffering = event.buffering;
         if (isBuffering) {
@@ -255,9 +229,9 @@ export class ShakaPlayerManager {
         } else {
           console.log('[ShakaPlayerManager] Buffering ended');
         }
+        this.config.onBufferingChange?.(isBuffering);
       });
 
-      // Adaptation events - track quality changes
       this.player.addEventListener('adaptation', () => {
         const activeVariant = this.player
           ?.getVariantTracks()
@@ -270,12 +244,10 @@ export class ShakaPlayerManager {
         }
       });
 
-      // ABR status changes
       this.player.addEventListener('abrstatuschanged', (event: any) => {
         console.log('[ShakaPlayerManager] ABR status:', event.status);
       });
 
-      // Streaming event for advanced monitoring
       this.player.addEventListener('streaming', () => {
         console.log('[ShakaPlayerManager] Streaming event triggered');
       });
@@ -302,6 +274,25 @@ export class ShakaPlayerManager {
   }
 
   /**
+   * Отменяет текущую загрузку видео
+   */
+  cancelLoad(): void {
+    this.loadToken += 1;
+    this.setLoading(false);
+  }
+
+  /**
+   * Проверяет, не вытеснена ли загрузка более новой
+   */
+  private isStaleLoad(token: number): boolean {
+    if (token === this.loadToken) {
+      return false;
+    }
+    console.log('[ShakaPlayerManager] Load cancelled, newer request is active');
+    return true;
+  }
+
+  /**
    * Загружает видео с автоматическим fallback и retry логикой
    */
   async loadVideo(
@@ -314,27 +305,33 @@ export class ShakaPlayerManager {
       return false;
     }
 
+    this.loadToken += 1;
+    const token = this.loadToken;
+
     console.log('[ShakaPlayerManager] Loading video:', qualityOption.label);
     this.setLoading(true);
 
     try {
-      // Unload previous video
       await this.player.unload();
+      if (this.isStaleLoad(token)) {
+        return false;
+      }
 
       if (qualityOption.type === 'hls') {
-        // Load HLS manifest with retry
         console.log('[ShakaPlayerManager] Loading HLS:', qualityOption.src);
         console.log(
           '[ShakaPlayerManager] HLS type detected, using Shaka Player',
         );
 
-        const loaded = await this.loadWithRetry(qualityOption.src);
+        const loaded = await this.loadWithRetry(qualityOption.src, token);
+        if (this.isStaleLoad(token)) {
+          return false;
+        }
         if (!loaded) {
           console.error(
             '[ShakaPlayerManager] Failed to load HLS with Shaka, trying native fallback',
           );
 
-          // Try native HLS as fallback for Safari/iOS
           if (
             this.videoElement &&
             this.videoElement.canPlayType('application/vnd.apple.mpegurl')
@@ -349,36 +346,44 @@ export class ShakaPlayerManager {
           throw new Error('Ошибка загрузки HLS после всех попыток');
         }
       } else {
-        // Load progressive video with fallback support and retry
         const sources = [
           qualityOption.src,
           qualityOption.fallbackSrc,
           qualityOption.fallbackSrc2,
         ].filter(Boolean) as string[];
 
-        const loaded = await this.tryProgressiveSourcesWithRetry(sources);
+        const loaded = await this.tryProgressiveSourcesWithRetry(
+          sources,
+          token,
+        );
+        if (this.isStaleLoad(token)) {
+          return false;
+        }
         if (!loaded) {
           throw new Error('Ошибка загрузки всех источников видео');
         }
       }
 
-      // Wait for video to be ready before hiding loading indicator
       console.log(
         '[ShakaPlayerManager] Video loaded, waiting for canplay event...',
       );
       await this.waitForCanPlay();
+      if (this.isStaleLoad(token)) {
+        return false;
+      }
       console.log('[ShakaPlayerManager] Video is ready to play');
 
       this.setLoading(false);
 
-      // Restore time if provided
       if (savedTime !== undefined && savedTime > 0) {
         await this.seekWhenReady(savedTime);
       }
 
-      // Autoplay if requested
       if (autoplay && this.videoElement) {
         setTimeout(() => {
+          if (this.isStaleLoad(token)) {
+            return;
+          }
           this.videoElement?.play().catch((error: any) => {
             console.log('[ShakaPlayerManager] Autoplay prevented:', error.name);
           });
@@ -387,6 +392,9 @@ export class ShakaPlayerManager {
 
       return true;
     } catch (error: any) {
+      if (this.isStaleLoad(token)) {
+        return false;
+      }
       console.error('[ShakaPlayerManager] Load error:', error);
       this.config.onError?.(error.message || 'Ошибка загрузки видео');
       this.setLoading(false);
@@ -397,15 +405,18 @@ export class ShakaPlayerManager {
   /**
    * Загружает один источник с несколькими попытками
    */
-  private async loadWithRetry(src: string): Promise<boolean> {
+  private async loadWithRetry(src: string, token: number): Promise<boolean> {
     // eslint-disable-next-line no-plusplus
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      if (this.isStaleLoad(token)) {
+        return false;
+      }
+
       try {
         console.log(
           `[ShakaPlayerManager] Attempt ${attempt}/${this.maxRetries} for: ${src}`,
         );
 
-        // Log network engine status
         const networkEngine = this.player?.getNetworkingEngine();
         console.log(
           '[ShakaPlayerManager] Network engine available:',
@@ -448,23 +459,26 @@ export class ShakaPlayerManager {
    */
   private async tryProgressiveSourcesWithRetry(
     sources: string[],
+    token: number,
   ): Promise<boolean> {
     // eslint-disable-next-line no-plusplus
     for (let i = 0; i < sources.length; i++) {
+      if (this.isStaleLoad(token)) {
+        return false;
+      }
+
       const src = sources[i];
       console.log(
         `[ShakaPlayerManager] Trying source ${i + 1}/${sources.length}:`,
         src,
       );
 
-      // Пробуем загрузить источник с retry
       // eslint-disable-next-line no-await-in-loop
-      const loaded = await this.loadWithRetry(src);
+      const loaded = await this.loadWithRetry(src, token);
       if (loaded) {
         return true;
       }
 
-      // Если это не последний источник, переходим к следующему
       if (i < sources.length - 1) {
         console.log('[ShakaPlayerManager] Moving to next source...');
       }
@@ -483,20 +497,17 @@ export class ShakaPlayerManager {
       return Promise.resolve();
     }
 
-    // Если видео уже готово
     if (this.videoElement.readyState >= 3) {
       console.log('[ShakaPlayerManager] Video already ready');
       return Promise.resolve();
     }
 
-    // Ждем события canplay
     return new Promise((resolve) => {
       const handleCanPlay = () => {
         console.log('[ShakaPlayerManager] canplay event received');
         resolve();
       };
 
-      // Таймаут на случай если событие не придет
       const timeout = setTimeout(() => {
         console.warn('[ShakaPlayerManager] canplay timeout, continuing anyway');
         this.videoElement?.removeEventListener('canplay', handleCanPlay);
@@ -507,7 +518,6 @@ export class ShakaPlayerManager {
         once: true,
       });
 
-      // Очищаем таймаут когда событие придет
       this.videoElement?.addEventListener(
         'canplay',
         () => clearTimeout(timeout),
@@ -542,6 +552,8 @@ export class ShakaPlayerManager {
    * Выгружает текущее видео
    */
   async unload(): Promise<void> {
+    this.loadToken += 1;
+
     if (this.player) {
       try {
         await this.player.unload();

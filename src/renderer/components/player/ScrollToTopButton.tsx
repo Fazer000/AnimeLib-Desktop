@@ -3,9 +3,7 @@ import { Box, Fab, Zoom } from '@mui/material';
 import { KeyboardArrowUp } from '@mui/icons-material';
 
 interface ScrollToTopButtonProps {
-  // Порог прокрутки для показа кнопки (в пикселях)
   threshold?: number;
-  // ID контейнера для скролла (если не указан, используется window)
   scrollContainerId?: string;
 }
 
@@ -19,7 +17,6 @@ function ScrollToTopButton({
 }: ScrollToTopButtonProps) {
   const [showButton, setShowButton] = useState(false);
 
-  // Отслеживание прокрутки
   useEffect(() => {
     const scrollContainer = scrollContainerId
       ? document.getElementById(scrollContainerId)
@@ -42,21 +39,17 @@ function ScrollToTopButton({
       setShowButton(scrolled);
     };
 
-    // Добавляем слушатель
     scrollContainer.addEventListener('scroll', handleScroll, {
       passive: true,
     } as any);
 
-    // Проверяем начальное положение
     handleScroll();
 
-    // Очистка
     return () => {
       scrollContainer.removeEventListener('scroll', handleScroll as any);
     };
   }, [threshold, scrollContainerId]);
 
-  // Прокрутка наверх
   const scrollToTop = useCallback(() => {
     const scrollContainer = scrollContainerId
       ? document.getElementById(scrollContainerId)

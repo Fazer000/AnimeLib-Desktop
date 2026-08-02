@@ -5,6 +5,9 @@ import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 import VolumeDownRoundedIcon from '@mui/icons-material/VolumeDownRounded';
 import VolumeMuteRoundedIcon from '@mui/icons-material/VolumeMuteRounded';
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
+import { PLAYER_CONTROL_ICON_SIZE } from '../../../constants';
+
+const ICON_SX = { fontSize: `${PLAYER_CONTROL_ICON_SIZE}px` };
 
 interface VolumeControlProps {
   volume: number;
@@ -38,21 +41,19 @@ function VolumeControl({
     setIsDragging(false);
   };
 
-  // Получаем правильную иконку в зависимости от громкости
   const getVolumeIcon = () => {
     if (isMuted || volume === 0) {
-      return <VolumeOffRoundedIcon fontSize="small" />;
+      return <VolumeOffRoundedIcon sx={ICON_SX} />;
     }
     if (volume < 0.3) {
-      return <VolumeMuteRoundedIcon fontSize="small" />;
+      return <VolumeMuteRoundedIcon sx={ICON_SX} />;
     }
     if (volume < 0.7) {
-      return <VolumeDownRoundedIcon fontSize="small" />;
+      return <VolumeDownRoundedIcon sx={ICON_SX} />;
     }
-    return <VolumeUpRoundedIcon fontSize="small" />;
+    return <VolumeUpRoundedIcon sx={ICON_SX} />;
   };
 
-  // Получаем tooltip текст
   const getTooltipText = () => {
     if (isMuted) return 'Включить звук';
     if (volume === 0) return 'Включить звук';
@@ -70,7 +71,6 @@ function VolumeControl({
         position: 'relative',
       }}
     >
-      {/* Плашка с процентом громкости */}
       <Fade in={showTooltip} timeout={{ enter: 50, exit: 60 }}>
         <Box
           sx={{
@@ -95,7 +95,6 @@ function VolumeControl({
         </Box>
       </Fade>
 
-      {/* Кнопка mute */}
       <Tooltip title={getTooltipText()} placement="top">
         <IconButton
           onClick={(e) => {
@@ -104,7 +103,7 @@ function VolumeControl({
           }}
           sx={{
             color: 'white',
-            padding: 0.25,
+            padding: 0.5,
             borderRadius: 2,
             position: 'relative',
             '&:hover': {
@@ -146,7 +145,6 @@ function VolumeControl({
         </IconButton>
       </Tooltip>
 
-      {/* Слайдер громкости */}
       <Box
         sx={{
           width: 60,

@@ -30,15 +30,13 @@ export class VideoStateManager {
     handler: (event: Event) => void;
   }> = [];
 
-  // Throttling для timeupdate
   private lastTimeUpdate = 0;
 
-  private readonly timeUpdateThrottle = 100; // 100ms = 10 раз в секунду
+  private readonly timeUpdateThrottle = 100;
 
   constructor(config: VideoStateConfig = {}) {
     this.config = config;
 
-    // Initialize state with saved values
     this.state = {
       isPlaying: false,
       currentTime: 0,
@@ -55,16 +53,14 @@ export class VideoStateManager {
    * Привязывает менеджер к видео элементу
    */
   attach(videoElement: HTMLVideoElement): void {
-    this.detach(); // Remove previous listeners
+    this.detach();
 
     this.videoElement = videoElement;
 
-    // Apply saved settings
     videoElement.volume = this.state.volume;
     videoElement.muted = this.state.isMuted;
     videoElement.playbackRate = this.state.playbackRate;
 
-    // Setup event listeners
     this.addListener('play', () => this.handlePlay());
     this.addListener('pause', () => this.handlePause());
     this.addListener('timeupdate', () => this.handleTimeUpdate());
@@ -98,7 +94,6 @@ export class VideoStateManager {
     this.eventListeners.push({ event, handler });
   }
 
-  // Event handlers
   private handlePlay(): void {
     console.log('[VideoStateManager] Play event');
     this.updateState({ isPlaying: true });
@@ -112,7 +107,6 @@ export class VideoStateManager {
   private handleTimeUpdate(): void {
     if (!this.videoElement) return;
 
-    // Throttling - обновляем не чаще чем раз в 100ms
     const now = Date.now();
     if (now - this.lastTimeUpdate < this.timeUpdateThrottle) {
       return;
@@ -124,7 +118,6 @@ export class VideoStateManager {
       duration: this.videoElement.duration || 0,
     };
 
-    // Update buffered
     if (this.videoElement.buffered.length > 0) {
       const bufferedEnd = this.videoElement.buffered.end(
         this.videoElement.buffered.length - 1,
@@ -143,7 +136,6 @@ export class VideoStateManager {
 
     this.updateState({ volume, isMuted });
 
-    // Save to localStorage
     VideoStateManager.saveToStorage('videoVolume', volume);
     VideoStateManager.saveToStorage('videoMuted', isMuted);
   }
@@ -174,8 +166,6 @@ export class VideoStateManager {
     this.state = { ...this.state, ...updates };
     this.config.onStateChange?.(updates);
   }
-
-  // Public control methods
 
   /**
    * Переключает воспроизведение
@@ -219,7 +209,6 @@ export class VideoStateManager {
     const newMuted = !this.state.isMuted;
     this.videoElement.muted = newMuted;
 
-    // If unmuting and volume is 0, set to 0.5
     if (!newMuted && this.state.volume === 0) {
       this.setVolume(0.5);
     }
@@ -292,8 +281,6 @@ export class VideoStateManager {
   getState(): VideoState {
     return { ...this.state };
   }
-
-  // Storage helpers
 
   private static loadFromStorage(key: string, defaultValue: any): any {
     const saved = localStorage.getItem(key);

@@ -22,7 +22,7 @@ export interface Comment {
     down: number;
   };
   replies?: Comment[];
-  parentUser?: string; // Username of parent comment author
+  parentUser?: string;
 }
 
 export interface CommentsManagerConfig {
@@ -92,24 +92,19 @@ export class CommentsManager {
       return rootComments;
     }
 
-    // Создаем карту всех комментариев (root + replies) по ID
     const commentsMap = new Map<number, Comment>();
 
-    // Добавляем root комментарии
     rootComments.forEach((comment) => {
       commentsMap.set(comment.id, { ...comment, replies: [] });
     });
 
-    // Добавляем replies
     repliesData.forEach((reply) => {
       commentsMap.set(reply.id, { ...reply, replies: [] });
     });
 
-    // Связываем replies с их родителями
     repliesData.forEach((reply) => {
       const parentComment = commentsMap.get(reply.parent_comment!);
       if (parentComment) {
-        // Добавляем имя пользователя родительского комментария
         const replyWithParent = {
           ...reply,
           parentUser: parentComment.user.username,
@@ -122,7 +117,6 @@ export class CommentsManager {
       }
     });
 
-    // Возвращаем только root комментарии
     return rootComments.map((comment) => commentsMap.get(comment.id)!);
   }
 
@@ -133,7 +127,6 @@ export class CommentsManager {
     episodeId: number,
     pageNum: number = 1,
   ): Promise<void> {
-    // Если меняется эпизод, сбрасываем состояние
     if (this.currentEpisodeId !== episodeId) {
       this.reset();
       this.currentEpisodeId = episodeId;
@@ -156,13 +149,11 @@ export class CommentsManager {
       const rootComments = response.data.root;
       const repliesData = response.data.replies;
 
-      // Связываем replies с root комментариями
       const commentsWithReplies = this.attachRepliesToComments(
         rootComments,
         repliesData,
       );
 
-      // Обновляем состояние
       this.state.comments =
         pageNum === 1
           ? commentsWithReplies
@@ -175,7 +166,6 @@ export class CommentsManager {
         commentsWithReplies.length,
       );
 
-      // Уведомляем подписчиков
       this.config.onCommentsLoaded?.(this.state.comments, this.state.hasMore);
     } catch (error) {
       console.error('[CommentsManager] Error loading comments:', error);
@@ -261,8 +251,8 @@ export class CommentsManager {
    * Получить цвет для отображения голосов
    */
   public static getVoteColor(count: number): string {
-    if (count > 0) return '#4ade80'; // green
-    if (count < 0) return '#f87171'; // red
+    if (count > 0) return '#4ade80';
+    if (count < 0) return '#f87171';
     return 'inherit';
   }
 

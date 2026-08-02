@@ -53,7 +53,6 @@ const ReplyItem = memo(
         }}
       >
         <Box sx={{ display: 'flex', gap: 1.5 }}>
-          {/* Smaller Avatar */}
           <Box
             sx={{
               width: 32,
@@ -120,7 +119,6 @@ const ReplyItem = memo(
                 {comment.user.username}
               </Typography>
 
-              {/* Reply to indicator */}
               {comment.parentUser && (
                 <>
                   <Typography
@@ -153,7 +151,6 @@ const ReplyItem = memo(
                 {CommentsManager.formatDate(comment.created_at)}
               </Typography>
 
-              {/* Compact votes */}
               <Box
                 sx={{
                   display: 'flex',
@@ -204,7 +201,6 @@ const ReplyItem = memo(
               </Box>
             </Box>
 
-            {/* Comment text */}
             <Box
               sx={{
                 color: theme.palette.customColors.dtPrimaryTextColor,
@@ -216,7 +212,6 @@ const ReplyItem = memo(
               <CommentText html={comment.comment} />
             </Box>
 
-            {/* Nested replies */}
             {comment.replies && comment.replies.length > 0 && level < 3 && (
               <Box sx={{ mt: 1 }}>
                 {comment.replies.map((reply) => (
@@ -259,7 +254,6 @@ const CommentItem = memo(
     const voteCount = CommentsManager.getVoteCount(comment);
     const voteColor = CommentsManager.getVoteColor(voteCount);
 
-    // Load avatar with custom referer
     const avatarUrl = useImageWithReferer(comment.user.avatar?.url);
     const userVote = userVotes.get(comment.id);
 
@@ -280,7 +274,6 @@ const CommentItem = memo(
             gap: 2,
           }}
         >
-          {/* Avatar */}
           <Box
             sx={{
               width: 40,
@@ -329,14 +322,12 @@ const CommentItem = memo(
             </Box>
           </Box>
 
-          {/* Content */}
           <Box
             sx={{
               flex: 1,
               minWidth: 0,
             }}
           >
-            {/* Username, time and votes in one line */}
             <Box
               sx={{
                 display: 'flex',
@@ -374,7 +365,6 @@ const CommentItem = memo(
                 </Typography>
               </Box>
 
-              {/* Votes inline */}
               <Box
                 sx={{
                   display: 'flex',
@@ -464,7 +454,6 @@ const CommentItem = memo(
               </Box>
             </Box>
 
-            {/* Comment text */}
             <Box
               sx={{
                 color: theme.palette.customColors.dtPrimaryTextColor,
@@ -476,7 +465,6 @@ const CommentItem = memo(
               <CommentText html={comment.comment} />
             </Box>
 
-            {/* Replies */}
             {comment.replies && comment.replies.length > 0 && (
               <Box sx={{ mt: 2 }}>
                 {comment.replies.map((reply) => (
@@ -512,17 +500,15 @@ interface CommentsProps {
 function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
   const theme = useTheme();
   const [comments, setComments] = useState<Comment[]>([]);
-  const [displayCount, setDisplayCount] = useState<number>(20); // Display only 20 at a time
+  const [displayCount, setDisplayCount] = useState<number>(20);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [votingComments, setVotingComments] = useState<Set<number>>(new Set());
-  // Track user votes: commentId -> vote (0 = down, 1 = up, null = no vote)
   const [userVotes, setUserVotes] = useState<Map<number, 0 | 1>>(new Map());
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const displayMoreRef = useRef<HTMLDivElement>(null);
 
-  // Get sort parameters based on selected option
   const getSortParams = useCallback((option: string) => {
     switch (option) {
       case 'popular':
@@ -536,7 +522,6 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
     }
   }, []);
 
-  // Создаем менеджер комментариев один раз
   const commentsManager = useMemo(
     () =>
       new CommentsManager({
@@ -578,9 +563,7 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
           let upDelta = 0;
           let downDelta = 0;
 
-          // Calculate vote changes
           if (oldVote !== undefined) {
-            // Remove old vote
             if (oldVote === 1) {
               upDelta -= 1;
             } else {
@@ -589,7 +572,6 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
           }
 
           if (newVote !== null) {
-            // Add new vote
             if (newVote === 1) {
               upDelta += 1;
             } else {
@@ -606,7 +588,6 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
           };
         }
 
-        // Recursively update replies
         if (comment.replies && comment.replies.length > 0) {
           return {
             ...comment,
@@ -630,7 +611,6 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
    */
   const handleVote = useCallback(
     async (commentId: number, vote: 0 | 1) => {
-      // Prevent multiple votes at once
       if (votingComments.has(commentId)) return;
 
       try {
@@ -638,12 +618,10 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
 
         const currentVote = userVotes.get(commentId);
 
-        // If clicking the same vote button, remove the vote
         const newVote = currentVote === vote ? null : vote;
 
         await animeApi.voteComment(commentId, vote);
 
-        // Update user votes tracking
         setUserVotes((prev) => {
           const next = new Map(prev);
           if (newVote === null) {
@@ -654,7 +632,6 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
           return next;
         });
 
-        // Update local vote count optimistically (including replies)
         setComments((prev) =>
           updateCommentVotes(prev, commentId, newVote, currentVote),
         );
@@ -680,7 +657,6 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
         await animeApi.submitComment(data);
         console.log('[Comments] Comment submitted successfully');
 
-        // Reload comments after submission
         commentsManager.reset();
         setComments([]);
         setDisplayCount(20);
@@ -774,11 +750,9 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
     };
   }, [displayCount, comments.length]);
 
-  // Get visible comments
   const visibleComments = comments.slice(0, displayCount);
   const hasMoreToDisplay = displayCount < comments.length;
 
-  // Show loading placeholder if comments not loaded yet
   if (!shouldLoad) {
     return (
       <Box
@@ -811,7 +785,6 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
           flexDirection: 'column',
         }}
       >
-        {/* Comment Editor */}
         <CommentEditor episodeId={episodeId} onSubmit={handleCommentSubmit} />
 
         <Box
@@ -844,7 +817,6 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
         flexDirection: 'column',
       }}
     >
-      {/* Comment Editor */}
       <CommentEditor episodeId={episodeId} onSubmit={handleCommentSubmit} />
 
       {visibleComments.map((comment) => (
@@ -857,7 +829,6 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
         />
       ))}
 
-      {/* Display more trigger */}
       {hasMoreToDisplay && (
         <Box
           ref={displayMoreRef}
@@ -877,7 +848,6 @@ function Comments({ episodeId, sortOption, shouldLoad = true }: CommentsProps) {
         </Box>
       )}
 
-      {/* Load more trigger */}
       {hasMore && (
         <Box
           ref={loadMoreRef}

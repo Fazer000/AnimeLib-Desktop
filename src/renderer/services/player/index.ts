@@ -52,3 +52,5 @@ export type { AutoplayConfig } from './AutoplayManager';
 
 export { SegmentManager } from './SegmentManager';
 export type { TimeCodeSegment, SegmentSettings } from './SegmentManager';
+
+export { WatchStatsManager } from './WatchStatsManager';

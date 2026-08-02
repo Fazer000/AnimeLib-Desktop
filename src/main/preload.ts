@@ -14,6 +14,7 @@ export type Channels =
   | 'clear-video-headers'
   | 'get-maximize-state'
   | 'get-kodik-links'
+  | 'bookmarks-changed';
 
 const electronHandler = {
   ipcRenderer: {

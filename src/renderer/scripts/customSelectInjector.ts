@@ -36,13 +36,10 @@ class CustomSelectInjector {
       '[CustomSelectInjector] Initializing custom select injection...',
     );
 
-    // Инжектим CSS стили
     this.injectStyles();
 
-    // Заменяем существующие select
     this.replaceExistingSelects();
 
-    // Настраиваем observer для новых select
     this.setupMutationObserver();
 
     this.injected = true;
@@ -56,7 +53,6 @@ class CustomSelectInjector {
   private injectStyles(): void {
     const styleId = 'custom-select-styles';
 
-    // Удаляем старые стили если есть
     const existingStyle = document.getElementById(styleId);
     if (existingStyle) {
       existingStyle.remove();
@@ -349,18 +345,15 @@ class CustomSelectInjector {
    */
   private replaceSelect(originalSelect: HTMLSelectElement): void {
     if (this.customSelects.has(originalSelect)) {
-      return; // Уже заменен
+      return;
     }
 
     const wrapper = this.createCustomSelect(originalSelect);
     if (wrapper) {
-      // Вставляем кастомный select перед оригинальным
       originalSelect.parentNode?.insertBefore(wrapper, originalSelect);
 
-      // Скрываем оригинальный select
       originalSelect.classList.add('original-select-hidden');
 
-      // Сохраняем связь
       this.customSelects.set(originalSelect, wrapper);
 
       console.log('[CustomSelectInjector] Replaced select element');
@@ -377,7 +370,6 @@ class CustomSelectInjector {
       const wrapper = document.createElement('div');
       wrapper.className = 'custom-select-wrapper';
 
-      // Копируем атрибуты
       if (originalSelect.id) wrapper.id = `custom-${originalSelect.id}`;
       if (originalSelect.className)
         wrapper.className += ` ${originalSelect.className}`;
@@ -402,7 +394,6 @@ class CustomSelectInjector {
       const optionsContainer = document.createElement('div');
       optionsContainer.className = 'custom-select-options';
 
-      // Создаем опции
       const options = Array.from(originalSelect.options);
       options.forEach((option) => {
         const customOption = this.createCustomOption(
@@ -417,10 +408,8 @@ class CustomSelectInjector {
       wrapper.appendChild(trigger);
       wrapper.appendChild(dropdown);
 
-      // Настраиваем обработчики событий
       this.setupEventHandlers(trigger, dropdown, originalSelect, wrapper);
 
-      // Устанавливаем начальное значение
       this.updateDisplayValue(originalSelect, valueSpan);
 
       return wrapper;
@@ -455,26 +444,21 @@ class CustomSelectInjector {
     optionElement.textContent = option.textContent || option.value;
     optionElement.dataset.value = option.value;
 
-    // Обработчик клика
     optionElement.addEventListener('click', (e) => {
       e.stopPropagation();
 
       if (option.disabled) return;
 
-      // Обновляем оригинальный select
       originalSelect.value = option.value;
 
-      // Триггерим событие change
       const changeEvent = new Event('change', { bubbles: true });
       originalSelect.dispatchEvent(changeEvent);
 
-      // Обновляем отображение
       this.updateDisplayValue(
         originalSelect,
         wrapper.querySelector('.custom-select-value') as HTMLElement,
       );
 
-      // Закрываем dropdown
       const dropdown = wrapper.querySelector(
         '.custom-select-dropdown',
       ) as HTMLElement;
@@ -485,7 +469,6 @@ class CustomSelectInjector {
       dropdown.classList.remove('open');
       trigger.classList.remove('open');
 
-      // Обновляем выделение опций
       wrapper.querySelectorAll('.custom-select-option').forEach((opt) => {
         const optElement = opt as HTMLElement;
         optElement.classList.remove('selected');
@@ -508,7 +491,6 @@ class CustomSelectInjector {
     originalSelect: HTMLSelectElement,
     wrapper: HTMLElement,
   ): void {
-    // Клик по триггеру
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
 
@@ -516,7 +498,6 @@ class CustomSelectInjector {
 
       const isOpen = dropdown.classList.contains('open');
 
-      // Закрываем все другие dropdown
       document
         .querySelectorAll('.custom-select-dropdown.open')
         .forEach((otherDropdown) => {
@@ -537,7 +518,6 @@ class CustomSelectInjector {
       }
     });
 
-    // Клик вне dropdown для закрытия
     document.addEventListener('click', (e) => {
       if (!wrapper.contains(e.target as Node)) {
         dropdown.classList.remove('open');
@@ -545,7 +525,6 @@ class CustomSelectInjector {
       }
     });
 
-    // Клавиатурная навигация
     trigger.addEventListener('keydown', (e) => {
       if (originalSelect.disabled) return;
 
@@ -574,7 +553,6 @@ class CustomSelectInjector {
           }
           break;
         default:
-          // No action for other keys
           break;
       }
     });
@@ -610,7 +588,6 @@ class CustomSelectInjector {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
 
-            // Проверяем сам элемент
             if (
               element.tagName === 'SELECT' &&
               !element.classList.contains('original-select-hidden')
@@ -618,7 +595,6 @@ class CustomSelectInjector {
               this.replaceSelect(element as HTMLSelectElement);
             }
 
-            // Проверяем дочерние элементы
             const selects = element.querySelectorAll?.(
               'select:not(.original-select-hidden)',
             );
@@ -645,13 +621,11 @@ class CustomSelectInjector {
       this.observer = null;
     }
 
-    // Удаляем кастомные стили
     const style = document.getElementById('custom-select-styles');
     if (style) {
       style.remove();
     }
 
-    // Восстанавливаем оригинальные select
     this.customSelects.forEach((wrapper, originalSelect) => {
       wrapper.remove();
       originalSelect.classList.remove('original-select-hidden');
@@ -664,7 +638,6 @@ class CustomSelectInjector {
   }
 }
 
-// Экспортируем функцию для инъекции (default export)
 export default function injectCustomSelects(): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
@@ -678,7 +651,6 @@ export default function injectCustomSelects(): Promise<void> {
   });
 }
 
-// Автоматическая инъекция при загрузке скрипта
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     injectCustomSelects().catch((error) => {

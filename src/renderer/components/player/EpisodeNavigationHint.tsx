@@ -44,7 +44,6 @@ function EpisodeNavigationHint({
     }
   };
 
-  // Стили для областей
   const areaStyle = {
     position: 'absolute' as const,
     top: 0,
@@ -57,7 +56,6 @@ function EpisodeNavigationHint({
     transition: 'background-color 0.3s ease',
   };
 
-  // Стили для кнопок
   const buttonStyle = {
     backgroundColor: 'rgba(20, 20, 20, 0.45)',
     border: '1px solid rgba(116, 116, 128, 0.33)',
@@ -75,7 +73,6 @@ function EpisodeNavigationHint({
 
   return (
     <>
-      {/* Левая область - предыдущий эпизод */}
       {hasPrevious && (
         <Box
           sx={{
@@ -88,7 +85,6 @@ function EpisodeNavigationHint({
             bottom: 0,
             width: '10%',
             overflow: 'hidden',
-            // Убираем transition с background/backgroundColor, делаем через отдельный ::before слой
             '&::before': {
               content: '""',
               position: 'absolute',
@@ -142,7 +138,6 @@ function EpisodeNavigationHint({
         </Box>
       )}
 
-      {/* Правая область - следующий эпизод */}
       {hasNext && (
         <Box
           sx={{
@@ -155,7 +150,6 @@ function EpisodeNavigationHint({
             bottom: 0,
             width: '10%',
             overflow: 'hidden',
-            // Убираем transition с background/backgroundColor, делаем через отдельный ::before слой
             '&::before': {
               content: '""',
               position: 'absolute',

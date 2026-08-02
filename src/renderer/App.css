@@ -13,6 +13,10 @@ body,
   image-rendering: crisp-edges;
 }
 
+:fullscreen::backdrop {
+  background-color: #000;
+}
+
 /* Custom scrollbar styling - thin and modern */
 * ::-webkit-scrollbar,
 *::-webkit-scrollbar {

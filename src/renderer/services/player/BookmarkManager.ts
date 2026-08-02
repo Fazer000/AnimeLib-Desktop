@@ -62,12 +62,10 @@ export class BookmarkManager {
         progress: bookmark.progress,
       });
 
-      // Call callback
       if (this.config.onBookmarkLoaded) {
         this.config.onBookmarkLoaded(bookmark);
       }
 
-      // Find episode by item_id
       const episodeIndex = BookmarkManager.findEpisodeIndex(
         episodes,
         bookmark.item_id,
@@ -83,7 +81,6 @@ export class BookmarkManager {
         `[BookmarkManager] Found episode at index ${episodeIndex}: ${episodes[episodeIndex].number}`,
       );
 
-      // Convert timecode to seconds
       const timecodeSeconds = BookmarkManager.timecodeToSecondsInternal(
         bookmark.progress,
       );
@@ -93,7 +90,6 @@ export class BookmarkManager {
         `[BookmarkManager] Timecode: ${bookmark.progress} = ${timecodeSeconds}s`,
       );
 
-      // Call callbacks
       if (this.config.onEpisodeFound) {
         this.config.onEpisodeFound(episodeIndex);
       }
@@ -102,7 +98,6 @@ export class BookmarkManager {
         this.config.onTimecodeReady(bookmark.progress);
       }
 
-      // Mark as processed
       this.bookmarkProcessed = true;
 
       return { episodeIndex, timecodeSeconds };
@@ -131,12 +126,10 @@ export class BookmarkManager {
       const parts = timecode.split(':').map((p) => parseInt(p, 10));
 
       if (parts.length === 2) {
-        // MM:SS format
         return parts[0] * 60 + parts[1];
       }
 
       if (parts.length === 3) {
-        // HH:MM:SS format
         return parts[0] * 3600 + parts[1] * 60 + parts[2];
       }
 

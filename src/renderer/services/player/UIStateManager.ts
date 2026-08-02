@@ -1,5 +1,7 @@
 /* eslint-disable no-console */
 
+import { PLAYER_EPISODES_VISIBLE_BY_DEFAULT } from '../../../constants';
+
 export interface UIState {
   showControls: boolean;
   isFullscreen: boolean;
@@ -20,7 +22,6 @@ export interface UIState {
  * - Состояние меню
  */
 export class UIStateManager {
-  // States
   private showControls: boolean = true;
 
   private isFullscreen: boolean = false;
@@ -31,15 +32,12 @@ export class UIStateManager {
 
   private isMenuOpen: boolean = false;
 
-  private showEpisodesList: boolean = false;
+  private showEpisodesList: boolean = PLAYER_EPISODES_VISIBLE_BY_DEFAULT;
 
-  // Callbacks
   private onStateChange?: (state: UIState) => void;
 
-  // Auto-hide timer
   private autoHideTimer: ReturnType<typeof setTimeout> | null = null;
 
-  // Click debounce timer
   private clickTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(callbacks?: { onStateChange?: (state: UIState) => void }) {
@@ -102,7 +100,6 @@ export class UIStateManager {
   showPlayPauseIcon(): void {
     this.updateState({ showCenterIcon: true });
 
-    // Автоматически скрыть через 1 секунду
     setTimeout(() => {
       this.updateState({ showCenterIcon: false });
     }, 1000);
@@ -127,7 +124,6 @@ export class UIStateManager {
    */
   toggleEpisodesList(): void {
     this.updateState({ showEpisodesList: !this.showEpisodesList });
-    this.showPlayerControls(); // Показываем контролы при открытии списка
   }
 
   /**
@@ -141,16 +137,11 @@ export class UIStateManager {
    * Запустить автоскрытие контролов
    */
   startAutoHide(isPlaying: boolean, delay: number = 2000): void {
-    // Очищаем предыдущий таймер
     if (this.autoHideTimer) {
       clearTimeout(this.autoHideTimer);
       this.autoHideTimer = null;
     }
 
-    // Не скрываем контролы если:
-    // - видео на паузе
-    // - меню открыто
-    // - курсор наведён на прогресс-бар (показываем превью)
     if (!isPlaying || this.isMenuOpen || this.hoverTime !== null) {
       return;
     }

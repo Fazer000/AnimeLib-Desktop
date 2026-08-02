@@ -46,7 +46,6 @@ function NextEpisodeNotification({
 
   return (
     <>
-      {/* Backdrop — перехватывает все клики, блокируя управление плеером */}
       <Box
         onClick={stopEvent}
         onMouseDown={stopEvent}
@@ -67,7 +66,6 @@ function NextEpisodeNotification({
         }}
       />
 
-      {/* Notification Card */}
       <Box
         onClick={stopEvent}
         onMouseDown={stopEvent}

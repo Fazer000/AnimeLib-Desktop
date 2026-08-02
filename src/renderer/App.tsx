@@ -1,14 +1,20 @@
 /* eslint-disable no-console */
-import React, { useState, useEffect, useCallback } from 'react';
-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { ThemeProvider, createTheme, CssBaseline, Box } from '@mui/material';
 import UrlInputPage from './pages/UrlInputPage';
 import WebView from './pages/WebViewPage';
+import type { WebViewPageRef } from './pages/WebViewPage';
 import PlayerPage from './pages/PlayerPage';
+import { buildAnimePageUrl, saveSiteUrl } from './utils/urlHelpers';
+import ContinueWatchingButton from './components/ContinueWatchingButton';
+import {
+  NavigationHistoryTracker,
+  playerHistoryManager,
+} from './services/webview';
+import useWatchingBookmarks from './hooks/useWatchingBookmarks';
 
-// Расширяем типы MUI для кастомных цветов
 declare module '@mui/material/styles' {
   interface CustomColors {
-    // Dark Theme Colors
     dtPrimaryColor: string;
     dtSecondaryColor: string;
     dtBlueColor: string;
@@ -21,7 +27,6 @@ declare module '@mui/material/styles' {
     dtSecondaryTextColor: string;
     dtAccentTextColor: string;
 
-    // Light Theme Colors (for future use)
     ltPrimaryColor: string;
     ltSecondaryColor: string;
     ltBlueColor: string;
@@ -34,7 +39,6 @@ declare module '@mui/material/styles' {
     ltSecondaryTextColor: string;
     ltAccentTextColor: string;
 
-    // General Colors
     whiteColor: string;
     grayColor: string;
     blackColor: string;
@@ -104,33 +108,30 @@ const darkTheme = createTheme({
     },
     divider: '#464649',
     customColors: {
-      // Dark Theme Colors
       dtPrimaryColor: '#1c1c1c',
       dtSecondaryColor: '#7C3AED',
       dtBlueColor: '#2196f3',
-      dtAlphaPrimaryColor: 'rgba(0, 0, 0, 0.19)', // #30000000
+      dtAlphaPrimaryColor: 'rgba(0, 0, 0, 0.19)',
       dtBorderColor: '#464649',
-      dtAlphaBorderColor: 'rgba(84, 84, 88, 0.44)', // #70545458
+      dtAlphaBorderColor: 'rgba(84, 84, 88, 0.44)',
       dtLineColor: '#464649',
       dtHeaderColor: '#252527',
       dtPrimaryTextColor: '#bfbfbf',
       dtSecondaryTextColor: '#7C3AED',
-      dtAccentTextColor: 'rgba(245, 245, 250, 0.5)', // #80F5F5FA
+      dtAccentTextColor: 'rgba(245, 245, 250, 0.5)',
 
-      // Light Theme Colors
       ltPrimaryColor: '#FFFFFF',
       ltSecondaryColor: '#7C3AED',
       ltBlueColor: '#1976D2',
-      ltAlphaPrimaryColor: 'rgba(255, 255, 255, 0.10)', // #1AFFFFFF
+      ltAlphaPrimaryColor: 'rgba(255, 255, 255, 0.10)',
       ltBorderColor: '#E0E0E0',
-      ltAlphaBorderColor: 'rgba(224, 224, 224, 0.2)', // #33E0E0E0
+      ltAlphaBorderColor: 'rgba(224, 224, 224, 0.2)',
       ltLineColor: '#AAAAAA',
       ltHeaderColor: '#ede7f6',
       ltPrimaryTextColor: '#212121',
       ltSecondaryTextColor: '#7C3AED',
       ltAccentTextColor: '#757575',
 
-      // General Colors
       whiteColor: '#FFFFFF',
       grayColor: '#D8D8D8',
       blackColor: '#000000',
@@ -205,6 +206,14 @@ function App() {
   const [savedUrl, setSavedUrl] = useState<string | null>(null);
   const [playerUrl, setPlayerUrl] = useState<string | null>(null);
   const [animeId, setAnimeId] = useState<string | null>(null);
+  const bookmarks = useWatchingBookmarks(playerUrl);
+
+  const webViewRef = useRef<WebViewPageRef>(null);
+  const [playerReturnsBack, setPlayerReturnsBack] = useState<boolean>(false);
+
+  useEffect(() => {
+    NavigationHistoryTracker.install();
+  }, []);
 
   const handlePlayerButtonClick = useCallback(
     (url: string, providedAnimeId?: string) => {
@@ -232,6 +241,13 @@ function App() {
       }
 
       console.log('[AnimeLIB] Final anime ID:', finalAnimeId);
+      playerHistoryManager.open(
+        url,
+        finalAnimeId ?? 'unknown',
+        webViewRef.current?.getCurrentUrl() ?? '',
+      );
+      NavigationHistoryTracker.record({ source: 'player-open', url });
+      setPlayerReturnsBack(false);
       setPlayerUrl(url);
       setAnimeId(finalAnimeId);
     },
@@ -278,106 +294,102 @@ function App() {
   }, [handlePlayerButtonClick]);
 
   const handleUrlSubmit = useCallback((url: string) => {
-    const urlObj = new URL(url);
-    const cleanUrl = `${urlObj.protocol}//${urlObj.host}/`;
-    localStorage.setItem('animeLibUrl', cleanUrl);
-    setSavedUrl(cleanUrl);
+    setSavedUrl(saveSiteUrl(url));
   }, []);
 
-  if (playerUrl) {
+  const handlePlayerClose = useCallback((url: string) => {
+    NavigationHistoryTracker.record({ source: 'player-close', url });
+    setPlayerUrl(null);
+    setAnimeId(null);
+    setPlayerReturnsBack(false);
+  }, []);
+
+  const handleBeforeGoBack = useCallback(() => {
+    const currentUrl = webViewRef.current?.getCurrentUrl() ?? '';
+    const entry = playerHistoryManager.takeEntryFor(currentUrl);
+
+    if (!entry) {
+      return false;
+    }
+
+    NavigationHistoryTracker.record({
+      source: 'player-open',
+      url: entry.playerUrl,
+    });
+    setPlayerReturnsBack(true);
+    setPlayerUrl(entry.playerUrl);
+    setAnimeId(entry.animeId);
+
+    return true;
+  }, []);
+
+  if (!savedUrl) {
     return (
       <ThemeProvider theme={darkTheme}>
         <CssBaseline />
-        <PlayerPage
-          playerUrl={playerUrl}
-          animeId={animeId || 'unknown'}
-          onBack={() => {
-            console.log('[App] Player back button clicked');
-
-            if (animeId && animeId !== 'unknown') {
-              const baseUrl = localStorage.getItem('animeLibUrl') || '';
-              try {
-                const urlObj = new URL(baseUrl);
-                const animeUrl = `${urlObj.protocol}//${urlObj.host}/ru/anime/${animeId}`;
-                console.log('[App] Returning to anime page:', animeUrl);
-                setSavedUrl(animeUrl);
-              } catch {
-                const savedCurrentPage = localStorage.getItem(
-                  'animeLibCurrentPage',
-                );
-                if (savedCurrentPage) {
-                  console.log(
-                    '[App] Returning to saved page:',
-                    savedCurrentPage,
-                  );
-                  setSavedUrl(savedCurrentPage);
-                } else if (baseUrl) {
-                  setSavedUrl(baseUrl);
-                }
-              }
-            } else {
-              const savedCurrentPage = localStorage.getItem(
-                'animeLibCurrentPage',
-              );
-
-              if (savedCurrentPage) {
-                console.log('[App] Returning to saved page:', savedCurrentPage);
-                setSavedUrl(savedCurrentPage);
-              } else {
-                console.log('[App] No saved page found, using default URL');
-                const defaultUrl = localStorage.getItem('animeLibUrl');
-                if (defaultUrl) {
-                  setSavedUrl(defaultUrl);
-                }
-              }
-            }
-
-            setPlayerUrl(null);
-            setAnimeId(null);
-          }}
-          onHome={() => {
-            console.log('[App] Player home button clicked');
-
-            const homeUrl = localStorage.getItem('animeLibUrl');
-            if (homeUrl) {
-              console.log('[App] Navigating to home URL:', homeUrl);
-              setSavedUrl(homeUrl);
-            } else {
-              console.warn('[App] No home URL found in localStorage');
-            }
-
-            setPlayerUrl(null);
-            setAnimeId(null);
-          }}
-          onNavigateToUrl={(url: string) => {
-            console.log('[App] Player navigate to URL:', url);
-            setSavedUrl(url);
-            setPlayerUrl(null);
-            setAnimeId(null);
-          }}
-        />
+        <UrlInputPage onSubmit={handleUrlSubmit} />
       </ThemeProvider>
     );
   }
 
-  // Если есть сохраненный URL, показываем WebView
-  if (savedUrl) {
-    return (
-      <ThemeProvider theme={darkTheme}>
-        <CssBaseline />
-        <WebView
-          savedUrl={savedUrl}
-          onPlayerButtonClick={handlePlayerButtonClick}
-        />
-      </ThemeProvider>
-    );
-  }
-
-  // Показываем форму ввода URL
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <UrlInputPage onSubmit={handleUrlSubmit} />
+      <Box sx={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            visibility: playerUrl ? 'hidden' : 'visible',
+            pointerEvents: playerUrl ? 'none' : 'auto',
+          }}
+        >
+          <WebView
+            pageRef={webViewRef}
+            savedUrl={savedUrl}
+            hidden={Boolean(playerUrl)}
+            onBeforeGoBack={handleBeforeGoBack}
+            onPlayerButtonClick={handlePlayerButtonClick}
+          />
+          <ContinueWatchingButton
+            bookmarks={bookmarks}
+            onSelect={(bookmark) => {
+              const url = buildAnimePageUrl(bookmark.animeSlugUrl);
+              console.log('[App] Continue watching:', url);
+              handlePlayerButtonClick(url, bookmark.animeSlugUrl);
+            }}
+          />
+        </Box>
+
+        {playerUrl && (
+          <Box sx={{ position: 'absolute', inset: 0, zIndex: 1 }}>
+            <PlayerPage
+              playerUrl={playerUrl}
+              animeId={animeId || 'unknown'}
+              onBack={() => {
+                console.log('[App] Player back button clicked');
+                playerHistoryManager.discard();
+                handlePlayerClose(playerUrl);
+
+                if (playerReturnsBack) {
+                  webViewRef.current?.goBack();
+                }
+              }}
+              onHome={() => {
+                console.log('[App] Player home button clicked');
+                webViewRef.current?.goHome();
+                handlePlayerClose(playerUrl);
+              }}
+              onNavigateToUrl={(url: string) => {
+                console.log('[App] Player navigate to URL:', url);
+                playerHistoryManager.commit(url);
+                webViewRef.current?.navigateTo(url);
+                handlePlayerClose(playerUrl);
+              }}
+            />
+          </Box>
+        )}
+      </Box>
     </ThemeProvider>
   );
 }

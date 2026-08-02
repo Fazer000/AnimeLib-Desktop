@@ -13,7 +13,7 @@
  * const manager = new PlayerSelectionManager();
  *
  * // Save user preference
- * manager.savePreference('Anilibria', 'AnimeLib');
+ * manager.savePreference('Anilibria', 'Animelib');
  *
  * // Get auto-selected player
  * const player = manager.autoSelectPlayer(players);
@@ -24,6 +24,7 @@
  */
 
 import { Player } from '../../api/animeApi';
+import { PLAYER_TYPE_ANIMELIB, PLAYER_TYPE_KODIK } from '../../../constants';
 
 export interface PlayerPreferences {
   teamName: string;
@@ -145,7 +146,6 @@ export class PlayerSelectionManager {
       return null;
     }
 
-    // 1. Try saved preferences first
     if (this.hasPreferences()) {
       const preferredPlayer = this.autoSelectPlayer(players);
       if (preferredPlayer) {
@@ -158,18 +158,18 @@ export class PlayerSelectionManager {
       }
     }
 
-    // 2. Try AnimeLib first
-    const animelibPlayer = players.find((p) => p.player === 'AnimeLib');
+    const animelibPlayer = players.find(
+      (p) => p.player === PLAYER_TYPE_ANIMELIB,
+    );
     if (animelibPlayer) {
       console.log(
-        '[PlayerSelectionManager] No preferences, selected first AnimeLib:',
+        '[PlayerSelectionManager] No preferences, selected first Animelib:',
         animelibPlayer.team.name,
       );
       return animelibPlayer;
     }
 
-    // 3. Try Kodik second
-    const kodikPlayer = players.find((p) => p.player === 'Kodik');
+    const kodikPlayer = players.find((p) => p.player === PLAYER_TYPE_KODIK);
     if (kodikPlayer) {
       console.log(
         '[PlayerSelectionManager] No AnimeLib, selected first Kodik:',
@@ -178,7 +178,6 @@ export class PlayerSelectionManager {
       return kodikPlayer;
     }
 
-    // 4. Fallback to first available player
     const firstPlayer = players[0];
     console.log(
       '[PlayerSelectionManager] Fallback to first player:',
@@ -213,8 +212,8 @@ export class PlayerSelectionManager {
     groupedPlayers: Record<string, Player[]>,
   ): string[] {
     return Object.keys(groupedPlayers).sort((a, b) => {
-      if (a === 'AnimeLib') return -1;
-      if (b === 'AnimeLib') return 1;
+      if (a === PLAYER_TYPE_ANIMELIB) return -1;
+      if (b === PLAYER_TYPE_ANIMELIB) return 1;
       return a.localeCompare(b);
     });
   }
@@ -226,12 +225,10 @@ export class PlayerSelectionManager {
     groupedPlayers: Record<string, Player[]>,
     currentType: string,
   ): string {
-    // If already selected, keep it
     if (currentType && groupedPlayers[currentType]) {
       return currentType;
     }
 
-    // If has saved preference and it exists, use it
     if (
       this.lastSelectedPlayerType &&
       groupedPlayers[this.lastSelectedPlayerType]
@@ -243,7 +240,6 @@ export class PlayerSelectionManager {
       return this.lastSelectedPlayerType;
     }
 
-    // Otherwise, select first available (sorted)
     const sortedTypes =
       PlayerSelectionManager.getSortedPlayerTypes(groupedPlayers);
     if (sortedTypes.length > 0) {
@@ -278,6 +274,13 @@ export class PlayerSelectionManager {
     if (quality >= 720) return 'HD';
     if (quality >= 480) return 'SD';
     return '';
+  }
+
+  /**
+   * Проверяет, содержит ли плеер только субтитры без озвучки
+   */
+  public static isSubtitlesOnly(player: Player): boolean {
+    return /суб|sub/i.test(player.translation_type?.label || '');
   }
 
   /**

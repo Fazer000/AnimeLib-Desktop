@@ -10,6 +10,18 @@ export function getFittedWidth(aspectRatio: number): string {
 }
 
 /**
+ * Возвращает CSS-высоту вписанного видео для контейнера-строки,
+ * где рядом расположен сайдбар заданной ширины (container-type: size)
+ */
+export function getFittedHeight(
+  aspectRatio: number,
+  sidebarWidth: string,
+): string {
+  const ratio = aspectRatio.toFixed(4);
+  return `min(calc((100cqw - ${sidebarWidth} - ${PLAYER_INSET_X}px) / ${ratio}), calc(100cqh - ${PLAYER_INSET_Y}px))`;
+}
+
+/**
  * Форматирует время в формат MM:SS
  */
 export function formatTime(time: number): string {
@@ -31,6 +43,36 @@ export function getQualityLevel(quality: string): '4K' | 'HD' | 'SD' {
   if (qualityNum >= 2160) return '4K';
   if (qualityNum >= 720) return 'HD';
   return 'SD';
+}
+
+/**
+ * Возвращает метку качества (4K, FHD, HD, SD) по разрешению
+ */
+export function getQualityTagFromResolution(quality: string): string {
+  const qualityNum = parseInt(quality.replace('p', ''), 10);
+
+  if (Number.isNaN(qualityNum)) return '';
+  if (qualityNum >= 2160) return '4K';
+  if (qualityNum >= 1080) return 'FHD';
+  if (qualityNum >= 720) return 'HD';
+  return 'SD';
+}
+
+/**
+ * Цвета меток качества для визуального различения
+ */
+export const QUALITY_TAG_COLORS: Record<string, string> = {
+  '4K': '#F5A623',
+  FHD: '#8B5CF6',
+  HD: '#3B82F6',
+  SD: '#9CA3AF',
+};
+
+/**
+ * Возвращает цвет метки качества
+ */
+export function getQualityTagColor(tag: string): string {
+  return QUALITY_TAG_COLORS[tag] || '#8B5CF6';
 }
 
 /**

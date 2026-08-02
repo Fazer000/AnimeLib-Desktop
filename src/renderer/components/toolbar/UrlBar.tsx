@@ -9,6 +9,7 @@ import {
   Fade,
 } from '@mui/material';
 import { Link, Close } from '@mui/icons-material';
+import { saveSiteUrl } from '../../utils/urlHelpers';
 
 interface UrlBarProps {
   currentUrl?: string;
@@ -33,55 +34,42 @@ function UrlBar({
 }: UrlBarProps) {
   const [localUrl, setLocalUrl] = useState('');
 
-  // Load animeLibUrl from localStorage when showing input
   useEffect(() => {
     if (showUrlInput) {
-      // Load from localStorage when opening input
       const savedUrl = localStorage.getItem('animeLibUrl') || '';
       setLocalUrl(savedUrl);
       console.log('[UrlBar] Loaded animeLibUrl from localStorage:', savedUrl);
     }
   }, [showUrlInput]);
 
+  const submitUrl = () => {
+    const trimmedUrl = localUrl.trim();
+    if (!trimmedUrl) {
+      return;
+    }
+
+    const baseUrl = saveSiteUrl(trimmedUrl);
+    console.log('[UrlBar] Saved base animeLibUrl to localStorage:', baseUrl);
+
+    if (onUrlChange) {
+      onUrlChange(trimmedUrl);
+    }
+  };
+
   const handleUrlSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (localUrl.trim()) {
-      // Save to localStorage
-      localStorage.setItem('animeLibUrl', localUrl.trim());
-      console.log(
-        '[UrlBar] Saved animeLibUrl to localStorage:',
-        localUrl.trim(),
-      );
-
-      // Notify parent
-      if (onUrlChange) {
-        onUrlChange(localUrl.trim());
-      }
-    }
+    submitUrl();
   };
 
   const handleUrlKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (localUrl.trim()) {
-        // Save to localStorage
-        localStorage.setItem('animeLibUrl', localUrl.trim());
-        console.log(
-          '[UrlBar] Saved animeLibUrl to localStorage:',
-          localUrl.trim(),
-        );
-
-        // Notify parent
-        if (onUrlChange) {
-          onUrlChange(localUrl.trim());
-        }
-      }
+      submitUrl();
     }
   };
 
   return (
     <>
-      {/* Main URL/Title area */}
       <Box
         sx={{
           flex: 1,
@@ -157,7 +145,6 @@ function UrlBar({
         )}
       </Box>
 
-      {/* URL toggle button */}
       {onToggleUrlInput && (
         <IconButton
           size="small"

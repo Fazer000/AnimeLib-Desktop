@@ -9,10 +9,10 @@ export interface KeyboardManagerConfig {
   onToggleFullscreen?: () => void;
   onTogglePictureInPicture?: () => void;
   onPlaybackRateChange?: (delta: number) => void;
-  onSkipForward?: (seconds: number) => void; // Custom skip forward
-  skipTime?: number; // Custom skip time in seconds
-  onKeyPress?: () => void; // Callback when any hotkey is pressed
-  onToggleEpisodes?: () => void; // Toggle episodes list
+  onSkipForward?: (seconds: number) => void;
+  skipTime?: number;
+  onKeyPress?: () => void;
+  onToggleEpisodes?: () => void;
 }
 
 /**
@@ -34,7 +34,7 @@ export class KeyboardManager {
    */
   enable(): void {
     if (this.boundHandler) {
-      return; // Already enabled
+      return;
     }
 
     this.boundHandler = (event: KeyboardEvent) => this.handleKeyDown(event);
@@ -61,7 +61,6 @@ export class KeyboardManager {
   private handleKeyDown(event: KeyboardEvent): void {
     if (!this.isEnabled) return;
 
-    // Ignore if focus is on input/textarea/select
     const { activeElement } = document;
     if (
       activeElement &&
@@ -77,16 +76,14 @@ export class KeyboardManager {
     let handled = false;
 
     switch (key) {
-      // Play/Pause
       case ' ':
       case 'k':
       case 'K':
-      case 'л': // Russian layout
+      case 'л':
         this.config.onPlayPause?.();
         handled = true;
         break;
 
-      // Seek backward
       case 'ArrowLeft':
       case 'j':
       case 'J':
@@ -94,71 +91,61 @@ export class KeyboardManager {
         handled = true;
         break;
 
-      // Seek forward
       case 'ArrowRight':
-        // Shift + RightArrow = Custom skip forward
         if (event.shiftKey && this.config.onSkipForward) {
-          const skipTime = this.config.skipTime || 85; // Default to 85 seconds if not set
+          const skipTime = this.config.skipTime || 85;
           this.config.onSkipForward(skipTime);
           handled = true;
         } else {
-          // Normal seek forward
           this.config.onSeek?.(10);
           handled = true;
         }
         break;
       case 'l':
       case 'L':
-      case 'д': // Russian layout
+      case 'д':
         this.config.onSeek?.(10);
         handled = true;
         break;
 
-      // Volume up
       case 'ArrowUp':
         this.config.onVolumeChange?.(0.1);
         handled = true;
         break;
 
-      // Volume down
       case 'ArrowDown':
         this.config.onVolumeChange?.(-0.1);
         handled = true;
         break;
 
-      // Toggle mute
       case 'm':
       case 'M':
-      case 'ь': // Russian layout
+      case 'ь':
         this.config.onToggleMute?.();
         handled = true;
         break;
 
-      // Toggle fullscreen
       case 'f':
       case 'F':
-      case 'а': // Russian layout
+      case 'а':
         this.config.onToggleFullscreen?.();
         handled = true;
         break;
 
-      // Toggle Picture-in-Picture
       case 'i':
       case 'I':
-      case 'ш': // Russian layout
+      case 'ш':
         this.config.onTogglePictureInPicture?.();
         handled = true;
         break;
 
-      // Toggle Episodes List
       case 'v':
       case 'V':
-      case 'м': // Russian layout
+      case 'м':
         this.config.onToggleEpisodes?.();
         handled = true;
         break;
 
-      // Seek to percentage (0-9)
       case '0':
       case '1':
       case '2':
@@ -175,14 +162,12 @@ export class KeyboardManager {
         break;
       }
 
-      // Decrease playback rate
       case '<':
       case ',':
         this.config.onPlaybackRateChange?.(-0.25);
         handled = true;
         break;
 
-      // Increase playback rate
       case '>':
       case '.':
         this.config.onPlaybackRateChange?.(0.25);
@@ -190,13 +175,11 @@ export class KeyboardManager {
         break;
 
       default:
-        // Not handled
         break;
     }
 
     if (handled) {
       event.preventDefault();
-      // Notify that a hotkey was pressed (to show controls)
       this.config.onKeyPress?.();
     }
   }
