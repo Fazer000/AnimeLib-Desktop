@@ -1,22 +1,34 @@
 /* eslint-disable no-console */
 import React, { useState, useEffect } from 'react';
-import { Box, IconButton, Tooltip, useTheme, Button } from '@mui/material';
+import { Box, IconButton, Typography, useTheme, Button } from '@mui/material';
 import {
-  TuneRounded,
+  SettingsRounded,
   FullscreenRounded,
   FullscreenExitRounded,
   PictureInPictureAltRounded,
   ListRounded,
   BookmarkAddRounded,
   GraphicEqRounded,
+  DownloadRounded,
 } from '@mui/icons-material';
 
 import ProgressBar from './ProgressBar';
 import PlaybackControls from './PlaybackControls';
 import VolumeControl from './VolumeControl';
 import ControlsEpisodeSlider from './ControlsEpisodeSlider';
+import ControlTooltip from './ControlTooltip';
 import SettingsMenu from './SettingsMenu';
-import { SkipManager, ThumbnailManager } from '../../services/player';
+import {
+  SkipManager,
+  ThumbnailManager,
+  SubtitleTrack,
+  SubtitlesSettings,
+} from '../../services/player';
+import { SubtitleStyleSettings } from '../../utils/subtitleHelpers';
+import {
+  getQualityTagFromResolution,
+  getQualityTagColor,
+} from '../../utils/videoHelpers';
 import {
   PLAYER_CONTROL_ICON_SIZE,
   PLAYER_FULLSCREEN_EASING,
@@ -107,10 +119,18 @@ interface VideoControlsProps {
     skipSplashScreens: boolean;
   }) => void;
 
+  subtitleTracks?: SubtitleTrack[];
+  subtitleSettings?: SubtitlesSettings;
+  onSubtitleTrackChange?: (trackName: string | null) => void;
+  onSubtitleSettingsChange?: (patch: Partial<SubtitleStyleSettings>) => void;
+
   thumbnailManager?: ThumbnailManager | null;
 
   sidebarCollapsed: boolean;
-  onSidebarToggle: () => void;
+  // eslint-disable-next-line react/require-default-props
+  onSidebarToggle?: () => void;
+  // eslint-disable-next-line react/require-default-props
+  onOpenDownloadManager?: () => void;
 }
 
 /**
@@ -163,9 +183,14 @@ function VideoControls({
   onShowEpisodesChange,
   autoSkipSettings,
   onAutoSkipChange,
+  subtitleTracks = [],
+  subtitleSettings,
+  onSubtitleTrackChange,
+  onSubtitleSettingsChange,
   thumbnailManager = null,
   sidebarCollapsed = false,
   onSidebarToggle,
+  onOpenDownloadManager,
 }: VideoControlsProps) {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -224,6 +249,8 @@ function VideoControls({
 
   const episodesVisible = isFullscreen && showEpisodes;
 
+  const qualityBadge = getQualityTagFromResolution(selectedQuality);
+
   const overlayButtonSx = {
     backgroundColor: 'rgba(20, 20, 20, 0.45)',
     border: '1px solid rgba(116, 116, 128, 0.33)',
@@ -240,6 +267,7 @@ function VideoControls({
     transition: 'all 0.2s ease',
   };
 
+  // @ts-ignore
   return (
     <>
       <Box
@@ -255,6 +283,37 @@ function VideoControls({
         }}
       />
 
+      {onOpenDownloadManager && !isFullscreen && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 16,
+            left: 16,
+            opacity: showControls ? 1 : 0,
+            pointerEvents: showControls ? 'auto' : 'none',
+            transition: 'opacity 0.3s ease-in-out',
+            zIndex: 901,
+            ...OVERLAY_APPEAR_SX,
+          }}
+          onMouseMove={onMouseMove}
+        >
+          <ControlTooltip title="Менеджер загрузок" placement="right">
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenDownloadManager();
+              }}
+              sx={{
+                ...overlayButtonSx,
+                color: theme.palette.customColors.dtPrimaryTextColor,
+              }}
+            >
+              <DownloadRounded sx={ICON_SX} />
+            </IconButton>
+          </ControlTooltip>
+        </Box>
+      )}
+
       {onSidebarToggle && !isFullscreen && (
         <Box
           sx={{
@@ -269,7 +328,7 @@ function VideoControls({
           }}
           onMouseMove={onMouseMove}
         >
-          <Tooltip
+          <ControlTooltip
             title={sidebarCollapsed ? 'Показать озвучки' : 'Скрыть озвучки'}
             placement="left"
           >
@@ -287,7 +346,7 @@ function VideoControls({
             >
               <GraphicEqRounded sx={ICON_SX} />
             </IconButton>
-          </Tooltip>
+          </ControlTooltip>
         </Box>
       )}
 
@@ -370,17 +429,25 @@ function VideoControls({
           }}
           onMouseMove={onMouseMove}
         >
-          <Tooltip title="Эпизоды" placement="top">
+          <ControlTooltip
+            title={episodesVisible ? 'Скрыть эпизоды' : 'Показать эпизоды'}
+            placement="top"
+          >
             <IconButton
               onClick={(e) => {
                 e.stopPropagation();
                 handleToggleEpisodes();
               }}
-              sx={overlayButtonSx}
+              sx={{
+                ...overlayButtonSx,
+                color: episodesVisible
+                  ? '#7C3AED'
+                  : theme.palette.customColors.dtPrimaryTextColor,
+              }}
             >
               <ListRounded sx={ICON_SX} />
             </IconButton>
-          </Tooltip>
+          </ControlTooltip>
         </Box>
       )}
 
@@ -465,7 +532,7 @@ function VideoControls({
             />
 
             {onSaveBookmark && (
-              <Tooltip title="Сохранить закладку" placement="top">
+              <ControlTooltip title="Сохранить закладку" placement="top">
                 <IconButton
                   onClick={(e) => {
                     e.stopPropagation();
@@ -485,10 +552,10 @@ function VideoControls({
                 >
                   <BookmarkAddRounded sx={ICON_SX} />
                 </IconButton>
-              </Tooltip>
+              </ControlTooltip>
             )}
 
-            <Tooltip title="Настройки">
+            <ControlTooltip title="Настройки">
               <IconButton
                 onClick={handleSettingsMenuOpen}
                 sx={{
@@ -503,11 +570,33 @@ function VideoControls({
                   transition: 'all 0.2s ease',
                 }}
               >
-                <TuneRounded sx={ICON_SX} />
-              </IconButton>
-            </Tooltip>
+                <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                  <SettingsRounded sx={ICON_SX} />
 
-            <Tooltip title="Миниокно">
+                  {qualityBadge && (
+                    <Typography
+                      sx={{
+                        position: 'absolute',
+                        top: -2,
+                        right: -8,
+                        px: 0.4,
+                        borderRadius: 0.5,
+                        backgroundColor: getQualityTagColor(qualityBadge),
+                        color: '#fff',
+                        fontSize: '9px',
+                        fontWeight: 700,
+                        lineHeight: 1.4,
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      {qualityBadge}
+                    </Typography>
+                  )}
+                </Box>
+              </IconButton>
+            </ControlTooltip>
+
+            <ControlTooltip title="Миниокно">
               <IconButton
                 onClick={(e) => {
                   e.stopPropagation();
@@ -527,9 +616,9 @@ function VideoControls({
               >
                 <PictureInPictureAltRounded sx={ICON_SX} />
               </IconButton>
-            </Tooltip>
+            </ControlTooltip>
 
-            <Tooltip
+            <ControlTooltip
               title={
                 isFullscreen
                   ? 'Выйти из полноэкранного режима'
@@ -559,7 +648,7 @@ function VideoControls({
                   <FullscreenRounded sx={ICON_SX} />
                 )}
               </IconButton>
-            </Tooltip>
+            </ControlTooltip>
           </Box>
         </Box>
       </Box>
@@ -596,6 +685,10 @@ function VideoControls({
         onAutoSkipChange={onAutoSkipChange}
         ambientLightEnabled={ambientLightEnabled}
         onAmbientLightChange={onAmbientLightChange}
+        subtitleTracks={subtitleTracks}
+        subtitleSettings={subtitleSettings}
+        onSubtitleTrackChange={onSubtitleTrackChange}
+        onSubtitleSettingsChange={onSubtitleSettingsChange}
       />
     </>
   );
@@ -622,6 +715,9 @@ VideoControls.defaultProps = {
   thumbnailManager: null,
   ambientLightEnabled: true,
   onAmbientLightChange: undefined,
+  subtitleTracks: [],
+  subtitleSettings: undefined,
+  onSubtitleTrackChange: undefined,
+  onSubtitleSettingsChange: undefined,
 };
-
 export default VideoControls;

@@ -7,11 +7,16 @@ import {
   Select,
   MenuItem,
   FormControl,
+  Button,
 } from '@mui/material';
+import { TuneRounded } from '@mui/icons-material';
 import Comments from './Comments';
+import CommentsSettingsDialog from './CommentsSettingsDialog';
+import useCommentsSettings from '../../hooks/useCommentsSettings';
 
 interface CommentsSectionProps {
   episodeId: number;
+  animeSlug: string;
   scrollContainerId: string;
 }
 
@@ -19,12 +24,14 @@ interface CommentsSectionProps {
  * CommentsSection - Isolated comments component to prevent parent re-renders
  */
 const CommentsSection = memo(
-  ({ episodeId, scrollContainerId }: CommentsSectionProps) => {
+  ({ episodeId, animeSlug, scrollContainerId }: CommentsSectionProps) => {
     const theme = useTheme();
     const [commentsSortOption, setCommentsSortOption] =
-      useState<string>('popular');
+      useState<string>('newest');
     const [shouldLoadComments, setShouldLoadComments] =
       useState<boolean>(false);
+    const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+    const [commentsSettings, updateCommentsSettings] = useCommentsSettings();
     const commentsContainerRef = useRef<HTMLDivElement>(null);
 
     /**
@@ -130,6 +137,28 @@ const CommentsSection = memo(
                 gap: 1.5,
               }}
             >
+              <Button
+                onClick={() => setSettingsOpen(true)}
+                startIcon={<TuneRounded sx={{ fontSize: 18 }} />}
+                sx={{
+                  color: theme.palette.customColors.dtAccentTextColor,
+                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontSize: '0.875rem',
+                  px: 1.5,
+                }}
+              >
+                Настройки
+              </Button>
+
+              <CommentsSettingsDialog
+                open={settingsOpen}
+                settings={commentsSettings}
+                onChange={updateCommentsSettings}
+                onClose={() => setSettingsOpen(false)}
+              />
+
               <FormControl size="small">
                 <Select
                   value={commentsSortOption}
@@ -184,13 +213,39 @@ const CommentsSection = memo(
               </FormControl>
             </Box>
           </Box>
-          <Box>
-            <Comments
-              episodeId={episodeId}
-              sortOption={commentsSortOption}
-              shouldLoad={shouldLoadComments}
-            />
-          </Box>
+
+          {commentsSettings.disabled ? (
+            <Box
+              sx={{
+                margin: 1,
+                padding: 4,
+                textAlign: 'center',
+                backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                borderRadius: 2,
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  color: theme.palette.customColors.dtAccentTextColor,
+                  fontSize: '0.9375rem',
+                }}
+              >
+                Комментарии отключены в настройках
+              </Typography>
+            </Box>
+          ) : (
+            <Box>
+              <Comments
+                episodeId={episodeId}
+                animeSlug={animeSlug}
+                sortOption={commentsSortOption}
+                shouldLoad={shouldLoadComments}
+                highlightNew={commentsSettings.highlightNew}
+                collapseFromLevel={commentsSettings.collapseFromLevel}
+              />
+            </Box>
+          )}
         </Box>
       </Box>
     );

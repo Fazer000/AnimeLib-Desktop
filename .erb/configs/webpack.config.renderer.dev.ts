@@ -1,11 +1,17 @@
 import 'webpack-dev-server';
+// @ts-ignore
 import path from 'path';
+// @ts-ignore
 import fs from 'fs';
+// @ts-ignore
 import webpack from 'webpack';
+// @ts-ignore
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+// @ts-ignore
 import chalk from 'chalk';
 import { merge } from 'webpack-merge';
 import { execSync, spawn } from 'child_process';
+// @ts-ignore
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
@@ -62,6 +68,11 @@ const configuration: webpack.Configuration = {
 
   module: {
     rules: [
+      {
+        test: /[\\/]jassub[\\/]dist[\\/].*\.(js|wasm|woff2)$/,
+        type: 'asset/resource',
+        generator: { filename: 'jassub/[name][ext]' },
+      },
       {
         test: /\.s?(c|a)ss$/,
         use: [
@@ -192,6 +203,7 @@ const configuration: webpack.Configuration = {
       console.log('Starting Main Process...');
       let args = ['run', 'start:main'];
       if (process.env.MAIN_ARGS) {
+        // @ts-ignore
         args = args.concat(
           ['--', ...process.env.MAIN_ARGS.matchAll(/"[^"]+"|[^\s"]+/g)].flat(),
         );

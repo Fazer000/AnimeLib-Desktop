@@ -1,6 +1,9 @@
 /* eslint-disable no-console */
 import { Player, KodikVideoLinks } from '../../api/animeApi';
 import { QualityOption } from './ShakaPlayerManager';
+import { offlineStore } from '../offline';
+import { buildOfflineUrl } from '../../../constants';
+import { resolveKodikSource } from '../../utils/kodikHelpers';
 
 export interface QualityManagerConfig {
   onQualityOptionsChange?: (options: QualityOption[]) => void;
@@ -27,8 +30,46 @@ export class QualityManager {
   createQualityOptions(
     player: Player,
     kodikLinks?: KodikVideoLinks | null,
+    episodeId?: number,
   ): void {
     const options: QualityOption[] = [];
+
+    const offlineEpisodes = episodeId
+      ? offlineStore.findEpisodes(episodeId, player.id)
+      : [];
+
+    if (offlineEpisodes.length > 0) {
+      offlineEpisodes.forEach((episode) => {
+        const online = player.video?.quality?.find(
+          (item) => `${item.quality}p` === episode.quality,
+        );
+        const urls = online ? this.buildAnimelibUrls(online.href) : null;
+
+        const isHls = Boolean(episode.playlistFileName);
+
+        options.push({
+          label: `${episode.quality} (оффлайн)`,
+          value: episode.quality,
+          src: buildOfflineUrl(episode.playlistFileName || episode.fileName),
+          fallbackSrc: isHls ? undefined : urls?.primaryUrl,
+          fallbackSrc2: isHls ? undefined : urls?.fallbackUrl,
+          type: isHls ? 'hls' : 'progressive',
+        });
+      });
+
+      options.sort((a, b) => {
+        const qualityA = parseInt(a.value.replace('p', ''), 10);
+        const qualityB = parseInt(b.value.replace('p', ''), 10);
+        return qualityB - qualityA;
+      });
+
+      this.qualityOptions = options;
+      this.selectedQuality = options[0].value;
+      this.config.onSelectedQualityChange?.(this.selectedQuality);
+      this.config.onQualityOptionsChange?.(options);
+      console.log('[QualityManager] Using offline sources:', options.length);
+      return;
+    }
 
     if (player.player === 'Animelib' && player.video?.quality) {
       player.video.quality.forEach((quality) => {
@@ -51,15 +92,14 @@ export class QualityManager {
     ) {
       Object.entries(kodikLinks.data).forEach(([quality, sources]) => {
         if (sources.length > 0) {
-          const src = sources[0].src.startsWith('//')
-            ? `https:${sources[0].src}`
-            : sources[0].src;
+          const source = resolveKodikSource(sources[0].src);
 
           options.push({
             label: `${quality}p`,
             value: `${quality}p`,
-            src,
-            type: 'hls',
+            src: source.src,
+            fallbackSrc: source.fallbackSrc || undefined,
+            type: source.type,
           });
         }
       });

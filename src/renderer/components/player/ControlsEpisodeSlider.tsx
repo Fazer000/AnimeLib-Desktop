@@ -65,13 +65,13 @@ function ControlsEpisodeSlider({
     if (episodes.length > 0) {
       setTimeout(() => scrollToActiveEpisode('instant'), 100);
     }
-  }, [episodes]);
+  }, [episodes, scrollToActiveEpisode]);
 
   useEffect(() => {
     if (showEpisodes) {
       setTimeout(() => scrollToActiveEpisode('smooth'), 50);
     }
-  }, [showEpisodes, currentEpisodeIndex]);
+  }, [showEpisodes, currentEpisodeIndex, scrollToActiveEpisode]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);

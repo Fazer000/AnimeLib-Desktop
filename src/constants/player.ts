@@ -63,3 +63,70 @@ export const WATCH_VIEW_THRESHOLD = 0.6;
  */
 export const PLAYER_TYPE_ANIMELIB = 'Animelib';
 export const PLAYER_TYPE_KODIK = 'Kodik';
+
+/**
+ * Ключ localStorage для настроек субтитров
+ */
+export const SUBTITLES_STORAGE_KEY = 'animeLibSubtitlesSettings';
+
+/**
+ * Доступные масштабы шрифта субтитров
+ */
+export const SUBTITLES_FONT_SCALES = [0.75, 1, 1.25, 1.5, 2];
+
+/**
+ * Доступные вертикальные смещения субтитров
+ */
+export const SUBTITLES_OFFSETS = [0, 20, 40, 60];
+
+/**
+ * Режимы окантовки субтитров
+ */
+export const SUBTITLES_OUTLINE_MODES: Array<{
+  value: 'outline' | 'box' | 'none';
+  label: string;
+}> = [
+  { value: 'outline', label: 'Обводка' },
+  { value: 'box', label: 'Подложка' },
+  { value: 'none', label: 'Без' },
+];
+
+/**
+ * Настройки субтитров по умолчанию
+ */
+export const SUBTITLES_DEFAULT_SETTINGS = {
+  trackName: null as string | null,
+  fontScale: 1,
+  outline: 'outline' as 'none' | 'outline' | 'box',
+  offsetY: 0,
+};
+
+/**
+ * Базовый размер шрифта srt/vtt-субтитров, % высоты плеера
+ */
+export const SUBTITLES_BASE_FONT_CQH = 4.4;
+
+/**
+ * Ключ localStorage для настроек комментариев
+ */
+export const COMMENTS_SETTINGS_STORAGE_KEY = 'animeLibCommentsSettings';
+
+/**
+ * Префикс ключа последнего просмотра комментариев эпизода
+ */
+export const COMMENTS_LAST_SEEN_PREFIX = 'animeLibCommentsSeen:';
+
+/**
+ * Границы уровня автосворачивания веток
+ */
+export const COMMENTS_COLLAPSE_MIN_LEVEL = 1;
+export const COMMENTS_COLLAPSE_MAX_LEVEL = 10;
+
+/**
+ * Настройки комментариев по умолчанию
+ */
+export const COMMENTS_SETTINGS_DEFAULTS = {
+  disabled: false,
+  highlightNew: false,
+  collapseFromLevel: COMMENTS_COLLAPSE_MAX_LEVEL,
+};

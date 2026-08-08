@@ -23,10 +23,15 @@ import {
   OnCompletedListenerDetails,
   Rectangle,
 } from 'electron';
-import { autoUpdater } from 'electron-updater';
-import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+import { registerUpdateHandlers } from './updater';
+import {
+  registerOfflineHandlers,
+  registerOfflineProtocol,
+  registerOfflineSchemes,
+} from './offline';
+import { offlineLibrary } from './offline/OfflineLibrary';
 import {
   WindowStore,
   getSavedMaximized,
@@ -39,6 +44,7 @@ import {
   APP_VERSION,
   MIN_WINDOW_HEIGHT,
   MIN_WINDOW_WIDTH,
+  OFFLINE_SCHEME,
   PLAYER_PROTOCOL_PREFIX,
 } from '../constants';
 
@@ -86,14 +92,6 @@ const initStore = async () => {
   }
   return store;
 };
-
-class AppUpdater {
-  constructor() {
-    log.transports.file.level = 'info';
-    autoUpdater.logger = log;
-    autoUpdater.checkForUpdatesAndNotify();
-  }
-}
 
 let mainWindow: BrowserWindow | null = null;
 let currentInterceptor: (() => void) | null = null;
@@ -156,8 +154,15 @@ const isAnimelibApiUrl = (url: string): boolean =>
 /**
  * Проверяет, является ли URL запросом к Kodik
  */
+const KODIK_HOSTS = [
+  'kodik.info',
+  'kodik-storage.com',
+  'solodcdn.com',
+  'cloud.kodik.biz',
+];
+
 const isKodikUrl = (url: string): boolean =>
-  url.includes('kodik-storage.com') || url.includes('kodik.info');
+  KODIK_HOSTS.some((host) => url.includes(host));
 
 /**
  * Добавляет CORS заголовки к ответу
@@ -269,6 +274,109 @@ ipcMain.handle('fetch-image', async (event, { url, referer }) => {
       error: error.message,
     };
   }
+});
+
+/**
+ * Скачивает текстовый файл с поддержкой редиректов
+ */
+const downloadText = async (
+  url: string,
+  redirects: number = 3,
+): Promise<string | null> => {
+  const https = await import('https');
+  const http = await import('http');
+  const { URL: NodeUrl } = await import('url');
+
+  const parsedUrl = new NodeUrl(url);
+  const client = parsedUrl.protocol === 'https:' ? https : http;
+
+  return new Promise((resolve) => {
+    const request = client.get(
+      url,
+      {
+        headers: {
+          ...COMMON_HEADERS,
+          Referer: 'https://animelib.org/',
+          Origin: 'https://animelib.org',
+        },
+      },
+      (response) => {
+        const { statusCode, headers } = response;
+
+        if (
+          statusCode &&
+          statusCode >= 300 &&
+          statusCode < 400 &&
+          headers.location &&
+          redirects > 0
+        ) {
+          response.resume();
+          resolve(
+            downloadText(
+              new NodeUrl(headers.location, url).href,
+              redirects - 1,
+            ),
+          );
+          return;
+        }
+
+        if (!statusCode || statusCode >= 400) {
+          response.resume();
+          resolve(null);
+          return;
+        }
+
+        const chunks: Buffer[] = [];
+        response.on('data', (chunk) => chunks.push(chunk));
+        response.on('end', () =>
+          resolve(Buffer.concat(chunks).toString('utf8')),
+        );
+      },
+    );
+
+    request.on('error', (error) => {
+      console.error('[fetch-subtitles] Error:', error.message);
+      resolve(null);
+    });
+
+    request.end();
+  });
+};
+
+ipcMain.handle('fetch-subtitles', async (event, urls: string[]) => {
+  console.log('[AnimeLIB] Fetching subtitles, candidates:', urls.length);
+
+  const offlineUrl = urls.find((url) => url.startsWith(`${OFFLINE_SCHEME}://`));
+
+  if (offlineUrl) {
+    try {
+      const fs = await import('fs');
+      const fileName = decodeURIComponent(
+        new URL(offlineUrl).pathname.replace(/^\//, ''),
+      );
+      const data = fs.readFileSync(
+        offlineLibrary.resolveFile(fileName),
+        'utf8',
+      );
+      console.log('[AnimeLIB] Subtitles loaded from offline library');
+      return { success: true, data };
+    } catch (error: any) {
+      console.error('[AnimeLIB] Offline subtitles error:', error.message);
+      return { success: false, error: 'Offline subtitles not available' };
+    }
+  }
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const url of urls) {
+    // eslint-disable-next-line no-await-in-loop
+    const data = await downloadText(url);
+    if (data) {
+      console.log('[AnimeLIB] Subtitles loaded from:', url);
+      return { success: true, data };
+    }
+  }
+
+  return { success: false, error: 'Subtitles not available' };
 });
 
 ipcMain.on('player-button-clicked', (event, url) => {
@@ -527,9 +635,6 @@ const createWindow = async (): Promise<void> => {
 
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
-
-  // eslint-disable-next-line
-  new AppUpdater();
 };
 
 const applyRadicalFix = (): void => {
@@ -567,6 +672,7 @@ const applyPerformanceOptimizations = (): void => {
 };
 
 applyPerformanceOptimizations();
+registerOfflineSchemes();
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -702,6 +808,9 @@ app
     registerCustomProtocol();
     registerApiInterceptor();
     registerBookmarksWatcher();
+    registerUpdateHandlers(() => mainWindow);
+    registerOfflineProtocol(() => mainWindow);
+    registerOfflineHandlers(() => mainWindow);
     createWindow();
   })
   .catch(console.log);

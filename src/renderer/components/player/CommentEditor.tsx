@@ -49,6 +49,16 @@ interface CommentEditorProps {
   rootId?: number | null;
   // eslint-disable-next-line react/require-default-props
   commentLevel?: number;
+  // eslint-disable-next-line react/require-default-props
+  onCancel?: () => void;
+  // eslint-disable-next-line react/require-default-props
+  autoFocus?: boolean;
+  // eslint-disable-next-line react/require-default-props
+  placeholder?: string;
+  // eslint-disable-next-line react/require-default-props
+  initialContent?: string;
+  // eslint-disable-next-line react/require-default-props
+  submitLabel?: string;
 }
 
 interface MenuButtonProps {
@@ -92,6 +102,11 @@ function CommentEditorComponent({
   parentComment = null,
   rootId = null,
   commentLevel = 0,
+  onCancel,
+  autoFocus = false,
+  placeholder = 'Написать комментарий...',
+  initialContent = '',
+  submitLabel = 'Отправить',
 }: CommentEditorProps) {
   const theme = useTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -106,14 +121,15 @@ function CommentEditorComponent({
         code: false,
         codeBlock: false,
         horizontalRule: false,
+        underline: false,
       }),
       Underline,
       SpoilerInline,
       Placeholder.configure({
-        placeholder: 'Написать комментарий...',
+        placeholder,
       }),
     ],
-    [],
+    [placeholder],
   );
 
   const editorProps = useMemo(
@@ -158,6 +174,8 @@ function CommentEditorComponent({
     extensions,
     editorProps,
     shouldRerenderOnTransaction: false,
+    autofocus: autoFocus ? 'end' : false,
+    content: initialContent,
   });
 
   const handleSpoilerSubmit = useCallback(() => {
@@ -313,9 +331,19 @@ function CommentEditorComponent({
           padding: 1,
           display: 'flex',
           justifyContent: 'flex-end',
+          gap: 1,
           borderTop: `1px solid ${theme.palette.customColors.dtBorderColor}15`,
         }}
       >
+        {onCancel && (
+          <Button
+            onClick={onCancel}
+            disabled={isSubmitting}
+            sx={{ color: theme.palette.customColors.dtAccentTextColor }}
+          >
+            Отмена
+          </Button>
+        )}
         <Button
           variant="contained"
           onClick={handleSubmit}
@@ -334,7 +362,7 @@ function CommentEditorComponent({
             },
           }}
         >
-          {isSubmitting ? 'Отправка...' : 'Отправить'}
+          {isSubmitting ? 'Отправка...' : submitLabel}
         </Button>
       </Box>
 

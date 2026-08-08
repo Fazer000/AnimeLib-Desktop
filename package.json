@@ -1,6 +1,6 @@
 {
   "name": "animelib-desktop",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "AnimeLib Desktop - Desktop anime player",
   "keywords": [
     "electron",
@@ -114,6 +114,7 @@
     "electron-log": "^5.3.2",
     "electron-store": "^11.0.2",
     "electron-updater": "^6.3.9",
+    "jassub": "^1.7.17",
     "kodikwrapper": "^3.0.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

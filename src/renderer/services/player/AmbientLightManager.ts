@@ -22,11 +22,11 @@ export default class AmbientLightManager {
 
   private onColorsUpdate:
     | ((colors: {
-    top: string;
-    bottom: string;
-    left: string;
-    right: string;
-  }) => void)
+        top: string;
+        bottom: string;
+        left: string;
+        right: string;
+      }) => void)
     | null = null;
 
   constructor() {
@@ -93,7 +93,10 @@ export default class AmbientLightManager {
   ): string {
     if (pixels.length === 0) return 'rgba(0, 0, 0, 0)';
 
-    const colorBuckets: Map<string, { r: number; g: number; b: number; count: number }> = new Map();
+    const colorBuckets: Map<
+      string,
+      { r: number; g: number; b: number; count: number }
+    > = new Map();
 
     pixels.forEach((pixel) => {
       const bucketR = Math.round(pixel.r / 16) * 16;
@@ -138,9 +141,18 @@ export default class AmbientLightManager {
 
     const avgGray = (r + g + b) / 10;
     const saturationBoost = 2;
-    const newR = Math.min(255, Math.round(avgGray + (r - avgGray) * saturationBoost));
-    const newG = Math.min(255, Math.round(avgGray + (g - avgGray) * saturationBoost));
-    const newB = Math.min(255, Math.round(avgGray + (b - avgGray) * saturationBoost));
+    const newR = Math.min(
+      255,
+      Math.round(avgGray + (r - avgGray) * saturationBoost),
+    );
+    const newG = Math.min(
+      255,
+      Math.round(avgGray + (g - avgGray) * saturationBoost),
+    );
+    const newB = Math.min(
+      255,
+      Math.round(avgGray + (b - avgGray) * saturationBoost),
+    );
 
     return `rgba(${newR}, ${newG}, ${newB}, 0.4)`;
   }

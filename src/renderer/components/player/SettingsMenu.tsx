@@ -10,16 +10,81 @@ import {
 import {
   ArrowBackRounded,
   CheckRounded,
-  HighQualityOutlined,
   SpeedOutlined,
   FastForwardOutlined,
   SkipNextOutlined,
+  SubtitlesOutlined,
 } from '@mui/icons-material';
-import { SkipManager } from '../../services/player';
+import {
+  SkipManager,
+  SubtitleTrack,
+  SubtitlesSettings,
+} from '../../services/player';
+import { SubtitleStyleSettings } from '../../utils/subtitleHelpers';
 import {
   getQualityTagColor,
   getQualityTagFromResolution,
 } from '../../utils/videoHelpers';
+import {
+  SUBTITLES_DEFAULT_SETTINGS,
+  SUBTITLES_FONT_SCALES,
+  SUBTITLES_OFFSETS,
+  SUBTITLES_OUTLINE_MODES,
+} from '../../../constants';
+
+const MENU_ICON_SIZE = 20;
+
+const MENU_ICON_BOX_SX = (color: string) => ({
+  width: 38,
+  height: 38,
+  flexShrink: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: 1,
+  border: `1px solid ${color}59`,
+  color,
+  fontFamily: 'Roboto, sans-serif',
+  fontSize: '0.6875rem',
+  fontWeight: 700,
+  lineHeight: 1,
+});
+
+const QUALITY_TAG_SX = (color: string) => ({
+  minWidth: 36,
+  textAlign: 'center' as const,
+  px: 0.75,
+  py: '2px',
+  borderRadius: 1,
+  fontFamily: 'Roboto, sans-serif',
+  fontSize: '0.625rem',
+  fontWeight: 700,
+  color,
+  border: `1px solid ${color}59`,
+});
+
+const CHIP_SX = (isSelected: boolean) => ({
+  flex: '1 1 auto',
+  textAlign: 'center' as const,
+  py: 0.75,
+  px: 1,
+  borderRadius: 1,
+  cursor: 'pointer',
+  backgroundColor: isSelected
+    ? 'rgba(124, 58, 237, 0.3)'
+    : 'rgba(255, 255, 255, 0.1)',
+  border: isSelected ? '1px solid #BB86FC' : '1px solid transparent',
+  color: isSelected ? '#BB86FC' : 'rgba(255, 255, 255, 0.7)',
+  fontWeight: isSelected ? 600 : 400,
+  fontSize: '0.8125rem',
+  fontFamily: 'Roboto, sans-serif',
+  transition: 'all 0.15s ease',
+  '&:hover': {
+    backgroundColor: isSelected
+      ? 'rgba(124, 58, 237, 0.4)'
+      : 'rgba(255, 255, 255, 0.15)',
+  },
+});
 
 interface SettingsMenuProps {
   anchorEl: HTMLElement | null;
@@ -48,9 +113,19 @@ interface SettingsMenuProps {
     skipCompilations: boolean;
     skipSplashScreens: boolean;
   }) => void;
+  subtitleTracks?: SubtitleTrack[];
+  subtitleSettings?: SubtitlesSettings;
+  onSubtitleTrackChange?: (trackName: string | null) => void;
+  onSubtitleSettingsChange?: (patch: Partial<SubtitleStyleSettings>) => void;
 }
 
-type MenuPage = 'main' | 'quality' | 'speed' | 'skip' | 'autoSkip';
+type MenuPage =
+  | 'main'
+  | 'quality'
+  | 'speed'
+  | 'skip'
+  | 'autoSkip'
+  | 'subtitles';
 
 /**
  * Меню настроек видеоплеера
@@ -77,6 +152,10 @@ function SettingsMenu({
     skipSplashScreens: false,
   },
   onAutoSkipChange,
+  subtitleTracks = [],
+  subtitleSettings = SUBTITLES_DEFAULT_SETTINGS,
+  onSubtitleTrackChange,
+  onSubtitleSettingsChange,
 }: SettingsMenuProps) {
   const [currentPage, setCurrentPage] = useState<MenuPage>('main');
   const handleQualityChange = (quality: string) => {
@@ -176,7 +255,13 @@ function SettingsMenu({
                   gap: 1,
                 }}
               >
-                <HighQualityOutlined sx={{ fontSize: 18, color: '#7C3AED' }} />
+                {(() => {
+                  const tag = getQualityTagFromResolution(selectedQuality);
+                  const tagColor = tag ? getQualityTagColor(tag) : '#7C3AED';
+                  return (
+                    <Box sx={MENU_ICON_BOX_SX(tagColor)}>{tag || '—'}</Box>
+                  );
+                })()}
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     Качество
@@ -226,7 +311,9 @@ function SettingsMenu({
                   gap: 1,
                 }}
               >
-                <SpeedOutlined sx={{ fontSize: 18, color: '#A855F7' }} />
+                <Box sx={MENU_ICON_BOX_SX('#A855F7')}>
+                  <SpeedOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
+                </Box>
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     Скорость
@@ -274,7 +361,9 @@ function SettingsMenu({
                   gap: 1,
                 }}
               >
-                <FastForwardOutlined sx={{ fontSize: 18, color: '#BB86FC' }} />
+                <Box sx={MENU_ICON_BOX_SX('#BB86FC')}>
+                  <FastForwardOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
+                </Box>
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     Перемотка
@@ -323,7 +412,9 @@ function SettingsMenu({
                   gap: 1,
                 }}
               >
-                <SkipNextOutlined sx={{ fontSize: 18, color: '#C084FC' }} />
+                <Box sx={MENU_ICON_BOX_SX('#C084FC')}>
+                  <SkipNextOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
+                </Box>
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     Автопропуск
@@ -337,6 +428,66 @@ function SettingsMenu({
                   >
                     {Object.values(autoSkipSettings).filter(Boolean).length}{' '}
                     активных
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="body2"
+                  sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                >
+                  ›
+                </Typography>
+              </Box>
+            </MenuItem>
+
+            <MenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentPage('subtitles');
+              }}
+              sx={{
+                color: 'white',
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '0.875rem',
+                py: 0.75,
+                px: 1.5,
+                minHeight: 'auto',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                  gap: 1,
+                }}
+              >
+                <Box sx={MENU_ICON_BOX_SX('#9F7AEA')}>
+                  <SubtitlesOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    Субтитры
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    noWrap
+                    sx={{
+                      color: 'rgba(255, 255, 255, 0.6)',
+                      fontSize: '11px',
+                      display: 'block',
+                    }}
+                  >
+                    {(() => {
+                      if (subtitleTracks.length === 0) return 'Недоступны';
+
+                      const active = subtitleTracks.find(
+                        (track) => track.name === subtitleSettings.trackName,
+                      );
+                      return active ? active.name : 'Выключены';
+                    })()}
                   </Typography>
                 </Box>
                 <Typography
@@ -552,23 +703,7 @@ function SettingsMenu({
                   {(() => {
                     const tag = getQualityTagFromResolution(option.value);
                     const tagColor = getQualityTagColor(tag);
-                    return (
-                      <Box
-                        sx={{
-                          minWidth: 36,
-                          textAlign: 'center',
-                          px: 0.75,
-                          py: '2px',
-                          borderRadius: 1,
-                          fontSize: '0.625rem',
-                          fontWeight: 700,
-                          color: tagColor,
-                          border: `1px solid ${tagColor}59`,
-                        }}
-                      >
-                        {tag}
-                      </Box>
-                    );
+                    return <Box sx={QUALITY_TAG_SX(tagColor)}>{tag}</Box>;
                   })()}
                   <Typography
                     variant="body2"
@@ -665,7 +800,7 @@ function SettingsMenu({
                 >
                   <SpeedOutlined
                     sx={{
-                      fontSize: 18,
+                      fontSize: MENU_ICON_SIZE,
                       color: speed === playbackRate ? '#BB86FC' : '#A855F7',
                       opacity: 0.7,
                     }}
@@ -1184,6 +1319,197 @@ function SettingsMenu({
             </MenuItem>
           </Box>
         )}
+
+        {currentPage === 'subtitles' && (
+          <Box sx={{ minWidth: 240 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                px: 1.5,
+                py: 0.75,
+                borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+              }}
+            >
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleBackToMain();
+                }}
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  padding: 0.25,
+                  mr: 0.75,
+                  minWidth: 'auto',
+                  width: 24,
+                  height: 24,
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  },
+                }}
+              >
+                <ArrowBackRounded sx={{ fontSize: 16 }} />
+              </IconButton>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  color: 'white',
+                  fontFamily: 'Roboto, sans-serif',
+                  fontWeight: 500,
+                  fontSize: '0.875rem',
+                }}
+              >
+                Субтитры
+              </Typography>
+            </Box>
+
+            {subtitleTracks.length === 0 && (
+              <Typography
+                variant="caption"
+                sx={{
+                  display: 'block',
+                  px: 1.5,
+                  py: 1,
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  fontSize: '11px',
+                }}
+              >
+                У выбранной озвучки нет субтитров
+              </Typography>
+            )}
+
+            {[{ id: -1, name: '' }, ...subtitleTracks].map((track) => {
+              const trackName = track.name || null;
+              const isSelected = subtitleSettings.trackName === trackName;
+
+              if (track.id === -1 && subtitleTracks.length === 0) return null;
+
+              return (
+                <MenuItem
+                  key={track.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSubtitleTrackChange?.(trackName);
+                  }}
+                  sx={{
+                    color: 'white',
+                    fontFamily: 'Roboto, sans-serif',
+                    fontSize: '0.875rem',
+                    py: 0.75,
+                    px: 1.5,
+                    minHeight: 'auto',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    },
+                  }}
+                  selected={isSelected}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      width: '100%',
+                      gap: 1,
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      noWrap
+                      sx={{ flex: 1, fontWeight: isSelected ? 600 : 500 }}
+                    >
+                      {trackName || 'Выключить'}
+                    </Typography>
+                    {isSelected && (
+                      <CheckRounded sx={{ fontSize: 16, color: '#BB86FC' }} />
+                    )}
+                  </Box>
+                </MenuItem>
+              );
+            })}
+
+            <Divider />
+
+            <Box sx={{ px: 1.5, py: 1 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  fontSize: '11px',
+                  mb: 0.5,
+                  display: 'block',
+                }}
+              >
+                Размер
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.5, mb: 1.5 }}>
+                {SUBTITLES_FONT_SCALES.map((scale) => (
+                  <Box
+                    key={scale}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSubtitleSettingsChange?.({ fontScale: scale });
+                    }}
+                    sx={CHIP_SX(subtitleSettings.fontScale === scale)}
+                  >
+                    {`${scale}x`}
+                  </Box>
+                ))}
+              </Box>
+
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  fontSize: '11px',
+                  mb: 0.5,
+                  display: 'block',
+                }}
+              >
+                Фон и обводка
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.5, mb: 1.5 }}>
+                {SUBTITLES_OUTLINE_MODES.map((mode) => (
+                  <Box
+                    key={mode.value}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSubtitleSettingsChange?.({ outline: mode.value });
+                    }}
+                    sx={CHIP_SX(subtitleSettings.outline === mode.value)}
+                  >
+                    {mode.label}
+                  </Box>
+                ))}
+              </Box>
+
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  fontSize: '11px',
+                  mb: 0.5,
+                  display: 'block',
+                }}
+              >
+                Смещение вверх
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                {SUBTITLES_OFFSETS.map((offset) => (
+                  <Box
+                    key={offset}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSubtitleSettingsChange?.({ offsetY: offset });
+                    }}
+                    sx={CHIP_SX(subtitleSettings.offsetY === offset)}
+                  >
+                    {offset}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          </Box>
+        )}
       </Box>
     </>
   );
@@ -1199,6 +1525,10 @@ SettingsMenu.defaultProps = {
     skipSplashScreens: false,
   },
   onAutoSkipChange: undefined,
+  subtitleTracks: [],
+  subtitleSettings: SUBTITLES_DEFAULT_SETTINGS,
+  onSubtitleTrackChange: undefined,
+  onSubtitleSettingsChange: undefined,
 };
 
 export default SettingsMenu;

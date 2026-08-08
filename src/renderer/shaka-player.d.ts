@@ -60,6 +60,32 @@ declare module 'shaka-player/dist/shaka-player.ui' {
     }
 
     const Player: PlayerConstructor;
+
+    namespace net {
+      namespace NetworkingEngine {
+        enum PluginPriority {
+          FALLBACK = 1,
+          PREFERRED = 2,
+          APPLICATION = 3,
+        }
+
+        function registerScheme(
+          scheme: string,
+          plugin: (...args: any[]) => any,
+          priority?: number,
+          progressSupport?: boolean,
+        ): void;
+      }
+
+      namespace HttpFetchPlugin {
+        function parse(...args: any[]): any;
+        function isSupported(): boolean;
+      }
+
+      namespace HttpXHRPlugin {
+        function parse(...args: any[]): any;
+      }
+    }
   }
 
   export = shaka;

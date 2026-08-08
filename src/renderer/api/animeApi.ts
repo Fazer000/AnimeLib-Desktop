@@ -544,6 +544,81 @@ export const animeApi = {
   /**
    * Vote for a comment
    */
+  /**
+   * Возвращает id текущего пользователя
+   */
+  getCurrentUserId: (): string | null => getUserId(),
+
+  /**
+   * Удалить свой комментарий
+   */
+  deleteComment: async (commentId: number): Promise<string | null> => {
+    try {
+      console.log('[AnimeAPI] Deleting comment:', commentId);
+      const response = await statsApiClient.delete(`/comments/${commentId}`);
+      return response.data?.data?.toast?.message ?? null;
+    } catch (error) {
+      const response = (error as any)?.response;
+      console.error(
+        '[AnimeAPI] Error deleting comment:',
+        response?.status,
+        response?.data,
+      );
+      throw error;
+    }
+  },
+
+  /**
+   * Отредактировать свой комментарий
+   */
+  updateComment: async (
+    commentId: number,
+    comment: { type: 'doc'; content: unknown[] },
+  ): Promise<any> => {
+    try {
+      console.log('[AnimeAPI] Updating comment:', commentId);
+      const response = await statsApiClient.put(`/comments/${commentId}`, {
+        comment,
+        attachments: [],
+      });
+      return response.data?.data ?? null;
+    } catch (error) {
+      const response = (error as any)?.response;
+      console.error(
+        '[AnimeAPI] Error updating comment:',
+        response?.status,
+        response?.data,
+      );
+      throw error;
+    }
+  },
+
+  /**
+   * Добавить пользователя в игнор-лист
+   */
+  ignoreUser: async (userId: number, comment: string = ''): Promise<any> => {
+    const payload = {
+      sourceable_type: 'user',
+      sourceable_id: Number(getUserId()),
+      user_id: userId,
+      comment,
+    };
+
+    try {
+      console.log('[AnimeAPI] Ignoring user, payload:', payload);
+      const response = await statsApiClient.post('/ignore', payload);
+      return response.data?.data ?? null;
+    } catch (error) {
+      const response = (error as any)?.response;
+      console.error(
+        '[AnimeAPI] Error ignoring user:',
+        response?.status,
+        response?.data,
+      );
+      throw error;
+    }
+  },
+
   voteComment: async (
     commentId: number,
     vote: 0 | 1,
@@ -586,7 +661,14 @@ export const animeApi = {
       console.log('[AnimeAPI] Comment submitted successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
-      console.error('[AnimeAPI] Error submitting comment:', error);
+      const response = (error as any)?.response;
+      console.error(
+        '[AnimeAPI] Error submitting comment:',
+        response?.status,
+        response?.data,
+        'payload:',
+        commentData,
+      );
       throw error;
     }
   },

@@ -84,3 +84,14 @@ export function saveSiteUrl(url: string): string {
 export function buildAnimePageUrl(slugUrl: string): string {
   return `${getSiteOrigin()}/ru/anime/${slugUrl}`;
 }
+
+/**
+ * Строит ссылку на комментарий к эпизоду
+ */
+export function buildCommentUrl(
+  slugUrl: string,
+  episodeId: number,
+  commentId: number,
+): string {
+  return `${buildAnimePageUrl(slugUrl)}/watch?episode=${episodeId}&comment_id=${commentId}`;
+}

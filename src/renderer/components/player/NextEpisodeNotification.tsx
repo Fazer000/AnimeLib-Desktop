@@ -10,12 +10,12 @@ interface NextEpisodeNotificationProps {
 }
 
 function NextEpisodeNotification({
-                                   nextEpisodeNumber,
-                                   nextEpisodeName,
-                                   countdownSeconds: initialCountdown,
-                                   onCancel,
-                                   onPlayNow,
-                                 }: NextEpisodeNotificationProps) {
+  nextEpisodeNumber,
+  nextEpisodeName,
+  countdownSeconds: initialCountdown,
+  onCancel,
+  onPlayNow,
+}: NextEpisodeNotificationProps) {
   const theme = useTheme();
   const [countdown, setCountdown] = useState(initialCountdown);
 

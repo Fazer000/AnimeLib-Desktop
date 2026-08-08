@@ -22,7 +22,7 @@ export const SpoilerInline = Node.create<SpoilerInlineOptions>({
 
   inline: true,
 
-  content: 'text*',
+  content: 'inline*',
 
   addOptions() {
     return {
@@ -34,7 +34,9 @@ export const SpoilerInline = Node.create<SpoilerInlineOptions>({
     return {
       visibleText: {
         default: null,
-        parseHTML: (element) => element.getAttribute('data-visible-text'),
+        parseHTML: (element) =>
+          element.getAttribute('data-visible-text') ||
+          element.getAttribute('data-spoiler-text'),
         renderHTML: (attributes) => {
           if (!attributes.visibleText) {
             return {};
@@ -47,7 +49,9 @@ export const SpoilerInline = Node.create<SpoilerInlineOptions>({
       },
       spoilerId: {
         default: null,
-        parseHTML: (element) => element.getAttribute('data-spoiler-id'),
+        parseHTML: (element) =>
+          element.getAttribute('data-spoiler-id') ||
+          `spoiler-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
         renderHTML: (attributes) => {
           if (!attributes.spoilerId) {
             return {};
@@ -65,6 +69,13 @@ export const SpoilerInline = Node.create<SpoilerInlineOptions>({
     return [
       {
         tag: 'span[data-spoiler]',
+      },
+      {
+        tag: 'span.spoiler-node',
+        priority: 60,
+        contentElement: (element) =>
+          (element as HTMLElement).querySelector('.spoiler-node__text') ??
+          (element as HTMLElement),
       },
     ];
   },

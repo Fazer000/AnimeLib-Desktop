@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Box, IconButton, Slider, Tooltip, Fade } from '@mui/material';
+import { Box, IconButton, Slider, Fade } from '@mui/material';
 
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 import VolumeDownRoundedIcon from '@mui/icons-material/VolumeDownRounded';
 import VolumeMuteRoundedIcon from '@mui/icons-material/VolumeMuteRounded';
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
+import ControlTooltip from './ControlTooltip';
 import { PLAYER_CONTROL_ICON_SIZE } from '../../../constants';
 
 const ICON_SX = { fontSize: `${PLAYER_CONTROL_ICON_SIZE}px` };
@@ -95,7 +96,7 @@ function VolumeControl({
         </Box>
       </Fade>
 
-      <Tooltip title={getTooltipText()} placement="top">
+      <ControlTooltip title={getTooltipText()} placement="top">
         <IconButton
           onClick={(e) => {
             e.stopPropagation();
@@ -143,7 +144,7 @@ function VolumeControl({
             {getVolumeIcon()}
           </Box>
         </IconButton>
-      </Tooltip>
+      </ControlTooltip>
 
       <Box
         sx={{

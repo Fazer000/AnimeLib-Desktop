@@ -113,71 +113,69 @@ const AmbientLight = memo(
     }
 
     return (
-      <>
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: -1,
+          opacity: isPlaying ? 1 : 0.3,
+          transition: 'opacity 0.8s ease',
+          overflow: 'visible',
+          mixBlendMode: 'screen',
+          backfaceVisibility: 'hidden',
+          transform: 'translateZ(0)',
+        }}
+      >
         <Box
           sx={{
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
-            bottom: 0,
-            width: '100%',
-            height: '100%',
-            pointerEvents: 'none',
-            zIndex: -1,
-            opacity: isPlaying ? 1 : 0.3,
-            transition: 'opacity 0.8s ease',
-            overflow: 'visible',
-            mixBlendMode: 'screen',
-            backfaceVisibility: 'hidden',
-            transform: 'translateZ(0)',
+            height: '300px',
+            ...gradientStyles.top,
           }}
-        >
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: '300px',
-              ...gradientStyles.top,
-            }}
-          />
+        />
 
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: '350px',
-              ...gradientStyles.bottom,
-            }}
-          />
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '350px',
+            ...gradientStyles.bottom,
+          }}
+        />
 
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              left: 0,
-              width: '40%',
-              ...gradientStyles.left,
-            }}
-          />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            width: '40%',
+            ...gradientStyles.left,
+          }}
+        />
 
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              right: 0,
-              width: '40%',
-              ...gradientStyles.right,
-            }}
-          />
-        </Box>
-      </>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            right: 0,
+            width: '40%',
+            ...gradientStyles.right,
+          }}
+        />
+      </Box>
     );
   },
 );

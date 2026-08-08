@@ -3,10 +3,17 @@ import { Player, KodikVideoLinks } from '../../api/animeApi';
 import { ShakaPlayerManager } from './ShakaPlayerManager';
 import { VideoStateManager } from './VideoStateManager';
 import { QualityManager } from './QualityManager';
+import {
+  SubtitlesManager,
+  SubtitleTrack,
+  SubtitlesSettings,
+} from './SubtitlesManager';
+import { SubtitleCue } from '../../utils/subtitleHelpers';
 import { KeyboardManager } from './KeyboardManager';
 import ThumbnailManager from './ThumbnailManager';
 import { AutoplayManager } from './AutoplayManager';
 import { WatchStatsManager } from './WatchStatsManager';
+import { OfflineSourceGuard } from './OfflineSourceGuard';
 
 export interface VideoPlayerControllerConfig {
   onError?: (error: string) => void;
@@ -14,16 +21,21 @@ export interface VideoPlayerControllerConfig {
   onStateChange?: (state: any) => void;
   onQualityOptionsChange?: (options: any[]) => void;
   onSelectedQualityChange?: (quality: string) => void;
+  onSubtitleTracksChange?: (tracks: SubtitleTrack[]) => void;
+  onSubtitleCuesChange?: (cues: SubtitleCue[]) => void;
+  onSubtitleSettingsChange?: (settings: SubtitlesSettings) => void;
   onKeyPress?: () => void;
   onPlayPause?: () => void;
   onSkipForward?: (seconds: number) => void;
   skipTime?: number;
   onToggleEpisodes?: () => void;
   autoplayManager?: AutoplayManager;
+  onOfflineSourceLost?: (recovered: boolean) => void;
 }
 
 export interface PlayerLoadOptions {
   animeId?: number;
+  offlineAnimeId?: string;
   player: Player;
   kodikLinks?: KodikVideoLinks | null;
   initialTimecode?: number;
@@ -41,6 +53,8 @@ export class VideoPlayerController {
   private stateManager: VideoStateManager;
 
   private qualityManager: QualityManager;
+
+  private subtitlesManager: SubtitlesManager;
 
   private keyboardManager: KeyboardManager;
 
@@ -72,8 +86,14 @@ export class VideoPlayerController {
 
   private watchStatsManager: WatchStatsManager = new WatchStatsManager();
 
+  private offlineGuard: OfflineSourceGuard;
+
   constructor(config: VideoPlayerControllerConfig = {}) {
     this.config = config;
+
+    this.offlineGuard = new OfflineSourceGuard({
+      onSourceLost: () => this.handleOfflineSourceLost(),
+    });
 
     this.shakaManager = new ShakaPlayerManager({
       onError: config.onError,
@@ -89,6 +109,13 @@ export class VideoPlayerController {
     this.qualityManager = new QualityManager({
       onQualityOptionsChange: config.onQualityOptionsChange,
       onSelectedQualityChange: config.onSelectedQualityChange,
+    });
+
+    this.subtitlesManager = new SubtitlesManager({
+      onTracksChange: config.onSubtitleTracksChange,
+      onCuesChange: config.onSubtitleCuesChange,
+      onSettingsChange: config.onSubtitleSettingsChange,
+      onError: config.onError,
     });
 
     this.keyboardManager = new KeyboardManager({
@@ -182,6 +209,13 @@ export class VideoPlayerController {
     }
 
     this.stateManager.attach(videoElement);
+
+    this.subtitlesManager.attach(videoElement);
+
+    this.keyboardManager.enable();
+    this.stateManager.attach(videoElement);
+
+    this.subtitlesManager.attach(videoElement);
 
     this.keyboardManager.enable();
 
@@ -281,12 +315,18 @@ export class VideoPlayerController {
     this.watchStatsManager.setContext(
       options.animeId ?? null,
       options.player.id,
+      options.offlineAnimeId && options.episodeId
+        ? { animeId: options.offlineAnimeId, episodeId: options.episodeId }
+        : null,
     );
 
     this.qualityManager.createQualityOptions(
       options.player,
       options.kodikLinks,
+      options.episodeId,
     );
+
+    this.subtitlesManager.setTracks(options.player);
 
     await this.loadCurrentQuality();
   }
@@ -315,8 +355,49 @@ export class VideoPlayerController {
       this.thumbnailManager.loadVideo(this.videoElement.src);
     }
 
+    if (loaded) {
+      this.offlineGuard.watch(qualityOption.src);
+    }
+
     this.savedTime = 0;
     this.shouldAutoPlay = false;
+  }
+
+  /**
+   * Восстанавливает воспроизведение после удаления локального файла
+   */
+  private async handleOfflineSourceLost(): Promise<void> {
+    const state = this.stateManager.getState();
+    const savedTime = state.currentTime;
+    const wasPlaying = state.isPlaying;
+    const previousQuality = this.qualityManager.getSelectedQuality();
+    const options = this.currentPlayerData;
+
+    await this.shakaManager.detachSource();
+
+    if (!options || !(await OfflineSourceGuard.isOnline())) {
+      console.warn('[VideoPlayerController] Offline source lost, no fallback');
+      this.config.onOfflineSourceLost?.(false);
+      return;
+    }
+
+    this.qualityManager.createQualityOptions(
+      options.player,
+      options.kodikLinks,
+    );
+
+    if (!this.qualityManager.hasOptions()) {
+      this.config.onOfflineSourceLost?.(false);
+      return;
+    }
+
+    this.qualityManager.setSelectedQuality(previousQuality);
+
+    this.savedTime = savedTime;
+    this.shouldAutoPlay = wasPlaying;
+
+    await this.loadCurrentQuality();
+    this.config.onOfflineSourceLost?.(true);
   }
 
   /**
@@ -348,6 +429,7 @@ export class VideoPlayerController {
     console.log('[VideoPlayerController] Clearing player');
 
     this.shakaManager.cancelLoad();
+    this.offlineGuard.reset();
 
     this.isInitialLoad = true;
     this.savedTime = 0;
@@ -365,6 +447,7 @@ export class VideoPlayerController {
 
     this.stateManager.reset();
     this.qualityManager.reset();
+    this.subtitlesManager.reset();
   }
 
   /**
@@ -462,16 +545,26 @@ export class VideoPlayerController {
   }
 
   /**
+   * Получает менеджер субтитров
+   */
+  getSubtitlesManager(): SubtitlesManager {
+    return this.subtitlesManager;
+  }
+
+  /**
    * Полностью уничтожает контроллер
    */
   async destroy(): Promise<void> {
     console.log('[VideoPlayerController] Destroying controller');
 
     this.keyboardManager.disable();
+    this.offlineGuard.reset();
 
     this.stateManager.detach();
 
     this.thumbnailManager.destroy();
+
+    this.subtitlesManager.destroy();
 
     await this.shakaManager.destroy();
 

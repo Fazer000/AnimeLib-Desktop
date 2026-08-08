@@ -1,0 +1,64 @@
+import React, { useState } from 'react';
+import { Button } from '@mui/material';
+import { SystemUpdateAlt } from '@mui/icons-material';
+import useUpdateChecker from '../../hooks/useUpdateChecker';
+import UpdateDialog from './UpdateDialog';
+
+/**
+ * Кнопка обновления в тулбаре, видна только при наличии новой версии
+ */
+function UpdateButton() {
+  const { updateInfo, status, progress, startUpdate } = useUpdateChecker();
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+
+  if (!updateInfo?.available) {
+    return null;
+  }
+
+  const isDownloading = status === 'downloading';
+
+  const handleConfirm = () => {
+    startUpdate();
+  };
+
+  return (
+    <>
+      <Button
+        size="small"
+        variant="contained"
+        startIcon={<SystemUpdateAlt sx={{ fontSize: 16 }} />}
+        onClick={() => setDialogOpen(true)}
+        sx={{
+          WebkitAppRegion: 'no-drag',
+          appRegion: 'no-drag',
+          height: 22,
+          px: 1,
+          fontSize: '0.7rem',
+          fontWeight: 500,
+          lineHeight: 1,
+          textTransform: 'none',
+          whiteSpace: 'nowrap',
+          minWidth: 0,
+          backgroundColor: '#43a047',
+          color: '#ffffff',
+          boxShadow: 'none',
+          '&:hover': { backgroundColor: '#4caf50', boxShadow: 'none' },
+          '& .MuiButton-startIcon': { mr: 0.5, ml: 0 },
+        }}
+      >
+        {isDownloading ? `Загрузка ${progress}%` : 'Доступно обновление'}
+      </Button>
+
+      <UpdateDialog
+        open={dialogOpen}
+        updateInfo={updateInfo}
+        status={status}
+        progress={progress}
+        onConfirm={handleConfirm}
+        onClose={() => setDialogOpen(false)}
+      />
+    </>
+  );
+}
+
+export default UpdateButton;

@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import shaka from 'shaka-player/dist/shaka-player.ui';
+import { OFFLINE_SCHEME } from '../../../constants';
 
 export interface QualityOption {
   label: string;
@@ -22,6 +23,8 @@ export interface ShakaPlayerConfig {
  * Управляет инициализацией и работой Shaka Player
  */
 export class ShakaPlayerManager {
+  private static schemeRegistered: boolean = false;
+
   private player: shaka.Player | null = null;
 
   private videoElement: HTMLVideoElement | null = null;
@@ -59,6 +62,7 @@ export class ShakaPlayerManager {
       console.log('[ShakaPlayerManager] Starting initialization...');
 
       shaka.polyfill.installAll();
+      ShakaPlayerManager.registerOfflineScheme();
 
       if (!shaka.Player.isBrowserSupported()) {
         console.error('[ShakaPlayerManager] Browser not supported!');
@@ -193,7 +197,7 @@ export class ShakaPlayerManager {
         },
 
         mediaSource: {
-          forceTransmux: true,
+          forceTransmux: false,
         },
       });
 
@@ -207,18 +211,12 @@ export class ShakaPlayerManager {
           message: error.message,
         });
 
-        let errorMessage = 'Ошибка загрузки видео';
-        if (error.code === 3015) {
-          errorMessage =
-            'Ошибка загрузки HLS плейлиста. Попробуйте другой плеер.';
-        } else if (error.category === 1) {
-          errorMessage = 'Ошибка сети. Проверьте интернет-соединение.';
-        } else if (error.category === 3) {
-          errorMessage =
-            'Ошибка парсинга манифеста. Попробуйте другое качество.';
+        if (error.severity === 1) {
+          console.warn('[ShakaPlayerManager] Recoverable error, ignoring');
+          return;
         }
 
-        this.config.onError?.(errorMessage);
+        this.config.onError?.(ShakaPlayerManager.describeError(error));
         this.setLoading(false);
       });
 
@@ -265,12 +263,69 @@ export class ShakaPlayerManager {
   }
 
   /**
+   * Регистрирует схему локальных файлов в networking engine
+   */
+  private static registerOfflineScheme(): void {
+    if (ShakaPlayerManager.schemeRegistered) {
+      return;
+    }
+
+    try {
+      const plugin = shaka.net.HttpFetchPlugin.isSupported()
+        ? shaka.net.HttpFetchPlugin.parse
+        : shaka.net.HttpXHRPlugin.parse;
+
+      shaka.net.NetworkingEngine.registerScheme(
+        OFFLINE_SCHEME,
+        plugin,
+        shaka.net.NetworkingEngine.PluginPriority.PREFERRED,
+        true,
+      );
+
+      ShakaPlayerManager.schemeRegistered = true;
+      console.log('[ShakaPlayerManager] Offline scheme registered');
+    } catch (error) {
+      console.error('[ShakaPlayerManager] Scheme registration failed:', error);
+    }
+  }
+
+  /**
    * Задержка перед повторной попыткой
    */
   private static async delay(ms: number): Promise<void> {
     return new Promise((resolve) => {
       setTimeout(resolve, ms);
     });
+  }
+
+  /**
+   * Возвращает текст ошибки по коду и категории Shaka
+   */
+  private static describeError(error: any): string {
+    const messages: Record<number, string> = {
+      3015: 'Ошибка загрузки HLS плейлиста. Попробуйте другой плеер.',
+      3016: 'Ошибка декодирования видео. Попробуйте другое качество.',
+      3017: 'Не хватает памяти буфера. Перезапустите плеер.',
+      3018: 'Не удалось преобразовать поток. Скачайте серию заново или выберите другой плеер.',
+    };
+
+    if (messages[error.code]) {
+      return messages[error.code];
+    }
+
+    if (error.category === 1) {
+      return 'Ошибка сети. Проверьте интернет-соединение.';
+    }
+
+    if (error.category === 4) {
+      return 'Ошибка разбора манифеста. Попробуйте другое качество.';
+    }
+
+    if (error.category === 3) {
+      return 'Ошибка воспроизведения медиапотока.';
+    }
+
+    return 'Ошибка загрузки видео';
   }
 
   /**
@@ -317,7 +372,61 @@ export class ShakaPlayerManager {
         return false;
       }
 
-      if (qualityOption.type === 'hls') {
+      if (qualityOption.src.startsWith(`${OFFLINE_SCHEME}://`)) {
+        console.log(
+          '[ShakaPlayerManager] Loading offline file:',
+          qualityOption.src,
+        );
+
+        if (qualityOption.type === 'hls') {
+          const loaded = await this.loadWithRetry(qualityOption.src, token);
+
+          if (this.isStaleLoad(token)) {
+            return false;
+          }
+
+          if (!loaded) {
+            throw new Error('Ошибка загрузки локального плейлиста');
+          }
+
+          await this.waitForCanPlay();
+          this.setLoading(false);
+
+          if (savedTime !== undefined && savedTime > 0) {
+            await this.seekWhenReady(savedTime);
+          }
+
+          if (autoplay) {
+            this.videoElement?.play().catch(() => undefined);
+          }
+
+          return true;
+        }
+
+        const nativeLoaded = await this.loadNativeSource(qualityOption.src);
+        if (this.isStaleLoad(token)) {
+          return false;
+        }
+
+        if (!nativeLoaded) {
+          console.error(
+            '[ShakaPlayerManager] Offline file failed, falling back to online',
+          );
+
+          const fallbacks = [
+            qualityOption.fallbackSrc,
+            qualityOption.fallbackSrc2,
+          ].filter(Boolean) as string[];
+
+          const loaded =
+            fallbacks.length > 0 &&
+            (await this.tryProgressiveSourcesWithRetry(fallbacks, token));
+
+          if (!loaded) {
+            throw new Error('Ошибка загрузки локального файла');
+          }
+        }
+      } else if (qualityOption.type === 'hls') {
         console.log('[ShakaPlayerManager] Loading HLS:', qualityOption.src);
         console.log(
           '[ShakaPlayerManager] HLS type detected, using Shaka Player',
@@ -400,6 +509,40 @@ export class ShakaPlayerManager {
       this.setLoading(false);
       return false;
     }
+  }
+
+  /**
+   * Загружает источник напрямую в video без Shaka
+   */
+  private loadNativeSource(src: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const video = this.videoElement;
+
+      if (!video) {
+        resolve(false);
+        return;
+      }
+
+      const finish = (result: boolean) => {
+        // eslint-disable-next-line no-use-before-define
+        video.removeEventListener('loadeddata', onLoaded);
+        // eslint-disable-next-line no-use-before-define
+        video.removeEventListener('error', onFailed);
+        // eslint-disable-next-line no-use-before-define
+        clearTimeout(timer);
+        resolve(result);
+      };
+
+      const onLoaded = () => finish(true);
+      const onFailed = () => finish(false);
+      const timer = setTimeout(() => finish(video.readyState >= 2), 15000);
+
+      video.addEventListener('loadeddata', onLoaded);
+      video.addEventListener('error', onFailed);
+
+      video.src = src;
+      video.load();
+    });
   }
 
   /**
@@ -561,6 +704,30 @@ export class ShakaPlayerManager {
         console.error('[ShakaPlayerManager] Unload error:', error);
       }
     }
+  }
+
+  /**
+   * Отвязывает источник, прекращая сетевые запросы
+   */
+  async detachSource(): Promise<void> {
+    this.loadToken += 1;
+    this.setLoading(false);
+
+    if (this.videoElement) {
+      this.videoElement.pause();
+      this.videoElement.removeAttribute('src');
+    }
+
+    if (this.player) {
+      try {
+        await this.player.unload();
+      } catch (error) {
+        console.error('[ShakaPlayerManager] Detach error:', error);
+      }
+    }
+
+    this.videoElement?.load();
+    console.log('[ShakaPlayerManager] Source detached');
   }
 
   /**

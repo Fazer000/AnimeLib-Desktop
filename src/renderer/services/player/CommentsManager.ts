@@ -9,6 +9,7 @@ export interface Comment {
   parent_comment?: number;
   comment_level?: number;
   user: {
+    id?: number | string;
     username: string;
     avatar: {
       url: string;
@@ -61,6 +62,10 @@ export class CommentsManager {
 
   private currentEpisodeId: number | null = null;
 
+  private rootsRaw: Comment[] = [];
+
+  private repliesRaw: Comment[] = [];
+
   constructor(config: CommentsManagerConfig = {}) {
     this.config = config;
   }
@@ -81,43 +86,50 @@ export class CommentsManager {
   }
 
   /**
-   * Связываем replies с root комментариями
+   * Объединяет списки комментариев без дублей, сохраняя порядок
    */
-  // eslint-disable-next-line class-methods-use-this
-  public attachRepliesToComments(
+  private static mergeById(current: Comment[], incoming: Comment[]): Comment[] {
+    const known = new Set(current.map((comment) => comment.id));
+    return [
+      ...current,
+      ...incoming.filter((comment) => {
+        if (known.has(comment.id)) return false;
+        known.add(comment.id);
+        return true;
+      }),
+    ];
+  }
+
+  /**
+   * Собирает дерево комментариев произвольной вложенности
+   */
+  public static buildTree(
     rootComments: Comment[],
     repliesData: Comment[],
   ): Comment[] {
-    if (!repliesData || repliesData.length === 0) {
-      return rootComments;
-    }
+    const nodes = new Map<number, Comment>();
 
-    const commentsMap = new Map<number, Comment>();
-
-    rootComments.forEach((comment) => {
-      commentsMap.set(comment.id, { ...comment, replies: [] });
+    [...rootComments, ...repliesData].forEach((comment) => {
+      nodes.set(comment.id, { ...comment, replies: [] });
     });
 
-    repliesData.forEach((reply) => {
-      commentsMap.set(reply.id, { ...reply, replies: [] });
-    });
+    [...repliesData]
+      .sort((a, b) => a.id - b.id)
+      .forEach((reply) => {
+        const node = nodes.get(reply.id);
+        const parent =
+          nodes.get(reply.parent_comment ?? -1) ??
+          nodes.get(reply.root_id ?? -1);
 
-    repliesData.forEach((reply) => {
-      const parentComment = commentsMap.get(reply.parent_comment!);
-      if (parentComment) {
-        const replyWithParent = {
-          ...reply,
-          parentUser: parentComment.user.username,
-        };
+        if (!node || !parent || parent.id === node.id) return;
 
-        if (!parentComment.replies) {
-          parentComment.replies = [];
-        }
-        parentComment.replies.push(replyWithParent);
-      }
-    });
+        node.parentUser = parent.user.username;
+        parent.replies!.push(node);
+      });
 
-    return rootComments.map((comment) => commentsMap.get(comment.id)!);
+    return rootComments
+      .map((comment) => nodes.get(comment.id))
+      .filter((comment): comment is Comment => Boolean(comment));
   }
 
   /**
@@ -146,24 +158,33 @@ export class CommentsManager {
         this.config.sortBy || 'id',
         this.config.sortType || 'desc',
       );
-      const rootComments = response.data.root;
-      const repliesData = response.data.replies;
+      if (pageNum === 1) {
+        this.rootsRaw = [];
+        this.repliesRaw = [];
+      }
 
-      const commentsWithReplies = this.attachRepliesToComments(
-        rootComments,
-        repliesData,
+      this.rootsRaw = CommentsManager.mergeById(
+        this.rootsRaw,
+        response.data.root || [],
+      );
+      this.repliesRaw = CommentsManager.mergeById(
+        this.repliesRaw,
+        response.data.replies || [],
       );
 
-      this.state.comments =
-        pageNum === 1
-          ? commentsWithReplies
-          : [...this.state.comments, ...commentsWithReplies];
+      this.state.comments = CommentsManager.buildTree(
+        this.rootsRaw,
+        this.repliesRaw,
+      );
       this.state.hasMore = response.meta.has_next_page;
       this.state.page = pageNum + 1;
 
       console.log(
         '[CommentsManager] Loaded comments:',
-        commentsWithReplies.length,
+        this.rootsRaw.length,
+        'root,',
+        this.repliesRaw.length,
+        'replies',
       );
 
       this.config.onCommentsLoaded?.(this.state.comments, this.state.hasMore);
@@ -173,6 +194,121 @@ export class CommentsManager {
     } finally {
       this.setLoading(false);
     }
+  }
+
+  /**
+   * Вставляет только что созданный комментарий в дерево без перезагрузки
+   */
+  public insertComment(created: Comment): void {
+    const node: Comment = {
+      ...created,
+      votes: created.votes ?? { up: 0, down: 0 },
+      created_at: created.created_at ?? new Date().toISOString(),
+    };
+
+    const isReply = Boolean(node.parent_comment);
+    const known = isReply ? this.repliesRaw : this.rootsRaw;
+
+    if (known.some((comment) => comment.id === node.id)) {
+      return;
+    }
+
+    if (isReply) {
+      this.repliesRaw = [...this.repliesRaw, node];
+    } else {
+      this.rootsRaw =
+        this.config.sortType === 'asc'
+          ? [...this.rootsRaw, node]
+          : [node, ...this.rootsRaw];
+    }
+
+    this.state.comments = CommentsManager.buildTree(
+      this.rootsRaw,
+      this.repliesRaw,
+    );
+
+    console.log(
+      '[CommentsManager] Inserted comment:',
+      node.id,
+      isReply ? 'as reply' : 'as root',
+    );
+
+    this.config.onCommentsLoaded?.(this.state.comments, this.state.hasMore);
+  }
+
+  /**
+   * Обновляет текст комментария после редактирования
+   */
+  public updateComment(updated: Comment): void {
+    const patch = (list: Comment[]): Comment[] =>
+      list.map((comment) =>
+        comment.id === updated.id
+          ? { ...comment, comment: updated.comment }
+          : comment,
+      );
+
+    this.rootsRaw = patch(this.rootsRaw);
+    this.repliesRaw = patch(this.repliesRaw);
+
+    this.state.comments = CommentsManager.buildTree(
+      this.rootsRaw,
+      this.repliesRaw,
+    );
+
+    console.log('[CommentsManager] Updated comment:', updated.id);
+    this.config.onCommentsLoaded?.(this.state.comments, this.state.hasMore);
+  }
+
+  /**
+   * Скрывает все комментарии пользователя
+   */
+  public removeUserComments(userId: number | string): void {
+    const isTarget = (comment: Comment) =>
+      String(comment.user?.id) === String(userId);
+
+    this.rootsRaw = this.rootsRaw.filter((comment) => !isTarget(comment));
+    this.repliesRaw = this.repliesRaw.filter((comment) => !isTarget(comment));
+
+    this.state.comments = CommentsManager.buildTree(
+      this.rootsRaw,
+      this.repliesRaw,
+    );
+
+    console.log('[CommentsManager] Hidden comments of user:', userId);
+    this.config.onCommentsLoaded?.(this.state.comments, this.state.hasMore);
+  }
+
+  /**
+   * Удаляет комментарий вместе со всей его веткой
+   */
+  public removeComment(commentId: number): void {
+    const doomed = new Set<number>([commentId]);
+    let grew = true;
+
+    while (grew) {
+      grew = false;
+      // eslint-disable-next-line no-loop-func
+      this.repliesRaw.forEach((reply) => {
+        const parent = reply.parent_comment ?? reply.root_id;
+        if (parent && doomed.has(parent) && !doomed.has(reply.id)) {
+          doomed.add(reply.id);
+          grew = true;
+        }
+      });
+    }
+
+    this.rootsRaw = this.rootsRaw.filter((comment) => !doomed.has(comment.id));
+    this.repliesRaw = this.repliesRaw.filter(
+      (comment) => !doomed.has(comment.id),
+    );
+
+    this.state.comments = CommentsManager.buildTree(
+      this.rootsRaw,
+      this.repliesRaw,
+    );
+
+    console.log('[CommentsManager] Removed comments:', doomed.size);
+    this.config.onCommentsLoaded?.(this.state.comments, this.state.hasMore);
   }
 
   /**
@@ -197,6 +333,8 @@ export class CommentsManager {
       hasMore: true,
       loading: false,
     };
+    this.rootsRaw = [];
+    this.repliesRaw = [];
     this.currentEpisodeId = null;
   }
 

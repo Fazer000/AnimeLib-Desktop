@@ -1,5 +1,11 @@
 /* eslint-disable no-console */
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import { ThemeProvider, createTheme, CssBaseline, Box } from '@mui/material';
 import UrlInputPage from './pages/UrlInputPage';
 import WebView from './pages/WebViewPage';
@@ -7,11 +13,18 @@ import type { WebViewPageRef } from './pages/WebViewPage';
 import PlayerPage from './pages/PlayerPage';
 import { buildAnimePageUrl, saveSiteUrl } from './utils/urlHelpers';
 import ContinueWatchingButton from './components/ContinueWatchingButton';
+import OfflineButton from './components/offline/OfflineButton';
 import {
   NavigationHistoryTracker,
   playerHistoryManager,
 } from './services/webview';
+import OfflineNoticeDialog from './components/offline/OfflineNoticeDialog';
 import useWatchingBookmarks from './hooks/useWatchingBookmarks';
+import useOnlineStatus from './hooks/useOnlineStatus';
+import useProgressSync from './hooks/useProgressSync';
+import useOfflineLibrary from './hooks/useOfflineLibrary';
+import { offlineCatalog } from './services/offline';
+import { checkConnection } from './utils/connectivity';
 
 declare module '@mui/material/styles' {
   interface CustomColors {
@@ -207,16 +220,45 @@ function App() {
   const [playerUrl, setPlayerUrl] = useState<string | null>(null);
   const [animeId, setAnimeId] = useState<string | null>(null);
   const bookmarks = useWatchingBookmarks(playerUrl);
+  const isOnline = useOnlineStatus();
+  const offlineSnapshot = useOfflineLibrary();
+
+  const [offlineTarget, setOfflineTarget] = useState<{
+    animeId: string;
+    episodeId?: number;
+  } | null>(null);
+  const [libraryTab, setLibraryTab] = useState<number | null>(null);
+  const [showOfflineNotice, setShowOfflineNotice] = useState<boolean>(false);
+
+  const hasDownloads = offlineSnapshot.anime.length > 0;
+
+  const offlineContinue = useMemo(
+    () => offlineCatalog.getContinueItems(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [offlineSnapshot, offlineTarget, isOnline],
+  );
+
+  useProgressSync(isOnline);
+
+  useEffect(() => {
+    console.log('[App] Connection status:', isOnline ? 'online' : 'offline');
+  }, [isOnline]);
+
+  useEffect(() => {
+    setShowOfflineNotice(!isOnline && hasDownloads);
+  }, [isOnline, hasDownloads]);
 
   const webViewRef = useRef<WebViewPageRef>(null);
   const [playerReturnsBack, setPlayerReturnsBack] = useState<boolean>(false);
-
+  const [playerEpisodeId, setPlayerEpisodeId] = useState<number | undefined>(
+    undefined,
+  );
   useEffect(() => {
     NavigationHistoryTracker.install();
   }, []);
 
   const handlePlayerButtonClick = useCallback(
-    (url: string, providedAnimeId?: string) => {
+    (url: string, providedAnimeId?: string, episodeId?: number) => {
       console.log('[AnimeLIB] Opening player page for URL:', url);
       console.log('[AnimeLIB] Provided anime ID:', providedAnimeId);
 
@@ -248,6 +290,7 @@ function App() {
       );
       NavigationHistoryTracker.record({ source: 'player-open', url });
       setPlayerReturnsBack(false);
+      setPlayerEpisodeId(episodeId);
       setPlayerUrl(url);
       setAnimeId(finalAnimeId);
     },
@@ -297,10 +340,34 @@ function App() {
     setSavedUrl(saveSiteUrl(url));
   }, []);
 
+  const handlePlayFromLibrary = useCallback(
+    async (id: string, episodeId?: number) => {
+      if (await checkConnection()) {
+        console.log('[App] Opening online player from library:', id, episodeId);
+        setOfflineTarget(null);
+        handlePlayerButtonClick(buildAnimePageUrl(id), id, episodeId);
+        return;
+      }
+
+      console.log('[App] Opening offline player:', id, episodeId);
+
+      if (playerUrl) {
+        playerHistoryManager.discard();
+        setPlayerUrl(null);
+        setAnimeId(null);
+        setPlayerReturnsBack(false);
+      }
+
+      setOfflineTarget({ animeId: id, episodeId });
+    },
+    [playerUrl, handlePlayerButtonClick],
+  );
+
   const handlePlayerClose = useCallback((url: string) => {
     NavigationHistoryTracker.record({ source: 'player-close', url });
     setPlayerUrl(null);
     setAnimeId(null);
+    setPlayerEpisodeId(undefined);
     setPlayerReturnsBack(false);
   }, []);
 
@@ -340,8 +407,8 @@ function App() {
           sx={{
             position: 'absolute',
             inset: 0,
-            visibility: playerUrl ? 'hidden' : 'visible',
-            pointerEvents: playerUrl ? 'none' : 'auto',
+            visibility: playerUrl || offlineTarget ? 'hidden' : 'visible',
+            pointerEvents: playerUrl || offlineTarget ? 'none' : 'auto',
           }}
         >
           <WebView
@@ -353,19 +420,74 @@ function App() {
           />
           <ContinueWatchingButton
             bookmarks={bookmarks}
+            useOffline={!isOnline}
+            offlineItems={offlineContinue}
+            onSelectOffline={(item) => {
+              console.log('[App] Continue watching offline:', item.animeId);
+              handlePlayFromLibrary(item.animeId, item.episodeId);
+            }}
             onSelect={(bookmark) => {
               const url = buildAnimePageUrl(bookmark.animeSlugUrl);
               console.log('[App] Continue watching:', url);
               handlePlayerButtonClick(url, bookmark.animeSlugUrl);
             }}
           />
+          <OfflineButton
+            onPlayOffline={handlePlayFromLibrary}
+            openTab={libraryTab}
+            onOpenHandled={() => setLibraryTab(null)}
+          />
         </Box>
+
+        <OfflineNoticeDialog
+          open={showOfflineNotice && !playerUrl && !offlineTarget}
+          onOpenLibrary={() => {
+            setShowOfflineNotice(false);
+            setLibraryTab(2);
+          }}
+          onClose={() => setShowOfflineNotice(false)}
+        />
+
+        {offlineTarget && (
+          <Box sx={{ position: 'absolute', inset: 0, zIndex: 2 }}>
+            <PlayerPage
+              key={`offline-${offlineTarget.animeId}-${offlineTarget.episodeId ?? 'auto'}`}
+              playerUrl=""
+              animeId={offlineTarget.animeId}
+              offlineMode
+              initialEpisodeId={offlineTarget.episodeId}
+              onPlayOffline={handlePlayFromLibrary}
+              onBack={() => {
+                console.log('[App] Offline player closed');
+                setOfflineTarget(null);
+              }}
+              onHome={() => {
+                console.log('[App] Offline player home');
+                webViewRef.current?.goHome();
+                setOfflineTarget(null);
+              }}
+              onNavigateToUrl={(url: string) => {
+                console.log('[App] Offline player navigate to URL:', url);
+                webViewRef.current?.navigateTo(url);
+                setOfflineTarget(null);
+              }}
+              onPlayerButtonClick={(url: string, providedAnimeId?: string) => {
+                setOfflineTarget(null);
+                handlePlayerButtonClick(url, providedAnimeId);
+              }}
+            />
+          </Box>
+        )}
 
         {playerUrl && (
           <Box sx={{ position: 'absolute', inset: 0, zIndex: 1 }}>
             <PlayerPage
+              key={`${animeId || 'unknown'}-${playerEpisodeId ?? 'auto'}`}
               playerUrl={playerUrl}
               animeId={animeId || 'unknown'}
+              initialEpisodeId={playerEpisodeId}
+              onPlayerButtonClick={handlePlayerButtonClick}
+              onPlayOffline={handlePlayFromLibrary}
               onBack={() => {
                 console.log('[App] Player back button clicked');
                 playerHistoryManager.discard();

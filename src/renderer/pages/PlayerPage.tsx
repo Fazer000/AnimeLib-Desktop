@@ -17,7 +17,9 @@ import CommentsSection from '../components/player/CommentsSection';
 import ScrollToTopButton from '../components/player/ScrollToTopButton';
 import RelatedAnime from '../components/player/RelatedAnime';
 import AmbientLight from '../components/player/AmbientLight';
+import DownloadManagerDialog from '../components/offline/DownloadManagerDialog';
 import { PlayerSelectionManager, BookmarkManager } from '../services/player';
+import { offlineCatalog, progressStore } from '../services/offline';
 import {
   DEFAULT_VIDEO_ASPECT_RATIO,
   MIN_VIDEO_AREA_HEIGHT,
@@ -34,6 +36,11 @@ interface PlayerPageProps {
   onBack: () => void;
   onHome?: () => void;
   onNavigateToUrl?: (url: string) => void;
+  // eslint-disable-next-line react/require-default-props
+  onPlayerButtonClick?: (url: string, animeId?: string) => void;
+  offlineMode?: boolean;
+  initialEpisodeId?: number;
+  onPlayOffline?: (animeId: string, episodeId?: number) => void;
 }
 
 /**
@@ -50,6 +57,10 @@ function PlayerPageRefactored({
   onBack,
   onHome,
   onNavigateToUrl,
+  onPlayerButtonClick,
+  offlineMode = false,
+  initialEpisodeId,
+  onPlayOffline,
 }: PlayerPageProps) {
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
   const shouldAutoplayNextEpisodeRef = useRef<boolean>(false);
@@ -108,6 +119,9 @@ function PlayerPageRefactored({
 
   const [videoAspectRatio, setVideoAspectRatio] = useState<number | null>(null);
 
+  const [showDownloadManager, setShowDownloadManager] =
+    useState<boolean>(false);
+
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
 
   useEffect(() => {
@@ -165,6 +179,13 @@ function PlayerPageRefactored({
   const loadEpisodes = useCallback(async (): Promise<void> => {
     if (!currentAnimeId) return;
 
+    if (offlineMode) {
+      const offlineEpisodes = offlineCatalog.getEpisodes(currentAnimeId);
+      setEpisodes(offlineEpisodes);
+      console.log('[PlayerPage] Offline episodes:', offlineEpisodes.length);
+      return;
+    }
+
     setLoading(true);
     try {
       const data = await animeApi.getEpisodes(currentAnimeId);
@@ -175,7 +196,7 @@ function PlayerPageRefactored({
     } finally {
       setLoading(false);
     }
-  }, [currentAnimeId]);
+  }, [currentAnimeId, offlineMode]);
 
   /**
    * Load and process bookmark for current anime
@@ -186,11 +207,70 @@ function PlayerPageRefactored({
         return;
       }
 
+      if (offlineMode) {
+        const progress = initialEpisodeId
+          ? progressStore.get(currentAnimeId, initialEpisodeId)
+          : progressStore.getLatestForAnime(currentAnimeId);
+
+        const targetId = initialEpisodeId ?? progress?.episodeId ?? null;
+        const index = targetId
+          ? loadedEpisodes.findIndex((item) => item.id === targetId)
+          : -1;
+
+        if (index >= 0) {
+          setCurrentEpisodeIndex(index);
+          setBookmarkedEpisodeId(targetId);
+        }
+
+        if (
+          progress &&
+          progress.episodeId === targetId &&
+          progress.seconds > 0
+        ) {
+          setInitialTimecode(progress.seconds);
+          setHasBookmark(true);
+          console.log('[PlayerPage] Offline progress:', progress.seconds);
+        }
+
+        setBookmarkChecked(true);
+        return;
+      }
+
       try {
         const result = await bookmarkManager.loadBookmark(
           currentAnimeId,
           loadedEpisodes,
         );
+
+        const targetIndex = initialEpisodeId
+          ? loadedEpisodes.findIndex((item) => item.id === initialEpisodeId)
+          : -1;
+
+        if (targetIndex >= 0 && initialEpisodeId) {
+          const local = progressStore.get(currentAnimeId, initialEpisodeId);
+          const isSameEpisode =
+            bookmarkManager.getBookmarkedEpisodeId() === initialEpisodeId;
+          const remote = isSameEpisode ? result.timecodeSeconds : null;
+          const useLocal =
+            Boolean(local) && (!local?.synced || local.seconds > (remote ?? 0));
+          const seconds = useLocal ? (local?.seconds ?? 0) : (remote ?? 0);
+
+          if (seconds > 0) {
+            setInitialTimecode(seconds);
+            setHasBookmark(true);
+          }
+
+          setBookmarkedEpisodeId(initialEpisodeId);
+          setCurrentEpisodeIndex(targetIndex);
+          setBookmarkChecked(true);
+          console.log(
+            '[PlayerPage] Requested episode:',
+            targetIndex,
+            useLocal ? 'local progress' : 'site bookmark',
+            seconds,
+          );
+          return;
+        }
 
         if (result.episodeIndex !== null) {
           console.log(
@@ -228,7 +308,7 @@ function PlayerPageRefactored({
         setBookmarkChecked(true);
       }
     },
-    [currentAnimeId, bookmarkManager],
+    [currentAnimeId, bookmarkManager, offlineMode, initialEpisodeId],
   );
 
   /**
@@ -236,6 +316,16 @@ function PlayerPageRefactored({
    */
   const loadEpisodePlayers = useCallback(
     async (episodeId: number, requestId: number): Promise<void> => {
+      if (offlineMode) {
+        const offlinePlayers = offlineCatalog.getPlayers(
+          currentAnimeId,
+          episodeId,
+        );
+        setPlayers(offlinePlayers);
+        console.log('[PlayerPage] Offline players:', offlinePlayers.length);
+        return;
+      }
+
       setLoading(true);
       try {
         const data = await animeApi.getEpisodePlayers(episodeId);
@@ -259,9 +349,8 @@ function PlayerPageRefactored({
         }
       }
     },
-    [],
+    [offlineMode, currentAnimeId],
   );
-
   /**
    * Load Kodik video links
    */
@@ -292,7 +381,7 @@ function PlayerPageRefactored({
    * Load related anime
    */
   const loadRelatedAnime = useCallback(async (): Promise<void> => {
-    if (!currentAnimeId) return;
+    if (!currentAnimeId || offlineMode) return;
 
     try {
       const data = await animeApi.getRelatedAnime(currentAnimeId);
@@ -302,7 +391,7 @@ function PlayerPageRefactored({
       console.error('[PlayerPage] Error loading related anime:', err);
       setRelatedAnime([]);
     }
-  }, [currentAnimeId]);
+  }, [currentAnimeId, offlineMode]);
 
   /**
    * Initialize episodes on mount
@@ -583,6 +672,7 @@ function PlayerPageRefactored({
         );
         setCurrentEpisodeIndex(episodeIndex);
         setHasBookmark(false);
+        setInitialTimecode(null);
       }
     },
     [currentEpisodeIndex],
@@ -600,6 +690,7 @@ function PlayerPageRefactored({
         );
         setCurrentEpisodeIndex(episodeIndex);
         setHasBookmark(false);
+        setInitialTimecode(null);
 
         shouldAutoplayNextEpisodeRef.current = true;
       }
@@ -676,13 +767,27 @@ function PlayerPageRefactored({
       item_number: currentEpisode.number,
     };
 
+    const persist = (synced: boolean) =>
+      progressStore.save({
+        animeId: currentAnimeId,
+        episodeId: currentEpisode.id,
+        itemNumber: currentEpisode.number,
+        seconds: currentTime,
+        teamId: selectedPlayer.team.id,
+        translationTypeId: selectedPlayer.translation_type?.id ?? 0,
+        playerType: selectedPlayer.player,
+        synced,
+      });
+
     bookmarkManager
       .saveBookmark(currentAnimeId, currentEpisode.id, currentTime, meta)
-      .then(() => {
-        console.log('[PlayerPage] Bookmark saved successfully in background');
+      .then((success) => {
+        persist(success);
+        console.log('[PlayerPage] Background bookmark synced:', success);
         return null;
       })
       .catch((err) => {
+        persist(false);
         console.error('[PlayerPage] Error saving bookmark in background:', err);
         return null;
       });
@@ -825,14 +930,24 @@ function PlayerPageRefactored({
         meta,
       );
 
+      progressStore.save({
+        animeId: currentAnimeId,
+        episodeId,
+        itemNumber: episode.number,
+        seconds: currentTime,
+        teamId: selectedPlayer.team.id,
+        translationTypeId: selectedPlayer.translation_type?.id ?? 0,
+        playerType: selectedPlayer.player,
+        synced: success,
+      });
+
+      setHasBookmark(true);
+      setBookmarkedEpisodeId(episodeId);
+
       if (success) {
         console.log('[PlayerPage] Bookmark saved successfully');
-        setHasBookmark(true);
-        setBookmarkedEpisodeId(episodeId);
-        // TODO: Show success notification
       } else {
-        console.error('[PlayerPage] Failed to save bookmark');
-        // TODO: Show error notification
+        console.warn('[PlayerPage] Bookmark kept locally, will sync later');
       }
     },
     [currentAnimeId, bookmarkManager, selectedPlayer, episodes],
@@ -891,6 +1006,7 @@ function PlayerPageRefactored({
         onOpenAnimePage={handleOpenAnimePage}
         onUrlChange={handleUrlChange}
         onToggleUrlInput={() => setShowUrlInput(!showUrlInput)}
+        onPlayerButtonClick={onPlayerButtonClick}
         onMinimize={handleMinimize}
         onMaximize={handleMaximize}
         onClose={handleClose}
@@ -1125,6 +1241,8 @@ function PlayerPageRefactored({
                       timecode={selectedPlayer?.timecode || []}
                       sidebarCollapsed={sidebarCollapsed}
                       onSidebarToggle={handleSidebarToggle}
+                      onOpenDownloadManager={() => setShowDownloadManager(true)}
+                      offlineMode={offlineMode}
                     />
                   </Box>
                 </ErrorBoundary>
@@ -1164,7 +1282,7 @@ function PlayerPageRefactored({
           </Box>
         </Box>
 
-        {relatedAnime.length > 0 && (
+        {!offlineMode && relatedAnime.length > 0 && (
           <RelatedAnime
             key={currentAnimeId}
             relatedAnime={relatedAnime}
@@ -1172,9 +1290,10 @@ function PlayerPageRefactored({
           />
         )}
 
-        {selectedEpisode && (
+        {!offlineMode && selectedEpisode && (
           <CommentsSection
             episodeId={selectedEpisode.id}
+            animeSlug={currentAnimeId}
             scrollContainerId="player-page-scroll-container"
           />
         )}
@@ -1184,6 +1303,17 @@ function PlayerPageRefactored({
           scrollContainerId="player-page-scroll-container"
         />
       </Box>
+
+      <DownloadManagerDialog
+        open={showDownloadManager}
+        onClose={() => setShowDownloadManager(false)}
+        animeId={currentAnimeId}
+        animeTitle={currentAnimeId}
+        episodes={offlineMode ? [] : episodes}
+        players={offlineMode ? [] : players}
+        initialTab={offlineMode ? 2 : 0}
+        onPlayOffline={onPlayOffline}
+      />
     </Box>
   );
 }
@@ -1191,6 +1321,8 @@ function PlayerPageRefactored({
 PlayerPageRefactored.defaultProps = {
   onHome: undefined,
   onNavigateToUrl: undefined,
+  offlineMode: false,
+  initialEpisodeId: undefined,
+  onPlayOffline: undefined,
 };
-
 export default PlayerPageRefactored;

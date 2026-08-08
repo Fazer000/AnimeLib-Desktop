@@ -1,7 +1,8 @@
 import React from 'react';
-import { Box, IconButton, Typography, Tooltip } from '@mui/material';
+import { Box, IconButton, Typography } from '@mui/material';
 import { PlayArrowRounded, PauseRounded } from '@mui/icons-material';
 import KeyboardDoubleArrowRightRoundedIcon from '@mui/icons-material/KeyboardDoubleArrowRightRounded';
+import ControlTooltip from './ControlTooltip';
 import { formatTime } from '../../utils/videoHelpers';
 import { PLAYER_CONTROL_ICON_SIZE } from '../../../constants';
 
@@ -55,7 +56,7 @@ function PlaybackControls({
         )}
       </IconButton>
 
-      <Tooltip
+      <ControlTooltip
         title={`Перемотать на ${Math.floor(skipTime / 60)} мин ${skipTime % 60} сек`}
       >
         <span>
@@ -80,7 +81,7 @@ function PlaybackControls({
             <KeyboardDoubleArrowRightRoundedIcon sx={ICON_SX} />
           </IconButton>
         </span>
-      </Tooltip>
+      </ControlTooltip>
 
       <Typography
         variant="caption"

@@ -2,6 +2,7 @@
 import React from 'react';
 import { IconButton, Box, Tooltip, Typography } from '@mui/material';
 import { Remove, Fullscreen, Close } from '@mui/icons-material';
+import UpdateButton from './UpdateButton';
 import { APP_NAME, APP_VERSION } from '../../../constants';
 
 interface WindowControlsProps {
@@ -34,6 +35,8 @@ function WindowControls({
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <UpdateButton />
+
       <Tooltip title={`${APP_NAME} v${APP_VERSION}`} arrow>
         <Typography
           sx={{

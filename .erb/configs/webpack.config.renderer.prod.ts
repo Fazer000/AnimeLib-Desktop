@@ -2,13 +2,19 @@
  * Build config for electron renderer process
  */
 
+// @ts-ignore
 import path from 'path';
+// @ts-ignore
 import webpack from 'webpack';
+// @ts-ignore
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+// @ts-ignore
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
+// @ts-ignore
 import CssMinimizerPlugin from 'css-minimizer-webpack-plugin';
 import { merge } from 'webpack-merge';
+// @ts-ignore
 import TerserPlugin from 'terser-webpack-plugin';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
@@ -38,6 +44,11 @@ const configuration: webpack.Configuration = {
 
   module: {
     rules: [
+      {
+        test: /[\\/]jassub[\\/]dist[\\/].*\.(js|wasm|woff2)$/,
+        type: 'asset/resource',
+        generator: { filename: 'jassub/[name][ext]' },
+      },
       {
         test: /\.s?(a|c)ss$/,
         use: [

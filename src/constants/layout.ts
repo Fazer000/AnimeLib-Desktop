@@ -10,6 +10,15 @@ import { PLAYER_INSET_X, PLAYER_INSET_Y } from './player';
 export const TOOLBAR_HEIGHT = 32;
 
 /**
+ * Позиция плавающих кнопок вне плеера, px
+ */
+export const SITE_HEADER_HEIGHT = 63;
+export const FLOATING_BUTTONS_LEFT = 24;
+export const FLOATING_BUTTONS_TOP =
+  TOOLBAR_HEIGHT + SITE_HEADER_HEIGHT + FLOATING_BUTTONS_LEFT;
+export const FLOATING_BUTTONS_GAP = 64;
+
+/**
  * Границы резиновой ширины сайдбара озвучек, px
  */
 export const SIDEBAR_MIN_WIDTH = 300;

@@ -14,6 +14,13 @@ export type { VideoState, VideoStateConfig } from './VideoStateManager';
 export { QualityManager } from './QualityManager';
 export type { QualityManagerConfig } from './QualityManager';
 
+export { SubtitlesManager } from './SubtitlesManager';
+export type {
+  SubtitleTrack,
+  SubtitlesSettings,
+  SubtitlesManagerConfig,
+} from './SubtitlesManager';
+
 export { KeyboardManager } from './KeyboardManager';
 export type { KeyboardManagerConfig } from './KeyboardManager';
 
@@ -54,3 +61,6 @@ export { SegmentManager } from './SegmentManager';
 export type { TimeCodeSegment, SegmentSettings } from './SegmentManager';
 
 export { WatchStatsManager } from './WatchStatsManager';
+
+export { OfflineSourceGuard } from './OfflineSourceGuard';
+export type { OfflineSourceGuardConfig } from './OfflineSourceGuard';

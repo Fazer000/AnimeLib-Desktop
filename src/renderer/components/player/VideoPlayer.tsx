@@ -8,7 +8,13 @@ import React, {
   useImperativeHandle,
 } from 'react';
 import 'shaka-player/dist/controls.css';
-import { Box, Typography, CircularProgress } from '@mui/material';
+import {
+  Alert,
+  Box,
+  CircularProgress,
+  Snackbar,
+  Typography,
+} from '@mui/material';
 import { PlayArrow, Pause } from '@mui/icons-material';
 import {
   Player,
@@ -17,6 +23,8 @@ import {
   animeApi,
 } from '../../api/animeApi';
 import VideoControls from './VideoControls';
+// @ts-ignore
+import SubtitlesOverlay from './SubtitlesOverlay';
 import AnimeInfoComponent from './AnimeInfo';
 import EpisodeNavigationHint from './EpisodeNavigationHint';
 import NextEpisodeNotification from './NextEpisodeNotification';
@@ -30,6 +38,8 @@ import {
   AutoplayManager,
   SegmentManager,
   TimeCodeSegment,
+  SubtitleTrack,
+  SubtitlesSettings,
 } from '../../services/player';
 import {
   PLAYER_BORDER_RADIUS,
@@ -38,8 +48,13 @@ import {
   PLAYER_EPISODES_VISIBLE_BY_DEFAULT,
   PLAYER_FULLSCREEN_EASING,
   PLAYER_FULLSCREEN_TRANSITION,
+  SUBTITLES_DEFAULT_SETTINGS,
 } from '../../../constants';
 import { getSiteOrigin } from '../../utils/urlHelpers';
+import {
+  SubtitleCue,
+  SubtitleStyleSettings,
+} from '../../utils/subtitleHelpers';
 
 type FullscreenPhase = 'enter' | 'exit' | null;
 
@@ -87,11 +102,15 @@ interface VideoPlayerProps {
   // eslint-disable-next-line react/require-default-props
   onSidebarToggle?: () => void;
   // eslint-disable-next-line react/require-default-props
+  onOpenDownloadManager?: () => void;
+  // eslint-disable-next-line react/require-default-props
   onAspectRatioChange?: (aspectRatio: number | null) => void;
   // eslint-disable-next-line react/require-default-props
   ambientLightEnabled?: boolean;
   // eslint-disable-next-line react/require-default-props
   onAmbientLightChange?: (enabled: boolean) => void;
+  // eslint-disable-next-line react/require-default-props
+  offlineMode?: boolean;
 }
 
 interface VideoPlayerRef {
@@ -132,9 +151,11 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       timecode = [],
       sidebarCollapsed = false,
       onSidebarToggle,
+      onOpenDownloadManager,
       onAspectRatioChange,
       ambientLightEnabled = true,
       onAmbientLightChange,
+      offlineMode = false,
     },
     ref,
   ) => {
@@ -144,6 +165,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const pendingLoadRef = useRef<{
       player: Player;
       kodikLinks?: KodikVideoLinks | null;
+      isFromHint?: boolean;
     } | null>(null);
     const isPlayingRef = useRef<boolean>(false);
 
@@ -170,6 +192,12 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const [qualityOptions, setQualityOptions] = useState<QualityOption[]>([]);
     const [selectedQuality, setSelectedQuality] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const [subtitleTracks, setSubtitleTracks] = useState<SubtitleTrack[]>([]);
+    const [subtitleCues, setSubtitleCues] = useState<SubtitleCue[]>([]);
+    const [subtitleSettings, setSubtitleSettings] = useState<SubtitlesSettings>(
+      SUBTITLES_DEFAULT_SETTINGS,
+    );
 
     const [uiState, setUIState] = useState<UIState>({
       showControls: true,
@@ -214,6 +242,11 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const [skipManager] = useState(() => new SkipManager());
     const [skipTime, setSkipTime] = useState(skipManager.getSkipTime());
 
+    const [sourceNotice, setSourceNotice] = useState<{
+      text: string;
+      severity: 'info' | 'warning';
+    } | null>(null);
+
     const [showNextEpisodeNotification, setShowNextEpisodeNotification] =
       useState(false);
     const nextEpisodeNotificationShownRef = useRef(false);
@@ -242,6 +275,9 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           },
           onQualityOptionsChange: setQualityOptions,
           onSelectedQualityChange: setSelectedQuality,
+          onSubtitleTracksChange: setSubtitleTracks,
+          onSubtitleCuesChange: setSubtitleCues,
+          onSubtitleSettingsChange: setSubtitleSettings,
           onKeyPress: () => {
             uiStateManager.showPlayerControls();
             uiStateManager.startAutoHide(isPlayingRef.current);
@@ -256,6 +292,18 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           onToggleEpisodes: () => {
             uiStateManager.toggleEpisodesList();
           },
+          onOfflineSourceLost: (recovered: boolean) =>
+            setSourceNotice(
+              recovered
+                ? {
+                    text: 'Скачанный файл удалён — воспроизведение продолжено с онлайн-источника',
+                    severity: 'info',
+                  }
+                : {
+                    text: 'Скачанный файл удалён, а сеть недоступна — воспроизведение остановлено',
+                    severity: 'warning',
+                  },
+            ),
           autoplayManager,
         });
 
@@ -266,6 +314,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
         if (success) {
           controllerRef.current = controller;
+          setSubtitleSettings(controller.getSubtitlesManager().getSettings());
           setIsControllerReady(true);
           console.log('[VideoPlayer] Controller initialized successfully');
         } else {
@@ -304,7 +353,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         pendingLoadRef.current &&
         controllerRef.current
       ) {
-        const { player, kodikLinks } = pendingLoadRef.current;
+        const { player, kodikLinks, isFromHint } = pendingLoadRef.current;
         pendingLoadRef.current = null;
 
         console.log(
@@ -319,15 +368,21 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           .loadPlayer({
             player,
             kodikLinks: kodikLinks || null,
+            initialTimecode: initialTimecode || undefined,
+            isFromHint: isFromHint || false,
+            episodeId: episodes[currentEpisodeIndex]?.id,
+            animeId: animeInfo?.id,
+            offlineAnimeId: offlineMode ? animeId : undefined,
           })
           .catch((error) => {
             console.error('[VideoPlayer] Error in pending load:', error);
           });
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isControllerReady]);
 
     useEffect(() => {
-      if (animeId) {
+      if (animeId && !offlineMode) {
         const loadAnimeInfo = async () => {
           try {
             const response = await animeApi.getAnimeInfo(animeId);
@@ -339,7 +394,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
         loadAnimeInfo();
       }
-    }, [animeId]);
+    }, [animeId, offlineMode]);
 
     useEffect(() => {
       timecodeAppliedRef.current = false;
@@ -520,7 +575,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               '[VideoPlayer] Controller not ready yet, queueing load:',
               player.team.name,
             );
-            pendingLoadRef.current = { player, kodikLinks };
+            pendingLoadRef.current = { player, kodikLinks, isFromHint };
             return;
           }
 
@@ -574,6 +629,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             isFromHint: isFromHint || false,
             episodeId,
             animeId: animeInfo?.id,
+            offlineAnimeId: offlineMode ? animeId : undefined,
           });
 
           if (initialTimecode !== null) {
@@ -618,6 +674,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         currentEpisodeIndex,
         initialTimecode,
         animeInfo?.id,
+        offlineMode,
+        animeId,
         onTimecodeApplied,
         videoState.isPlaying,
       ],
@@ -655,6 +713,20 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const handleSkipForward = useCallback((seconds: number) => {
       controllerRef.current?.getStateManager().skip(seconds);
     }, []);
+
+    const handleSubtitleTrackChange = useCallback(
+      (trackName: string | null) => {
+        controllerRef.current?.getSubtitlesManager().selectTrack(trackName);
+      },
+      [],
+    );
+
+    const handleSubtitleSettingsChange = useCallback(
+      (patch: Partial<SubtitleStyleSettings>) => {
+        controllerRef.current?.getSubtitlesManager().updateSettings(patch);
+      },
+      [],
+    );
 
     const handleProgressMouseMove = useCallback(
       (event: React.MouseEvent<HTMLDivElement>) => {
@@ -853,6 +925,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       !isLoading &&
       !videoState.isBuffering;
 
+    // @ts-ignore
     return (
       <Box
         ref={containerRef}
@@ -920,6 +993,12 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         >
           <track kind="captions" />
         </video>
+
+        <SubtitlesOverlay
+          cues={subtitleCues}
+          currentTime={videoState.currentTime}
+          settings={subtitleSettings}
+        />
 
         {!currentPlayerData && (
           <Box
@@ -1114,6 +1193,10 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             onPlaybackRateChange={handlePlaybackRateChange}
             onSkipForward={handleSkipForward}
             onSkipTimeChange={setSkipTime}
+            subtitleTracks={subtitleTracks}
+            subtitleSettings={subtitleSettings}
+            onSubtitleTrackChange={handleSubtitleTrackChange}
+            onSubtitleSettingsChange={handleSubtitleSettingsChange}
             episodes={episodes}
             currentEpisodeIndex={currentEpisodeIndex}
             onEpisodeSelect={onEpisodeSelect}
@@ -1148,9 +1231,26 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               controllerRef.current?.getThumbnailManager() || null
             }
             sidebarCollapsed={sidebarCollapsed}
-            onSidebarToggle={onSidebarToggle || (() => {})}
+            onSidebarToggle={onSidebarToggle}
+            onOpenDownloadManager={onOpenDownloadManager}
           />
         )}
+
+        <Snackbar
+          open={Boolean(sourceNotice)}
+          autoHideDuration={7000}
+          onClose={() => setSourceNotice(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert
+            severity={sourceNotice?.severity || 'info'}
+            variant="filled"
+            onClose={() => setSourceNotice(null)}
+            sx={{ fontSize: '0.82rem' }}
+          >
+            {sourceNotice?.text}
+          </Alert>
+        </Snackbar>
       </Box>
     );
   },
