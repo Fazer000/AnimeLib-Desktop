@@ -51,6 +51,7 @@ import {
   SUBTITLES_DEFAULT_SETTINGS,
 } from '../../../constants';
 import { getSiteOrigin } from '../../utils/urlHelpers';
+import { offlineCatalog } from '../../services/offline';
 import {
   SubtitleCue,
   SubtitleStyleSettings,
@@ -382,18 +383,25 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     }, [isControllerReady]);
 
     useEffect(() => {
-      if (animeId && !offlineMode) {
-        const loadAnimeInfo = async () => {
-          try {
-            const response = await animeApi.getAnimeInfo(animeId);
-            setAnimeInfo(response.data);
-          } catch (error) {
-            console.error('[VideoPlayer] Failed to load anime info:', error);
-          }
-        };
-
-        loadAnimeInfo();
+      if (!animeId) {
+        return;
       }
+
+      if (offlineMode) {
+        setAnimeInfo(offlineCatalog.getAnimeInfo(animeId));
+        return;
+      }
+
+      const loadAnimeInfo = async () => {
+        try {
+          const response = await animeApi.getAnimeInfo(animeId);
+          setAnimeInfo(response.data);
+        } catch (error) {
+          console.error('[VideoPlayer] Failed to load anime info:', error);
+        }
+      };
+
+      loadAnimeInfo();
     }, [animeId, offlineMode]);
 
     useEffect(() => {

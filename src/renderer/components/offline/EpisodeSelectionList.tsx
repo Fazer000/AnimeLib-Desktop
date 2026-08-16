@@ -179,7 +179,7 @@ function EpisodeSelectionList({
         </FormControl>
 
         <FormControl size="small" sx={{ width: 170 }}>
-          <InputLabel id="offline-quality-label" sx={LABEL_SX}>
+          <InputLabel id="offline-quality-label" shrink sx={LABEL_SX}>
             Общее качество
           </InputLabel>
           <Select
@@ -190,6 +190,7 @@ function EpisodeSelectionList({
             }
             onChange={(event) => onDefaultQualityChange(event.target.value)}
             displayEmpty
+            notched
             sx={SELECT_SX}
           >
             {defaultQualities.length === 0 && <MenuItem value="">—</MenuItem>}

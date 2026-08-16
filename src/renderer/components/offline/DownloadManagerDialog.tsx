@@ -260,6 +260,15 @@ function DownloadManagerDialog({
     }
   };
 
+  useEffect(() => {
+    if (!open || players.length === 0) {
+      return;
+    }
+
+    loadKodikQualities(players);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, players]);
+
   const loadEpisodePlayers = async (episodeId: number) => {
     setLoadingIds((prev) => [...prev, episodeId]);
 
@@ -317,6 +326,9 @@ function DownloadManagerDialog({
     const qualityManager = new QualityManager();
     const authToken = getAuthToken();
     const siteOrigin = getSiteOrigin();
+    const releaseYear = animeInfo?.releaseDate
+      ? new Date(animeInfo.releaseDate).getFullYear()
+      : 0;
     const requests: DownloadRequest[] = [];
 
     selectedIds.forEach((episodeId) => {
@@ -382,6 +394,9 @@ function DownloadManagerDialog({
         animeTitle:
           animeInfo?.rus_name || animeInfo?.name || animeTitle || animeId,
         coverUrl: animeInfo?.cover?.default || coverUrl,
+        animeRating: animeInfo?.rating?.averageFormated || '',
+        animeYear: Number.isFinite(releaseYear) ? releaseYear : 0,
+        animeTotalEpisodes: animeInfo?.items_count?.total || 0,
         episodeId,
         episodeNumber: episode.number,
         episodeName: episode.name,

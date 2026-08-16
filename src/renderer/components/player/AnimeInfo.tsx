@@ -25,6 +25,15 @@ function AnimeInfoComponent({
 }: AnimeInfoProps) {
   if (!animeInfo) return null;
 
+  const releaseYear = new Date(animeInfo.releaseDate).getFullYear();
+  const metaText = [
+    animeInfo.rating?.averageFormated,
+    Number.isFinite(releaseYear) ? releaseYear : null,
+    animeInfo.items_count?.total ? `${animeInfo.items_count.total} эп.` : null,
+  ]
+    .filter(Boolean)
+    .join(' • ');
+
   return (
     <Box
       sx={{
@@ -77,18 +86,18 @@ function AnimeInfoComponent({
         </Typography>
       )}
 
-      <Typography
-        variant="body2"
-        sx={{
-          color: 'rgba(255, 255, 255, 0.9)',
-          fontSize: '0.85rem',
-          textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
-        }}
-      >
-        {animeInfo.rating.averageFormated} •{' '}
-        {new Date(animeInfo.releaseDate).getFullYear()} •{' '}
-        {animeInfo.items_count.total} эп.
-      </Typography>
+      {metaText && (
+        <Typography
+          variant="body2"
+          sx={{
+            color: 'rgba(255, 255, 255, 0.9)',
+            fontSize: '0.85rem',
+            textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
+          }}
+        >
+          {metaText}
+        </Typography>
+      )}
     </Box>
   );
 }

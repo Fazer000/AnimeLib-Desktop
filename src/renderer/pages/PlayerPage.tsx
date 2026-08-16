@@ -109,11 +109,16 @@ function PlayerPageRefactored({
 
   const [relatedAnime, setRelatedAnime] = useState<RelatedAnimeType[]>([]);
 
+  const sidebarStorageKey = offlineMode
+    ? 'playerSidebarCollapsedOffline'
+    : 'playerSidebarCollapsed';
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     try {
-      return localStorage.getItem('playerSidebarCollapsed') === 'true';
+      const saved = localStorage.getItem(sidebarStorageKey);
+      return saved === null ? offlineMode : saved === 'true';
     } catch {
-      return false;
+      return offlineMode;
     }
   });
 
@@ -208,18 +213,22 @@ function PlayerPageRefactored({
       }
 
       if (offlineMode) {
+        const latest = progressStore.getLatestForAnime(currentAnimeId);
         const progress = initialEpisodeId
           ? progressStore.get(currentAnimeId, initialEpisodeId)
-          : progressStore.getLatestForAnime(currentAnimeId);
+          : latest;
 
-        const targetId = initialEpisodeId ?? progress?.episodeId ?? null;
+        const targetId = initialEpisodeId ?? latest?.episodeId ?? null;
         const index = targetId
           ? loadedEpisodes.findIndex((item) => item.id === targetId)
           : -1;
 
         if (index >= 0) {
           setCurrentEpisodeIndex(index);
-          setBookmarkedEpisodeId(targetId);
+        }
+
+        if (latest && latest.seconds > 0) {
+          setBookmarkedEpisodeId(latest.episodeId);
         }
 
         if (
@@ -260,7 +269,7 @@ function PlayerPageRefactored({
             setHasBookmark(true);
           }
 
-          setBookmarkedEpisodeId(initialEpisodeId);
+          setBookmarkedEpisodeId(bookmarkManager.getBookmarkedEpisodeId());
           setCurrentEpisodeIndex(targetIndex);
           setBookmarkChecked(true);
           console.log(
@@ -725,13 +734,13 @@ function PlayerPageRefactored({
   const handleSidebarToggle = useCallback(() => {
     try {
       const newState = !sidebarCollapsed;
-      localStorage.setItem('playerSidebarCollapsed', newState.toString());
+      localStorage.setItem(sidebarStorageKey, newState.toString());
       setSidebarCollapsed(newState);
       console.log('[PlayerPage] Sidebar collapsed:', newState);
     } catch (error) {
       console.error('[PlayerPage] Error saving sidebar state:', error);
     }
-  }, [sidebarCollapsed]);
+  }, [sidebarCollapsed, sidebarStorageKey]);
 
   /**
    * Сохраняет закладку с текущим таймкодом в фоне
@@ -972,6 +981,7 @@ function PlayerPageRefactored({
     };
   }, []);
 
+  // @ts-ignore
   return (
     <Box
       sx={{
@@ -1002,7 +1012,7 @@ function PlayerPageRefactored({
         isPlayerPage
         showUrlInput={showUrlInput}
         currentUrl={playerUrl}
-        animeId={currentAnimeId}
+        animeId={offlineMode ? undefined : currentAnimeId}
         onOpenAnimePage={handleOpenAnimePage}
         onUrlChange={handleUrlChange}
         onToggleUrlInput={() => setShowUrlInput(!showUrlInput)}

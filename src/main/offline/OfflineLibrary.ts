@@ -13,6 +13,7 @@ import {
   OFFLINE_QUEUE_FILE,
   OFFLINE_SETTINGS_FILE,
   OfflineAnime,
+  OfflineAnimeMeta,
   OfflineEpisode,
 } from '../../constants';
 
@@ -444,8 +445,7 @@ class OfflineLibrary {
    */
   public addEpisode(
     animeId: string,
-    title: string,
-    coverUrl: string,
+    meta: OfflineAnimeMeta,
     episode: OfflineEpisode,
     coverFileName: string = '',
   ): void {
@@ -454,8 +454,8 @@ class OfflineLibrary {
     if (!entry) {
       entry = {
         animeId,
-        title,
-        coverUrl,
+        title: meta.title,
+        coverUrl: meta.coverUrl,
         coverFileName: '',
         updatedAt: '',
         episodes: [],
@@ -463,8 +463,11 @@ class OfflineLibrary {
       this.anime.push(entry);
     }
 
-    entry.title = title || entry.title;
-    entry.coverUrl = coverUrl || entry.coverUrl;
+    entry.title = meta.title || entry.title;
+    entry.coverUrl = meta.coverUrl || entry.coverUrl;
+    entry.rating = meta.rating || entry.rating;
+    entry.year = meta.year || entry.year;
+    entry.totalEpisodes = meta.totalEpisodes || entry.totalEpisodes;
     entry.coverFileName = coverFileName || entry.coverFileName;
     entry.updatedAt = new Date().toISOString();
     entry.episodes = entry.episodes.filter(

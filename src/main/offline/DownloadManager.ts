@@ -19,10 +19,12 @@ import {
   OFFLINE_DOWNLOADABLE_PLAYER,
   OFFLINE_QUEUE_FILE,
   OFFLINE_RETRY_DELAY_MS,
+  OFFLINE_PARALLEL_CONNECTIONS,
   OfflineEpisode,
 } from '../../constants';
 import { offlineLibrary } from './OfflineLibrary';
 import { hlsDownloader } from './HlsDownloader';
+import { parallelDownloader } from './ParallelDownloader';
 import { KODIK_HEADERS } from './httpClient';
 
 interface QueueItem {
@@ -231,15 +233,17 @@ class DownloadManager {
 
     item.task.status = 'cancelled';
 
-    ['.bin', '.ts', '.m3u8', '.ts.part.json'].forEach((suffix) => {
-      try {
-        fs.rmSync(offlineLibrary.resolveFile(`${taskId}${suffix}`), {
-          force: true,
-        });
-      } catch (error) {
-        console.error('[DownloadManager] Failed to remove partial:', error);
-      }
-    });
+    ['.bin', '.ts', '.m3u8', '.ts.part.json', '.bin.parts.json'].forEach(
+      (suffix) => {
+        try {
+          fs.rmSync(offlineLibrary.resolveFile(`${taskId}${suffix}`), {
+            force: true,
+          });
+        } catch (error) {
+          console.error('[DownloadManager] Failed to remove partial:', error);
+        }
+      },
+    );
 
     this.notify('offline-tasks-changed');
     this.persist();
@@ -320,6 +324,7 @@ class DownloadManager {
     const isCancelled = () => (task.status as DownloadStatus) === 'cancelled';
 
     let lastHlsNotify = 0;
+    let lastParallelNotify = 0;
 
     try {
       const isHls = request.sourceType === 'hls';
@@ -328,7 +333,7 @@ class DownloadManager {
       const target = offlineLibrary.resolveFile(fileName);
       const sources = [request.videoUrl, ...request.fallbackUrls];
 
-      let outcome: DownloadOutcome = 'failed';
+      let outcome: 'completed' | 'failed' | 'cancelled' | 'no-space' = 'failed';
 
       if (isHls) {
         const result = await hlsDownloader.download({
@@ -363,7 +368,38 @@ class DownloadManager {
           }
 
           // eslint-disable-next-line no-await-in-loop
-          outcome = await this.downloadFile(item, source, target);
+          const parallel = await parallelDownloader.download({
+            url: source,
+            headers: DownloadManager.buildHeaders(request),
+            destination: target,
+            connections: OFFLINE_PARALLEL_CONNECTIONS,
+            // eslint-disable-next-line no-loop-func
+            onProgress: (loaded, total) => {
+              task.loadedBytes = loaded;
+              task.totalBytes = total;
+              task.progress = Math.round((loaded / total) * 100);
+
+              const now = Date.now();
+
+              if (now - lastParallelNotify > OFFLINE_PROGRESS_THROTTLE_MS) {
+                lastParallelNotify = now;
+                this.notify('offline-tasks-changed');
+              }
+            },
+            registerAbort: (abort) => {
+              item.abort = abort;
+            },
+          });
+
+          outcome =
+            parallel === 'unsupported'
+              ? // eslint-disable-next-line no-await-in-loop
+                await this.downloadFile(item, source, target)
+              : parallel;
+
+          if (outcome === 'cancelled') {
+            outcome = 'failed';
+          }
 
           if (outcome !== 'failed') {
             break;
@@ -425,8 +461,13 @@ class DownloadManager {
 
       offlineLibrary.addEpisode(
         request.animeId,
-        request.animeTitle,
-        request.coverUrl,
+        {
+          title: request.animeTitle,
+          coverUrl: request.coverUrl,
+          rating: request.animeRating,
+          year: request.animeYear,
+          totalEpisodes: request.animeTotalEpisodes,
+        },
         episode,
         coverFileName,
       );
@@ -460,23 +501,7 @@ class DownloadManager {
 
     return new Promise((resolve) => {
       const existing = DownloadManager.getFileSize(destination);
-
-      const isKodik = request.playerType !== OFFLINE_DOWNLOADABLE_PLAYER;
-
-      const headers: Record<string, string> = isKodik
-        ? { ...KODIK_HEADERS }
-        : {
-            'User-Agent': USER_AGENT,
-            Accept: '*/*',
-            'Accept-Language': 'ru,en;q=0.9',
-            Referer: `${request.siteOrigin}/`,
-            Origin: request.siteOrigin,
-          };
-
-      if (!isKodik && request.authToken) {
-        headers.Authorization = `Bearer ${request.authToken}`;
-        headers['Site-Id'] = '5';
-      }
+      const headers = DownloadManager.buildHeaders(request);
 
       if (existing > 0) {
         headers.Range = `bytes=${existing}-`;
@@ -597,6 +622,32 @@ class DownloadManager {
       httpRequest.on('error', () => resolve('failed'));
       httpRequest.end();
     });
+  }
+
+  /**
+   * Собирает заголовки под источник загрузки
+   */
+  private static buildHeaders(
+    request: DownloadRequest,
+  ): Record<string, string> {
+    if (request.playerType !== OFFLINE_DOWNLOADABLE_PLAYER) {
+      return { ...KODIK_HEADERS };
+    }
+
+    const headers: Record<string, string> = {
+      'User-Agent': USER_AGENT,
+      Accept: '*/*',
+      'Accept-Language': 'ru,en;q=0.9',
+      Referer: `${request.siteOrigin}/`,
+      Origin: request.siteOrigin,
+    };
+
+    if (request.authToken) {
+      headers.Authorization = `Bearer ${request.authToken}`;
+      headers['Site-Id'] = '5';
+    }
+
+    return headers;
   }
 
   /**

@@ -276,9 +276,8 @@ function PlayerSidebarRefactored({
             {groupedPlayers[selectedPlayerType].map((player) => {
               const maxQuality = PlayerSelectionManager.getMaxQuality(player);
               const qualityTag =
-                player.player === PLAYER_TYPE_KODIK
-                  ? 'HD'
-                  : PlayerSelectionManager.getQualityTag(maxQuality);
+                PlayerSelectionManager.getQualityTag(maxQuality) ||
+                (player.player === PLAYER_TYPE_KODIK ? 'HD' : '');
               const isSubtitlesOnly =
                 PlayerSelectionManager.isSubtitlesOnly(player);
               const isSelected = selectedPlayer?.id === player.id;

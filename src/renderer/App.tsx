@@ -418,25 +418,29 @@ function App() {
             onBeforeGoBack={handleBeforeGoBack}
             onPlayerButtonClick={handlePlayerButtonClick}
           />
-          <ContinueWatchingButton
-            bookmarks={bookmarks}
-            useOffline={!isOnline}
-            offlineItems={offlineContinue}
-            onSelectOffline={(item) => {
-              console.log('[App] Continue watching offline:', item.animeId);
-              handlePlayFromLibrary(item.animeId, item.episodeId);
-            }}
-            onSelect={(bookmark) => {
-              const url = buildAnimePageUrl(bookmark.animeSlugUrl);
-              console.log('[App] Continue watching:', url);
-              handlePlayerButtonClick(url, bookmark.animeSlugUrl);
-            }}
-          />
-          <OfflineButton
-            onPlayOffline={handlePlayFromLibrary}
-            openTab={libraryTab}
-            onOpenHandled={() => setLibraryTab(null)}
-          />
+          {!playerUrl && !offlineTarget && (
+            <>
+              <ContinueWatchingButton
+                bookmarks={bookmarks}
+                useOffline={!isOnline}
+                offlineItems={offlineContinue}
+                onSelectOffline={(item) => {
+                  console.log('[App] Continue watching offline:', item.animeId);
+                  handlePlayFromLibrary(item.animeId, item.episodeId);
+                }}
+                onSelect={(bookmark) => {
+                  const url = buildAnimePageUrl(bookmark.animeSlugUrl);
+                  console.log('[App] Continue watching:', url);
+                  handlePlayerButtonClick(url, bookmark.animeSlugUrl);
+                }}
+              />
+              <OfflineButton
+                onPlayOffline={handlePlayFromLibrary}
+                openTab={libraryTab}
+                onOpenHandled={() => setLibraryTab(null)}
+              />
+            </>
+          )}
         </Box>
 
         <OfflineNoticeDialog

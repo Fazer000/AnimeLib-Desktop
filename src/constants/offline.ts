@@ -28,6 +28,10 @@ export const OFFLINE_HLS_SEGMENT_RETRIES = 3;
 
 export const OFFLINE_HLS_STATE_SUFFIX = '.part.json';
 
+export const OFFLINE_PARALLEL_CONNECTIONS = 8;
+
+export const OFFLINE_PARALLEL_STATE_SUFFIX = '.parts.json';
+
 export const OFFLINE_DOWNLOADABLE_PLAYER = 'Animelib';
 
 export const OFFLINE_DOWNLOADABLE_PLAYERS = ['Animelib', 'Kodik'];
@@ -58,6 +62,9 @@ export interface DownloadRequest {
   animeId: string;
   animeTitle: string;
   coverUrl: string;
+  animeRating: string;
+  animeYear: number;
+  animeTotalEpisodes: number;
   episodeId: number;
   episodeNumber: string;
   episodeName: string;
@@ -120,6 +127,17 @@ export interface OfflineEpisode {
 }
 
 /**
+ * Метаданные аниме для оверлея плеера
+ */
+export interface OfflineAnimeMeta {
+  title: string;
+  coverUrl: string;
+  rating: string;
+  year: number;
+  totalEpisodes: number;
+}
+
+/**
  * Аниме в каталоге
  */
 export interface OfflineAnime {
@@ -128,6 +146,9 @@ export interface OfflineAnime {
   coverUrl: string;
   coverFileName: string;
   updatedAt: string;
+  rating?: string;
+  year?: number;
+  totalEpisodes?: number;
   episodes: OfflineEpisode[];
 }
 

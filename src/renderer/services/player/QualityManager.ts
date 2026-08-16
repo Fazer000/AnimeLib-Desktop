@@ -43,7 +43,7 @@ export class QualityManager {
         const online = player.video?.quality?.find(
           (item) => `${item.quality}p` === episode.quality,
         );
-        const urls = online ? this.buildAnimelibUrls(online.href) : null;
+        const urls = online?.href ? this.buildAnimelibUrls(online.href) : null;
 
         const isHls = Boolean(episode.playlistFileName);
 
@@ -73,6 +73,10 @@ export class QualityManager {
 
     if (player.player === 'Animelib' && player.video?.quality) {
       player.video.quality.forEach((quality) => {
+        if (!quality.href) {
+          return;
+        }
+
         const { primaryUrl, fallbackUrl, fallbackUrl2 } =
           this.buildAnimelibUrls(quality.href);
 

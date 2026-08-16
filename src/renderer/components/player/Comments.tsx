@@ -430,13 +430,14 @@ const RepliesThread = memo(
     children: React.ReactNode;
   }) => {
     const [collapsed, setCollapsed] = useState(level >= collapseFromLevel);
+    const countLabel = count > 99 ? '99+' : String(count);
 
     return (
       <Box sx={{ display: 'flex', mt: spacing }}>
         <Box
           onClick={() => setCollapsed((current) => !current)}
           sx={{
-            width: 18,
+            width: 20,
             flexShrink: 0,
             cursor: 'pointer',
             display: 'flex',
@@ -454,30 +455,37 @@ const RepliesThread = memo(
         >
           {collapsed ? (
             <Box
+              key="thread-rail-pill"
               className="thread-rail-pill"
               sx={{
-                minWidth: 20,
+                width: countLabel.length > 2 ? 28 : 20,
                 height: 20,
-                px: 0.5,
+                flexShrink: 0,
+                boxSizing: 'border-box',
                 borderRadius: '10px',
                 backgroundColor: 'rgba(255, 255, 255, 0.14)',
                 color: 'rgba(255, 255, 255, 0.7)',
                 fontSize: '0.6875rem',
                 fontWeight: 700,
+                lineHeight: 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                transition: 'all 0.15s ease',
+                overflow: 'hidden',
+                transition: 'background-color 0.15s ease, color 0.15s ease',
               }}
             >
-              {count}
+              {countLabel}
             </Box>
           ) : (
             <Box
+              key="thread-rail-line"
               className="thread-rail-line"
               sx={{
                 width: 8,
                 alignSelf: 'stretch',
+                flexShrink: 0,
+                boxSizing: 'border-box',
                 borderLeft: '2px solid rgba(255, 255, 255, 0.08)',
                 borderTopLeftRadius: 8,
                 borderBottomLeftRadius: 8,

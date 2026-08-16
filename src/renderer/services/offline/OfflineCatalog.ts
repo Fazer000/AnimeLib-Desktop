@@ -1,7 +1,7 @@
 /**
  * Сборка Episode[] и Player[] из локального каталога
  */
-import { Episode, Player } from '../../api/animeApi';
+import { AnimeInfo, Episode, Player } from '../../api/animeApi';
 import {
   OfflineAnime,
   OfflineContinueItem,
@@ -29,37 +29,95 @@ const toEpisode = (item: OfflineEpisode): Episode => ({
 });
 
 /**
- * Приводит скачанную серию к формату плеера
+ * Приводит скачанные копии серии к формату плеера
  */
-const toPlayer = (item: OfflineEpisode): Player => ({
-  id: item.playerId,
-  episode_id: item.episodeId,
-  player: item.playerType,
-  translation_type: {
-    id: item.translationTypeId,
-    label: item.translationLabel,
-  },
-  team: {
-    id: item.teamId,
+const toPlayer = (items: OfflineEpisode[]): Player => {
+  const [item] = items;
+  const qualities = Array.from(
+    new Set(items.map((entry) => parseInt(entry.quality, 10)).filter(Boolean)),
+  ).sort((a, b) => b - a);
+
+  return {
+    id: item.playerId,
+    episode_id: item.episodeId,
+    player: item.playerType,
+    translation_type: {
+      id: item.translationTypeId,
+      label: item.translationLabel,
+    },
+    team: {
+      id: item.teamId,
+      slug: '',
+      slug_url: '',
+      model: 'team',
+      name: item.teamName,
+      cover: { filename: null, thumbnail: '', default: '', md: '' },
+      stats: [],
+    },
+    created_at: item.createdAt,
+    is_viewed: false,
+    views: 0,
+    timecode: (item.timecode as any[]) || [],
+    subtitles: item.subtitles.map((subtitle, index) => ({
+      id: index + 1,
+      format: subtitle.format,
+      name: subtitle.name,
+      filename: subtitle.fileName,
+      src: buildOfflineUrl(subtitle.fileName),
+    })),
+    video: qualities.length
+      ? {
+          id: item.playerId,
+          quality: qualities.map((quality) => ({
+            href: '',
+            quality,
+            bitrate: 0,
+          })),
+        }
+      : undefined,
+  };
+};
+
+/**
+ * Приводит запись каталога к формату AnimeInfo для оверлея плеера
+ */
+const toAnimeInfo = (entry: OfflineAnime): AnimeInfo =>
+  ({
+    id: 0,
+    name: entry.title,
+    rus_name: entry.title,
+    eng_name: '',
+    model: 'anime',
     slug: '',
-    slug_url: '',
-    model: 'team',
-    name: item.teamName,
-    cover: { filename: null, thumbnail: '', default: '', md: '' },
-    stats: [],
-  },
-  created_at: item.createdAt,
-  is_viewed: false,
-  views: 0,
-  timecode: (item.timecode as any[]) || [],
-  subtitles: item.subtitles.map((subtitle, index) => ({
-    id: index + 1,
-    format: subtitle.format,
-    name: subtitle.name,
-    filename: subtitle.fileName,
-    src: buildOfflineUrl(subtitle.fileName),
-  })),
-});
+    slug_url: entry.animeId,
+    cover: {
+      filename: '',
+      thumbnail: '',
+      default: entry.coverFileName ? buildOfflineUrl(entry.coverFileName) : '',
+      md: '',
+    },
+    ageRestriction: { id: 0, label: '' },
+    site: 0,
+    type: { id: 0, label: '' },
+    close_view: 0,
+    releaseDate: entry.year ? `${entry.year}-01-01` : '',
+    rating: {
+      average: entry.rating || '',
+      averageFormated: entry.rating || '',
+      votes: 0,
+      votesFormated: '',
+      user: 0,
+    },
+    is_licensed: false,
+    status: { id: 0, label: '' },
+    items_count: {
+      uploaded: entry.episodes.length,
+      total: entry.totalEpisodes || 0,
+    },
+    releaseDateString: entry.year ? String(entry.year) : '',
+    shikimori_href: '',
+    shiki_rate: 0,
+  }) as AnimeInfo;
 
 class OfflineCatalog {
   /**
@@ -72,6 +130,15 @@ class OfflineCatalog {
         .getSnapshot()
         .anime.find((item) => item.animeId === animeId) || null
     );
+  }
+
+  /**
+   * Возвращает метаданные аниме в формате AnimeInfo
+   */
+  public getAnimeInfo(animeId: string): AnimeInfo | null {
+    const entry = this.getAnime(animeId);
+
+    return entry ? toAnimeInfo(entry) : null;
   }
 
   /**
@@ -106,16 +173,17 @@ class OfflineCatalog {
       return [];
     }
 
-    const unique = new Map<number, OfflineEpisode>();
+    const grouped = new Map<number, OfflineEpisode[]>();
     entry.episodes
       .filter((item) => item.episodeId === episodeId)
       .forEach((item) => {
-        if (!unique.has(item.playerId)) {
-          unique.set(item.playerId, item);
-        }
+        grouped.set(item.playerId, [
+          ...(grouped.get(item.playerId) || []),
+          item,
+        ]);
       });
 
-    return Array.from(unique.values()).map(toPlayer);
+    return Array.from(grouped.values()).map(toPlayer);
   }
 
   /**
