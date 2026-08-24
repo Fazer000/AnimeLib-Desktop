@@ -223,11 +223,11 @@ function DownloadManagerDialog({
       return;
     }
 
-    const fallback = onPlayOffline ? 2 : 1;
+    const fallback = 2;
     const target = initialTab ?? fallback;
 
     setTab(target === 0 && !hasContext ? fallback : target);
-  }, [open, hasContext, initialTab, onPlayOffline]);
+  }, [open, hasContext, initialTab]);
 
   const loadKodikQualities = async (list: Player[]) => {
     const targets = list.filter(
@@ -470,12 +470,10 @@ function DownloadManagerDialog({
             label="Загрузки"
             sx={{ textTransform: 'none', minHeight: 36, fontSize: '0.82rem' }}
           />
-          {onPlayOffline && (
-            <Tab
-              label="Библиотека"
-              sx={{ textTransform: 'none', minHeight: 36, fontSize: '0.82rem' }}
-            />
-          )}
+          <Tab
+            label="Библиотека"
+            sx={{ textTransform: 'none', minHeight: 36, fontSize: '0.82rem' }}
+          />
         </Tabs>
       </DialogTitle>
 
@@ -527,17 +525,18 @@ function DownloadManagerDialog({
           />
         )}
 
-        {tab === 1 && (
-          <DownloadsList tasks={snapshot.tasks} anime={snapshot.anime} />
-        )}
+        {tab === 1 && <DownloadsList tasks={snapshot.tasks} />}
 
-        {tab === 2 && onPlayOffline && (
+        {tab === 2 && (
           <OfflineLibraryTab
             anime={snapshot.anime}
-            onPlay={(id, episodeId) => {
-              onPlayOffline(id, episodeId);
-              onClose();
-            }}
+            onPlay={
+              onPlayOffline &&
+              ((id, episodeId) => {
+                onPlayOffline(id, episodeId);
+                onClose();
+              })
+            }
           />
         )}
       </DialogContent>

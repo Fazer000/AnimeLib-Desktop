@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { Box } from '@mui/material';
 import CustomToolbar from '../components/Toolbar';
+import useStableSize from '../hooks/useStableSize';
 import { extractAuthToken, injectClickInterceptor } from '../scripts';
 import {
   WebViewManager,
@@ -55,6 +56,8 @@ function WebViewRefactored({
   const webviewRef = useRef<any>(null);
   const webViewManagerRef = useRef<WebViewManager | null>(null);
   const scriptManagerRef = useRef<ScriptInjectionManager | null>(null);
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  const hostSize = useStableSize(hostRef);
 
   /**
    * Initialize managers when webview is ready
@@ -378,25 +381,32 @@ function WebViewRefactored({
         height={32}
       />
 
-      <Box sx={{ flex: 1, position: 'relative', marginTop: '32px' }}>
-        <webview
-          ref={webviewRef}
-          src={savedUrl}
-          style={{
-            width: '100%',
-            height: '100%',
-            border: 'none',
-            transform: 'translateZ(0)',
-            willChange: 'auto',
-            backfaceVisibility: 'hidden',
-            WebkitFontSmoothing: 'antialiased',
-            MozOsxFontSmoothing: 'grayscale',
-          }}
-          // eslint-disable-next-line react/no-unknown-property
-          allowpopups
-          // eslint-disable-next-line react/no-unknown-property
-          disablewebsecurity
-        />
+      <Box
+        ref={hostRef}
+        sx={{
+          flex: 1,
+          position: 'relative',
+          marginTop: '32px',
+          overflow: 'hidden',
+        }}
+      >
+        {hostSize && (
+          <webview
+            ref={webviewRef}
+            src={savedUrl}
+            style={{
+              width: `${hostSize.width}px`,
+              height: `${hostSize.height}px`,
+              border: 'none',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
+            }}
+            // eslint-disable-next-line react/no-unknown-property
+            allowpopups
+            // eslint-disable-next-line react/no-unknown-property
+            disablewebsecurity
+          />
+        )}
       </Box>
     </Box>
   );
