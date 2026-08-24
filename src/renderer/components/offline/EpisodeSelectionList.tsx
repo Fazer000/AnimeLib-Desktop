@@ -7,12 +7,16 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  Tooltip,
   Typography,
 } from '@mui/material';
+import { DownloadDoneRounded } from '@mui/icons-material';
 import { Episode, Player } from '../../api/animeApi';
 import {
   OFFLINE_DOWNLOADABLE_PLAYER,
   OFFLINE_DOWNLOADABLE_PLAYERS,
+  OFFLINE_FONT,
+  OFFLINE_ICON,
 } from '../../../constants';
 
 export type KodikQualityMap = Record<number, string[]>;
@@ -29,7 +33,7 @@ interface EpisodeSelectionListProps {
   loadingIds: number[];
   qualityByEpisode: Record<number, string>;
   downloadedIds: number[];
-  onToggle: (episodeId: number) => void;
+  onToggle: (episodeId: number, extend: boolean) => void;
   onToggleAll: () => void;
   onTeamChange: (teamName: string) => void;
   onDefaultQualityChange: (quality: string) => void;
@@ -37,7 +41,7 @@ interface EpisodeSelectionListProps {
 }
 
 const SELECT_SX = {
-  fontSize: '0.78rem',
+  fontSize: OFFLINE_FONT.episode,
   color: '#ffffff',
   '& .MuiOutlinedInput-notchedOutline': {
     borderColor: 'rgba(255,255,255,0.18)',
@@ -46,7 +50,7 @@ const SELECT_SX = {
 };
 
 const LABEL_SX = {
-  fontSize: '0.78rem',
+  fontSize: OFFLINE_FONT.episode,
   color: 'rgba(255,255,255,0.55)',
   '&.Mui-focused': { color: '#7C3AED' },
 };
@@ -55,6 +59,10 @@ const CHECKBOX_SX = {
   color: 'rgba(255,255,255,0.45)',
   '&.Mui-checked': { color: '#7C3AED' },
   '&.MuiCheckbox-indeterminate': { color: '#7C3AED' },
+};
+
+const DOWNLOADED_CHECKBOX_SX = {
+  '&.Mui-disabled': { color: '#66bb6a' },
 };
 
 /**
@@ -149,8 +157,11 @@ function EpisodeSelectionList({
   onDefaultQualityChange,
   onEpisodeQualityChange,
 }: EpisodeSelectionListProps) {
+  const selectableCount = episodes.filter(
+    (item) => !downloadedIds.includes(item.id),
+  ).length;
   const allSelected =
-    episodes.length > 0 && selectedIds.length === episodes.length;
+    selectableCount > 0 && selectedIds.length === selectableCount;
 
   return (
     <Box>
@@ -178,7 +189,7 @@ function EpisodeSelectionList({
           </Select>
         </FormControl>
 
-        <FormControl size="small" sx={{ width: 170 }}>
+        <FormControl size="small" sx={{ width: 200 }}>
           <InputLabel id="offline-quality-label" shrink sx={LABEL_SX}>
             Общее качество
           </InputLabel>
@@ -214,11 +225,12 @@ function EpisodeSelectionList({
         <Checkbox
           size="small"
           checked={allSelected}
+          disabled={selectableCount === 0}
           indeterminate={selectedIds.length > 0 && !allSelected}
           onChange={onToggleAll}
           sx={CHECKBOX_SX}
         />
-        <Typography sx={{ fontSize: '0.8rem' }}>
+        <Typography sx={{ fontSize: OFFLINE_FONT.body }}>
           {`Выбрать все · выбрано ${selectedIds.length}`}
         </Typography>
       </Box>
@@ -258,28 +270,50 @@ function EpisodeSelectionList({
                   flex: 1,
                 }}
               >
-                <Checkbox
-                  size="small"
-                  checked={isSelected}
-                  onChange={() => onToggle(episode.id)}
-                  sx={CHECKBOX_SX}
-                />
-                <Typography sx={{ fontSize: '0.82rem' }} noWrap>
+                {isDownloaded ? (
+                  <Tooltip title="Серия уже скачана" arrow>
+                    <Box sx={{ display: 'flex' }}>
+                      <Checkbox
+                        size="small"
+                        checked
+                        disabled
+                        checkedIcon={
+                          <DownloadDoneRounded
+                            sx={{ fontSize: OFFLINE_ICON.md }}
+                          />
+                        }
+                        sx={DOWNLOADED_CHECKBOX_SX}
+                      />
+                    </Box>
+                  </Tooltip>
+                ) : (
+                  <Checkbox
+                    size="small"
+                    checked={isSelected}
+                    onChange={(event) =>
+                      onToggle(
+                        episode.id,
+                        Boolean((event.nativeEvent as MouseEvent).shiftKey),
+                      )
+                    }
+                    sx={CHECKBOX_SX}
+                  />
+                )}
+                <Typography
+                  sx={{
+                    fontSize: OFFLINE_FONT.body,
+                    color: isDownloaded ? 'rgba(255,255,255,0.55)' : 'inherit',
+                  }}
+                  noWrap
+                >
                   {`${episode.number} серия${episode.name ? ` · ${episode.name}` : ''}`}
                 </Typography>
-                {isDownloaded && (
-                  <Typography
-                    sx={{ fontSize: '0.7rem', color: '#66bb6a', ml: 1 }}
-                  >
-                    скачано
-                  </Typography>
-                )}
                 {isSelected && isHls && (
                   <Typography
                     sx={{
-                      fontSize: '0.7rem',
+                      fontSize: OFFLINE_FONT.hint,
                       color: 'rgba(255,255,255,0.45)',
-                      ml: 1,
+                      ml: 1.25,
                     }}
                   >
                     Kodik
@@ -288,17 +322,19 @@ function EpisodeSelectionList({
               </Box>
 
               {isSelected && isLoading && (
-                <CircularProgress size={14} sx={{ color: '#7C3AED', mr: 1 }} />
+                <CircularProgress size={17} sx={{ color: '#7C3AED', mr: 1 }} />
               )}
 
               {isSelected && !isLoading && qualities.length === 0 && (
-                <Typography sx={{ fontSize: '0.72rem', color: '#ef5350' }}>
+                <Typography
+                  sx={{ fontSize: OFFLINE_FONT.hint, color: '#ef5350' }}
+                >
                   нет озвучки
                 </Typography>
               )}
 
               {isSelected && !isLoading && qualities.length > 0 && (
-                <FormControl size="small" sx={{ width: 110, flexShrink: 0 }}>
+                <FormControl size="small" sx={{ width: 132, flexShrink: 0 }}>
                   <Select
                     value={
                       qualities.includes(qualityByEpisode[episode.id])
@@ -308,7 +344,7 @@ function EpisodeSelectionList({
                     onChange={(event) =>
                       onEpisodeQualityChange(episode.id, event.target.value)
                     }
-                    sx={{ ...SELECT_SX, height: 28 }}
+                    sx={{ ...SELECT_SX, height: 34 }}
                   >
                     {qualities.map((item) => (
                       <MenuItem key={item} value={item}>

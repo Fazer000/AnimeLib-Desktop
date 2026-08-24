@@ -390,23 +390,21 @@ function WebViewRefactored({
           overflow: 'hidden',
         }}
       >
-        {hostSize && (
-          <webview
-            ref={webviewRef}
-            src={savedUrl}
-            style={{
-              width: `${hostSize.width}px`,
-              height: `${hostSize.height}px`,
-              border: 'none',
-              WebkitFontSmoothing: 'antialiased',
-              MozOsxFontSmoothing: 'grayscale',
-            }}
-            // eslint-disable-next-line react/no-unknown-property
-            allowpopups
-            // eslint-disable-next-line react/no-unknown-property
-            disablewebsecurity
-          />
-        )}
+        <webview
+          ref={webviewRef}
+          src={savedUrl}
+          style={{
+            width: hostSize ? `${hostSize.width}px` : '100%',
+            height: hostSize ? `${hostSize.height}px` : '100%',
+            border: 'none',
+            WebkitFontSmoothing: 'antialiased',
+            MozOsxFontSmoothing: 'grayscale',
+          }}
+          // eslint-disable-next-line react/no-unknown-property
+          allowpopups
+          // eslint-disable-next-line react/no-unknown-property
+          disablewebsecurity
+        />
       </Box>
     </Box>
   );

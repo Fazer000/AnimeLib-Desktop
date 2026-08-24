@@ -42,6 +42,7 @@ export type Channels =
   | 'offline-file-missing'
   | 'offline-verify'
   | 'offline-resume'
+  | 'offline-free-space'
   | 'offline-migration-progress';
 
 const electronHandler = {
@@ -140,6 +141,8 @@ const electronHandler = {
       authToken: string;
       taskId?: string;
     }): Promise<number> => ipcRenderer.invoke('offline-resume', payload),
+    offlineGetFreeSpace: async (): Promise<number> =>
+      ipcRenderer.invoke('offline-free-space'),
   },
 };
 

@@ -80,3 +80,42 @@ export const MIN_WINDOW_WIDTH =
  */
 export const MIN_WINDOW_HEIGHT =
   MIN_VIDEO_AREA_HEIGHT + TOOLBAR_HEIGHT + EPISODE_SLIDER_HEIGHT;
+
+/**
+ * Размеры диалога менеджера загрузок
+ */
+export const OFFLINE_DIALOG_MAX_WIDTH = 'lg';
+export const OFFLINE_DIALOG_HEIGHT = 'min(820px, 92vh)';
+export const OFFLINE_FOOTER_HEIGHT = 66;
+export const OFFLINE_ACTIONS_HEIGHT = 70;
+export const OFFLINE_TAB_HEIGHT = 44;
+
+/**
+ * Шрифтовая шкала менеджера загрузок
+ */
+export const OFFLINE_FONT = {
+  dialogTitle: '1.26rem',
+  tab: '0.98rem',
+  section: '1.08rem',
+  title: '1.02rem',
+  body: '0.96rem',
+  episode: '0.94rem',
+  caption: '0.9rem',
+  hint: '0.84rem',
+  button: '0.9rem',
+} as const;
+
+/**
+ * Размеры иконок менеджера загрузок, px
+ */
+export const OFFLINE_ICON = {
+  sm: 17,
+  md: 20,
+  lg: 22,
+  xl: 24,
+} as const;
+
+/**
+ * Размер обложки в библиотеке, px
+ */
+export const OFFLINE_COVER = { width: 72, height: 100 } as const;

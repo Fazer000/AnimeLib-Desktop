@@ -283,6 +283,15 @@ class OfflineStore {
   public openDirectory(): void {
     this.api?.offlineOpenDirectory?.();
   }
+
+  /**
+   * Возвращает свободное место в папке загрузок
+   */
+  public async getFreeSpace(): Promise<number> {
+    const free = await this.api?.offlineGetFreeSpace?.().catch(() => 0);
+
+    return free || 0;
+  }
 }
 
 // eslint-disable-next-line import/prefer-default-export

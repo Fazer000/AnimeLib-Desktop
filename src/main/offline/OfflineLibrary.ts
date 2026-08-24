@@ -179,6 +179,19 @@ class OfflineLibrary {
   }
 
   /**
+   * Возвращает свободное место в директории загрузок
+   */
+  public getFreeSpace(): number {
+    try {
+      const stats = fs.statfsSync(this.downloadsPath);
+
+      return stats.bavail * stats.bsize;
+    } catch {
+      return 0;
+    }
+  }
+
+  /**
    * Меняет директорию загрузок
    */
   public setDownloadsPath(newPath: string): void {

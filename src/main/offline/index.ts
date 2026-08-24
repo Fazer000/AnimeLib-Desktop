@@ -58,6 +58,10 @@ export const registerOfflineHandlers = (
 
   ipcMain.handle('offline-get-snapshot', async () => buildSnapshot());
 
+  ipcMain.handle('offline-free-space', async () =>
+    offlineLibrary.getFreeSpace(),
+  );
+
   ipcMain.handle('offline-verify', async () => {
     const removed = offlineLibrary.verify();
     offlineLibrary.cleanupOrphans(downloadManager.getReservedFiles());

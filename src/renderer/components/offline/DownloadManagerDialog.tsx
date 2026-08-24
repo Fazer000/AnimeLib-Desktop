@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Box,
@@ -16,7 +16,8 @@ import {
 } from '@mui/material';
 import { FolderOpenRounded } from '@mui/icons-material';
 import { animeApi, AnimeInfo, Episode, Player } from '../../api/animeApi';
-import { offlineStore } from '../../services/offline';
+import { offlineStore, sizeEstimator } from '../../services/offline';
+import { formatSize, sumSize } from '../../utils/offlineFormat';
 import { normalizeKodikUrl, toKodikDirectUrl } from '../../utils/kodikHelpers';
 import useOfflineLibrary from '../../hooks/useOfflineLibrary';
 import { QualityManager } from '../../services/player';
@@ -30,8 +31,16 @@ import DownloadsList from './DownloadsList';
 import OfflineLibraryTab from './OfflineLibraryTab';
 import {
   DownloadRequest,
+  OFFLINE_ACTIONS_HEIGHT,
+  OFFLINE_DIALOG_HEIGHT,
+  OFFLINE_DIALOG_MAX_WIDTH,
   OFFLINE_DOWNLOADABLE_PLAYER,
   OFFLINE_DOWNLOADABLE_PLAYERS,
+  OFFLINE_FONT,
+  OFFLINE_MIN_FREE_SPACE_BYTES,
+  OFFLINE_FOOTER_HEIGHT,
+  OFFLINE_ICON,
+  OFFLINE_TAB_HEIGHT,
 } from '../../../constants';
 import { getSiteOrigin } from '../../utils/urlHelpers';
 
@@ -68,10 +77,10 @@ const getAuthToken = (): string => {
 
 const FOOTER_BUTTON_SX = {
   textTransform: 'none',
-  fontSize: '0.75rem',
+  fontSize: OFFLINE_FONT.button,
   color: 'rgba(255,255,255,0.85)',
   border: '1px solid rgba(255,255,255,0.18)',
-  px: 1.5,
+  px: 2,
   '&:hover': {
     color: '#ffffff',
     borderColor: '#7C3AED',
@@ -118,6 +127,12 @@ function DownloadManagerDialog({
     severity: 'success' | 'warning' | 'error';
   } | null>(null);
   const [animeInfo, setAnimeInfo] = useState<AnimeInfo | null>(null);
+  const [spaceWarning, setSpaceWarning] = useState<{
+    estimated: number;
+    free: number;
+    requests: DownloadRequest[];
+  } | null>(null);
+  const lastToggledRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!open || !animeId || animeInfo) {
@@ -162,6 +177,40 @@ function DownloadManagerDialog({
     () =>
       snapshot.anime.flatMap((item) => item.episodes.map((e) => e.episodeId)),
     [snapshot],
+  );
+
+  const librarySize = useMemo(
+    () =>
+      sumSize(
+        snapshot.anime.flatMap((item) =>
+          item.episodes.map((episode) => episode.fileSize),
+        ),
+      ),
+    [snapshot],
+  );
+  const selectedSize = useMemo(
+    () =>
+      sizeEstimator.estimateTotal(
+        selectedIds.map((id) => {
+          const qualities = getEpisodeQualities(
+            playersByEpisode[id],
+            teamName,
+            kodikQualities,
+          );
+
+          return qualities.includes(qualityByEpisode[id])
+            ? qualityByEpisode[id]
+            : resolveEpisodeQuality(qualities, defaultQuality);
+        }),
+      ),
+    [
+      selectedIds,
+      playersByEpisode,
+      teamName,
+      kodikQualities,
+      qualityByEpisode,
+      defaultQuality,
+    ],
   );
 
   useEffect(() => {
@@ -293,7 +342,24 @@ function DownloadManagerDialog({
       .forEach((id) => loadEpisodePlayers(id));
   };
 
-  const handleToggle = (episodeId: number) => {
+  const handleToggle = (episodeId: number, extend: boolean) => {
+    const lastId = lastToggledRef.current;
+    lastToggledRef.current = episodeId;
+
+    const from = episodes.findIndex((item) => item.id === lastId);
+    const to = episodes.findIndex((item) => item.id === episodeId);
+
+    if (extend && lastId !== null && from >= 0 && to >= 0 && from !== to) {
+      const range = episodes
+        .slice(Math.min(from, to), Math.max(from, to) + 1)
+        .map((item) => item.id)
+        .filter((id) => !downloadedIds.includes(id));
+
+      ensureLoaded(range);
+      setSelectedIds((prev) => Array.from(new Set([...prev, ...range])));
+      return;
+    }
+
     setSelectedIds((prev) => {
       if (prev.includes(episodeId)) {
         return prev.filter((id) => id !== episodeId);
@@ -305,15 +371,24 @@ function DownloadManagerDialog({
   };
 
   const handleToggleAll = () => {
+    const ids = episodes
+      .map((item) => item.id)
+      .filter((id) => !downloadedIds.includes(id));
+
     setSelectedIds((prev) => {
-      if (prev.length === episodes.length) {
+      if (prev.length === ids.length) {
         return [];
       }
 
-      const ids = episodes.map((item) => item.id);
       ensureLoaded(ids);
       return ids;
     });
+  };
+
+  const startDownload = async (requests: DownloadRequest[]) => {
+    await offlineStore.enqueue(requests);
+    setSelectedIds([]);
+    setTab(1);
   };
 
   const handleDownload = async () => {
@@ -422,18 +497,26 @@ function DownloadManagerDialog({
       });
     });
 
-    await offlineStore.enqueue(requests);
+    const estimated = sizeEstimator.estimateTotal(
+      requests.map((request) => request.quality),
+    );
+    const free = await offlineStore.getFreeSpace();
 
     setIsResolving(false);
-    setSelectedIds([]);
-    setTab(1);
+
+    if (free > 0 && estimated + OFFLINE_MIN_FREE_SPACE_BYTES > free) {
+      setSpaceWarning({ estimated, free, requests });
+      return;
+    }
+
+    await startDownload(requests);
   };
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
+      maxWidth={OFFLINE_DIALOG_MAX_WIDTH}
       fullWidth
       slotProps={{
         paper: {
@@ -442,7 +525,7 @@ function DownloadManagerDialog({
             backgroundImage: 'none',
             color: '#ffffff',
             borderRadius: 2,
-            height: 'min(680px, 90vh)',
+            height: OFFLINE_DIALOG_HEIGHT,
             display: 'flex',
             flexDirection: 'column',
           },
@@ -450,7 +533,9 @@ function DownloadManagerDialog({
       }}
     >
       <DialogTitle sx={{ pb: 0 }}>
-        <Typography sx={{ fontSize: '1.05rem', fontWeight: 600 }}>
+        <Typography
+          sx={{ fontSize: OFFLINE_FONT.dialogTitle, fontWeight: 600 }}
+        >
           Менеджер загрузок
         </Typography>
 
@@ -459,20 +544,32 @@ function DownloadManagerDialog({
           onChange={(event, value) => setTab(value)}
           textColor="secondary"
           indicatorColor="secondary"
-          sx={{ mt: 1, minHeight: 36 }}
+          sx={{ mt: 1.25, minHeight: OFFLINE_TAB_HEIGHT }}
         >
           <Tab
             label="Скачать серии"
             disabled={!hasContext}
-            sx={{ textTransform: 'none', minHeight: 36, fontSize: '0.82rem' }}
+            sx={{
+              textTransform: 'none',
+              minHeight: OFFLINE_TAB_HEIGHT,
+              fontSize: OFFLINE_FONT.tab,
+            }}
           />
           <Tab
             label="Загрузки"
-            sx={{ textTransform: 'none', minHeight: 36, fontSize: '0.82rem' }}
+            sx={{
+              textTransform: 'none',
+              minHeight: OFFLINE_TAB_HEIGHT,
+              fontSize: OFFLINE_FONT.tab,
+            }}
           />
           <Tab
             label="Библиотека"
-            sx={{ textTransform: 'none', minHeight: 36, fontSize: '0.82rem' }}
+            sx={{
+              textTransform: 'none',
+              minHeight: OFFLINE_TAB_HEIGHT,
+              fontSize: OFFLINE_FONT.tab,
+            }}
           />
         </Tabs>
       </DialogTitle>
@@ -544,24 +641,24 @@ function DownloadManagerDialog({
       <Box
         sx={{
           px: 3,
-          height: 56,
+          height: OFFLINE_FOOTER_HEIGHT,
           flexShrink: 0,
           boxSizing: 'border-box',
           display: 'flex',
           alignItems: 'center',
-          gap: 1,
+          gap: 1.25,
           minWidth: 0,
         }}
       >
         <Typography
-          sx={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)' }}
+          sx={{ fontSize: OFFLINE_FONT.hint, color: 'rgba(255,255,255,0.45)' }}
         >
           Папка:
         </Typography>
         <Tooltip title={snapshot.downloadsPath} arrow>
           <Typography
             sx={{
-              fontSize: '0.72rem',
+              fontSize: OFFLINE_FONT.hint,
               color: migration ? '#7C3AED' : 'rgba(255,255,255,0.7)',
               flex: 1,
               minWidth: 0,
@@ -572,11 +669,23 @@ function DownloadManagerDialog({
           </Typography>
         </Tooltip>
 
+        {librarySize > 0 && (
+          <Typography
+            sx={{
+              fontSize: OFFLINE_FONT.hint,
+              color: 'rgba(255,255,255,0.45)',
+              flexShrink: 0,
+            }}
+          >
+            {formatSize(librarySize)}
+          </Typography>
+        )}
+
         <Button
           size="small"
           variant="outlined"
           disabled={Boolean(migration)}
-          startIcon={<FolderOpenRounded sx={{ fontSize: 16 }} />}
+          startIcon={<FolderOpenRounded sx={{ fontSize: OFFLINE_ICON.md }} />}
           onClick={handleChooseDirectory}
           sx={{ ...FOOTER_BUTTON_SX, flexShrink: 0 }}
         >
@@ -604,7 +713,7 @@ function DownloadManagerDialog({
           severity={notice?.severity || 'info'}
           variant="filled"
           onClose={() => setNotice(null)}
-          sx={{ fontSize: '0.82rem' }}
+          sx={{ fontSize: OFFLINE_FONT.body }}
         >
           {notice?.text}
         </Alert>
@@ -614,18 +723,29 @@ function DownloadManagerDialog({
         sx={{
           px: 3,
           py: 0,
-          height: 60,
+          height: OFFLINE_ACTIONS_HEIGHT,
           flexShrink: 0,
           boxSizing: 'border-box',
           justifyContent: 'flex-end',
           borderTop: '1px solid rgba(255,255,255,0.1)',
         }}
       >
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1.25 }}>
           <Button
-            variant="outlined"
+            variant="contained"
             onClick={onClose}
-            sx={{ ...FOOTER_BUTTON_SX, fontSize: '0.8rem' }}
+            sx={{
+              textTransform: 'none',
+              fontSize: OFFLINE_FONT.body,
+              px: 2,
+              color: '#ffffff',
+              backgroundColor: 'rgba(255,255,255,0.14)',
+              boxShadow: 'none',
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.22)',
+                boxShadow: 'none',
+              },
+            }}
           >
             Закрыть
           </Button>
@@ -637,7 +757,8 @@ function DownloadManagerDialog({
               onClick={handleDownload}
               sx={{
                 textTransform: 'none',
-                fontSize: '0.8rem',
+                fontSize: OFFLINE_FONT.body,
+                px: 2,
                 backgroundColor: '#7C3AED',
                 color: '#ffffff',
                 '&:hover': { backgroundColor: '#6D28D9' },
@@ -647,11 +768,75 @@ function DownloadManagerDialog({
                 },
               }}
             >
-              {isResolving ? 'Подготовка…' : `Скачать (${selectedIds.length})`}
+              {isResolving
+                ? 'Подготовка…'
+                : `Скачать${selectedSize > 0 ? ` (${formatSize(selectedSize)})` : ''}`}
             </Button>
           )}
         </Box>
       </DialogActions>
+
+      <Dialog
+        open={Boolean(spaceWarning)}
+        onClose={() => setSpaceWarning(null)}
+        slotProps={{
+          paper: {
+            sx: {
+              backgroundColor: '#2b2b2e',
+              backgroundImage: 'none',
+              color: '#ffffff',
+            },
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontSize: OFFLINE_FONT.section, fontWeight: 600 }}>
+          Недостаточно места
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: OFFLINE_FONT.body }}>
+            {`Для загрузки потребуется примерно ${formatSize(spaceWarning?.estimated || 0)}, свободно ${formatSize(spaceWarning?.free || 0)}.`}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: OFFLINE_FONT.caption,
+              color: 'rgba(255,255,255,0.5)',
+              mt: 1.25,
+            }}
+          >
+            Оценка приблизительная. Загрузка остановится, если место закончится.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setSpaceWarning(null)}
+            sx={{
+              textTransform: 'none',
+              fontSize: OFFLINE_FONT.button,
+              color: 'rgba(255,255,255,0.6)',
+            }}
+          >
+            Отмена
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              const requests = spaceWarning?.requests || [];
+              setSpaceWarning(null);
+              startDownload(requests);
+            }}
+            sx={{
+              textTransform: 'none',
+              fontSize: OFFLINE_FONT.button,
+              px: 2,
+              backgroundColor: '#7C3AED',
+              color: '#ffffff',
+              '&:hover': { backgroundColor: '#6D28D9' },
+            }}
+          >
+            Всё равно скачать
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   );
 }

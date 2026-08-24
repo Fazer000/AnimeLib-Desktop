@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -8,6 +8,8 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  InputAdornment,
+  TextField,
   Typography,
 } from '@mui/material';
 import {
@@ -15,13 +17,21 @@ import {
   DeleteRounded,
   ExpandMoreRounded,
   PlayArrowRounded,
+  SearchRounded,
 } from '@mui/icons-material';
-import { OfflineAnime, OfflineEpisode } from '../../../constants';
+import {
+  OFFLINE_COVER,
+  OFFLINE_FONT,
+  OFFLINE_ICON,
+  OfflineAnime,
+  OfflineEpisode,
+} from '../../../constants';
 import {
   offlineCatalog,
   offlineStore,
   progressStore,
 } from '../../services/offline';
+import { formatSize, sumSize } from '../../utils/offlineFormat';
 
 interface OfflineLibraryTabProps {
   anime: OfflineAnime[];
@@ -31,8 +41,11 @@ interface OfflineLibraryTabProps {
 
 interface PendingRemoval {
   text: string;
+  note: string;
   confirm: () => void;
 }
+
+const SEARCH_MIN_ITEMS = 2;
 
 /**
  * Форматирует позицию просмотра
@@ -43,16 +56,6 @@ const formatTime = (seconds: number): string => {
   const rest = total % 60;
 
   return `${minutes}:${String(rest).padStart(2, '0')}`;
-};
-
-/**
- * Форматирует размер файла
- */
-const formatSize = (bytes: number): string => {
-  if (!bytes) {
-    return '';
-  }
-  return `${(bytes / 1024 / 1024).toFixed(0)} МБ`;
 };
 
 /**
@@ -83,30 +86,28 @@ const buildEpisodeLabel = (episode: OfflineEpisode): string =>
     .join(' · ');
 
 /**
- * Библиотека скачанного с запуском просмотра и удалением серий
+ * Библиотека скачанного с поиском, запуском просмотра и удалением серий
  */
 function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
-  const [expandedId, setExpandedId] = useState<string>('');
+  const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [pending, setPending] = useState<PendingRemoval | null>(null);
+  const [query, setQuery] = useState<string>('');
 
   const activeFile = offlineStore.getActiveFile();
 
-  const requestRemoval = (
-    isPlaying: boolean,
-    text: string,
-    action: () => void,
-  ) => {
-    if (isPlaying) {
-      setPending({ text, confirm: action });
-      return;
-    }
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase();
 
-    action();
-  };
+    return needle
+      ? anime.filter((item) => item.title.toLowerCase().includes(needle))
+      : anime;
+  }, [anime, query]);
 
   if (anime.length === 0) {
     return (
-      <Typography sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.5)' }}>
+      <Typography
+        sx={{ fontSize: OFFLINE_FONT.body, color: 'rgba(255,255,255,0.5)' }}
+      >
         Библиотека пока пуста. Откройте аниме в плеере и скачайте серии для
         оффлайн просмотра.
       </Typography>
@@ -115,32 +116,95 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
 
   return (
     <Box>
-      {anime.map((item) => {
+      {anime.length >= SEARCH_MIN_ITEMS && (
+        <TextField
+          size="small"
+          fullWidth
+          value={query}
+          placeholder="Поиск по названию"
+          onChange={(event) => setQuery(event.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchRounded
+                  sx={{
+                    fontSize: OFFLINE_ICON.md,
+                    color: 'rgba(255,255,255,0.45)',
+                  }}
+                />
+              </InputAdornment>
+            ),
+            endAdornment: query ? (
+              <InputAdornment position="end">
+                <IconButton size="small" onClick={() => setQuery('')}>
+                  <CloseRounded sx={{ fontSize: OFFLINE_ICON.sm }} />
+                </IconButton>
+              </InputAdornment>
+            ) : null,
+          }}
+          sx={{
+            mb: 2,
+            '& .MuiInputBase-root': {
+              fontSize: OFFLINE_FONT.body,
+              color: '#ffffff',
+            },
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: 'rgba(255,255,255,0.18)',
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: 'rgba(255,255,255,0.3)',
+            },
+            '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#7C3AED',
+            },
+          }}
+        />
+      )}
+
+      {filtered.length === 0 && (
+        <Typography
+          sx={{ fontSize: OFFLINE_FONT.body, color: 'rgba(255,255,255,0.5)' }}
+        >
+          Ничего не найдено
+        </Typography>
+      )}
+
+      {filtered.map((item) => {
         const episodes = sortEpisodes(item.episodes);
         const progress = progressStore.getLatestForAnime(item.animeId);
         const coverUrl = offlineCatalog.getCoverUrl(item);
-        const isExpanded = expandedId === item.animeId;
-        const toggle = () => setExpandedId(isExpanded ? '' : item.animeId);
+        const isExpanded = expandedIds.includes(item.animeId);
+        const totalSize = sumSize(item.episodes.map((one) => one.fileSize));
+        const count = countEpisodes(item.episodes);
+        const isPlayingHere =
+          Boolean(activeFile) &&
+          item.episodes.some((episode) => episode.fileName === activeFile);
+        const toggle = () =>
+          setExpandedIds((prev) =>
+            prev.includes(item.animeId)
+              ? prev.filter((id) => id !== item.animeId)
+              : [...prev, item.animeId],
+          );
 
         return (
           <Box
             key={item.animeId}
             sx={{
-              mb: 1.5,
-              pb: 1.5,
+              mb: 2,
+              pb: 2,
               borderBottom: '1px solid rgba(255,255,255,0.06)',
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
               <Box
                 onClick={toggle}
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 1.5,
+                  gap: 2,
                   flex: 1,
                   minWidth: 0,
-                  p: 0.75,
+                  p: 1,
                   borderRadius: 1.5,
                   cursor: 'pointer',
                   transition: 'background-color 0.15s',
@@ -152,8 +216,8 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
               >
                 <Box
                   sx={{
-                    width: 46,
-                    height: 64,
+                    width: OFFLINE_COVER.width,
+                    height: OFFLINE_COVER.height,
                     flexShrink: 0,
                     borderRadius: 1,
                     overflow: 'hidden',
@@ -172,24 +236,34 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
 
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography
-                    sx={{ fontSize: '0.85rem', fontWeight: 600 }}
+                    sx={{ fontSize: OFFLINE_FONT.title, fontWeight: 600 }}
                     noWrap
                   >
                     {item.title}
                   </Typography>
                   <Typography
-                    sx={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}
+                    sx={{
+                      fontSize: OFFLINE_FONT.caption,
+                      color: 'rgba(255,255,255,0.5)',
+                      mt: 0.25,
+                    }}
                   >
-                    {progress
-                      ? `${countEpisodes(item.episodes)} серий · остановились на ${progress.itemNumber} серии (${formatTime(progress.seconds)})`
-                      : `${countEpisodes(item.episodes)} серий`}
+                    {[
+                      `${count} серий`,
+                      formatSize(totalSize),
+                      progress
+                        ? `остановились на ${progress.itemNumber} серии (${formatTime(progress.seconds)})`
+                        : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
                   </Typography>
                 </Box>
 
                 <ExpandMoreRounded
                   className="library-chevron"
                   sx={{
-                    fontSize: 20,
+                    fontSize: OFFLINE_ICON.lg,
                     flexShrink: 0,
                     color: 'rgba(255,255,255,0.4)',
                     transition: 'transform 0.2s, color 0.15s',
@@ -202,11 +276,15 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                 <Button
                   size="small"
                   variant="contained"
-                  startIcon={<PlayArrowRounded sx={{ fontSize: 16 }} />}
+                  startIcon={
+                    <PlayArrowRounded sx={{ fontSize: OFFLINE_ICON.md }} />
+                  }
                   onClick={() => onPlay(item.animeId, progress?.episodeId)}
                   sx={{
                     textTransform: 'none',
-                    fontSize: '0.75rem',
+                    fontSize: OFFLINE_FONT.button,
+                    px: 2,
+                    py: 0.75,
                     flexShrink: 0,
                     backgroundColor: '#7C3AED',
                     color: '#ffffff',
@@ -218,29 +296,27 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
               )}
 
               <IconButton
-                size="small"
                 sx={{
                   flexShrink: 0,
                   color: '#ef5350',
                   '&:hover': { backgroundColor: 'rgba(239, 83, 80, 0.14)' },
                 }}
                 onClick={() =>
-                  requestRemoval(
-                    Boolean(activeFile) &&
-                      item.episodes.some(
-                        (episode) => episode.fileName === activeFile,
-                      ),
-                    `Серия из «${item.title}» сейчас воспроизводится. Удалить всё скачанное аниме?`,
-                    () => offlineStore.removeAnime(item.animeId),
-                  )
+                  setPending({
+                    text: `Удалить «${item.title}» целиком?`,
+                    note: isPlayingHere
+                      ? 'Серия из этого аниме сейчас воспроизводится. При наличии сети плеер продолжит с онлайн-источника.'
+                      : '',
+                    confirm: () => offlineStore.removeAnime(item.animeId),
+                  })
                 }
               >
-                <DeleteRounded sx={{ fontSize: 20 }} />
+                <DeleteRounded sx={{ fontSize: OFFLINE_ICON.xl }} />
               </IconButton>
             </Box>
 
             <Collapse in={isExpanded}>
-              <Box sx={{ pl: 6.5, pr: 0.5, pt: 0.5 }}>
+              <Box sx={{ pl: 12, pr: 0.5, pt: 0.75 }}>
                 {episodes.map((episode) => (
                   <Box
                     key={`${episode.episodeId}-${episode.playerId}-${episode.quality}`}
@@ -249,10 +325,10 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      gap: 1,
-                      pl: 1,
+                      gap: 1.25,
+                      pl: 1.25,
                       pr: 0.5,
-                      py: 0.25,
+                      py: 0.5,
                       borderRadius: 1,
                       cursor: onPlay ? 'pointer' : 'default',
                       transition: 'background-color 0.12s',
@@ -267,7 +343,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                   >
                     <Typography
                       sx={{
-                        fontSize: '0.78rem',
+                        fontSize: OFFLINE_FONT.episode,
                         flex: 1,
                         minWidth: 0,
                         color:
@@ -295,20 +371,28 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                       }}
                       onClick={(event) => {
                         event.stopPropagation();
-                        requestRemoval(
-                          episode.fileName === activeFile,
-                          `Серия ${episode.episodeNumber} сейчас воспроизводится. Удалить файл?`,
-                          () =>
-                            offlineStore.removeEpisode(
-                              item.animeId,
-                              episode.episodeId,
-                              episode.playerId,
-                              episode.quality,
-                            ),
-                        );
+
+                        const remove = () =>
+                          offlineStore.removeEpisode(
+                            item.animeId,
+                            episode.episodeId,
+                            episode.playerId,
+                            episode.quality,
+                          );
+
+                        if (episode.fileName === activeFile) {
+                          setPending({
+                            text: `Серия ${episode.episodeNumber} сейчас воспроизводится. Удалить файл?`,
+                            note: 'При наличии сети плеер продолжит с онлайн-источника.',
+                            confirm: remove,
+                          });
+                          return;
+                        }
+
+                        remove();
                       }}
                     >
-                      <CloseRounded sx={{ fontSize: 14 }} />
+                      <CloseRounded sx={{ fontSize: OFFLINE_ICON.sm }} />
                     </IconButton>
                   </Box>
                 ))}
@@ -331,21 +415,33 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
           },
         }}
       >
-        <DialogTitle sx={{ fontSize: '1rem', fontWeight: 600 }}>
+        <DialogTitle sx={{ fontSize: OFFLINE_FONT.section, fontWeight: 600 }}>
           Подтверждение удаления
         </DialogTitle>
         <DialogContent>
-          <Typography sx={{ fontSize: '0.85rem' }}>{pending?.text}</Typography>
-          <Typography
-            sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)', mt: 1 }}
-          >
-            При наличии сети плеер продолжит с онлайн-источника.
+          <Typography sx={{ fontSize: OFFLINE_FONT.body }}>
+            {pending?.text}
           </Typography>
+          {pending?.note && (
+            <Typography
+              sx={{
+                fontSize: OFFLINE_FONT.caption,
+                color: 'rgba(255,255,255,0.5)',
+                mt: 1.25,
+              }}
+            >
+              {pending.note}
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button
             onClick={() => setPending(null)}
-            sx={{ textTransform: 'none', color: 'rgba(255,255,255,0.6)' }}
+            sx={{
+              textTransform: 'none',
+              fontSize: OFFLINE_FONT.button,
+              color: 'rgba(255,255,255,0.6)',
+            }}
           >
             Отмена
           </Button>
@@ -357,9 +453,11 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
             }}
             sx={{
               textTransform: 'none',
-              backgroundColor: '#7C3AED',
+              fontSize: OFFLINE_FONT.button,
+              px: 2,
+              backgroundColor: '#ef5350',
               color: '#ffffff',
-              '&:hover': { backgroundColor: '#6D28D9' },
+              '&:hover': { backgroundColor: '#d32f2f' },
             }}
           >
             Удалить

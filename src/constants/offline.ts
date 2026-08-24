@@ -24,6 +24,19 @@ export const OFFLINE_RETRY_DELAY_MS = 3000;
 
 export const OFFLINE_MIN_FREE_SPACE_BYTES = 512 * 1024 * 1024;
 
+/**
+ * Ожидаемый размер серии по качеству, байт (используется до первой загрузки)
+ */
+export const OFFLINE_ESTIMATED_EPISODE_BYTES: Record<string, number> = {
+  '360p': 90 * 1024 * 1024,
+  '480p': 140 * 1024 * 1024,
+  '720p': 210 * 1024 * 1024,
+  '1080p': 420 * 1024 * 1024,
+  '2160p': 1200 * 1024 * 1024,
+};
+
+export const OFFLINE_ESTIMATED_EPISODE_FALLBACK_BYTES = 250 * 1024 * 1024;
+
 export const OFFLINE_HLS_SEGMENT_RETRIES = 3;
 
 export const OFFLINE_HLS_STATE_SUFFIX = '.part.json';

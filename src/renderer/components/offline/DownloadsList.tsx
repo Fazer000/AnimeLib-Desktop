@@ -7,8 +7,14 @@ import {
   Typography,
 } from '@mui/material';
 import { CloseRounded, PlayArrowRounded } from '@mui/icons-material';
-import { DownloadTask } from '../../../constants';
+import { DownloadTask, OFFLINE_FONT, OFFLINE_ICON } from '../../../constants';
 import { offlineStore } from '../../services/offline';
+import useDownloadSpeed from '../../hooks/useDownloadSpeed';
+import {
+  formatEta,
+  formatProgress,
+  formatSpeed,
+} from '../../utils/offlineFormat';
 
 interface DownloadsListProps {
   tasks: DownloadTask[];
@@ -24,9 +30,27 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 /**
+ * Собирает строку с объёмом, скоростью и остатком времени
+ */
+const buildDetails = (task: DownloadTask, speed: number): string => {
+  const remaining = task.totalBytes - task.loadedBytes;
+  const eta = speed > 0 && remaining > 0 ? formatEta(remaining / speed) : '';
+
+  return [
+    formatProgress(task.loadedBytes, task.totalBytes),
+    formatSpeed(speed),
+    eta ? `осталось ${eta}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
+};
+
+/**
  * Список активных и завершённых загрузок
  */
 function DownloadsList({ tasks }: DownloadsListProps) {
+  const speeds = useDownloadSpeed(tasks);
+
   const isActive = (status: string) =>
     status === 'queued' || status === 'downloading' || status === 'paused';
 
@@ -35,7 +59,9 @@ function DownloadsList({ tasks }: DownloadsListProps) {
 
   if (tasks.length === 0) {
     return (
-      <Typography sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.5)' }}>
+      <Typography
+        sx={{ fontSize: OFFLINE_FONT.body, color: 'rgba(255,255,255,0.5)' }}
+      >
         Очередь загрузок пуста. Скачанные серии доступны во вкладке
         «Библиотека».
       </Typography>
@@ -49,10 +75,10 @@ function DownloadsList({ tasks }: DownloadsListProps) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          mb: 1,
+          mb: 1.25,
         }}
       >
-        <Typography sx={{ fontSize: '0.9rem', fontWeight: 600 }}>
+        <Typography sx={{ fontSize: OFFLINE_FONT.section, fontWeight: 600 }}>
           {`Очередь · ${activeTasks.length}`}
         </Typography>
         {finishedTasks.length > 0 && (
@@ -61,12 +87,12 @@ function DownloadsList({ tasks }: DownloadsListProps) {
             onClick={() => offlineStore.clearFinished()}
             sx={{
               textTransform: 'none',
-              fontSize: '0.75rem',
+              fontSize: OFFLINE_FONT.button,
               color: '#ef5350',
               '&:hover': { backgroundColor: 'rgba(239, 83, 80, 0.12)' },
             }}
           >
-            Очистить завершённые
+            Очистить список
           </Button>
         )}
       </Box>
@@ -74,24 +100,24 @@ function DownloadsList({ tasks }: DownloadsListProps) {
       {tasks.map((task) => (
         <Box
           key={task.id}
-          sx={{ py: 1, borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+          sx={{ py: 1.25, borderBottom: '1px solid rgba(255,255,255,0.06)' }}
         >
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: 1,
+              gap: 1.25,
             }}
           >
-            <Typography sx={{ fontSize: '0.8rem' }} noWrap>
+            <Typography sx={{ fontSize: OFFLINE_FONT.body }} noWrap>
               {`${task.animeTitle} · ${task.episodeNumber} серия · ${task.quality} · ${task.teamName}`}
             </Typography>
 
             <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
               <Typography
                 sx={{
-                  fontSize: '0.72rem',
+                  fontSize: OFFLINE_FONT.hint,
                   color:
                     task.status === 'error'
                       ? '#ef5350'
@@ -108,7 +134,9 @@ function DownloadsList({ tasks }: DownloadsListProps) {
                   size="small"
                   onClick={() => offlineStore.resume(task.id)}
                 >
-                  <PlayArrowRounded sx={{ fontSize: 18, color: '#7C3AED' }} />
+                  <PlayArrowRounded
+                    sx={{ fontSize: OFFLINE_ICON.lg, color: '#7C3AED' }}
+                  />
                 </IconButton>
               )}
 
@@ -117,7 +145,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
                   size="small"
                   onClick={() => offlineStore.cancel(task.id)}
                 >
-                  <CloseRounded sx={{ fontSize: 16 }} />
+                  <CloseRounded sx={{ fontSize: OFFLINE_ICON.md }} />
                 </IconButton>
               )}
             </Box>
@@ -128,13 +156,25 @@ function DownloadsList({ tasks }: DownloadsListProps) {
               variant="determinate"
               value={task.progress}
               sx={{
-                mt: 0.75,
-                height: 4,
-                borderRadius: 2,
+                mt: 1,
+                height: 5,
+                borderRadius: 2.5,
                 backgroundColor: 'rgba(255,255,255,0.12)',
                 '& .MuiLinearProgress-bar': { backgroundColor: '#7C3AED' },
               }}
             />
+          )}
+
+          {task.status === 'downloading' && (
+            <Typography
+              sx={{
+                fontSize: OFFLINE_FONT.hint,
+                color: 'rgba(255,255,255,0.45)',
+                mt: 0.5,
+              }}
+            >
+              {buildDetails(task, speeds[task.id] || 0)}
+            </Typography>
           )}
         </Box>
       ))}
