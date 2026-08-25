@@ -5,9 +5,9 @@ import NavigationButtons from './toolbar/NavigationButtons';
 import UrlBar from './toolbar/UrlBar';
 import WindowControls from './toolbar/WindowControls';
 import AnimeInfoCard from './toolbar/AnimeInfoCard';
+import AnimeInfoHandle from './toolbar/AnimeInfoHandle';
 import SearchModal from './toolbar/SearchModal';
 import { buildAnimePageUrl } from '../utils/urlHelpers';
-import { SIDEBAR_WIDTH_CSS } from '../../constants';
 
 const ANIME_INFO_HIDE_DELAY = 3000;
 
@@ -33,8 +33,6 @@ interface ToolbarProps {
   isPlayerPage?: boolean;
 
   animeId?: string;
-
-  sidebarCollapsed?: boolean;
 
   onPlayerButtonClick?: (url: string, animeId?: string) => void;
 
@@ -63,9 +61,6 @@ function ToolbarRefactored({
   isPlayerPage = false,
 
   animeId,
-
-  sidebarCollapsed = false,
-
   onPlayerButtonClick,
 
   onOpenAnimePage,
@@ -147,9 +142,6 @@ function ToolbarRefactored({
       console.warn('[Toolbar] onUrlChange not provided');
     }
   };
-
-  const sidebarWidth = sidebarCollapsed ? '0px' : SIDEBAR_WIDTH_CSS;
-
   return (
     <>
       <AppBar
@@ -222,15 +214,16 @@ function ToolbarRefactored({
             position: 'fixed',
             top: 32,
             left: 0,
-            right: sidebarWidth,
-            height: 120,
+            right: 0,
+            height: 190,
             zIndex: 999,
             margin: '0 auto',
-            width: '70%',
-            maxWidth: 1200,
+            width: 480,
             pointerEvents: 'auto',
           }}
-        />
+        >
+          <AnimeInfoHandle hidden={showAnimeInfo} />
+        </Box>
       )}
 
       {animeId && (
@@ -239,7 +232,6 @@ function ToolbarRefactored({
           isVisible={showAnimeInfo}
           onMouseEnter={handleShowAnimeInfo}
           onMouseLeave={handleHideAnimeInfo}
-          sidebarCollapsed={sidebarCollapsed}
           onClick={onOpenAnimePage}
         />
       )}

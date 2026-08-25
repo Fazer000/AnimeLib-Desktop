@@ -213,11 +213,6 @@ export class VideoPlayerController {
     this.subtitlesManager.attach(videoElement);
 
     this.keyboardManager.enable();
-    this.stateManager.attach(videoElement);
-
-    this.subtitlesManager.attach(videoElement);
-
-    this.keyboardManager.enable();
 
     this.isInitialized = true;
     console.log('[VideoPlayerController] Initialized successfully');

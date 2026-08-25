@@ -73,12 +73,12 @@ export class KeyboardManager {
     }
 
     const { key } = event;
+    const code = key.length === 1 ? key.toLowerCase() : key;
     let handled = false;
 
-    switch (key) {
+    switch (code) {
       case ' ':
       case 'k':
-      case 'K':
       case 'л':
         this.config.onPlayPause?.();
         handled = true;
@@ -86,23 +86,21 @@ export class KeyboardManager {
 
       case 'ArrowLeft':
       case 'j':
-      case 'J':
+      case 'о':
         this.config.onSeek?.(-10);
         handled = true;
         break;
 
       case 'ArrowRight':
         if (event.shiftKey && this.config.onSkipForward) {
-          const skipTime = this.config.skipTime || 85;
-          this.config.onSkipForward(skipTime);
-          handled = true;
+          this.config.onSkipForward(this.config.skipTime || 85);
         } else {
           this.config.onSeek?.(10);
-          handled = true;
         }
+        handled = true;
         break;
+
       case 'l':
-      case 'L':
       case 'д':
         this.config.onSeek?.(10);
         handled = true;
@@ -119,28 +117,24 @@ export class KeyboardManager {
         break;
 
       case 'm':
-      case 'M':
       case 'ь':
         this.config.onToggleMute?.();
         handled = true;
         break;
 
       case 'f':
-      case 'F':
       case 'а':
         this.config.onToggleFullscreen?.();
         handled = true;
         break;
 
       case 'i':
-      case 'I':
       case 'ш':
         this.config.onTogglePictureInPicture?.();
         handled = true;
         break;
 
       case 'v':
-      case 'V':
       case 'м':
         this.config.onToggleEpisodes?.();
         handled = true;
@@ -155,21 +149,21 @@ export class KeyboardManager {
       case '6':
       case '7':
       case '8':
-      case '9': {
-        const percent = parseInt(key, 10) * 10;
-        this.config.onSeekToPercent?.(percent);
+      case '9':
+        this.config.onSeekToPercent?.(parseInt(code, 10) * 10);
         handled = true;
         break;
-      }
 
-      case '<':
       case ',':
+      case '<':
+      case 'б':
         this.config.onPlaybackRateChange?.(-0.25);
         handled = true;
         break;
 
-      case '>':
       case '.':
+      case '>':
+      case 'ю':
         this.config.onPlaybackRateChange?.(0.25);
         handled = true;
         break;

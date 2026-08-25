@@ -4,15 +4,12 @@ import { Box, Typography, CircularProgress } from '@mui/material';
 import { Star } from '@mui/icons-material';
 import { animeApi, AnimeInfo } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
-import { SIDEBAR_WIDTH_CSS } from '../../../constants';
 
 interface AnimeInfoCardProps {
   animeId: string;
   isVisible: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
-  // eslint-disable-next-line react/require-default-props
-  sidebarCollapsed?: boolean;
   // eslint-disable-next-line react/require-default-props
   onClick?: () => void;
 }
@@ -22,15 +19,12 @@ function AnimeInfoCard({
   isVisible,
   onMouseEnter,
   onMouseLeave,
-  sidebarCollapsed = false,
   onClick,
 }: AnimeInfoCardProps) {
   const [animeInfo, setAnimeInfo] = useState<AnimeInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   const coverUrl = useImageWithReferer(animeInfo?.cover?.default);
-
-  const sidebarWidth = sidebarCollapsed ? '0px' : SIDEBAR_WIDTH_CSS;
 
   useEffect(() => {
     if (!isVisible || !animeId || animeInfo) return;
@@ -58,7 +52,7 @@ function AnimeInfoCard({
           position: 'fixed',
           top: 40,
           left: 0,
-          right: sidebarWidth,
+          right: 0,
           zIndex: 9999,
           display: 'flex',
           justifyContent: 'center',
@@ -67,8 +61,7 @@ function AnimeInfoCard({
       >
         <Box
           sx={{
-            width: '90%',
-            maxWidth: '1200px',
+            width: 320,
             backgroundColor: 'rgba(28, 28, 28, 0.95)',
             backdropFilter: 'blur(10px)',
             borderRadius: 2,
@@ -92,7 +85,7 @@ function AnimeInfoCard({
         position: 'fixed',
         top: 50,
         left: 0,
-        right: sidebarWidth,
+        right: 0,
         zIndex: 9999,
         display: 'flex',
         justifyContent: 'center',
@@ -115,14 +108,15 @@ function AnimeInfoCard({
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         sx={{
-          width: '90%',
-          maxWidth: '900px',
+          width: 'fit-content',
+          minWidth: '25vw',
+          maxWidth: '50vw',
           pointerEvents: 'auto',
           backgroundColor: 'rgba(35, 34, 34, 0.66)',
           backdropFilter: 'blur(4px)',
           border: '1px solid rgba(24, 24, 24, 0.35)',
           borderRadius: 2,
-          padding: 2,
+          padding: 2.5,
           cursor: onClick ? 'pointer' : 'default',
           transition: 'background-color 0.2s ease, border-color 0.2s ease',
           '&:hover': onClick
@@ -133,11 +127,18 @@ function AnimeInfoCard({
             : undefined,
         }}
       >
-        <Box sx={{ display: 'flex', gap: 3 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 3,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
           <Box
             sx={{
-              width: 100,
-              height: 150,
+              width: 120,
+              height: 180,
               borderRadius: 2,
               overflow: 'hidden',
               flexShrink: 0,
@@ -157,11 +158,10 @@ function AnimeInfoCard({
 
           <Box
             sx={{
-              flex: 1,
               display: 'flex',
               flexDirection: 'row',
               gap: 1.5,
-              width: '100%',
+              minWidth: 0,
             }}
           >
             <Box
@@ -169,7 +169,7 @@ function AnimeInfoCard({
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 1,
-                width: '100%',
+                minWidth: 0,
                 justifyContent: 'center',
               }}
             >
@@ -180,6 +180,10 @@ function AnimeInfoCard({
                   fontWeight: 600,
                   fontSize: '1.5rem',
                   lineHeight: 1.2,
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: 2,
+                  overflow: 'hidden',
                 }}
               >
                 {animeInfo.rus_name || animeInfo.name}

@@ -132,6 +132,8 @@ interface VideoControlsProps {
   onSidebarToggle?: () => void;
   // eslint-disable-next-line react/require-default-props
   onOpenDownloadManager?: () => void;
+  // eslint-disable-next-line react/require-default-props
+  downloadManagerOpen?: boolean;
 }
 
 /**
@@ -192,6 +194,7 @@ function VideoControls({
   sidebarCollapsed = false,
   onSidebarToggle,
   onOpenDownloadManager,
+  downloadManagerOpen = false,
 }: VideoControlsProps) {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -300,6 +303,7 @@ function VideoControls({
         >
           <EdgeActionButton
             side="left"
+            active={downloadManagerOpen}
             label="Загрузки"
             color={theme.palette.customColors.dtPrimaryTextColor}
             onClick={onOpenDownloadManager}

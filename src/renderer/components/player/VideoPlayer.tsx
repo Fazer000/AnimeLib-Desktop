@@ -105,6 +105,8 @@ interface VideoPlayerProps {
   // eslint-disable-next-line react/require-default-props
   onOpenDownloadManager?: () => void;
   // eslint-disable-next-line react/require-default-props
+  downloadManagerOpen?: boolean;
+  // eslint-disable-next-line react/require-default-props
   onAspectRatioChange?: (aspectRatio: number | null) => void;
   // eslint-disable-next-line react/require-default-props
   ambientLightEnabled?: boolean;
@@ -153,6 +155,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       sidebarCollapsed = false,
       onSidebarToggle,
       onOpenDownloadManager,
+      downloadManagerOpen = false,
       onAspectRatioChange,
       ambientLightEnabled = true,
       onAmbientLightChange,
@@ -1241,6 +1244,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             sidebarCollapsed={sidebarCollapsed}
             onSidebarToggle={onSidebarToggle}
             onOpenDownloadManager={onOpenDownloadManager}
+            downloadManagerOpen={downloadManagerOpen}
           />
         )}
 

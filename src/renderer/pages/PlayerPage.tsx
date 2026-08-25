@@ -1020,7 +1020,6 @@ function PlayerPageRefactored({
         onMinimize={handleMinimize}
         onMaximize={handleMaximize}
         onClose={handleClose}
-        sidebarCollapsed={sidebarCollapsed}
       />
 
       <Box
@@ -1252,6 +1251,7 @@ function PlayerPageRefactored({
                       sidebarCollapsed={sidebarCollapsed}
                       onSidebarToggle={handleSidebarToggle}
                       onOpenDownloadManager={() => setShowDownloadManager(true)}
+                      downloadManagerOpen={showDownloadManager}
                       offlineMode={offlineMode}
                     />
                   </Box>
