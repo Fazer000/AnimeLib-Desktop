@@ -130,3 +130,9 @@ export const COMMENTS_SETTINGS_DEFAULTS = {
   highlightNew: false,
   collapseFromLevel: COMMENTS_COLLAPSE_MAX_LEVEL,
 };
+
+/**
+ * Размеры кнопок, примыкающих к кромке кадра
+ */
+export const PLAYER_EDGE_BUTTON_SIZE = 42;
+export const PLAYER_EDGE_BUTTON_RADIUS = 14;

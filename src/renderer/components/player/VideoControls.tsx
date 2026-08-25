@@ -17,6 +17,7 @@ import PlaybackControls from './PlaybackControls';
 import VolumeControl from './VolumeControl';
 import ControlsEpisodeSlider from './ControlsEpisodeSlider';
 import ControlTooltip from './ControlTooltip';
+import EdgeActionButton from '../EdgeActionButton';
 import SettingsMenu from './SettingsMenu';
 import {
   SkipManager,
@@ -288,7 +289,7 @@ function VideoControls({
           sx={{
             position: 'absolute',
             top: 16,
-            left: 16,
+            left: 0,
             opacity: showControls ? 1 : 0,
             pointerEvents: showControls ? 'auto' : 'none',
             transition: 'opacity 0.3s ease-in-out',
@@ -297,20 +298,13 @@ function VideoControls({
           }}
           onMouseMove={onMouseMove}
         >
-          <ControlTooltip title="Менеджер загрузок" placement="right">
-            <IconButton
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenDownloadManager();
-              }}
-              sx={{
-                ...overlayButtonSx,
-                color: theme.palette.customColors.dtPrimaryTextColor,
-              }}
-            >
-              <DownloadRounded sx={ICON_SX} />
-            </IconButton>
-          </ControlTooltip>
+          <EdgeActionButton
+            side="left"
+            label="Загрузки"
+            color={theme.palette.customColors.dtPrimaryTextColor}
+            onClick={onOpenDownloadManager}
+            icon={<DownloadRounded sx={ICON_SX} />}
+          />
         </Box>
       )}
 
@@ -319,7 +313,7 @@ function VideoControls({
           sx={{
             position: 'absolute',
             top: 16,
-            right: 16,
+            right: 0,
             opacity: showControls ? 1 : 0,
             pointerEvents: showControls ? 'auto' : 'none',
             transition: 'opacity 0.3s ease-in-out',
@@ -328,25 +322,17 @@ function VideoControls({
           }}
           onMouseMove={onMouseMove}
         >
-          <ControlTooltip
-            title={sidebarCollapsed ? 'Показать озвучки' : 'Скрыть озвучки'}
-            placement="left"
-          >
-            <IconButton
-              onClick={(e) => {
-                e.stopPropagation();
-                onSidebarToggle();
-              }}
-              sx={{
-                ...overlayButtonSx,
-                color: sidebarCollapsed
-                  ? theme.palette.customColors.dtPrimaryTextColor
-                  : '#7C3AED',
-              }}
-            >
-              <GraphicEqRounded sx={ICON_SX} />
-            </IconButton>
-          </ControlTooltip>
+          <EdgeActionButton
+            side="right"
+            label={sidebarCollapsed ? 'Показать озвучки' : 'Скрыть озвучки'}
+            color={
+              sidebarCollapsed
+                ? theme.palette.customColors.dtPrimaryTextColor
+                : '#7C3AED'
+            }
+            onClick={onSidebarToggle}
+            icon={<GraphicEqRounded sx={ICON_SX} />}
+          />
         </Box>
       )}
 

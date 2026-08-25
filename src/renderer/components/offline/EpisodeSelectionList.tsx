@@ -165,77 +165,89 @@ function EpisodeSelectionList({
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', gap: 1.5, mb: 2, mt: 0.5 }}>
-        <FormControl size="small" sx={{ flex: 1 }}>
-          <InputLabel id="offline-team-label" sx={LABEL_SX}>
-            Озвучка
-          </InputLabel>
-          <Select
-            labelId="offline-team-label"
-            label="Озвучка"
-            value={teams.includes(teamName) ? teamName : ''}
-            onChange={(event) => onTeamChange(event.target.value)}
-            displayEmpty
-            sx={SELECT_SX}
-          >
-            {teams.length === 0 && (
-              <MenuItem value="">Озвучки не найдены</MenuItem>
-            )}
-            {teams.map((team) => (
-              <MenuItem key={team} value={team}>
-                {team}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <FormControl size="small" sx={{ width: 200 }}>
-          <InputLabel id="offline-quality-label" shrink sx={LABEL_SX}>
-            Общее качество
-          </InputLabel>
-          <Select
-            labelId="offline-quality-label"
-            label="Общее качество"
-            value={
-              defaultQualities.includes(defaultQuality) ? defaultQuality : ''
-            }
-            onChange={(event) => onDefaultQualityChange(event.target.value)}
-            displayEmpty
-            notched
-            sx={SELECT_SX}
-          >
-            {defaultQualities.length === 0 && <MenuItem value="">—</MenuItem>}
-            {defaultQualities.map((item) => (
-              <MenuItem key={item} value={item}>
-                {item}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-
       <Box
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
-          pb: 0.5,
+          position: 'sticky',
+          top: 0,
+          zIndex: 2,
+          mx: -3,
+          px: 3,
+          pt: 2,
+          backgroundColor: '#2b2b2e',
         }}
       >
-        <Checkbox
-          size="small"
-          checked={allSelected}
-          disabled={selectableCount === 0}
-          indeterminate={selectedIds.length > 0 && !allSelected}
-          onChange={onToggleAll}
-          sx={CHECKBOX_SX}
-        />
-        <Typography sx={{ fontSize: OFFLINE_FONT.body }}>
-          {`Выбрать все · выбрано ${selectedIds.length}`}
-        </Typography>
+        <Box sx={{ display: 'flex', gap: 1.5, mb: 2, mt: 0.5 }}>
+          <FormControl size="small" sx={{ flex: 1 }}>
+            <InputLabel id="offline-team-label" sx={LABEL_SX}>
+              Озвучка
+            </InputLabel>
+            <Select
+              labelId="offline-team-label"
+              label="Озвучка"
+              value={teams.includes(teamName) ? teamName : ''}
+              onChange={(event) => onTeamChange(event.target.value)}
+              displayEmpty
+              sx={SELECT_SX}
+            >
+              {teams.length === 0 && (
+                <MenuItem value="">Озвучки не найдены</MenuItem>
+              )}
+              {teams.map((team) => (
+                <MenuItem key={team} value={team}>
+                  {team}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl size="small" sx={{ width: 200 }}>
+            <InputLabel id="offline-quality-label" shrink sx={LABEL_SX}>
+              Общее качество
+            </InputLabel>
+            <Select
+              labelId="offline-quality-label"
+              label="Общее качество"
+              value={
+                defaultQualities.includes(defaultQuality) ? defaultQuality : ''
+              }
+              onChange={(event) => onDefaultQualityChange(event.target.value)}
+              displayEmpty
+              notched
+              sx={SELECT_SX}
+            >
+              {defaultQualities.length === 0 && <MenuItem value="">—</MenuItem>}
+              {defaultQualities.map((item) => (
+                <MenuItem key={item} value={item}>
+                  {item}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            pb: 0.5,
+          }}
+        >
+          <Checkbox
+            size="small"
+            checked={allSelected}
+            disabled={selectableCount === 0}
+            indeterminate={selectedIds.length > 0 && !allSelected}
+            onChange={onToggleAll}
+            sx={CHECKBOX_SX}
+          />
+          <Typography sx={{ fontSize: OFFLINE_FONT.body }}>
+            {`Выбрать все · выбрано ${selectedIds.length}`}
+          </Typography>
+        </Box>
       </Box>
 
-      <Box sx={{ pr: 1 }}>
+      <Box sx={{ pr: 1, pt: 0.5 }}>
         {episodes.map((episode) => {
           const isSelected = selectedIds.includes(episode.id);
           const isLoading = loadingIds.includes(episode.id);

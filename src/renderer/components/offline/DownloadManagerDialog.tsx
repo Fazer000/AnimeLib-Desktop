@@ -581,6 +581,7 @@ function DownloadManagerDialog({
           flex: 1,
           minHeight: 0,
           overflowY: 'auto',
+          pt: 0,
         }}
       >
         {tab === 0 && hasContext && (
@@ -622,19 +623,25 @@ function DownloadManagerDialog({
           />
         )}
 
-        {tab === 1 && <DownloadsList tasks={snapshot.tasks} />}
+        {tab === 1 && (
+          <Box sx={{ pt: 2 }}>
+            <DownloadsList tasks={snapshot.tasks} />
+          </Box>
+        )}
 
         {tab === 2 && (
-          <OfflineLibraryTab
-            anime={snapshot.anime}
-            onPlay={
-              onPlayOffline &&
-              ((id, episodeId) => {
-                onPlayOffline(id, episodeId);
-                onClose();
-              })
-            }
-          />
+          <Box sx={{ pt: 2 }}>
+            <OfflineLibraryTab
+              anime={snapshot.anime}
+              onPlay={
+                onPlayOffline &&
+                ((id, episodeId) => {
+                  onPlayOffline(id, episodeId);
+                  onClose();
+                })
+              }
+            />
+          </Box>
         )}
       </DialogContent>
 
@@ -731,25 +738,6 @@ function DownloadManagerDialog({
         }}
       >
         <Box sx={{ display: 'flex', gap: 1.25 }}>
-          <Button
-            variant="contained"
-            onClick={onClose}
-            sx={{
-              textTransform: 'none',
-              fontSize: OFFLINE_FONT.body,
-              px: 2,
-              color: '#ffffff',
-              backgroundColor: 'rgba(255,255,255,0.14)',
-              boxShadow: 'none',
-              '&:hover': {
-                backgroundColor: 'rgba(255,255,255,0.22)',
-                boxShadow: 'none',
-              },
-            }}
-          >
-            Закрыть
-          </Button>
-
           {tab === 0 && (
             <Button
               variant="contained"
@@ -773,6 +761,25 @@ function DownloadManagerDialog({
                 : `Скачать${selectedSize > 0 ? ` (${formatSize(selectedSize)})` : ''}`}
             </Button>
           )}
+
+          <Button
+            variant="contained"
+            onClick={onClose}
+            sx={{
+              textTransform: 'none',
+              fontSize: OFFLINE_FONT.body,
+              px: 2,
+              color: '#ffffff',
+              backgroundColor: 'rgba(255,255,255,0.14)',
+              boxShadow: 'none',
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.22)',
+                boxShadow: 'none',
+              },
+            }}
+          >
+            Закрыть
+          </Button>
         </Box>
       </DialogActions>
 

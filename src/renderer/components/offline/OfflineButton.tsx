@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Badge, Box, Fab } from '@mui/material';
+import { Badge, Box } from '@mui/material';
 import { DownloadRounded } from '@mui/icons-material';
 import DownloadManagerDialog from './DownloadManagerDialog';
+import EdgeActionButton from '../EdgeActionButton';
 import useOfflineLibrary from '../../hooks/useOfflineLibrary';
-import {
-  FLOATING_BUTTONS_LEFT,
-  FLOATING_BUTTONS_TOP,
-} from '../../../constants';
+import { FLOATING_BUTTONS_TOP } from '../../../constants';
 
 interface OfflineButtonProps {
   // eslint-disable-next-line react/require-default-props
@@ -52,42 +50,38 @@ function OfflineButton({
         sx={{
           position: 'fixed',
           top: FLOATING_BUTTONS_TOP,
-          left: FLOATING_BUTTONS_LEFT,
+          left: 0,
           zIndex: 1200,
         }}
       >
-        <Badge
-          badgeContent={activeCount}
-          color="secondary"
-          overlap="circular"
-          invisible={activeCount === 0}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-          sx={{
-            '& .MuiBadge-badge': {
-              zIndex: 1051,
-              border: '2px solid rgba(20, 20, 20, 0.9)',
-              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.5)',
-            },
+        <EdgeActionButton
+          side="left"
+          solid
+          active={open}
+          label="Загрузки"
+          color="#ffffff"
+          onClick={() => {
+            setInitialTab(2);
+            setOpen(true);
           }}
-        >
-          <Fab
-            onClick={() => {
-              setInitialTab(2);
-              setOpen(true);
-            }}
-            size="medium"
-            sx={{
-              backgroundColor: 'rgba(20, 20, 20, 0.9)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(116, 116, 128, 0.33)',
-              color: '#fff',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
-              '&:hover': { backgroundColor: 'rgba(116, 116, 128, 0.4)' },
-            }}
-          >
-            <DownloadRounded sx={{ fontSize: 24, color: '#7C3AED' }} />
-          </Fab>
-        </Badge>
+          icon={
+            <Badge
+              badgeContent={activeCount}
+              color="secondary"
+              overlap="circular"
+              invisible={activeCount === 0}
+              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+              sx={{
+                '& .MuiBadge-badge': {
+                  border: '2px solid rgba(20, 20, 20, 0.9)',
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.5)',
+                },
+              }}
+            >
+              <DownloadRounded sx={{ fontSize: 24, color: '#7C3AED' }} />
+            </Badge>
+          }
+        />
       </Box>
 
       <DownloadManagerDialog

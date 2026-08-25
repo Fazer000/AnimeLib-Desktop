@@ -62,8 +62,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
       <Typography
         sx={{ fontSize: OFFLINE_FONT.body, color: 'rgba(255,255,255,0.5)' }}
       >
-        Очередь загрузок пуста. Скачанные серии доступны во вкладке
-        «Библиотека».
+        Очередь пуста. Загруженные серии доступны на вкладке «Библиотека».
       </Typography>
     );
   }

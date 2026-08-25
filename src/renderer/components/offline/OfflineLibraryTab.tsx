@@ -10,6 +10,7 @@ import {
   IconButton,
   InputAdornment,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import {
@@ -295,24 +296,35 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                 </Button>
               )}
 
-              <IconButton
-                sx={{
-                  flexShrink: 0,
-                  color: '#ef5350',
-                  '&:hover': { backgroundColor: 'rgba(239, 83, 80, 0.14)' },
-                }}
-                onClick={() =>
-                  setPending({
-                    text: `Удалить «${item.title}» целиком?`,
-                    note: isPlayingHere
-                      ? 'Серия из этого аниме сейчас воспроизводится. При наличии сети плеер продолжит с онлайн-источника.'
-                      : '',
-                    confirm: () => offlineStore.removeAnime(item.animeId),
-                  })
-                }
-              >
-                <DeleteRounded sx={{ fontSize: OFFLINE_ICON.xl }} />
-              </IconButton>
+              <Tooltip title="Удалить всё скачанное" arrow>
+                <IconButton
+                  sx={{
+                    flexShrink: 0,
+                    width: 40,
+                    height: 40,
+                    borderRadius: 1.5,
+                    color: '#ef5350',
+                    border: '1px solid rgba(239, 83, 80, 0.3)',
+                    backgroundColor: 'rgba(239, 83, 80, 0.08)',
+                    transition: 'background-color 0.15s, border-color 0.15s',
+                    '&:hover': {
+                      backgroundColor: 'rgba(239, 83, 80, 0.2)',
+                      borderColor: 'rgba(239, 83, 80, 0.6)',
+                    },
+                  }}
+                  onClick={() =>
+                    setPending({
+                      text: `Удалить «${item.title}» целиком?`,
+                      note: isPlayingHere
+                        ? 'Серия из этого аниме сейчас воспроизводится. При наличии сети плеер продолжит с онлайн-источника.'
+                        : '',
+                      confirm: () => offlineStore.removeAnime(item.animeId),
+                    })
+                  }
+                >
+                  <DeleteRounded sx={{ fontSize: OFFLINE_ICON.lg }} />
+                </IconButton>
+              </Tooltip>
             </Box>
 
             <Collapse in={isExpanded}>

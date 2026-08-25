@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Box, Fab, Zoom, Menu, MenuItem, ListItemText } from '@mui/material';
+import { Box, Zoom, Menu, MenuItem, ListItemText } from '@mui/material';
 import { BookmarkRounded } from '@mui/icons-material';
 import { BookmarkItem } from '../api/animeApi';
+import EdgeActionButton from './EdgeActionButton';
 import {
   FLOATING_BUTTONS_GAP,
-  FLOATING_BUTTONS_LEFT,
   FLOATING_BUTTONS_TOP,
   OfflineContinueItem,
   buildOfflineUrl,
@@ -155,34 +155,19 @@ function ContinueWatchingButton({
           sx={{
             position: 'fixed',
             top: FLOATING_BUTTONS_TOP + FLOATING_BUTTONS_GAP,
-            left: FLOATING_BUTTONS_LEFT,
+            left: 0,
             zIndex: 1200,
           }}
         >
-          <Fab
+          <EdgeActionButton
+            side="left"
+            solid
+            active={Boolean(anchorEl)}
+            label="Закладки"
+            color="#ffffff"
             onClick={(event) => setAnchorEl(event.currentTarget)}
-            size="medium"
-            sx={{
-              backgroundColor: anchorEl
-                ? 'rgba(124, 58, 237, 0.28)'
-                : 'rgba(20, 20, 20, 0.9)',
-              backdropFilter: 'blur(10px)',
-              border: anchorEl
-                ? '1px solid rgba(124, 58, 237, 0.6)'
-                : '1px solid rgba(116, 116, 128, 0.33)',
-              color: '#fff',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                backgroundColor: anchorEl
-                  ? 'rgba(124, 58, 237, 0.35)'
-                  : 'rgba(116, 116, 128, 0.4)',
-                boxShadow: '0 6px 16px rgba(0, 0, 0, 0.5)',
-              },
-            }}
-          >
-            <BookmarkRounded sx={{ fontSize: 24, color: '#7C3AED' }} />
-          </Fab>
+            icon={<BookmarkRounded sx={{ fontSize: 24, color: '#7C3AED' }} />}
+          />
         </Box>
       </Zoom>
 
