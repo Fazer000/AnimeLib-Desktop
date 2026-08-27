@@ -87,8 +87,16 @@ function EdgeActionButton({
       onMouseLeave={() => setHovered(false)}
       onFocus={() => setHovered(true)}
       onBlur={() => setHovered(false)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          event.stopPropagation();
+          onClick(event as unknown as React.MouseEvent<HTMLElement>);
+        }
+      }}
       onClick={(event) => {
         event.stopPropagation();
+        event.currentTarget.blur();
         onClick(event);
       }}
       sx={{
@@ -113,6 +121,11 @@ function EdgeActionButton({
           ? `0 ${radius} ${radius} 0`
           : `${radius} 0 0 ${radius}`,
         boxSizing: 'content-box',
+        outline: 'none',
+        '&:focus-visible': {
+          outline: '2px solid rgba(124, 58, 237, 0.8)',
+          outlineOffset: '-2px',
+        },
         transition:
           'width 0.3s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.25s ease',
         '&:hover': { backgroundColor: 'rgba(55, 55, 55, 0.52)' },

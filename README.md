@@ -320,6 +320,5 @@ npm run start:main
 
 ---
 
-**Разработчик**: [Fazer000](https://github.com/Fazer000)  
-**Сайт контента**: [animelib.org](https://animelib.org) (ООО "Мангалиб")
+### **Сайт контента**: [animelib.org](https://animelib.org) (ООО "Мангалиб")
 

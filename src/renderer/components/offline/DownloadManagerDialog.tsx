@@ -630,7 +630,7 @@ function DownloadManagerDialog({
         )}
 
         {tab === 2 && (
-          <Box sx={{ pt: 2 }}>
+          <Box>
             <OfflineLibraryTab
               anime={snapshot.anime}
               onPlay={

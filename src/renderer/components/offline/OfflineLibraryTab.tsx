@@ -107,7 +107,11 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
   if (anime.length === 0) {
     return (
       <Typography
-        sx={{ fontSize: OFFLINE_FONT.body, color: 'rgba(255,255,255,0.5)' }}
+        sx={{
+          fontSize: OFFLINE_FONT.body,
+          color: 'rgba(255,255,255,0.5)',
+          pt: 2,
+        }}
       >
         Библиотека пока пуста. Откройте аниме в плеере и скачайте серии для
         оффлайн просмотра.
@@ -116,50 +120,63 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
   }
 
   return (
-    <Box>
+    <Box sx={{ pt: anime.length >= SEARCH_MIN_ITEMS ? 0 : 2 }}>
       {anime.length >= SEARCH_MIN_ITEMS && (
-        <TextField
-          size="small"
-          fullWidth
-          value={query}
-          placeholder="Поиск по названию"
-          onChange={(event) => setQuery(event.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchRounded
-                  sx={{
-                    fontSize: OFFLINE_ICON.md,
-                    color: 'rgba(255,255,255,0.45)',
-                  }}
-                />
-              </InputAdornment>
-            ),
-            endAdornment: query ? (
-              <InputAdornment position="end">
-                <IconButton size="small" onClick={() => setQuery('')}>
-                  <CloseRounded sx={{ fontSize: OFFLINE_ICON.sm }} />
-                </IconButton>
-              </InputAdornment>
-            ) : null,
-          }}
+        <Box
           sx={{
-            mb: 2,
-            '& .MuiInputBase-root': {
-              fontSize: OFFLINE_FONT.body,
-              color: '#ffffff',
-            },
-            '& .MuiOutlinedInput-notchedOutline': {
-              borderColor: 'rgba(255,255,255,0.18)',
-            },
-            '&:hover .MuiOutlinedInput-notchedOutline': {
-              borderColor: 'rgba(255,255,255,0.3)',
-            },
-            '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#7C3AED',
-            },
+            position: 'sticky',
+            top: 0,
+            zIndex: 2,
+            mx: -3,
+            px: 3,
+            pt: 2,
+            pb: 2,
+            backgroundColor: '#2b2b2e',
           }}
-        />
+        >
+          <TextField
+            size="small"
+            fullWidth
+            value={query}
+            placeholder="Поиск по названию"
+            onChange={(event) => setQuery(event.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchRounded
+                    sx={{
+                      fontSize: OFFLINE_ICON.md,
+                      color: 'rgba(255,255,255,0.45)',
+                    }}
+                  />
+                </InputAdornment>
+              ),
+              endAdornment: query ? (
+                <InputAdornment position="end">
+                  <IconButton size="small" onClick={() => setQuery('')}>
+                    <CloseRounded sx={{ fontSize: OFFLINE_ICON.sm }} />
+                  </IconButton>
+                </InputAdornment>
+              ) : null,
+            }}
+            sx={{
+              '& .MuiInputBase-root': {
+                fontSize: OFFLINE_FONT.body,
+                color: '#ffffff',
+                backgroundColor: '#2b2b2e',
+              },
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: 'rgba(255,255,255,0.18)',
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: 'rgba(255,255,255,0.3)',
+              },
+              '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#7C3AED',
+              },
+            }}
+          />
+        </Box>
       )}
 
       {filtered.length === 0 && (
