@@ -306,8 +306,8 @@ function App() {
       setSavedUrl(storedUrl);
     }
 
-    if ((window as any).electron?.ipcRenderer) {
-      const unsubscribe = (window as any).electron.ipcRenderer.on(
+    if (window.electron?.ipcRenderer) {
+      const unsubscribe = window.electron.ipcRenderer.on(
         'open-player-page',
         (...args: unknown[]) => {
           const url = args[0] as string;
@@ -323,8 +323,8 @@ function App() {
   }, [handlePlayerButtonClick]);
 
   useEffect(() => {
-    if ((window as any).electron?.ipcRenderer) {
-      const unsubscribe = (window as any).electron.ipcRenderer.on(
+    if (window.electron?.ipcRenderer) {
+      const unsubscribe = window.electron.ipcRenderer.on(
         'player-button-clicked',
         (...args: unknown[]) => {
           const url = args[0] as string;

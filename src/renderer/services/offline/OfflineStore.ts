@@ -44,7 +44,7 @@ class OfflineStore {
    */
   // eslint-disable-next-line class-methods-use-this
   private get api(): any {
-    return (window as any).electron?.electronAPI;
+    return window.electron?.electronAPI;
   }
 
   /**
@@ -68,7 +68,7 @@ class OfflineStore {
       return;
     }
 
-    const ipc = (window as any).electron?.ipcRenderer;
+    const ipc = window.electron?.ipcRenderer;
 
     if (!ipc) {
       return;

@@ -129,7 +129,7 @@ export class NavigationHistoryTracker {
    * Публикует отладочный API в window
    */
   static install(): void {
-    (window as any).animeLibNav = {
+    window.animeLibNav = {
       on: () => NavigationHistoryTracker.setEnabled(true),
       off: () => NavigationHistoryTracker.setEnabled(false),
       print: () => NavigationHistoryTracker.print(),

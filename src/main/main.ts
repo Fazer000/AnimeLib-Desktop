@@ -578,7 +578,6 @@ const createWindowConfig = (iconPath: string, bounds: Rectangle | null) => ({
     contextIsolation: true,
     webSecurity: false,
     webviewTag: true,
-    allowRunningInsecureContent: true,
     enableWebSQL: false,
     spellcheck: false,
     backgroundThrottling: false,
@@ -765,7 +764,7 @@ const registerApiInterceptor = (): void => {
   session
     .fromPartition('persist:webview')
     .webRequest.onHeadersReceived(
-      { urls: [...VIDEO_URLS.ANIMELIB_API] },
+      { urls: [...VIDEO_URLS.ANIMELIB_API, ...VIDEO_URLS.ANIMELIB_CDN] },
       (details, callback) => {
         const { responseHeaders } = details;
         if (responseHeaders) {

@@ -17,7 +17,7 @@ function useWatchingBookmarks(refreshKey?: unknown): BookmarkItem[] {
   }, [refreshKey]);
 
   useEffect(() => {
-    const ipc = (window as any).electron?.ipcRenderer;
+    const ipc = window.electron?.ipcRenderer;
 
     if (!ipc) {
       return undefined;

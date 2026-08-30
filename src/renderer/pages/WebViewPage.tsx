@@ -344,20 +344,20 @@ function WebViewRefactored({
   }, []);
 
   const handleWindowMinimize = useCallback(() => {
-    if ((window as any).electron?.ipcRenderer) {
-      (window as any).electron.ipcRenderer.sendMessage('window-minimize');
+    if (window.electron?.ipcRenderer) {
+      window.electron.ipcRenderer.sendMessage('window-minimize');
     }
   }, []);
 
   const handleWindowMaximize = useCallback(() => {
-    if ((window as any).electron?.ipcRenderer) {
-      (window as any).electron.ipcRenderer.sendMessage('window-maximize');
+    if (window.electron?.ipcRenderer) {
+      window.electron.ipcRenderer.sendMessage('window-maximize');
     }
   }, []);
 
   const handleWindowClose = useCallback(() => {
-    if ((window as any).electron?.ipcRenderer) {
-      (window as any).electron.ipcRenderer.sendMessage('window-close');
+    if (window.electron?.ipcRenderer) {
+      window.electron.ipcRenderer.sendMessage('window-close');
     }
   }, []);
 
@@ -400,10 +400,6 @@ function WebViewRefactored({
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
           }}
-          // eslint-disable-next-line react/no-unknown-property
-          allowpopups
-          // eslint-disable-next-line react/no-unknown-property
-          disablewebsecurity
         />
       </Box>
     </Box>

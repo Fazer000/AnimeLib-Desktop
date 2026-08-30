@@ -23,14 +23,10 @@ function useImageWithReferer(imageUrl: string | undefined): string {
       try {
         const referer = localStorage.getItem('animeLibUrl') || '';
 
-        if ((window as any).electron?.ipcRenderer) {
-          const response = await (window as any).electron.ipcRenderer.invoke(
-            'fetch-image',
-            {
-              url: imageUrl,
-              referer,
-            },
-          );
+        const api = window.electron?.electronAPI;
+
+        if (api?.fetchImage) {
+          const response = await api.fetchImage({ url: imageUrl, referer });
 
           if (isCancelled) return;
 

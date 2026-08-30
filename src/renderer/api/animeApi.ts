@@ -1,8 +1,23 @@
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 
 import { createLogger } from '../../shared/logger';
 
 const log = createLogger('AnimeAPI');
+
+/** Ответ сервера из ошибки axios: статус и тело, если запрос дошёл. */
+const errorResponse = (
+  error: unknown,
+): { status: number; data: unknown } | undefined => {
+  if (!isAxiosError(error) || !error.response) return undefined;
+  return { status: error.response.status, data: error.response.data };
+};
+
+/** Отрезок, который плеер умеет пропускать. */
+export interface TimeCode {
+  type: 'opening' | 'ending' | 'compilation' | 'splashScreen';
+  from: number;
+  to: number;
+}
 
 export interface Episode {
   id: number;
@@ -54,7 +69,7 @@ export interface Player {
   is_viewed: boolean;
   views: number;
   src?: string;
-  timecode: any[];
+  timecode: TimeCode[];
   subtitles?: Array<{
     id: number;
     format: string;
@@ -94,6 +109,53 @@ export interface EpisodeResponse {
     players: Player[];
   };
   type: string;
+}
+
+/** Комментарий в том виде, в каком его отдаёт API. */
+export interface ApiComment {
+  id: number;
+  comment: string;
+  created_at: string;
+  root_id?: number;
+  parent_comment?: number;
+  comment_level?: number;
+  user: {
+    id?: number | string;
+    username: string;
+    avatar: { url: string };
+    premium: { enabled: boolean };
+  };
+  votes: { up: number; down: number };
+}
+
+/** Закладка «смотрю» из статистики пользователя. */
+export interface BookmarkListItem {
+  media: {
+    slug_url: string;
+    name?: string;
+    rus_name?: string;
+    cover?: { thumbnail?: string };
+  };
+  item?: { number?: string };
+  meta?: { item_number?: number };
+}
+
+/** Краткая карточка тайтла в результатах поиска. */
+export interface SearchResultItem {
+  id: number;
+  name: string;
+  rus_name?: string;
+  type?: { id: number; label: string };
+  status?: { id: number; label: string };
+  releaseDate?: string;
+  releaseDateString?: string;
+  cover?: { default: string };
+  slug: string;
+  slug_url: string;
+}
+
+export interface SearchAnimeResponse {
+  data: SearchResultItem[];
 }
 
 export interface KodikVideoLinks {
@@ -322,7 +384,7 @@ export const animeApi = {
   getKodikVideoLinks: async (kodikSrc: string): Promise<KodikVideoLinks> => {
     log.debug('Loading Kodik links for src:', kodikSrc);
 
-    const electronAPI = (window as any).electron?.electronAPI;
+    const electronAPI = window.electron?.electronAPI;
 
     if (!electronAPI?.getKodikLinks) {
       throw new Error('[AnimeAPI] getKodikLinks IPC not available');
@@ -370,8 +432,8 @@ export const animeApi = {
       );
       log.debug('Bookmark loaded:', response.data);
       return response.data;
-    } catch (error: any) {
-      if (error.response && error.response.status === 404) {
+    } catch (error) {
+      if (errorResponse(error)?.status === 404) {
         log.debug('No bookmark found for anime:', animeSlugUrl);
         return { data: null };
       }
@@ -404,7 +466,7 @@ export const animeApi = {
       });
       log.debug('Закладка успешно сохранена:', response.data);
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       log.error(
         'Ошибка при сохранении закладки (status 21), пробуем с другим статусом:',
         error,
@@ -434,7 +496,7 @@ export const animeApi = {
           responseFinal.data,
         );
         return { success: true };
-      } catch (retryError: any) {
+      } catch (retryError) {
         log.error('Ошибка при повторном сохранении закладки:', retryError);
         throw retryError;
       }
@@ -477,10 +539,10 @@ export const animeApi = {
         return [];
       }
 
-      return items
-        .filter((item: any) => item?.media?.slug_url)
+      return (items as BookmarkListItem[])
+        .filter((item) => item?.media?.slug_url)
         .slice(0, limit)
-        .map((item: any) => ({
+        .map((item) => ({
           animeSlugUrl: item.media.slug_url,
           title: item.media.rus_name || item.media.name || '',
           episodeNumber:
@@ -503,8 +565,8 @@ export const animeApi = {
     sortType: string = 'desc',
   ): Promise<{
     data: {
-      replies: Array<any>;
-      root: Array<any>;
+      replies: ApiComment[];
+      root: ApiComment[];
     };
     meta: {
       has_next_page: boolean;
@@ -553,7 +615,7 @@ export const animeApi = {
       const response = await statsApiClient.delete(`/comments/${commentId}`);
       return response.data?.data?.toast?.message ?? null;
     } catch (error) {
-      const response = (error as any)?.response;
+      const response = errorResponse(error);
       log.error('Error deleting comment:', response?.status, response?.data);
       throw error;
     }
@@ -565,7 +627,7 @@ export const animeApi = {
   updateComment: async (
     commentId: number,
     comment: { type: 'doc'; content: unknown[] },
-  ): Promise<any> => {
+  ): Promise<ApiComment | null> => {
     try {
       log.debug('Updating comment:', commentId);
       const response = await statsApiClient.put(`/comments/${commentId}`, {
@@ -574,7 +636,7 @@ export const animeApi = {
       });
       return response.data?.data ?? null;
     } catch (error) {
-      const response = (error as any)?.response;
+      const response = errorResponse(error);
       log.error('Error updating comment:', response?.status, response?.data);
       throw error;
     }
@@ -583,7 +645,10 @@ export const animeApi = {
   /**
    * Добавить пользователя в игнор-лист
    */
-  ignoreUser: async (userId: number, comment: string = ''): Promise<any> => {
+  ignoreUser: async (
+    userId: number,
+    comment: string = '',
+  ): Promise<unknown> => {
     const payload = {
       sourceable_type: 'user',
       sourceable_id: Number(getUserId()),
@@ -596,7 +661,7 @@ export const animeApi = {
       const response = await statsApiClient.post('/ignore', payload);
       return response.data?.data ?? null;
     } catch (error) {
-      const response = (error as any)?.response;
+      const response = errorResponse(error);
       log.error('Error ignoring user:', response?.status, response?.data);
       throw error;
     }
@@ -636,7 +701,7 @@ export const animeApi = {
     parent_comment: number | null;
     root_id: number | null;
     comment_level: number;
-  }): Promise<{ success: boolean; data: any }> => {
+  }): Promise<{ success: boolean; data: { data?: ApiComment } }> => {
     try {
       log.debug('Submitting comment:', commentData);
       const response = await animeApiClient.post('/comments', commentData);
@@ -644,7 +709,7 @@ export const animeApi = {
       log.debug('Comment submitted successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
-      const response = (error as any)?.response;
+      const response = errorResponse(error);
       log.error(
         'Error submitting comment:',
         response?.status,
@@ -679,7 +744,7 @@ export const animeApi = {
   /**
    * Search anime
    */
-  searchAnime: async (query: string): Promise<any> => {
+  searchAnime: async (query: string): Promise<SearchAnimeResponse> => {
     try {
       log.debug('Searching anime:', query);
 

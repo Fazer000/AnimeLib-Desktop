@@ -107,7 +107,7 @@ export class SubtitlesManager {
    * Запрашивает файл субтитров через main-процесс
    */
   private static async fetchContent(src: string): Promise<string | null> {
-    const api = (window as any).electron?.electronAPI;
+    const api = window.electron?.electronAPI;
 
     if (!api?.fetchSubtitles) {
       log.error('fetchSubtitles IPC not available');
@@ -115,7 +115,7 @@ export class SubtitlesManager {
     }
 
     const result = await api.fetchSubtitles(buildSubtitleUrlCandidates(src));
-    return result?.success ? result.data : null;
+    return result?.success ? (result.data ?? null) : null;
   }
 
   /**

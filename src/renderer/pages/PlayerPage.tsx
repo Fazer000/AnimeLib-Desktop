@@ -716,8 +716,8 @@ function PlayerPageRefactored({
     (navigate: () => void) => {
       saveBookmarkInBackground();
 
-      if ((window as any).electron?.electronAPI?.clearVideoHeaders) {
-        (window as any).electron.electronAPI
+      if (window.electron?.electronAPI?.clearVideoHeaders) {
+        window.electron.electronAPI
           .clearVideoHeaders()
           .then(() => {
             log.debug('Video headers cleared');
@@ -786,20 +786,20 @@ function PlayerPageRefactored({
   );
 
   const handleMinimize = useCallback(() => {
-    if ((window as any).electron?.ipcRenderer) {
-      (window as any).electron.ipcRenderer.sendMessage('window-minimize');
+    if (window.electron?.ipcRenderer) {
+      window.electron.ipcRenderer.sendMessage('window-minimize');
     }
   }, []);
 
   const handleMaximize = useCallback(() => {
-    if ((window as any).electron?.ipcRenderer) {
-      (window as any).electron.ipcRenderer.sendMessage('window-maximize');
+    if (window.electron?.ipcRenderer) {
+      window.electron.ipcRenderer.sendMessage('window-maximize');
     }
   }, []);
 
   const handleClose = useCallback(() => {
-    if ((window as any).electron?.ipcRenderer) {
-      (window as any).electron.ipcRenderer.sendMessage('window-close');
+    if (window.electron?.ipcRenderer) {
+      window.electron.ipcRenderer.sendMessage('window-close');
     }
   }, []);
 
@@ -869,12 +869,10 @@ function PlayerPageRefactored({
   useEffect(() => {
     return () => {
       log.debug('Component unmounting, clearing video headers');
-      if ((window as any).electron?.electronAPI?.clearVideoHeaders) {
-        (window as any).electron.electronAPI
-          .clearVideoHeaders()
-          .catch((err: any) => {
-            log.error('Error clearing video headers on unmount:', err);
-          });
+      if (window.electron?.electronAPI?.clearVideoHeaders) {
+        window.electron.electronAPI.clearVideoHeaders().catch((err: any) => {
+          log.error('Error clearing video headers on unmount:', err);
+        });
       }
     };
   }, []);

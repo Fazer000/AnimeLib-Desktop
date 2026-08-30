@@ -25,6 +25,7 @@ export type Channels =
   | 'get-maximize-state'
   | 'get-kodik-links'
   | 'fetch-subtitles'
+  | 'fetch-image'
   | 'bookmarks-changed'
   | 'check-for-update'
   | 'download-update'
@@ -47,6 +48,14 @@ export type Channels =
   | 'offline-resume'
   | 'offline-free-space'
   | 'offline-migration-progress';
+
+/** Картинка, загруженная главным процессом с нужным Referer. */
+export interface FetchImageResult {
+  success: boolean;
+  data?: string;
+  contentType?: string;
+  error?: string;
+}
 
 const electronHandler = {
   ipcRenderer: {
@@ -94,6 +103,10 @@ const electronHandler = {
       log.debug('Preload: Getting Kodik links for:', kodikSrc);
       return ipcRenderer.invoke('get-kodik-links', kodikSrc);
     },
+    fetchImage: async (payload: {
+      url: string;
+      referer: string;
+    }): Promise<FetchImageResult> => ipcRenderer.invoke('fetch-image', payload),
     fetchSubtitles: async (
       urls: string[],
     ): Promise<{ success: boolean; data?: string; error?: string }> => {

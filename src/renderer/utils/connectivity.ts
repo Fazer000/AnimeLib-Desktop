@@ -10,7 +10,7 @@ export async function checkConnection(): Promise<boolean> {
     return false;
   }
 
-  const api = (window as any).electron?.electronAPI;
+  const api = window.electron?.electronAPI;
 
   if (!api?.offlineCheckConnection) {
     return true;
