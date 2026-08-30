@@ -15,6 +15,7 @@ export interface VideoState {
 
 export interface VideoStateConfig {
   onStateChange?: (state: Partial<VideoState>) => void;
+  onTimeUpdate?: (currentTime: number, buffered: number) => void;
 }
 
 /**
@@ -33,6 +34,8 @@ export class VideoStateManager {
   }> = [];
 
   private lastTimeUpdate = 0;
+
+  private lastEmittedDuration = 0;
 
   private readonly timeUpdateThrottle = 100;
 
@@ -106,6 +109,10 @@ export class VideoStateManager {
     this.updateState({ isPlaying: false });
   }
 
+  /**
+   * Время и буфер идут отдельным каналом, минуя onStateChange: они меняются
+   * десять раз в секунду, а длительность прокидывается только при изменении.
+   */
   private handleTimeUpdate(): void {
     if (!this.videoElement) return;
 
@@ -115,19 +122,27 @@ export class VideoStateManager {
     }
     this.lastTimeUpdate = now;
 
-    const updates: Partial<VideoState> = {
-      currentTime: this.videoElement.currentTime || 0,
-      duration: this.videoElement.duration || 0,
-    };
+    const currentTime = this.videoElement.currentTime || 0;
+    const duration = this.videoElement.duration || 0;
 
+    let { buffered } = this.state;
     if (this.videoElement.buffered.length > 0) {
-      const bufferedEnd = this.videoElement.buffered.end(
-        this.videoElement.buffered.length - 1,
-      );
-      updates.buffered = bufferedEnd || 0;
+      buffered =
+        this.videoElement.buffered.end(this.videoElement.buffered.length - 1) ||
+        0;
     }
 
-    this.updateState(updates);
+    this.state = { ...this.state, currentTime, buffered, duration };
+    this.emitTimeUpdate();
+
+    if (duration !== this.lastEmittedDuration) {
+      this.lastEmittedDuration = duration;
+      this.config.onStateChange?.({ duration });
+    }
+  }
+
+  private emitTimeUpdate(): void {
+    this.config.onTimeUpdate?.(this.state.currentTime, this.state.buffered);
   }
 
   private handleVolumeChange(): void {
@@ -145,8 +160,9 @@ export class VideoStateManager {
   private handleLoadedMetadata(): void {
     if (!this.videoElement) return;
     log.debug('Metadata loaded');
+    this.lastEmittedDuration = this.videoElement.duration || 0;
     this.updateState({
-      duration: this.videoElement.duration || 0,
+      duration: this.lastEmittedDuration,
       isBuffering: false,
     });
   }
@@ -237,7 +253,8 @@ export class VideoStateManager {
 
     if (!Number.isNaN(time) && time >= 0 && time <= this.state.duration) {
       this.videoElement.currentTime = time;
-      this.updateState({ currentTime: time });
+      this.state = { ...this.state, currentTime: time };
+      this.emitTimeUpdate();
     }
   }
 
@@ -268,6 +285,7 @@ export class VideoStateManager {
    * Сбрасывает состояние
    */
   reset(): void {
+    this.lastEmittedDuration = 0;
     this.updateState({
       isPlaying: false,
       currentTime: 0,
@@ -275,6 +293,7 @@ export class VideoStateManager {
       buffered: 0,
       isBuffering: false,
     });
+    this.emitTimeUpdate();
   }
 
   /**

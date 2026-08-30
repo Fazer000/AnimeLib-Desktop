@@ -1,25 +1,36 @@
+import { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import { SubtitleCue } from '../../utils/subtitleHelpers';
-import { SubtitlesSettings } from '../../services/player';
+import { SubtitlesSettings, PlaybackTimeStore } from '../../services/player';
 import { SUBTITLES_BASE_FONT_CQH } from '../../../constants';
 
 interface SubtitlesOverlayProps {
   cues: SubtitleCue[];
-  currentTime: number;
+  timeStore: PlaybackTimeStore;
   settings: SubtitlesSettings;
 }
 
 /**
- * Оверлей субтитров форматов srt/vtt (ass рисует JASSUB)
+ * Оверлей субтитров форматов srt/vtt (ass рисует JASSUB).
+ * Перерисовывается только при смене реплики, а не на каждом тике времени.
  */
 function SubtitlesOverlay({
   cues,
-  currentTime,
+  timeStore,
   settings,
 }: SubtitlesOverlayProps) {
-  const activeCue = cues.find(
-    (cue) => currentTime >= cue.from && currentTime <= cue.to,
-  );
+  const [activeCue, setActiveCue] = useState<SubtitleCue | null>(null);
+
+  useEffect(() => {
+    const pick = (time: number) => {
+      const next =
+        cues.find((cue) => time >= cue.from && time <= cue.to) ?? null;
+      setActiveCue((prev) => (prev === next ? prev : next));
+    };
+
+    pick(timeStore.getCurrentTime());
+    return timeStore.subscribe(pick);
+  }, [cues, timeStore]);
 
   if (!activeCue) return null;
 

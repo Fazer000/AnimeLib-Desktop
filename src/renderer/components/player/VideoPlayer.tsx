@@ -33,6 +33,7 @@ import {
   QualityOption,
   UIStateManager,
   UIState,
+  PlaybackTimeStore,
   AutoplayManager,
   SegmentManager,
   TimeCodeSegment,
@@ -66,6 +67,8 @@ interface TimeCode {
   from: number;
   to: number;
 }
+
+const EMPTY_TIMECODE: TimeCode[] = [];
 
 interface VideoPlayerProps {
   onError: (error: string) => void;
@@ -153,7 +156,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       autoplayEnabled = false,
       onAutoplayChange,
       selectedPlayer = null,
-      timecode = [],
+      timecode = EMPTY_TIMECODE,
       sidebarCollapsed = false,
       onSidebarToggle,
       onOpenDownloadManager,
@@ -191,6 +194,12 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       playbackRate: 1,
       isBuffering: false,
     });
+
+    const [timeStore] = useState(() => new PlaybackTimeStore());
+
+    const thumbnailManager = isControllerReady
+      ? (controllerRef.current?.getThumbnailManager() ?? null)
+      : null;
 
     const [hasStartedPlayback, setHasStartedPlayback] =
       useState<boolean>(false);
@@ -276,6 +285,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           onStateChange: (updates) => {
             setVideoState((prev) => ({ ...prev, ...updates }));
           },
+          onTimeUpdate: (currentTime, buffered) =>
+            timeStore.set(currentTime, buffered),
           onQualityOptionsChange: setQualityOptions,
           onSelectedQualityChange: setSelectedQuality,
           onSubtitleTracksChange: setSubtitleTracks,
@@ -339,7 +350,14 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         }
         setIsControllerReady(false);
       };
-    }, [onError, skipManager, uiStateManager, autoplayManager, segmentManager]);
+    }, [
+      onError,
+      skipManager,
+      uiStateManager,
+      autoplayManager,
+      segmentManager,
+      timeStore,
+    ]);
 
     useEffect(() => {
       if (controllerRef.current) {
@@ -425,7 +443,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       if (!video) return undefined;
 
       const handleLoadedMetadata = () => {
-        const { videoWidth, videoHeight, duration } = video;
+        const { videoWidth, videoHeight } = video;
         if (videoWidth && videoHeight) {
           const aspectRatio = videoWidth / videoHeight;
           log.debug('Video aspect ratio:', aspectRatio, {
@@ -437,11 +455,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         } else {
           videoAspectRatioRef.current = null;
           onAspectRatioChange?.(null);
-        }
-
-        if (duration && duration > 0) {
-          const thumbnailManager = controllerRef.current?.getThumbnailManager();
-          thumbnailManager?.startPreCaching(duration);
         }
       };
 
@@ -546,8 +559,11 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     }, [videoState.duration, segmentManager]);
 
     useEffect(() => {
-      segmentManager.updateCurrentTime(videoState.currentTime);
-    }, [videoState.currentTime, segmentManager]);
+      segmentManager.updateCurrentTime(timeStore.getCurrentTime());
+      return timeStore.subscribe((currentTime) =>
+        segmentManager.updateCurrentTime(currentTime),
+      );
+    }, [segmentManager, timeStore]);
 
     useEffect(() => {
       isPlayingRef.current = videoState.isPlaying;
@@ -760,7 +776,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         return;
       }
 
-      const { currentTime } = videoState;
+      const currentTime = timeStore.getCurrentTime();
 
       log.debug('Saving bookmark:', {
         episodeId: currentEpisode.id,
@@ -769,7 +785,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       });
 
       onSaveBookmark(currentEpisode.id, currentTime);
-    }, [onSaveBookmark, episodes, currentEpisodeIndex, videoState]);
+    }, [onSaveBookmark, episodes, currentEpisodeIndex, timeStore]);
 
     const handlePlayerClick = useCallback(
       (event: React.MouseEvent<HTMLDivElement | HTMLVideoElement>) => {
@@ -819,6 +835,10 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       segmentManager.skipCurrentSegment();
     }, [segmentManager]);
 
+    const [autoSkipSettings, setAutoSkipSettings] = useState(() =>
+      segmentManager.getSettings(),
+    );
+
     const handleAutoSkipChange = useCallback(
       (settings: {
         skipOpenings: boolean;
@@ -827,9 +847,27 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         skipSplashScreens: boolean;
       }) => {
         segmentManager.updateSettings(settings);
+        setAutoSkipSettings(segmentManager.getSettings());
       },
       [segmentManager],
     );
+
+    const handleMenuOpenChange = useCallback(
+      (isOpen: boolean) => uiStateManager.setMenuOpen(isOpen),
+      [uiStateManager],
+    );
+
+    const handleShowEpisodesChange = useCallback(
+      (show: boolean) => uiStateManager.setShowEpisodesList(show),
+      [uiStateManager],
+    );
+
+    const handleControlsMouseMove = useCallback(() => {
+      uiStateManager.showPlayerControls();
+      uiStateManager.startAutoHide(isPlayingRef.current);
+    }, [uiStateManager]);
+
+    const handleControlsMouseLeave = useCallback(() => {}, []);
 
     const handleNextEpisodeCancel = useCallback(() => {
       log.debug('Next episode cancelled by user');
@@ -995,7 +1033,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
         <SubtitlesOverlay
           cues={subtitleCues}
-          currentTime={videoState.currentTime}
+          timeStore={timeStore}
           settings={subtitleSettings}
         />
 
@@ -1170,14 +1208,13 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           <VideoControls
             isPlaying={videoState.isPlaying}
             isLoading={isLoading}
-            currentTime={videoState.currentTime}
+            timeStore={timeStore}
             duration={videoState.duration}
             volume={videoState.volume}
             isMuted={videoState.isMuted}
-            buffered={videoState.buffered}
             isFullscreen={uiState.isFullscreen}
             showControls={uiState.showControls}
-            onMenuOpenChange={(isOpen) => uiStateManager.setMenuOpen(isOpen)}
+            onMenuOpenChange={handleMenuOpenChange}
             onSaveBookmark={handleSaveBookmark}
             hasBookmark={hasBookmark}
             qualityOptions={qualityOptions}
@@ -1208,27 +1245,16 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             currentSegment={currentSegment}
             onSkipSegment={handleSkipSegment}
             showEpisodes={uiState.showEpisodesList}
-            onShowEpisodesChange={(show) =>
-              uiStateManager.setShowEpisodesList(show)
-            }
-            autoSkipSettings={segmentManager.getSettings()}
+            onShowEpisodesChange={handleShowEpisodesChange}
+            autoSkipSettings={autoSkipSettings}
             onAutoSkipChange={handleAutoSkipChange}
-            onMouseMove={() => {
-              if (!uiState.showControls) {
-                uiStateManager.showPlayerControls();
-              }
-              uiStateManager.startAutoHide(videoState.isPlaying);
-            }}
-            onMouseLeave={() => {
-              // Auto-hide will handle this
-            }}
+            onMouseMove={handleControlsMouseMove}
+            onMouseLeave={handleControlsMouseLeave}
             onProgressMouseMove={handleProgressMouseMove}
             onProgressMouseLeave={handleProgressMouseLeave}
             onSeek={handleSeek}
             hoverTime={uiState.hoverTime}
-            thumbnailManager={
-              controllerRef.current?.getThumbnailManager() || null
-            }
+            thumbnailManager={thumbnailManager}
             sidebarCollapsed={sidebarCollapsed}
             onSidebarToggle={onSidebarToggle}
             onOpenDownloadManager={onOpenDownloadManager}

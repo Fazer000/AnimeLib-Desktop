@@ -34,11 +34,17 @@ class ThumbnailManager {
 
   private readonly thumbnailHeight = 135;
 
-  private readonly maxCacheSize = 300;
+  private readonly maxCacheSize = 200;
 
   private readonly jpegQuality = 0.7;
 
   private readonly seekTimeout = 1200;
+
+  private readonly maxPreCachedFrames = 150;
+
+  private preCachingStarted = false;
+
+  private preCacheStep = 10;
 
   private isDestroyed = false;
 
@@ -75,7 +81,7 @@ class ThumbnailManager {
     return new Promise((resolve, reject) => {
       const video = document.createElement('video');
       video.crossOrigin = 'anonymous';
-      video.preload = 'auto';
+      video.preload = 'metadata';
       video.muted = true;
       video.playsInline = true;
       video.style.cssText =
@@ -223,6 +229,10 @@ class ThumbnailManager {
     this.isGenerating = false;
   }
 
+  /**
+   * Запоминает источник. Скрытый video создаётся лениво, при первом кадре,
+   * чтобы не тянуть второй поток параллельно с основным воспроизведением.
+   */
   loadVideo(src: string): void {
     log.debug('Video source set:', src);
 
@@ -231,22 +241,33 @@ class ThumbnailManager {
       this.cache.clear();
       this.generationQueue = [];
       this.currentAbortController?.abort();
+      this.preCachingStarted = false;
     }
 
     this.videoSrc = src;
-
-    this.getOrCreateSeekVideo().catch(() => {});
   }
 
-  startPreCaching(duration: number, intervalSeconds: number = 10): void {
-    if (duration <= 0 || !this.videoSrc) return;
+  /**
+   * Фоновая генерация превью по всей длительности. Запускается один раз
+   * на источник — по первому наведению на прогресс-бар, не при загрузке видео.
+   */
+  startPreCaching(duration: number, intervalSeconds?: number): void {
+    if (duration <= 0 || !this.videoSrc || this.preCachingStarted) return;
+
+    this.preCachingStarted = true;
+
+    const step = Math.max(
+      intervalSeconds ?? 10,
+      Math.ceil(duration / this.maxPreCachedFrames),
+    );
+    this.preCacheStep = step;
 
     this.generationQueue = this.generationQueue.filter(
       (item) => item.priority !== 1,
     );
 
     const times: number[] = [];
-    for (let t = 0; t < duration; t += intervalSeconds) {
+    for (let t = 0; t < duration; t += step) {
       const roundedTime = Math.floor(t);
       if (!this.cache.has(roundedTime)) {
         times.push(roundedTime);
@@ -255,7 +276,7 @@ class ThumbnailManager {
 
     if (times.length === 0) return;
 
-    log.debug(`Pre-caching ${times.length} frames every ${intervalSeconds}s`);
+    log.debug(`Pre-caching ${times.length} frames every ${step}s`);
 
     times.forEach((time) => {
       // eslint-disable-next-line no-new
@@ -323,7 +344,7 @@ class ThumbnailManager {
       }
     });
 
-    if (nearestTime >= 0 && nearestDiff <= 15) {
+    if (nearestTime >= 0 && nearestDiff <= Math.max(15, this.preCacheStep)) {
       return this.cache.get(nearestTime) || null;
     }
 
@@ -339,6 +360,7 @@ class ThumbnailManager {
     this.isGenerating = false;
     this.currentAbortController?.abort();
     this.cache.clear();
+    this.preCachingStarted = false;
   }
 
   destroy(): void {

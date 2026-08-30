@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { Box, Slider } from '@mui/material';
 import { formatTime } from '../../utils/videoHelpers';
-import { ThumbnailManager } from '../../services/player';
+import { ThumbnailManager, PlaybackTimeStore } from '../../services/player';
 import ThumbnailPreview from './ThumbnailPreview';
 
 interface TimeCode {
@@ -16,10 +16,15 @@ interface TimeCode {
   to: number;
 }
 
+type Segment = {
+  start: number;
+  end: number;
+  type: 'normal' | 'opening' | 'ending' | 'compilation' | 'splashScreen';
+};
+
 interface ProgressBarProps {
-  currentTime: number;
+  timeStore: PlaybackTimeStore;
   duration: number;
-  buffered: number;
   hoverTime: number | null;
   onSeek: (time: number) => void;
   onProgressMouseMove: (event: React.MouseEvent<HTMLDivElement>) => void;
@@ -29,10 +34,162 @@ interface ProgressBarProps {
   thumbnailManager?: ThumbnailManager | null;
 }
 
+const ROOT_SX = {
+  position: 'relative',
+  px: 0.5,
+  height: 16,
+  display: 'flex',
+  alignItems: 'center',
+};
+
+const TRACK_SX = {
+  position: 'absolute',
+  top: '50%',
+  transform: 'translateY(-50%)',
+  left: 4,
+  right: 4,
+  height: 5,
+  display: 'flex',
+  gap: '3px',
+  transition: 'height 0.2s ease',
+  overflow: 'hidden',
+  '&:hover': {
+    height: 8,
+  },
+};
+
+const SEGMENT_BG_SX = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  height: '100%',
+  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+  borderRadius: 10,
+  backdropFilter: 'blur(10px)',
+};
+
+const SEGMENT_BUFFERED_SX = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  height: '100%',
+  width: 0,
+  backgroundColor: 'rgba(255, 255, 255, 0.25)',
+  borderRadius: 10,
+  transition: 'width 0.3s ease',
+};
+
+const HOVER_MARKER_SX = {
+  position: 'absolute',
+  top: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 2,
+  height: 12,
+  backgroundColor: 'rgba(255, 255, 255, 0.85)',
+  borderRadius: 1,
+  pointerEvents: 'none',
+  zIndex: 10,
+};
+
+const SLIDER_SX = {
+  color: '#7C3AED',
+  height: 28,
+  padding: '0 !important',
+  cursor: 'pointer',
+  '& .MuiSlider-track': {
+    display: 'none',
+  },
+  '& .MuiSlider-rail': {
+    height: '100%',
+    opacity: 0,
+    cursor: 'pointer',
+  },
+  '& .MuiSlider-thumb': {
+    width: 14,
+    height: 14,
+    backgroundColor: '#fff',
+    border: '3px solid #BB86FC',
+    opacity: 0,
+    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+    cursor: 'grab',
+    '&:hover': {
+      opacity: 1,
+      width: 16,
+      height: 16,
+    },
+    '&.Mui-active': {
+      opacity: 1,
+      width: 18,
+      height: 18,
+      cursor: 'grabbing',
+    },
+  },
+  '&:hover .MuiSlider-thumb': {
+    opacity: 1,
+  },
+};
+
+const TOOLTIP_SX = {
+  position: 'absolute',
+  bottom: 24,
+  transform: 'translateX(-50%)',
+  color: '#fff',
+  padding: '6px 12px',
+  backgroundColor: 'rgba(41, 41, 41, 0.62)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  borderRadius: 2,
+  fontSize: '12px',
+  fontFamily: 'Roboto, sans-serif',
+  fontWeight: 500,
+  whiteSpace: 'nowrap',
+  zIndex: 2001,
+  pointerEvents: 'none',
+  animation: 'tooltipAppear 0.15s ease-out',
+  '@keyframes tooltipAppear': {
+    from: {
+      opacity: 0,
+      transform: 'translateX(-50%) translateY(5px)',
+    },
+    to: {
+      opacity: 1,
+      transform: 'translateX(-50%) translateY(0)',
+    },
+  },
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    bottom: -4,
+    left: '50%',
+    transform: 'translateX(-50%) rotate(45deg)',
+    width: 8,
+    height: 8,
+    backgroundColor: 'rgba(41, 41, 41, 0.62)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    borderTop: 'none',
+    borderLeft: 'none',
+  },
+};
+
+/** Доля сегмента, покрытая моментом времени, в процентах. */
+export const segmentFill = (segment: Segment, time: number): number => {
+  if (time <= segment.start) return 0;
+  if (time >= segment.end) return 100;
+
+  const length = segment.end - segment.start;
+  if (length <= 0) return 0;
+
+  return ((time - segment.start) / length) * 100;
+};
+
+/**
+ * Прогресс воспроизведения. Заливка обновляется прямой записью в style,
+ * поэтому тик времени не вызывает перерисовку React.
+ */
 function ProgressBar({
-  currentTime,
+  timeStore,
   duration,
-  buffered,
   hoverTime,
   onSeek,
   onProgressMouseMove,
@@ -40,10 +197,14 @@ function ProgressBar({
   timecode = [],
   thumbnailManager = null,
 }: ProgressBarProps) {
-  const [dragTime, setDragTime] = React.useState<number | null>(null);
-  const [isDragging, setIsDragging] = React.useState(false);
+  const [dragTime, setDragTime] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [sliderTime, setSliderTime] = useState(0);
   const dragTimeRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
+
+  const progressRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const bufferedRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [isThumbnailLoading, setIsThumbnailLoading] = useState(false);
@@ -53,20 +214,16 @@ function ProgressBar({
     null,
   );
 
-  const segments = useMemo(() => {
+  const segments = useMemo<Segment[]>(() => {
     if (!duration || duration <= 0) {
-      return [{ start: 0, end: 0, type: 'normal' as const }];
+      return [{ start: 0, end: 0, type: 'normal' }];
     }
 
     if (!timecode || timecode.length === 0) {
-      return [{ start: 0, end: duration, type: 'normal' as const }];
+      return [{ start: 0, end: duration, type: 'normal' }];
     }
 
-    const segs: Array<{
-      start: number;
-      end: number;
-      type: 'normal' | 'opening' | 'ending' | 'compilation' | 'splashScreen';
-    }> = [];
+    const segs: Segment[] = [];
     let lastEnd = 0;
 
     const sortedTimecode = [...timecode]
@@ -101,8 +258,36 @@ function ProgressBar({
     return segs;
   }, [timecode, duration]);
 
-  const displayTime = dragTime !== null ? dragTime : currentTime;
-  const sliderValue = duration > 0 ? displayTime : 0;
+  const segmentsRef = useRef(segments);
+  segmentsRef.current = segments;
+
+  const needsSliderRef = useRef(false);
+  needsSliderRef.current = hoverTime !== null || isDragging;
+
+  useEffect(() => {
+    const paint = (currentTime: number, buffered: number) => {
+      const displayTime = dragTimeRef.current ?? currentTime;
+
+      segmentsRef.current.forEach((segment, index) => {
+        const progressEl = progressRefs.current[index];
+        if (progressEl) {
+          progressEl.style.width = `${segmentFill(segment, displayTime)}%`;
+        }
+
+        const bufferedEl = bufferedRefs.current[index];
+        if (bufferedEl) {
+          bufferedEl.style.width = `${segmentFill(segment, buffered)}%`;
+        }
+      });
+
+      if (needsSliderRef.current) {
+        setSliderTime(displayTime);
+      }
+    };
+
+    paint(timeStore.getCurrentTime(), timeStore.getBuffered());
+    return timeStore.subscribe(paint);
+  }, [timeStore, segments]);
 
   const handleDragChange = useCallback((time: number) => {
     dragTimeRef.current = time;
@@ -117,7 +302,7 @@ function ProgressBar({
     });
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
@@ -127,6 +312,12 @@ function ProgressBar({
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (thumbnailManager && hoverTime !== null && duration > 0) {
+      thumbnailManager.startPreCaching(duration);
+    }
+  }, [thumbnailManager, hoverTime, duration]);
 
   useEffect(() => {
     if (!thumbnailManager || hoverTime === null) {
@@ -190,33 +381,11 @@ function ProgressBar({
     }, 40);
   }, [hoverTime, thumbnailManager]);
 
+  const progressTransition = isDragging ? 'none' : 'width 0.1s ease';
+
   return (
-    <Box
-      sx={{
-        position: 'relative',
-        px: 0.5,
-        height: 16,
-        display: 'flex',
-        alignItems: 'center',
-      }}
-    >
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          left: 4,
-          right: 4,
-          height: 5,
-          display: 'flex',
-          gap: '3px',
-          transition: 'height 0.2s ease',
-          overflow: 'hidden',
-          '&:hover': {
-            height: 8,
-          },
-        }}
-      >
+    <Box sx={ROOT_SX}>
+      <Box sx={TRACK_SX}>
         {segments.map((segment, index) => {
           const segmentDuration = segment.end - segment.start;
 
@@ -233,41 +402,10 @@ function ProgressBar({
                 const dur = seg.end - seg.start;
                 return sum + (dur / duration) * 100;
               }, 0);
-            segmentWidth = 100 - previousWidths;
-            segmentWidth = Math.max(0.1, segmentWidth);
+            segmentWidth = Math.max(0.1, 100 - previousWidths);
           }
 
           segmentWidth = Math.max(0, Math.min(100, segmentWidth));
-
-          let segmentProgress = 0;
-          if (displayTime >= segment.start) {
-            if (displayTime <= segment.end) {
-              segmentProgress =
-                ((displayTime - segment.start) / segmentDuration) * 100;
-            } else {
-              segmentProgress = 100;
-            }
-          }
-
-          const bufferedTime = buffered * duration;
-          let segmentBuffered = 0;
-          if (bufferedTime >= segment.start) {
-            if (bufferedTime <= segment.end) {
-              segmentBuffered =
-                ((bufferedTime - segment.start) / segmentDuration) * 100;
-            } else {
-              segmentBuffered = 100;
-            }
-          }
-
-          segmentProgress = Math.max(0, Math.min(100, segmentProgress));
-          segmentBuffered = Math.max(0, Math.min(100, segmentBuffered));
-
-          const colors = {
-            bg: 'rgba(255, 255, 255, 0.15)',
-            buffered: 'rgba(255, 255, 255, 0.25)',
-            progress: '#7C3AED',
-          };
 
           return (
             <Box
@@ -280,56 +418,38 @@ function ProgressBar({
                 minWidth: 0,
               }}
             >
+              <Box sx={SEGMENT_BG_SX} />
+
               <Box
+                ref={(el: HTMLDivElement | null) => {
+                  bufferedRefs.current[index] = el;
+                }}
+                sx={SEGMENT_BUFFERED_SX}
+              />
+
+              <Box
+                ref={(el: HTMLDivElement | null) => {
+                  progressRefs.current[index] = el;
+                }}
                 sx={{
                   position: 'absolute',
                   top: 0,
                   left: 0,
-                  right: 0,
                   height: '100%',
-                  backgroundColor: colors.bg,
+                  width: 0,
+                  background: '#7C3AED',
                   borderRadius: 10,
-                  backdropFilter: 'blur(10px)',
+                  transition: progressTransition,
+                  willChange: isDragging ? 'width' : 'auto',
                 }}
               />
-
-              {segmentBuffered > 0 && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    height: '100%',
-                    width: `${segmentBuffered}%`,
-                    backgroundColor: colors.buffered,
-                    borderRadius: 10,
-                    transition: 'width 0.3s ease',
-                  }}
-                />
-              )}
-
-              {segmentProgress > 0 && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    height: '100%',
-                    width: `${segmentProgress}%`,
-                    background: colors.progress,
-                    borderRadius: 10,
-                    transition: isDragging ? 'none' : 'width 0.1s ease',
-                    willChange: isDragging ? 'width' : 'auto',
-                  }}
-                />
-              )}
             </Box>
           );
         })}
       </Box>
 
       <Slider
-        value={sliderValue}
+        value={dragTime !== null ? dragTime : sliderTime}
         min={0}
         max={duration || 100}
         step={0.1}
@@ -366,6 +486,7 @@ function ProgressBar({
           dragTimeRef.current = null;
           setDragTime(null);
           setIsDragging(false);
+          setSliderTime(time);
 
           onSeek(time);
         }}
@@ -383,58 +504,14 @@ function ProgressBar({
           }
         }}
         onMouseLeave={onProgressMouseLeave}
-        sx={{
-          color: '#7C3AED',
-          height: 28,
-          padding: '0 !important',
-          cursor: 'pointer',
-          '& .MuiSlider-track': {
-            display: 'none',
-          },
-          '& .MuiSlider-rail': {
-            height: '100%',
-            opacity: 0,
-            cursor: 'pointer',
-          },
-          '& .MuiSlider-thumb': {
-            width: 14,
-            height: 14,
-            backgroundColor: '#fff',
-            border: '3px solid #BB86FC',
-            opacity: 0,
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-            cursor: 'grab',
-            '&:hover': {
-              opacity: 1,
-              width: 16,
-              height: 16,
-            },
-            '&.Mui-active': {
-              opacity: 1,
-              width: 18,
-              height: 18,
-              cursor: 'grabbing',
-            },
-          },
-          '&:hover .MuiSlider-thumb': {
-            opacity: 1,
-          },
-        }}
+        sx={SLIDER_SX}
       />
 
       {hoverTime !== null && duration > 0 && (
         <Box
           sx={{
-            position: 'absolute',
+            ...HOVER_MARKER_SX,
             left: `${(hoverTime / duration) * 100}%`,
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 2,
-            height: 12,
-            backgroundColor: 'rgba(255, 255, 255, 0.85)',
-            borderRadius: 1,
-            pointerEvents: 'none',
-            zIndex: 10,
           }}
         />
       )}
@@ -455,46 +532,8 @@ function ProgressBar({
         ) : (
           <Box
             sx={{
-              position: 'absolute',
-              bottom: 24,
+              ...TOOLTIP_SX,
               left: `${(hoverTime / duration) * 100}%`,
-              transform: 'translateX(-50%)',
-              color: '#fff',
-              padding: '6px 12px',
-              backgroundColor: 'rgba(41, 41, 41, 0.62)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: 2,
-              fontSize: '12px',
-              fontFamily: 'Roboto, sans-serif',
-              fontWeight: 500,
-              whiteSpace: 'nowrap',
-              zIndex: 2001,
-              pointerEvents: 'none',
-              animation: 'tooltipAppear 0.15s ease-out',
-              '@keyframes tooltipAppear': {
-                from: {
-                  opacity: 0,
-                  transform: 'translateX(-50%) translateY(5px)',
-                },
-                to: {
-                  opacity: 1,
-                  transform: 'translateX(-50%) translateY(0)',
-                },
-              },
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                bottom: -4,
-                left: '50%',
-                transform: 'translateX(-50%) rotate(45deg)',
-                width: 8,
-                height: 8,
-                backgroundColor: 'rgba(41, 41, 41, 0.62)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderTop: 'none',
-                borderLeft: 'none',
-              },
             }}
           >
             {formatTime(hoverTime)}

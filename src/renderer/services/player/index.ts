@@ -4,6 +4,9 @@
  */
 
 export { default as AmbientLightManager } from './AmbientLightManager';
+export { PlaybackTimeStore } from './PlaybackTimeStore';
+export type { PlaybackTimeListener } from './PlaybackTimeStore';
+export type { AmbientColor, AmbientColors } from './AmbientLightManager';
 
 export { ShakaPlayerManager } from './ShakaPlayerManager';
 export type { QualityOption, ShakaPlayerConfig } from './ShakaPlayerManager';

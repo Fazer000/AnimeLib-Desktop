@@ -1,17 +1,49 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Box, IconButton, Typography } from '@mui/material';
 import { PlayArrowRounded, PauseRounded } from '@mui/icons-material';
 import KeyboardDoubleArrowRightRoundedIcon from '@mui/icons-material/KeyboardDoubleArrowRightRounded';
 import ControlTooltip from './ControlTooltip';
 import { formatTime } from '../../utils/videoHelpers';
+import { PlaybackTimeStore } from '../../services/player';
 import { PLAYER_CONTROL_ICON_SIZE } from '../../../constants';
 
 const ICON_SX = { fontSize: `${PLAYER_CONTROL_ICON_SIZE}px` };
 
+const TIME_SX = {
+  color: 'white',
+  fontSize: '12px',
+  fontFamily: 'Open Sans, sans-serif',
+};
+
+const DURATION_SX = {
+  color: '#bfbfbf',
+  fontSize: '12px',
+  fontFamily: 'Open Sans, sans-serif',
+};
+
+/** Текущее время: пишется в textContent, поэтому тик не перерисовывает панель. */
+function CurrentTime({ timeStore }: { timeStore: PlaybackTimeStore }) {
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const render = (time: number) => {
+      const text = formatTime(time);
+      if (ref.current && ref.current.textContent !== text) {
+        ref.current.textContent = text;
+      }
+    };
+
+    render(timeStore.getCurrentTime());
+    return timeStore.subscribe(render);
+  }, [timeStore]);
+
+  return <Typography ref={ref} variant="caption" sx={TIME_SX} />;
+}
+
 interface PlaybackControlsProps {
   isPlaying: boolean;
   isLoading: boolean;
-  currentTime: number;
+  timeStore: PlaybackTimeStore;
   duration: number;
   skipTime: number;
   onTogglePlay: () => void;
@@ -24,7 +56,7 @@ interface PlaybackControlsProps {
 function PlaybackControls({
   isPlaying,
   isLoading,
-  currentTime,
+  timeStore,
   duration,
   skipTime,
   onTogglePlay,
@@ -83,34 +115,11 @@ function PlaybackControls({
         </span>
       </ControlTooltip>
 
-      <Typography
-        variant="caption"
-        sx={{
-          color: 'white',
-          fontSize: '12px',
-          fontFamily: 'Open Sans, sans-serif',
-        }}
-      >
-        {formatTime(currentTime)}
-      </Typography>
-      <Typography
-        variant="caption"
-        sx={{
-          color: 'white',
-          fontSize: '12px',
-          fontFamily: 'Open Sans, sans-serif',
-        }}
-      >
+      <CurrentTime timeStore={timeStore} />
+      <Typography variant="caption" sx={TIME_SX}>
         /
       </Typography>
-      <Typography
-        variant="caption"
-        sx={{
-          color: '#bfbfbf',
-          fontSize: '12px',
-          fontFamily: 'Open Sans, sans-serif',
-        }}
-      >
+      <Typography variant="caption" sx={DURATION_SX}>
         {formatTime(duration)}
       </Typography>
     </Box>

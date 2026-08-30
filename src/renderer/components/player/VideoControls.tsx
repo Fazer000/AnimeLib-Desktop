@@ -21,6 +21,7 @@ import SettingsMenu from './SettingsMenu';
 import {
   SkipManager,
   ThumbnailManager,
+  PlaybackTimeStore,
   SubtitleTrack,
   SubtitlesSettings,
 } from '../../services/player';
@@ -58,11 +59,10 @@ interface TimeCode {
 interface VideoControlsProps {
   isPlaying: boolean;
   isLoading: boolean;
-  currentTime: number;
+  timeStore: PlaybackTimeStore;
   duration: number;
   volume: number;
   isMuted: boolean;
-  buffered: number;
   isFullscreen: boolean;
   showControls: boolean;
   onMenuOpenChange: (isOpen: boolean) => void;
@@ -146,11 +146,10 @@ interface VideoControlsProps {
 function VideoControls({
   isPlaying,
   isLoading,
-  currentTime,
+  timeStore,
   duration,
   volume,
   isMuted,
-  buffered,
   isFullscreen,
   showControls,
   onMenuOpenChange,
@@ -477,9 +476,8 @@ function VideoControls({
         onMouseLeave={onMouseLeave}
       >
         <ProgressBar
-          currentTime={currentTime}
+          timeStore={timeStore}
           duration={duration}
-          buffered={buffered}
           hoverTime={hoverTime}
           onSeek={onSeek}
           onProgressMouseMove={onProgressMouseMove}
@@ -501,7 +499,7 @@ function VideoControls({
           <PlaybackControls
             isPlaying={isPlaying}
             isLoading={isLoading}
-            currentTime={currentTime}
+            timeStore={timeStore}
             duration={duration}
             skipTime={skipTime}
             onTogglePlay={onTogglePlay}
@@ -713,4 +711,4 @@ VideoControls.defaultProps = {
   onSubtitleTrackChange: undefined,
   onSubtitleSettingsChange: undefined,
 };
-export default VideoControls;
+export default React.memo(VideoControls);

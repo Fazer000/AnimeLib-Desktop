@@ -2,14 +2,35 @@ import { createLogger } from '../../../shared/logger';
 
 const log = createLogger('AmbientLightManager');
 
+export interface AmbientColor {
+  r: number;
+  g: number;
+  b: number;
+  a: number;
+}
+
+export interface AmbientColors {
+  top: AmbientColor;
+  bottom: AmbientColor;
+  left: AmbientColor;
+  right: AmbientColor;
+}
+
+type SamplingContext =
+  | CanvasRenderingContext2D
+  | OffscreenCanvasRenderingContext2D;
+
+const TRANSPARENT: AmbientColor = { r: 0, g: 0, b: 0, a: 0 };
+
+/** Цвета передаются числами: строка градиента собирается один раз в компоненте. */
 export default class AmbientLightManager {
-  private canvas: HTMLCanvasElement;
+  private ctx: SamplingContext;
 
-  private ctx: CanvasRenderingContext2D;
+  private rafId: number | null = null;
 
-  private timeoutId: ReturnType<typeof setTimeout> | null = null;
+  private lastSampleTime = 0;
 
-  private lastUpdateTime: number = 0;
+  private video: HTMLVideoElement | null = null;
 
   private sampleSize = 16;
 
@@ -17,90 +38,65 @@ export default class AmbientLightManager {
 
   private interpolationFactor = 0.25;
 
-  private currentColors = {
-    top: 'rgba(0, 0, 0, 0)',
-    bottom: 'rgba(0, 0, 0, 0)',
-    left: 'rgba(0, 0, 0, 0)',
-    right: 'rgba(0, 0, 0, 0)',
+  private currentColors: AmbientColors = {
+    top: TRANSPARENT,
+    bottom: TRANSPARENT,
+    left: TRANSPARENT,
+    right: TRANSPARENT,
   };
 
-  private onColorsUpdate:
-    | ((colors: {
-        top: string;
-        bottom: string;
-        left: string;
-        right: string;
-      }) => void)
-    | null = null;
+  private onColorsUpdate: ((colors: AmbientColors) => void) | null = null;
 
   constructor() {
-    this.canvas = document.createElement('canvas');
-    this.canvas.width = this.sampleSize;
-    this.canvas.height = this.sampleSize;
+    this.ctx = AmbientLightManager.createContext(this.sampleSize);
+  }
 
-    const context = this.canvas.getContext('2d', { willReadFrequently: true });
+  /** OffscreenCanvas, когда доступен: сэмплирование не создаёт DOM-узел. */
+  private static createContext(size: number): SamplingContext {
+    if (typeof OffscreenCanvas !== 'undefined') {
+      const offscreen = new OffscreenCanvas(size, size).getContext('2d', {
+        willReadFrequently: true,
+      });
+      if (offscreen) return offscreen;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+
+    const context = canvas.getContext('2d', { willReadFrequently: true });
     if (!context) {
       throw new Error('Failed to get 2D context for AmbientLight canvas');
     }
-    this.ctx = context;
+    return context;
   }
 
-  setOnColorsUpdate(
-    callback: (colors: {
-      top: string;
-      bottom: string;
-      left: string;
-      right: string;
-    }) => void,
-  ): void {
+  setOnColorsUpdate(callback: (colors: AmbientColors) => void): void {
     this.onColorsUpdate = callback;
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  private parseRgba(rgba: string): {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-  } {
-    const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),?\s*([\d.]+)?\)/);
-    if (match) {
-      return {
-        r: parseInt(match[1], 10),
-        g: parseInt(match[2], 10),
-        b: parseInt(match[3], 10),
-        a: match[4] ? parseFloat(match[4]) : 1,
-      };
-    }
-    return { r: 0, g: 0, b: 0, a: 0 };
-  }
-
-  private interpolateColor(
-    color1: string,
-    color2: string,
+  private static interpolate(
+    from: AmbientColor,
+    to: AmbientColor,
     factor: number,
-  ): string {
-    const c1 = this.parseRgba(color1);
-    const c2 = this.parseRgba(color2);
-
-    const r = Math.round(c1.r + (c2.r - c1.r) * factor);
-    const g = Math.round(c1.g + (c2.g - c1.g) * factor);
-    const b = Math.round(c1.b + (c2.b - c1.b) * factor);
-    const a = c1.a + (c2.a - c1.a) * factor;
-
-    return `rgba(${r}, ${g}, ${b}, ${a.toFixed(2)})`;
+  ): AmbientColor {
+    return {
+      r: Math.round(from.r + (to.r - from.r) * factor),
+      g: Math.round(from.g + (to.g - from.g) * factor),
+      b: Math.round(from.b + (to.b - from.b) * factor),
+      a: from.a + (to.a - from.a) * factor,
+    };
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  private getDominantColor(
+  private static getDominantColor(
     pixels: { r: number; g: number; b: number }[],
-  ): string {
-    if (pixels.length === 0) return 'rgba(0, 0, 0, 0)';
+  ): AmbientColor {
+    if (pixels.length === 0) return TRANSPARENT;
 
-    const colorBuckets: Map<
+    const colorBuckets = new Map<
       string,
       { r: number; g: number; b: number; count: number }
-    > = new Map();
+    >();
 
     pixels.forEach((pixel) => {
       const bucketR = Math.round(pixel.r / 16) * 16;
@@ -115,22 +111,12 @@ export default class AmbientLightManager {
         existing.b += pixel.b;
         existing.count += 1;
       } else {
-        colorBuckets.set(key, {
-          r: pixel.r,
-          g: pixel.g,
-          b: pixel.b,
-          count: 1,
-        });
+        colorBuckets.set(key, { r: pixel.r, g: pixel.g, b: pixel.b, count: 1 });
       }
     });
 
     let maxCount = 0;
-    let dominantBucket: { r: number; g: number; b: number; count: number } = {
-      r: 0,
-      g: 0,
-      b: 0,
-      count: 0,
-    };
+    let dominantBucket = { r: 0, g: 0, b: 0, count: 0 };
 
     colorBuckets.forEach((bucket) => {
       if (bucket.count > maxCount) {
@@ -145,37 +131,25 @@ export default class AmbientLightManager {
 
     const avgGray = (r + g + b) / 10;
     const saturationBoost = 2;
-    const newR = Math.min(
-      255,
-      Math.round(avgGray + (r - avgGray) * saturationBoost),
-    );
-    const newG = Math.min(
-      255,
-      Math.round(avgGray + (g - avgGray) * saturationBoost),
-    );
-    const newB = Math.min(
-      255,
-      Math.round(avgGray + (b - avgGray) * saturationBoost),
-    );
 
-    return `rgba(${newR}, ${newG}, ${newB}, 0.4)`;
+    return {
+      r: Math.min(255, Math.round(avgGray + (r - avgGray) * saturationBoost)),
+      g: Math.min(255, Math.round(avgGray + (g - avgGray) * saturationBoost)),
+      b: Math.min(255, Math.round(avgGray + (b - avgGray) * saturationBoost)),
+      a: 0.4,
+    };
   }
 
-  private extractColors(video: HTMLVideoElement, isPlaying: boolean): void {
-    if (!isPlaying || video.paused || video.ended) {
-      return;
-    }
-
+  private sample(video: HTMLVideoElement): void {
     try {
       this.ctx.drawImage(video, 0, 0, this.sampleSize, this.sampleSize);
 
-      const imageData = this.ctx.getImageData(
+      const { data } = this.ctx.getImageData(
         0,
         0,
         this.sampleSize,
         this.sampleSize,
       );
-      const { data } = imageData;
 
       const zones = {
         top: [] as { r: number; g: number; b: number }[],
@@ -194,109 +168,96 @@ export default class AmbientLightManager {
           const b = data[idx + 2];
 
           const brightness = (r + g + b) / 3;
-          if (brightness < 20 || brightness > 235) {
-            // eslint-disable-next-line no-continue
-            continue;
-          }
-
           const max = Math.max(r, g, b);
           const min = Math.min(r, g, b);
-          if (max - min < 20) {
-            // eslint-disable-next-line no-continue
-            continue;
-          }
 
-          const pixel = { r, g, b };
+          if (brightness >= 20 && brightness <= 235 && max - min >= 20) {
+            const pixel = { r, g, b };
 
-          if (y < edgeThickness) {
-            zones.top.push(pixel);
-          }
-          if (y >= this.sampleSize - edgeThickness) {
-            zones.bottom.push(pixel);
-          }
-          if (x < edgeThickness) {
-            zones.left.push(pixel);
-          }
-          if (x >= this.sampleSize - edgeThickness) {
-            zones.right.push(pixel);
+            if (y < edgeThickness) zones.top.push(pixel);
+            if (y >= this.sampleSize - edgeThickness) zones.bottom.push(pixel);
+            if (x < edgeThickness) zones.left.push(pixel);
+            if (x >= this.sampleSize - edgeThickness) zones.right.push(pixel);
           }
         }
       }
 
-      const targetColors = {
-        top: this.getDominantColor(zones.top),
-        bottom: this.getDominantColor(zones.bottom),
-        left: this.getDominantColor(zones.left),
-        right: this.getDominantColor(zones.right),
-      };
+      const factor = this.interpolationFactor;
 
       this.currentColors = {
-        top: this.interpolateColor(
+        top: AmbientLightManager.interpolate(
           this.currentColors.top,
-          targetColors.top,
-          this.interpolationFactor,
+          AmbientLightManager.getDominantColor(zones.top),
+          factor,
         ),
-        bottom: this.interpolateColor(
+        bottom: AmbientLightManager.interpolate(
           this.currentColors.bottom,
-          targetColors.bottom,
-          this.interpolationFactor,
+          AmbientLightManager.getDominantColor(zones.bottom),
+          factor,
         ),
-        left: this.interpolateColor(
+        left: AmbientLightManager.interpolate(
           this.currentColors.left,
-          targetColors.left,
-          this.interpolationFactor,
+          AmbientLightManager.getDominantColor(zones.left),
+          factor,
         ),
-        right: this.interpolateColor(
+        right: AmbientLightManager.interpolate(
           this.currentColors.right,
-          targetColors.right,
-          this.interpolationFactor,
+          AmbientLightManager.getDominantColor(zones.right),
+          factor,
         ),
       };
 
-      if (this.onColorsUpdate) {
-        this.onColorsUpdate(this.currentColors);
-      }
+      this.onColorsUpdate?.(this.currentColors);
     } catch (error) {
       log.error('Error extracting colors:', error);
     }
-
-    this.timeoutId = setTimeout(
-      () => this.extractColors(video, isPlaying),
-      this.minUpdateInterval,
-    );
   }
+
+  /** Кадры пропускаются до истечения minUpdateInterval; в фоновом окне rAF не тикает. */
+  private tick = (timestamp: number): void => {
+    const { video } = this;
+
+    if (!video || video.paused || video.ended) {
+      this.rafId = null;
+      return;
+    }
+
+    if (timestamp - this.lastSampleTime >= this.minUpdateInterval) {
+      this.lastSampleTime = timestamp;
+      this.sample(video);
+    }
+
+    this.rafId = requestAnimationFrame(this.tick);
+  };
 
   start(video: HTMLVideoElement, isPlaying: boolean): void {
     this.stop();
     if (!isPlaying) return;
-    this.extractColors(video, isPlaying);
+
+    this.video = video;
+    this.lastSampleTime = 0;
+    this.rafId = requestAnimationFrame(this.tick);
   }
 
   stop(): void {
-    if (this.timeoutId !== null) {
-      clearTimeout(this.timeoutId);
-      this.timeoutId = null;
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
     }
+    this.video = null;
   }
 
   reset(): void {
     this.currentColors = {
-      top: 'rgba(0, 0, 0, 0)',
-      bottom: 'rgba(0, 0, 0, 0)',
-      left: 'rgba(0, 0, 0, 0)',
-      right: 'rgba(0, 0, 0, 0)',
+      top: TRANSPARENT,
+      bottom: TRANSPARENT,
+      left: TRANSPARENT,
+      right: TRANSPARENT,
     };
-    if (this.onColorsUpdate) {
-      this.onColorsUpdate(this.currentColors);
-    }
+    this.onColorsUpdate?.(this.currentColors);
   }
 
-  getCurrentColors(): {
-    top: string;
-    bottom: string;
-    left: string;
-    right: string;
-  } {
+  getCurrentColors(): AmbientColors {
     return { ...this.currentColors };
   }
 

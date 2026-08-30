@@ -22,6 +22,7 @@ export interface VideoPlayerControllerConfig {
   onError?: (error: string) => void;
   onLoadingChange?: (isLoading: boolean) => void;
   onStateChange?: (state: any) => void;
+  onTimeUpdate?: (currentTime: number, buffered: number) => void;
   onQualityOptionsChange?: (options: any[]) => void;
   onSelectedQualityChange?: (quality: string) => void;
   onSubtitleTracksChange?: (tracks: SubtitleTrack[]) => void;
@@ -107,6 +108,8 @@ export class VideoPlayerController {
 
     this.stateManager = new VideoStateManager({
       onStateChange: (updates) => this.handleStateManagerUpdate(updates),
+      onTimeUpdate: (currentTime, buffered) =>
+        this.handleTimeUpdate(currentTime, buffered),
     });
 
     this.qualityManager = new QualityManager({
@@ -160,11 +163,6 @@ export class VideoPlayerController {
    * Объединяет буферизацию медиаэлемента и потока в единый флаг состояния
    */
   private handleStateManagerUpdate(updates: any): void {
-    if (updates.currentTime !== undefined) {
-      const state = this.stateManager.getState();
-      this.watchStatsManager.updateProgress(state.currentTime, state.duration);
-    }
-
     if (updates.isBuffering === undefined && updates.isPlaying === undefined) {
       this.config.onStateChange?.(updates);
       return;
@@ -174,6 +172,17 @@ export class VideoPlayerController {
     this.lastEmittedBuffering = effective;
 
     this.config.onStateChange?.({ ...updates, isBuffering: effective });
+  }
+
+  /**
+   * Прокидывает время воспроизведения мимо состояния React
+   */
+  private handleTimeUpdate(currentTime: number, buffered: number): void {
+    this.watchStatsManager.updateProgress(
+      currentTime,
+      this.stateManager.getState().duration,
+    );
+    this.config.onTimeUpdate?.(currentTime, buffered);
   }
 
   /**
