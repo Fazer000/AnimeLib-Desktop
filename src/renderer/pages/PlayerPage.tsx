@@ -9,7 +9,7 @@ import {
 } from '../api/animeApi';
 import CustomToolbar from '../components/Toolbar';
 import VideoPlayer, { VideoPlayerRef } from '../components/player/VideoPlayer';
-import ErrorBoundary from '../components/player/ErrorBoundary';
+import ErrorBoundary from '../components/ErrorBoundary';
 import EpisodeSlider from '../components/player/EpisodeSlider';
 import PlayerSidebar from '../components/player/PlayerSidebar';
 import CommentsSection from '../components/player/CommentsSection';
@@ -1026,7 +1026,7 @@ function PlayerPageRefactored({
                   zIndex: 1,
                 }}
               >
-                <ErrorBoundary>
+                <ErrorBoundary title="Произошла ошибка в плеере">
                   {show404 && (
                     <Box
                       sx={{

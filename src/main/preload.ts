@@ -48,7 +48,10 @@ export type Channels =
   | 'offline-verify'
   | 'offline-resume'
   | 'offline-free-space'
-  | 'offline-migration-progress';
+  | 'offline-migration-progress'
+  | 'report-renderer-error'
+  | 'debug-crash-main'
+  | 'debug-crash-renderer';
 
 /** Картинка, загруженная главным процессом с нужным Referer. */
 export interface FetchImageResult {
@@ -103,6 +106,13 @@ const electronHandler = {
     getKodikLinks: async (kodikSrc: string) => {
       log.debug('Preload: Getting Kodik links for:', kodikSrc);
       return ipcRenderer.invoke('get-kodik-links', kodikSrc);
+    },
+    reportRendererError: (payload: {
+      message: string;
+      stack?: string;
+      componentStack?: string;
+    }) => {
+      ipcRenderer.send('report-renderer-error', payload);
     },
     fetchImage: async (payload: {
       url: string;

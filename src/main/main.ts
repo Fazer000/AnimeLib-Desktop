@@ -26,6 +26,7 @@ import {
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { registerUpdateHandlers } from './updater';
+import { registerCrashHandlers } from './crashReporter';
 import {
   registerOfflineHandlers,
   registerOfflineProtocol,
@@ -803,6 +804,8 @@ const registerBookmarksWatcher = (): void => {
 
   log.debug('Bookmarks watcher registered');
 };
+
+registerCrashHandlers(() => mainWindow);
 
 app
   .whenReady()

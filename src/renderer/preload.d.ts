@@ -1,5 +1,6 @@
 import { ElectronHandler } from '../main/preload';
 import type { NavigationRecord } from './services/webview';
+import type { AnimeLibDebugApi } from './utils/debugApi';
 
 /** Отладочный API истории навигации, публикуемый в консоль. */
 export interface AnimeLibNavApi {
@@ -15,6 +16,7 @@ declare global {
   interface Window {
     electron: ElectronHandler;
     animeLibNav?: AnimeLibNavApi;
+    animeLibDebug?: AnimeLibDebugApi;
   }
 }
 

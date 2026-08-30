@@ -6,6 +6,8 @@ import React, {
   useRef,
 } from 'react';
 import { ThemeProvider, createTheme, CssBaseline, Box } from '@mui/material';
+import ErrorBoundary from './components/ErrorBoundary';
+import { installDebugApi } from './utils/debugApi';
 import UrlInputPage from './pages/UrlInputPage';
 import WebView from './pages/WebViewPage';
 import type { WebViewPageRef } from './pages/WebViewPage';
@@ -239,6 +241,8 @@ const darkTheme = createTheme({
     },
   },
 });
+
+installDebugApi();
 
 function App() {
   const [savedUrl, setSavedUrl] = useState<string | null>(null);
@@ -545,4 +549,16 @@ function App() {
   );
 }
 
-export default App;
+/**
+ * Корень приложения: ловит ошибки рендера, чтобы окно не оставалось белым
+ */
+export default function AppRoot() {
+  return (
+    <ThemeProvider theme={darkTheme}>
+      <CssBaseline />
+      <ErrorBoundary title="Произошла ошибка в приложении">
+        <App />
+      </ErrorBoundary>
+    </ThemeProvider>
+  );
+}
