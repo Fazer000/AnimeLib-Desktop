@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, {
   useState,
   useEffect,
@@ -25,6 +24,10 @@ import useProgressSync from './hooks/useProgressSync';
 import useOfflineLibrary from './hooks/useOfflineLibrary';
 import { offlineCatalog } from './services/offline';
 import { checkConnection } from './utils/connectivity';
+
+import { createLogger } from '../shared/logger';
+
+const log = createLogger('App');
 
 declare module '@mui/material/styles' {
   interface CustomColors {
@@ -241,7 +244,7 @@ function App() {
   useProgressSync(isOnline);
 
   useEffect(() => {
-    console.log('[App] Connection status:', isOnline ? 'online' : 'offline');
+    log.debug('Connection status:', isOnline ? 'online' : 'offline');
   }, [isOnline]);
 
   useEffect(() => {
@@ -259,8 +262,8 @@ function App() {
 
   const handlePlayerButtonClick = useCallback(
     (url: string, providedAnimeId?: string, episodeId?: number) => {
-      console.log('[AnimeLIB] Opening player page for URL:', url);
-      console.log('[AnimeLIB] Provided anime ID:', providedAnimeId);
+      log.debug('[AnimeLIB] Opening player page for URL:', url);
+      log.debug('[AnimeLIB] Provided anime ID:', providedAnimeId);
 
       let finalAnimeId = providedAnimeId;
       if (!finalAnimeId) {
@@ -272,7 +275,7 @@ function App() {
           if (savedPageUrl) {
             const savedAnimeIdMatch = savedPageUrl.match(/\/anime\/([^/?]+)/);
             finalAnimeId = savedAnimeIdMatch ? savedAnimeIdMatch[1] : 'unknown';
-            console.log(
+            log.debug(
               '[AnimeLIB] Using anime ID from saved page:',
               finalAnimeId,
             );
@@ -282,7 +285,7 @@ function App() {
         }
       }
 
-      console.log('[AnimeLIB] Final anime ID:', finalAnimeId);
+      log.debug('[AnimeLIB] Final anime ID:', finalAnimeId);
       playerHistoryManager.open(
         url,
         finalAnimeId ?? 'unknown',
@@ -308,7 +311,7 @@ function App() {
         'open-player-page',
         (...args: unknown[]) => {
           const url = args[0] as string;
-          console.log('[AnimeLIB] Received player page request:', url);
+          log.debug('[AnimeLIB] Received player page request:', url);
           handlePlayerButtonClick(url);
         },
       );
@@ -325,7 +328,7 @@ function App() {
         'player-button-clicked',
         (...args: unknown[]) => {
           const url = args[0] as string;
-          console.log('[AnimeLIB] Received player button click via IPC:', url);
+          log.debug('[AnimeLIB] Received player button click via IPC:', url);
           handlePlayerButtonClick(url);
         },
       );
@@ -343,13 +346,13 @@ function App() {
   const handlePlayFromLibrary = useCallback(
     async (id: string, episodeId?: number) => {
       if (await checkConnection()) {
-        console.log('[App] Opening online player from library:', id, episodeId);
+        log.debug('Opening online player from library:', id, episodeId);
         setOfflineTarget(null);
         handlePlayerButtonClick(buildAnimePageUrl(id), id, episodeId);
         return;
       }
 
-      console.log('[App] Opening offline player:', id, episodeId);
+      log.debug('Opening offline player:', id, episodeId);
 
       if (playerUrl) {
         playerHistoryManager.discard();
@@ -425,12 +428,12 @@ function App() {
                 useOffline={!isOnline}
                 offlineItems={offlineContinue}
                 onSelectOffline={(item) => {
-                  console.log('[App] Continue watching offline:', item.animeId);
+                  log.debug('Continue watching offline:', item.animeId);
                   handlePlayFromLibrary(item.animeId, item.episodeId);
                 }}
                 onSelect={(bookmark) => {
                   const url = buildAnimePageUrl(bookmark.animeSlugUrl);
-                  console.log('[App] Continue watching:', url);
+                  log.debug('Continue watching:', url);
                   handlePlayerButtonClick(url, bookmark.animeSlugUrl);
                 }}
               />
@@ -462,16 +465,16 @@ function App() {
               initialEpisodeId={offlineTarget.episodeId}
               onPlayOffline={handlePlayFromLibrary}
               onBack={() => {
-                console.log('[App] Offline player closed');
+                log.debug('Offline player closed');
                 setOfflineTarget(null);
               }}
               onHome={() => {
-                console.log('[App] Offline player home');
+                log.debug('Offline player home');
                 webViewRef.current?.goHome();
                 setOfflineTarget(null);
               }}
               onNavigateToUrl={(url: string) => {
-                console.log('[App] Offline player navigate to URL:', url);
+                log.debug('Offline player navigate to URL:', url);
                 webViewRef.current?.navigateTo(url);
                 setOfflineTarget(null);
               }}
@@ -493,7 +496,7 @@ function App() {
               onPlayerButtonClick={handlePlayerButtonClick}
               onPlayOffline={handlePlayFromLibrary}
               onBack={() => {
-                console.log('[App] Player back button clicked');
+                log.debug('Player back button clicked');
                 playerHistoryManager.discard();
                 handlePlayerClose(playerUrl);
 
@@ -502,12 +505,12 @@ function App() {
                 }
               }}
               onHome={() => {
-                console.log('[App] Player home button clicked');
+                log.debug('Player home button clicked');
                 webViewRef.current?.goHome();
                 handlePlayerClose(playerUrl);
               }}
               onNavigateToUrl={(url: string) => {
-                console.log('[App] Player navigate to URL:', url);
+                log.debug('Player navigate to URL:', url);
                 playerHistoryManager.commit(url);
                 webViewRef.current?.navigateTo(url);
                 handlePlayerClose(playerUrl);

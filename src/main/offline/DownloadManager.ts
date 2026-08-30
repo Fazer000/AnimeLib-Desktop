@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * Очередь загрузки серий с докачкой и восстановлением после перезапуска
  */
@@ -26,6 +24,10 @@ import { offlineLibrary } from './OfflineLibrary';
 import { hlsDownloader } from './HlsDownloader';
 import { parallelDownloader } from './ParallelDownloader';
 import { KODIK_HEADERS } from './httpClient';
+
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('DownloadManager');
 
 interface QueueItem {
   task: DownloadTask;
@@ -113,7 +115,7 @@ class DownloadManager {
         'utf8',
       );
     } catch (error) {
-      console.error('[DownloadManager] Failed to persist queue:', error);
+      log.error('Failed to persist queue:', error);
     }
   }
 
@@ -136,7 +138,7 @@ class DownloadManager {
       });
 
       if (this.queue.length > 0) {
-        console.log('[DownloadManager] Restored tasks:', this.queue.length);
+        log.debug('Restored tasks:', this.queue.length);
       }
     } catch {
       this.queue = [];
@@ -169,7 +171,7 @@ class DownloadManager {
       return 0;
     }
 
-    console.log('[DownloadManager] Resuming tasks:', targets.length);
+    log.debug('Resuming tasks:', targets.length);
     this.notify('offline-tasks-changed');
     this.persist();
     this.pump();
@@ -240,7 +242,7 @@ class DownloadManager {
             force: true,
           });
         } catch (error) {
-          console.error('[DownloadManager] Failed to remove partial:', error);
+          log.error('Failed to remove partial:', error);
         }
       },
     );
@@ -406,9 +408,7 @@ class DownloadManager {
           }
 
           if (attempt < OFFLINE_DOWNLOAD_RETRIES) {
-            console.warn(
-              `[DownloadManager] Retry ${attempt} for episode ${request.episodeNumber}`,
-            );
+            log.warn(`Retry ${attempt} for episode ${request.episodeNumber}`);
             // eslint-disable-next-line no-await-in-loop
             await DownloadManager.delay(OFFLINE_RETRY_DELAY_MS);
           }
@@ -475,11 +475,11 @@ class DownloadManager {
       task.status = 'completed';
       task.progress = 100;
       this.notify('offline-library-changed');
-      console.log('[DownloadManager] Completed:', request.episodeNumber);
+      log.debug('Completed:', request.episodeNumber);
     } catch (error: any) {
       task.status = 'error';
       task.error = error?.message || 'Ошибка загрузки';
-      console.error('[DownloadManager] Failed:', error);
+      log.error('Failed:', error);
     } finally {
       this.active -= 1;
       this.notify('offline-tasks-changed');
@@ -530,7 +530,7 @@ class DownloadManager {
         }
 
         if (statusCode === 416) {
-          console.log('[DownloadManager] File already complete');
+          log.debug('File already complete');
           response.resume();
           resolve('completed');
           return;
@@ -545,10 +545,7 @@ class DownloadManager {
         const contentType = String(responseHeaders['content-type'] || '');
 
         if (/text\/html|application\/json|text\/plain/i.test(contentType)) {
-          console.error(
-            '[DownloadManager] Unexpected content-type:',
-            contentType,
-          );
+          log.error('Unexpected content-type:', contentType);
           response.resume();
           resolve('failed');
           return;
@@ -560,14 +557,14 @@ class DownloadManager {
         const total = remaining > 0 ? startByte + remaining : 0;
 
         if (!DownloadManager.hasFreeSpace(destination, remaining)) {
-          console.error('[DownloadManager] Not enough free space');
+          log.error('Not enough free space');
           response.destroy();
           resolve('no-space');
           return;
         }
 
         if (existing > 0 && !isPartial) {
-          console.warn('[DownloadManager] Range ignored, restarting download');
+          log.warn('Range ignored, restarting download');
         }
 
         const file = fs.createWriteStream(destination, {
@@ -606,9 +603,7 @@ class DownloadManager {
             const complete = total === 0 || loaded === total;
 
             if (!complete) {
-              console.error(
-                `[DownloadManager] Incomplete: ${loaded} of ${total} bytes`,
-              );
+              log.error(`Incomplete: ${loaded} of ${total} bytes`);
             }
 
             resolve(complete ? 'completed' : 'failed');

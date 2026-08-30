@@ -1,4 +1,7 @@
-/* eslint-disable no-console */
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('urlHelpers');
+
 /**
  * Хелперы для работы с URL сайта AnimeLib
  */
@@ -63,7 +66,7 @@ export function getHomeUrl(): string {
  */
 export function saveSiteUrl(url: string): string {
   if (!isSiteUrl(url)) {
-    console.warn('[urlHelpers] Ignored non-site URL as base:', url);
+    log.warn('Ignored non-site URL as base:', url);
     return getHomeUrl();
   }
 
@@ -72,7 +75,7 @@ export function saveSiteUrl(url: string): string {
   try {
     localStorage.setItem('animeLibUrl', baseUrl);
   } catch (error) {
-    console.error('[urlHelpers] Error saving site URL:', error);
+    log.error('Error saving site URL:', error);
   }
 
   return baseUrl;

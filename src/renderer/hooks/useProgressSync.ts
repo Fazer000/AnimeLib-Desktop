@@ -1,9 +1,12 @@
-/* eslint-disable no-console */
 import { useEffect, useRef } from 'react';
 import { animeApi } from '../api/animeApi';
 import { offlineStore, progressStore, viewedStore } from '../services/offline';
 import { BookmarkManager } from '../services/player';
 import { CONNECTIVITY_CHECK_INTERVAL_MS } from '../../constants';
+
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('ProgressSync');
 
 /**
  * Обменивается прогрессом просмотра с сайтом при наличии связи
@@ -25,7 +28,7 @@ function useProgressSync(isOnline: boolean): void {
         return;
       }
 
-      console.log('[ProgressSync] Pending entries:', pending.length);
+      log.debug('Pending entries:', pending.length);
 
       // eslint-disable-next-line no-restricted-syntax
       for (const entry of pending) {
@@ -44,9 +47,9 @@ function useProgressSync(isOnline: boolean): void {
           );
 
           progressStore.markSynced(entry.animeId, entry.episodeId);
-          console.log('[ProgressSync] Synced:', entry.animeId, entry.episodeId);
+          log.debug('Synced:', entry.animeId, entry.episodeId);
         } catch (error) {
-          console.error('[ProgressSync] Failed:', entry.animeId, error);
+          log.error('Failed:', entry.animeId, error);
         }
       }
     };
@@ -58,7 +61,7 @@ function useProgressSync(isOnline: boolean): void {
         return;
       }
 
-      console.log('[ProgressSync] Pending views:', pending.length);
+      log.debug('Pending views:', pending.length);
 
       // eslint-disable-next-line no-restricted-syntax
       for (const entry of pending) {
@@ -80,14 +83,10 @@ function useProgressSync(isOnline: boolean): void {
 
           if (success) {
             viewedStore.markSynced(entry.animeId, entry.playerId);
-            console.log('[ProgressSync] View synced:', entry.animeId);
+            log.debug('View synced:', entry.animeId);
           }
         } catch (error) {
-          console.error(
-            '[ProgressSync] View sync failed:',
-            entry.animeId,
-            error,
-          );
+          log.error('View sync failed:', entry.animeId, error);
         }
       }
     };
@@ -149,13 +148,9 @@ function useProgressSync(isOnline: boolean): void {
             bookmark.updated_at,
           );
 
-          console.log(
-            '[ProgressSync] Pulled bookmark:',
-            item.animeId,
-            episode.episodeNumber,
-          );
+          log.debug('Pulled bookmark:', item.animeId, episode.episodeNumber);
         } catch (error) {
-          console.error('[ProgressSync] Pull failed:', item.animeId, error);
+          log.error('Pull failed:', item.animeId, error);
         }
       }
     };

@@ -1,5 +1,8 @@
-/* eslint-disable no-console */
 import { animeApi } from '../../api/animeApi';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('CommentsManager');
 
 export interface Comment {
   id: number;
@@ -150,7 +153,7 @@ export class CommentsManager {
 
     try {
       this.setLoading(true);
-      console.log('[CommentsManager] Loading page:', pageNum);
+      log.debug('Loading page:', pageNum);
 
       const response = await animeApi.getEpisodeComments(
         episodeId,
@@ -179,8 +182,8 @@ export class CommentsManager {
       this.state.hasMore = response.meta.has_next_page;
       this.state.page = pageNum + 1;
 
-      console.log(
-        '[CommentsManager] Loaded comments:',
+      log.debug(
+        'Loaded comments:',
         this.rootsRaw.length,
         'root,',
         this.repliesRaw.length,
@@ -189,7 +192,7 @@ export class CommentsManager {
 
       this.config.onCommentsLoaded?.(this.state.comments, this.state.hasMore);
     } catch (error) {
-      console.error('[CommentsManager] Error loading comments:', error);
+      log.error('Error loading comments:', error);
       this.config.onError?.(error as Error);
     } finally {
       this.setLoading(false);
@@ -227,11 +230,7 @@ export class CommentsManager {
       this.repliesRaw,
     );
 
-    console.log(
-      '[CommentsManager] Inserted comment:',
-      node.id,
-      isReply ? 'as reply' : 'as root',
-    );
+    log.debug('Inserted comment:', node.id, isReply ? 'as reply' : 'as root');
 
     this.config.onCommentsLoaded?.(this.state.comments, this.state.hasMore);
   }
@@ -255,7 +254,7 @@ export class CommentsManager {
       this.repliesRaw,
     );
 
-    console.log('[CommentsManager] Updated comment:', updated.id);
+    log.debug('Updated comment:', updated.id);
     this.config.onCommentsLoaded?.(this.state.comments, this.state.hasMore);
   }
 
@@ -274,7 +273,7 @@ export class CommentsManager {
       this.repliesRaw,
     );
 
-    console.log('[CommentsManager] Hidden comments of user:', userId);
+    log.debug('Hidden comments of user:', userId);
     this.config.onCommentsLoaded?.(this.state.comments, this.state.hasMore);
   }
 
@@ -307,7 +306,7 @@ export class CommentsManager {
       this.repliesRaw,
     );
 
-    console.log('[CommentsManager] Removed comments:', doomed.size);
+    log.debug('Removed comments:', doomed.size);
     this.config.onCommentsLoaded?.(this.state.comments, this.state.hasMore);
   }
 
@@ -316,7 +315,7 @@ export class CommentsManager {
    */
   public async loadNextPage(): Promise<void> {
     if (!this.currentEpisodeId) {
-      console.warn('[CommentsManager] No episode ID set');
+      log.warn('No episode ID set');
       return;
     }
 

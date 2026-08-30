@@ -1,4 +1,7 @@
-/* eslint-disable no-console */
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('ScriptInjectionManager');
+
 /**
  * ScriptInjectionManager - Manages script injection into webview
  *
@@ -13,7 +16,7 @@
  * const manager = new ScriptInjectionManager(webview);
  *
  * manager.injectOnReady(() => {
- *   console.log('Injecting scripts...');
+ *   log.debug('Injecting scripts...');
  *   injectClickInterceptor(webview);
  *   extractAuthToken(webview);
  * });
@@ -58,12 +61,12 @@ export class ScriptInjectionManager {
    */
   public attachWebView(webview: any): void {
     if (!webview) {
-      console.error('[ScriptInjectionManager] Cannot attach null webview');
+      log.error('Cannot attach null webview');
       return;
     }
 
     this.webview = webview;
-    console.log('[ScriptInjectionManager] WebView attached');
+    log.debug('WebView attached');
   }
 
   /**
@@ -72,10 +75,7 @@ export class ScriptInjectionManager {
   public registerCallback(callback: InjectionCallback): void {
     if (!this.injectionCallbacks.includes(callback)) {
       this.injectionCallbacks.push(callback);
-      console.log(
-        '[ScriptInjectionManager] Callback registered, total:',
-        this.injectionCallbacks.length,
-      );
+      log.debug('Callback registered, total:', this.injectionCallbacks.length);
     }
   }
 
@@ -86,8 +86,8 @@ export class ScriptInjectionManager {
     const index = this.injectionCallbacks.indexOf(callback);
     if (index !== -1) {
       this.injectionCallbacks.splice(index, 1);
-      console.log(
-        '[ScriptInjectionManager] Callback unregistered, remaining:',
+      log.debug(
+        'Callback unregistered, remaining:',
         this.injectionCallbacks.length,
       );
     }
@@ -98,7 +98,7 @@ export class ScriptInjectionManager {
    */
   public clearCallbacks(): void {
     this.injectionCallbacks = [];
-    console.log('[ScriptInjectionManager] All callbacks cleared');
+    log.debug('All callbacks cleared');
   }
 
   /**
@@ -130,13 +130,13 @@ export class ScriptInjectionManager {
       }
 
       if (!this.webview) {
-        console.error('[ScriptInjectionManager] No webview attached');
+        log.error('No webview attached');
         resolve();
         return;
       }
 
       const handleDomReady = () => {
-        console.log('[ScriptInjectionManager] DOM ready event fired');
+        log.debug('DOM ready event fired');
         resolve();
       };
 
@@ -145,9 +145,7 @@ export class ScriptInjectionManager {
       });
 
       setTimeout(() => {
-        console.log(
-          '[ScriptInjectionManager] DOM ready timeout, resolving anyway',
-        );
+        log.debug('DOM ready timeout, resolving anyway');
         resolve();
       }, 5000);
     });
@@ -158,27 +156,18 @@ export class ScriptInjectionManager {
    */
   private executeCallbacks(): void {
     if (this.injectionCallbacks.length === 0) {
-      console.log('[ScriptInjectionManager] No callbacks to execute');
+      log.debug('No callbacks to execute');
       return;
     }
 
-    console.log(
-      '[ScriptInjectionManager] Executing',
-      this.injectionCallbacks.length,
-      'callbacks',
-    );
+    log.debug('Executing', this.injectionCallbacks.length, 'callbacks');
 
     this.injectionCallbacks.forEach((callback, index) => {
       try {
-        console.log('[ScriptInjectionManager] Executing callback', index + 1);
+        log.debug('Executing callback', index + 1);
         callback();
       } catch (error) {
-        console.error(
-          '[ScriptInjectionManager] Error executing callback',
-          index + 1,
-          ':',
-          error,
-        );
+        log.error('Error executing callback', index + 1, ':', error);
       }
     });
   }
@@ -188,37 +177,35 @@ export class ScriptInjectionManager {
    */
   public async inject(): Promise<void> {
     if (this.isInjecting) {
-      console.log('[ScriptInjectionManager] Injection already in progress');
+      log.debug('Injection already in progress');
       return;
     }
 
     if (!this.webview) {
-      console.error(
-        '[ScriptInjectionManager] No webview attached for injection',
-      );
+      log.error('No webview attached for injection');
       return;
     }
 
     this.isInjecting = true;
-    console.log('[ScriptInjectionManager] Starting injection process...');
+    log.debug('Starting injection process...');
 
     try {
       if (this.config.waitForDomReady) {
-        console.log('[ScriptInjectionManager] Waiting for DOM to be ready...');
+        log.debug('Waiting for DOM to be ready...');
         await this.waitForDomReady();
       }
 
       this.executeCallbacks();
 
       this.retryCount = 0;
-      console.log('[ScriptInjectionManager] Injection completed successfully');
+      log.debug('Injection completed successfully');
     } catch (error) {
-      console.error('[ScriptInjectionManager] Injection error:', error);
+      log.error('Injection error:', error);
 
       if (this.retryCount < this.config.maxRetries) {
         this.retryCount += 1;
-        console.log(
-          `[ScriptInjectionManager] Retrying injection (${this.retryCount}/${this.config.maxRetries})...`,
+        log.debug(
+          `Retrying injection (${this.retryCount}/${this.config.maxRetries})...`,
         );
 
         setTimeout(() => {
@@ -226,9 +213,7 @@ export class ScriptInjectionManager {
           this.inject();
         }, this.config.retryDelay);
       } else {
-        console.error(
-          '[ScriptInjectionManager] Max retries reached, giving up',
-        );
+        log.error('Max retries reached, giving up');
         this.retryCount = 0;
       }
     } finally {
@@ -257,7 +242,7 @@ export class ScriptInjectionManager {
   public reset(): void {
     this.isInjecting = false;
     this.retryCount = 0;
-    console.log('[ScriptInjectionManager] State reset');
+    log.debug('State reset');
   }
 
   /**
@@ -716,10 +701,7 @@ export class ScriptInjectionManager {
           return undefined;
         })
         .catch((error: Error) => {
-          console.warn(
-            '[ScriptInjectionManager] Custom select injection timeout or error:',
-            error,
-          );
+          log.warn('Custom select injection timeout or error:', error);
           reject(error);
         });
     });
@@ -729,11 +711,11 @@ export class ScriptInjectionManager {
    * Destroy manager and cleanup
    */
   public destroy(): void {
-    console.log('[ScriptInjectionManager] Destroying manager...');
+    log.debug('Destroying manager...');
     this.clearCallbacks();
     this.webview = null;
     this.isInjecting = false;
     this.retryCount = 0;
-    console.log('[ScriptInjectionManager] Manager destroyed');
+    log.debug('Manager destroyed');
   }
 }

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, {
   useState,
   useEffect,
@@ -16,6 +15,10 @@ import {
   playerHistoryManager,
 } from '../services/webview';
 import { PLAYER_PROTOCOL_PREFIX } from '../../constants';
+
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('WebView');
 
 export interface WebViewPageRef {
   navigateTo: (url: string) => void;
@@ -65,7 +68,7 @@ function WebViewRefactored({
   useEffect(() => {
     const webview = webviewRef.current;
     if (!webview) {
-      console.warn('[WebView] Webview ref not available yet');
+      log.warn('Webview ref not available yet');
       return undefined;
     }
 
@@ -78,13 +81,13 @@ function WebViewRefactored({
           setCanGoBack(back);
         },
         onUrlChange: (url) => {
-          console.log('[WebView] URL changed:', url);
+          log.debug('URL changed:', url);
         },
         onLoadStop: (url) => {
-          console.log('[WebView] Load complete:', url);
+          log.debug('Load complete:', url);
         },
         onError: (error) => {
-          console.error('[WebView] Error occurred:', error);
+          log.error('Error occurred:', error);
         },
       });
 
@@ -92,52 +95,52 @@ function WebViewRefactored({
       scriptManagerRef.current = scriptManager;
 
       scriptManager.registerCallback(() => {
-        console.log('[WebView] Injecting click interceptor...');
+        log.debug('Injecting click interceptor...');
         try {
           injectClickInterceptor(webview).catch(() => {
             // Тихо игнорируем ошибку - она уже залогирована внутри функции
           });
         } catch (error) {
-          console.error('[WebView] Error injecting click interceptor:', error);
+          log.error('Error injecting click interceptor:', error);
         }
       });
 
       scriptManager.registerCallback(() => {
-        console.log('[WebView] Extracting auth token...');
+        log.debug('Extracting auth token...');
         try {
           extractAuthToken(webview).catch(() => {
             // Тихо игнорируем ошибку - она уже залогирована внутри функции
           });
         } catch (error) {
-          console.error('[WebView] Error extracting auth token:', error);
+          log.error('Error extracting auth token:', error);
         }
       });
 
       scriptManager.registerCallback(() => {
-        console.log('[WebView] Injecting custom selects...');
+        log.debug('Injecting custom selects...');
         try {
           scriptManager.injectCustomSelects().catch(() => {
             // Тихо игнорируем ошибку - она уже залогирована внутри функции
           });
         } catch (error) {
-          console.error('[WebView] Error injecting custom selects:', error);
+          log.error('Error injecting custom selects:', error);
         }
       });
 
-      console.log('[WebView] Managers initialized successfully');
+      log.debug('Managers initialized successfully');
 
       // eslint-disable-next-line consistent-return
       return () => {
-        console.log('[WebView] Cleaning up managers');
+        log.debug('Cleaning up managers');
         try {
           webViewManager.detach();
           scriptManager.clearCallbacks();
         } catch (error) {
-          console.error('[WebView] Error cleaning up managers:', error);
+          log.error('Error cleaning up managers:', error);
         }
       };
     } catch (error) {
-      console.error('[WebView] Error initializing managers:', error);
+      log.error('Error initializing managers:', error);
       return undefined;
     }
   }, []);
@@ -153,13 +156,13 @@ function WebViewRefactored({
     if (!webview || !webViewManager || !scriptManager) return;
 
     const handleDomReady = () => {
-      console.log('[WebView] ===== DOM READY =====');
+      log.debug('===== DOM READY =====');
       webViewManager.updateNavigationState();
     };
 
     const handleLoadStop = () => {
-      console.log('[WebView] ===== WEBVIEW LOAD STOP =====');
-      console.log('[WebView] URL:', webview.src);
+      log.debug('===== WEBVIEW LOAD STOP =====');
+      log.debug('URL:', webview.src);
 
       webViewManager.handleLoadStop();
       scriptManager.inject();
@@ -168,26 +171,26 @@ function WebViewRefactored({
     const handleError = (e: any) => {
       const failedUrl = String(e?.validatedURL || '');
       if (failedUrl.startsWith(PLAYER_PROTOCOL_PREFIX)) {
-        console.log('[WebView] Player protocol navigation ignored');
+        log.debug('Player protocol navigation ignored');
         return;
       }
 
-      console.error('[WebView] ===== WEBVIEW ERROR =====');
-      console.error('[WebView] Error:', e);
+      log.error('===== WEBVIEW ERROR =====');
+      log.error('Error:', e);
       webViewManager.handleError(e);
     };
 
     const handleNavigate = (e: any) => {
-      console.log('[WebView] ===== WEBVIEW NAVIGATION =====');
-      console.log('[WebView] URL:', e.url);
+      log.debug('===== WEBVIEW NAVIGATION =====');
+      log.debug('URL:', e.url);
 
       webViewManager.handleNavigation(e.url);
       scriptManager.inject();
     };
 
     const handleInPageNavigate = (e: any) => {
-      console.log('[WebView] ===== WEBVIEW IN-PAGE NAVIGATION =====');
-      console.log('[WebView] URL:', e.url);
+      log.debug('===== WEBVIEW IN-PAGE NAVIGATION =====');
+      log.debug('URL:', e.url);
 
       webViewManager.handleNavigation(e.url, 'in-page');
       scriptManager.inject();
@@ -201,7 +204,7 @@ function WebViewRefactored({
 
     // eslint-disable-next-line consistent-return
     return () => {
-      console.log('[WebView] Cleaning up event listeners and managers...');
+      log.debug('Cleaning up event listeners and managers...');
 
       webview.removeEventListener('dom-ready', handleDomReady);
       webview.removeEventListener('did-finish-load', handleLoadStop);
@@ -213,7 +216,7 @@ function WebViewRefactored({
         scriptManager.destroy();
       }
 
-      console.log('[WebView] Cleanup complete');
+      log.debug('Cleanup complete');
     };
   }, []);
 
@@ -231,20 +234,20 @@ function WebViewRefactored({
             .executeJavaScript('window.location.href')
             .then((url: string) => {
               if (url && url !== localStorage.getItem('animeLibCurrentPage')) {
-                console.log('[WebView] URL updated on load:', url);
+                log.debug('URL updated on load:', url);
                 try {
                   localStorage.setItem('animeLibCurrentPage', url);
                 } catch (error) {
-                  console.error('[WebView] Error saving URL on load:', error);
+                  log.error('Error saving URL on load:', error);
                 }
               }
               return null;
             })
             .catch((err: any) => {
-              console.error('[WebView] Error getting URL on load:', err);
+              log.error('Error getting URL on load:', err);
             });
         } catch {
-          console.log('[WebView] WebView not ready for URL check on load');
+          log.debug('WebView not ready for URL check on load');
         }
       }
     };
@@ -266,25 +269,22 @@ function WebViewRefactored({
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data && event.data.type && event.data.type.includes('auth')) {
-        console.log('[WebView] Auth-related message received:', event.data);
+        log.debug('Auth-related message received:', event.data);
       }
 
       if (event.data && event.data.type === 'player-button-clicked') {
-        console.log('[WebView] ===== PLAYER BUTTON CLICKED =====');
-        console.log(
-          '[WebView] Event data:',
-          JSON.stringify(event.data, null, 2),
-        );
+        log.debug('===== PLAYER BUTTON CLICKED =====');
+        log.debug('Event data:', JSON.stringify(event.data, null, 2));
 
         if (onPlayerButtonClick) {
-          console.log(
-            '[WebView] Calling onPlayerButtonClick:',
+          log.debug(
+            'Calling onPlayerButtonClick:',
             event.data.url,
             event.data.animeId,
           );
           onPlayerButtonClick(event.data.url, event.data.animeId);
         } else {
-          console.error('[WebView] onPlayerButtonClick is not defined!');
+          log.error('onPlayerButtonClick is not defined!');
         }
       }
     };

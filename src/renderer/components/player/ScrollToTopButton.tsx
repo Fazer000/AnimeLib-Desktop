@@ -2,6 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Fab, Zoom } from '@mui/material';
 import { KeyboardArrowUp } from '@mui/icons-material';
 
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('ScrollToTopButton');
+
 interface ScrollToTopButtonProps {
   threshold?: number;
   scrollContainerId?: string;
@@ -24,10 +28,7 @@ function ScrollToTopButton({
 
     if (!scrollContainer) {
       // eslint-disable-next-line no-console
-      console.warn(
-        '[ScrollToTopButton] Scroll container not found:',
-        scrollContainerId,
-      );
+      log.warn('Scroll container not found:', scrollContainerId);
       return undefined;
     }
 

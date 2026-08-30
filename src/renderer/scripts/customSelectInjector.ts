@@ -1,4 +1,7 @@
-/* eslint-disable no-console */
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('CustomSelectInjector');
+
 /**
  * CustomSelectInjector - Инъекция для замены стандартных select на кастомные
  *
@@ -28,13 +31,11 @@ class CustomSelectInjector {
    */
   public init(): void {
     if (this.injected) {
-      console.log('[CustomSelectInjector] Already injected');
+      log.debug('Already injected');
       return;
     }
 
-    console.log(
-      '[CustomSelectInjector] Initializing custom select injection...',
-    );
+    log.debug('Initializing custom select injection...');
 
     this.injectStyles();
 
@@ -43,7 +44,7 @@ class CustomSelectInjector {
     this.setupMutationObserver();
 
     this.injected = true;
-    console.log('[CustomSelectInjector] Custom select injection completed');
+    log.debug('Custom select injection completed');
   }
 
   /**
@@ -331,9 +332,7 @@ class CustomSelectInjector {
     const selects = document.querySelectorAll(
       'select:not(.original-select-hidden)',
     );
-    console.log(
-      `[CustomSelectInjector] Found ${selects.length} select elements to replace`,
-    );
+    log.debug(`Found ${selects.length} select elements to replace`);
 
     selects.forEach((select) => {
       this.replaceSelect(select as HTMLSelectElement);
@@ -356,7 +355,7 @@ class CustomSelectInjector {
 
       this.customSelects.set(originalSelect, wrapper);
 
-      console.log('[CustomSelectInjector] Replaced select element');
+      log.debug('Replaced select element');
     }
   }
 
@@ -414,10 +413,7 @@ class CustomSelectInjector {
 
       return wrapper;
     } catch (error) {
-      console.error(
-        '[CustomSelectInjector] Error creating custom select:',
-        error,
-      );
+      log.error('Error creating custom select:', error);
       return null;
     }
   }
@@ -634,7 +630,7 @@ class CustomSelectInjector {
     this.customSelects.clear();
     this.injected = false;
 
-    console.log('[CustomSelectInjector] Custom select injection destroyed');
+    log.debug('Custom select injection destroyed');
   }
 }
 
@@ -645,7 +641,7 @@ export default function injectCustomSelects(): Promise<void> {
       injector.init();
       resolve();
     } catch (error) {
-      console.error('[CustomSelectInjector] Injection failed:', error);
+      log.error('Injection failed:', error);
       reject(error);
     }
   });
@@ -654,11 +650,11 @@ export default function injectCustomSelects(): Promise<void> {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     injectCustomSelects().catch((error) => {
-      console.error('[CustomSelectInjector] Auto-injection failed:', error);
+      log.error('Auto-injection failed:', error);
     });
   });
 } else {
   injectCustomSelects().catch((error) => {
-    console.error('[CustomSelectInjector] Auto-injection failed:', error);
+    log.error('Auto-injection failed:', error);
   });
 }

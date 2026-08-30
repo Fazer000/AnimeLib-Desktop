@@ -1,4 +1,6 @@
-/* eslint-disable no-console */
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('KeyboardManager');
 
 export interface KeyboardManagerConfig {
   onPlayPause?: () => void;
@@ -40,7 +42,7 @@ export class KeyboardManager {
     this.boundHandler = (event: KeyboardEvent) => this.handleKeyDown(event);
     document.addEventListener('keydown', this.boundHandler);
     this.isEnabled = true;
-    console.log('[KeyboardManager] Enabled');
+    log.debug('Enabled');
   }
 
   /**
@@ -52,7 +54,7 @@ export class KeyboardManager {
       this.boundHandler = null;
     }
     this.isEnabled = false;
-    console.log('[KeyboardManager] Disabled');
+    log.debug('Disabled');
   }
 
   /**

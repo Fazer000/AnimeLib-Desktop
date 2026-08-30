@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * Многопоточная загрузка файла по байтовым диапазонам
  */
@@ -12,6 +10,10 @@ import {
   OFFLINE_PARALLEL_STATE_SUFFIX,
   OFFLINE_PROGRESS_THROTTLE_MS,
 } from '../../constants';
+
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('ParallelDownloader');
 
 export type ParallelOutcome =
   | 'completed'
@@ -201,7 +203,7 @@ class ParallelDownloader {
         'utf8',
       );
     } catch (error) {
-      console.error('[ParallelDownloader] Failed to write state:', error);
+      log.error('Failed to write state:', error);
     }
   }
 
@@ -240,7 +242,7 @@ class ParallelDownloader {
     const size = await probeSize(params.url, params.headers).catch(() => 0);
 
     if (!size) {
-      console.log('[ParallelDownloader] Ranges not supported');
+      log.debug('Ranges not supported');
       return 'unsupported';
     }
 
@@ -268,9 +270,7 @@ class ParallelDownloader {
     let loaded = parts.reduce((sum, part) => sum + part.loaded, 0);
     let lastSave = Date.now();
 
-    console.log(
-      `[ParallelDownloader] Size: ${size}, parts: ${parts.length}, resume: ${loaded}`,
-    );
+    log.debug(`Size: ${size}, parts: ${parts.length}, resume: ${loaded}`);
 
     const onChunk = (bytes: number) => {
       loaded += bytes;
@@ -303,12 +303,12 @@ class ParallelDownloader {
 
     if (!complete) {
       this.writeState(params.destination, params.url, size, parts);
-      console.error('[ParallelDownloader] Incomplete download');
+      log.error('Incomplete download');
       return 'failed';
     }
 
     fs.rmSync(this.statePath(params.destination), { force: true });
-    console.log('[ParallelDownloader] Completed:', size);
+    log.debug('Completed:', size);
 
     return 'completed';
   }

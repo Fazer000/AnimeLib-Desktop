@@ -1,11 +1,13 @@
-/* eslint-disable no-console */
-
 /**
  * Наблюдение за исчезновением локального файла активного источника
  */
 import { parseOfflineFileName } from '../../../constants';
 import { offlineStore } from '../offline';
 import { checkConnection } from '../../utils/connectivity';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('OfflineSourceGuard');
 
 export interface OfflineSourceGuardConfig {
   onSourceLost: (fileName: string) => void;
@@ -47,7 +49,7 @@ export class OfflineSourceGuard {
       this.handleRemoved(fileNames),
     );
 
-    console.log('[OfflineSourceGuard] Watching:', fileName);
+    log.debug('Watching:', fileName);
   }
 
   /**
@@ -76,7 +78,7 @@ export class OfflineSourceGuard {
     const lost = this.fileName;
     this.reset();
 
-    console.warn('[OfflineSourceGuard] Source lost:', lost);
+    log.warn('Source lost:', lost);
     this.config.onSourceLost(lost);
   }
 }

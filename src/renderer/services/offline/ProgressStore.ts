@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * Локальный прогресс просмотра с отложенной синхронизацией
  */
@@ -7,6 +5,10 @@ import {
   OFFLINE_PROGRESS_STORAGE_KEY,
   OfflineProgress,
 } from '../../../constants';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('ProgressStore');
 
 type ProgressMap = Record<string, OfflineProgress>;
 
@@ -38,7 +40,7 @@ class ProgressStore {
     try {
       localStorage.setItem(OFFLINE_PROGRESS_STORAGE_KEY, JSON.stringify(map));
     } catch (error) {
-      console.error('[ProgressStore] Save failed:', error);
+      log.error('Save failed:', error);
     }
   }
 

@@ -1,9 +1,12 @@
-/* eslint-disable no-console */
 import { Player, KodikVideoLinks } from '../../api/animeApi';
 import { QualityOption } from './ShakaPlayerManager';
 import { offlineStore } from '../offline';
 import { buildOfflineUrl } from '../../../constants';
 import { resolveKodikSource } from '../../utils/kodikHelpers';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('QualityManager');
 
 export interface QualityManagerConfig {
   onQualityOptionsChange?: (options: QualityOption[]) => void;
@@ -67,7 +70,7 @@ export class QualityManager {
       this.selectedQuality = options[0].value;
       this.config.onSelectedQualityChange?.(this.selectedQuality);
       this.config.onQualityOptionsChange?.(options);
-      console.log('[QualityManager] Using offline sources:', options.length);
+      log.debug('Using offline sources:', options.length);
       return;
     }
 
@@ -116,7 +119,7 @@ export class QualityManager {
     });
 
     this.qualityOptions = options;
-    console.log('[QualityManager] Created quality options:', options.length);
+    log.debug('Created quality options:', options.length);
 
     if (options.length > 0) {
       this.selectedQuality = options[0].value;
@@ -165,13 +168,13 @@ export class QualityManager {
   setSelectedQuality(quality: string): boolean {
     const option = this.qualityOptions.find((q) => q.value === quality);
     if (!option) {
-      console.error('[QualityManager] Quality not found:', quality);
+      log.error('Quality not found:', quality);
       return false;
     }
 
     this.selectedQuality = quality;
     this.config.onSelectedQualityChange?.(quality);
-    console.log('[QualityManager] Quality changed to:', quality);
+    log.debug('Quality changed to:', quality);
     return true;
   }
 

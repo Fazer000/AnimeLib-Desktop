@@ -1,3 +1,7 @@
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('AnimeLIB');
+
 /**
  * Упрощенный скрипт для перехвата кликов по кнопкам плеера
  */
@@ -146,16 +150,14 @@ export const clickInterceptorScript = `
 export function injectClickInterceptor(webview: any): Promise<void> {
   if (!webview) {
     // eslint-disable-next-line no-console
-    console.error('[AnimeLIB] Cannot inject script: webview is null');
+    log.error('Cannot inject script: webview is null');
     return Promise.reject(new Error('Webview is null'));
   }
 
   try {
     if (!webview.executeJavaScript) {
       // eslint-disable-next-line no-console
-      console.error(
-        '[AnimeLIB] Webview does not have executeJavaScript method',
-      );
+      log.error('Webview does not have executeJavaScript method');
       return Promise.reject(new Error('executeJavaScript not available'));
     }
 
@@ -169,23 +171,18 @@ export function injectClickInterceptor(webview: any): Promise<void> {
     return executeWithTimeout
       .then(() => {
         // eslint-disable-next-line no-console
-        console.log(
-          '[AnimeLIB] Simple click interceptor injected successfully',
-        );
+        log.debug('Simple click interceptor injected successfully');
         return undefined;
       })
       .catch((err: any) => {
         if (err.message !== 'Timeout') {
           // eslint-disable-next-line no-console
-          console.warn(
-            '[AnimeLIB] Click interceptor injection skipped:',
-            err.message,
-          );
+          log.warn('Click interceptor injection skipped:', err.message);
         }
       });
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.error('[AnimeLIB] Error calling executeJavaScript:', error);
+    log.error('Error calling executeJavaScript:', error);
     return Promise.reject(error);
   }
 }

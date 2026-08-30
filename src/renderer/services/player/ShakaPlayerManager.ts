@@ -1,6 +1,9 @@
-/* eslint-disable no-console */
 import shaka from 'shaka-player/dist/shaka-player.ui';
 import { OFFLINE_SCHEME } from '../../../constants';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('ShakaPlayerManager');
 
 export interface QualityOption {
   label: string;
@@ -52,20 +55,20 @@ export class ShakaPlayerManager {
    */
   async initialize(videoElement: HTMLVideoElement): Promise<boolean> {
     if (this.isInitialized && this.player) {
-      console.log('[ShakaPlayerManager] Already initialized');
+      log.debug('Already initialized');
       return true;
     }
 
     this.videoElement = videoElement;
 
     try {
-      console.log('[ShakaPlayerManager] Starting initialization...');
+      log.debug('Starting initialization...');
 
       shaka.polyfill.installAll();
       ShakaPlayerManager.registerOfflineScheme();
 
       if (!shaka.Player.isBrowserSupported()) {
-        console.error('[ShakaPlayerManager] Browser not supported!');
+        log.error('Browser not supported!');
         this.config.onError?.('Браузер не поддерживается');
         return false;
       }
@@ -74,7 +77,7 @@ export class ShakaPlayerManager {
       videoElement.setAttribute('preload', 'auto');
 
       if ('requestVideoFrameCallback' in videoElement) {
-        console.log('[ShakaPlayerManager] requestVideoFrameCallback available');
+        log.debug('requestVideoFrameCallback available');
       }
 
       this.player = new shaka.Player();
@@ -91,9 +94,7 @@ export class ShakaPlayerManager {
             request.headers['Accept-Language'] =
               'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7';
 
-            console.log(
-              '[ShakaPlayerManager] Request filter applied for Kodik',
-            );
+            log.debug('Request filter applied for Kodik');
           }
         });
 
@@ -101,10 +102,7 @@ export class ShakaPlayerManager {
         .getNetworkingEngine()
         ?.registerResponseFilter((type, response) => {
           if (response.uri?.includes('kodik')) {
-            console.log(
-              '[ShakaPlayerManager] Response from Kodik:',
-              response.status,
-            );
+            log.debug('Response from Kodik:', response.status);
           }
         });
 
@@ -203,7 +201,7 @@ export class ShakaPlayerManager {
 
       this.player.addEventListener('error', (event: any) => {
         const error = event.detail;
-        console.error('[ShakaPlayerManager] Error details:', {
+        log.error('Error details:', {
           code: error.code,
           category: error.category,
           severity: error.severity,
@@ -212,7 +210,7 @@ export class ShakaPlayerManager {
         });
 
         if (error.severity === 1) {
-          console.warn('[ShakaPlayerManager] Recoverable error, ignoring');
+          log.warn('Recoverable error, ignoring');
           return;
         }
 
@@ -223,9 +221,9 @@ export class ShakaPlayerManager {
       this.player.addEventListener('buffering', (event: any) => {
         const isBuffering = event.buffering;
         if (isBuffering) {
-          console.log('[ShakaPlayerManager] Buffering started');
+          log.debug('Buffering started');
         } else {
-          console.log('[ShakaPlayerManager] Buffering ended');
+          log.debug('Buffering ended');
         }
         this.config.onBufferingChange?.(isBuffering);
       });
@@ -236,27 +234,25 @@ export class ShakaPlayerManager {
           .find((track) => track.active);
         if (activeVariant) {
           const bandwidth = Math.round((activeVariant.bandwidth || 0) / 1000);
-          console.log(
-            `[ShakaPlayerManager] Quality adapted to: ${activeVariant.height}p @ ${bandwidth}kbps`,
+          log.debug(
+            `Quality adapted to: ${activeVariant.height}p @ ${bandwidth}kbps`,
           );
         }
       });
 
       this.player.addEventListener('abrstatuschanged', (event: any) => {
-        console.log('[ShakaPlayerManager] ABR status:', event.status);
+        log.debug('ABR status:', event.status);
       });
 
       this.player.addEventListener('streaming', () => {
-        console.log('[ShakaPlayerManager] Streaming event triggered');
+        log.debug('Streaming event triggered');
       });
 
       this.isInitialized = true;
-      console.log(
-        '[ShakaPlayerManager] Initialized successfully with performance monitoring',
-      );
+      log.debug('Initialized successfully with performance monitoring');
       return true;
     } catch (error) {
-      console.error('[ShakaPlayerManager] Initialization error:', error);
+      log.error('Initialization error:', error);
       this.config.onError?.('Ошибка инициализации плеера');
       return false;
     }
@@ -283,9 +279,9 @@ export class ShakaPlayerManager {
       );
 
       ShakaPlayerManager.schemeRegistered = true;
-      console.log('[ShakaPlayerManager] Offline scheme registered');
+      log.debug('Offline scheme registered');
     } catch (error) {
-      console.error('[ShakaPlayerManager] Scheme registration failed:', error);
+      log.error('Scheme registration failed:', error);
     }
   }
 
@@ -343,7 +339,7 @@ export class ShakaPlayerManager {
     if (token === this.loadToken) {
       return false;
     }
-    console.log('[ShakaPlayerManager] Load cancelled, newer request is active');
+    log.debug('Load cancelled, newer request is active');
     return true;
   }
 
@@ -356,14 +352,14 @@ export class ShakaPlayerManager {
     autoplay: boolean = false,
   ): Promise<boolean> {
     if (!this.player || !this.videoElement) {
-      console.error('[ShakaPlayerManager] Player not initialized');
+      log.error('Player not initialized');
       return false;
     }
 
     this.loadToken += 1;
     const token = this.loadToken;
 
-    console.log('[ShakaPlayerManager] Loading video:', qualityOption.label);
+    log.debug('Loading video:', qualityOption.label);
     this.setLoading(true);
 
     try {
@@ -373,10 +369,7 @@ export class ShakaPlayerManager {
       }
 
       if (qualityOption.src.startsWith(`${OFFLINE_SCHEME}://`)) {
-        console.log(
-          '[ShakaPlayerManager] Loading offline file:',
-          qualityOption.src,
-        );
+        log.debug('Loading offline file:', qualityOption.src);
 
         if (qualityOption.type === 'hls') {
           const loaded = await this.loadWithRetry(qualityOption.src, token);
@@ -409,9 +402,7 @@ export class ShakaPlayerManager {
         }
 
         if (!nativeLoaded) {
-          console.error(
-            '[ShakaPlayerManager] Offline file failed, falling back to online',
-          );
+          log.error('Offline file failed, falling back to online');
 
           const fallbacks = [
             qualityOption.fallbackSrc,
@@ -427,25 +418,21 @@ export class ShakaPlayerManager {
           }
         }
       } else if (qualityOption.type === 'hls') {
-        console.log('[ShakaPlayerManager] Loading HLS:', qualityOption.src);
-        console.log(
-          '[ShakaPlayerManager] HLS type detected, using Shaka Player',
-        );
+        log.debug('Loading HLS:', qualityOption.src);
+        log.debug('HLS type detected, using Shaka Player');
 
         const loaded = await this.loadWithRetry(qualityOption.src, token);
         if (this.isStaleLoad(token)) {
           return false;
         }
         if (!loaded) {
-          console.error(
-            '[ShakaPlayerManager] Failed to load HLS with Shaka, trying native fallback',
-          );
+          log.error('Failed to load HLS with Shaka, trying native fallback');
 
           if (
             this.videoElement &&
             this.videoElement.canPlayType('application/vnd.apple.mpegurl')
           ) {
-            console.log('[ShakaPlayerManager] Using native HLS playback');
+            log.debug('Using native HLS playback');
             await this.player.unload();
             this.videoElement.src = qualityOption.src;
             this.videoElement.load();
@@ -473,14 +460,12 @@ export class ShakaPlayerManager {
         }
       }
 
-      console.log(
-        '[ShakaPlayerManager] Video loaded, waiting for canplay event...',
-      );
+      log.debug('Video loaded, waiting for canplay event...');
       await this.waitForCanPlay();
       if (this.isStaleLoad(token)) {
         return false;
       }
-      console.log('[ShakaPlayerManager] Video is ready to play');
+      log.debug('Video is ready to play');
 
       this.setLoading(false);
 
@@ -494,7 +479,7 @@ export class ShakaPlayerManager {
             return;
           }
           this.videoElement?.play().catch((error: any) => {
-            console.log('[ShakaPlayerManager] Autoplay prevented:', error.name);
+            log.debug('Autoplay prevented:', error.name);
           });
         }, 100);
       }
@@ -504,7 +489,7 @@ export class ShakaPlayerManager {
       if (this.isStaleLoad(token)) {
         return false;
       }
-      console.error('[ShakaPlayerManager] Load error:', error);
+      log.error('Load error:', error);
       this.config.onError?.(error.message || 'Ошибка загрузки видео');
       this.setLoading(false);
       return false;
@@ -556,22 +541,17 @@ export class ShakaPlayerManager {
       }
 
       try {
-        console.log(
-          `[ShakaPlayerManager] Attempt ${attempt}/${this.maxRetries} for: ${src}`,
-        );
+        log.debug(`Attempt ${attempt}/${this.maxRetries} for: ${src}`);
 
         const networkEngine = this.player?.getNetworkingEngine();
-        console.log(
-          '[ShakaPlayerManager] Network engine available:',
-          !!networkEngine,
-        );
+        log.debug('Network engine available:', !!networkEngine);
 
         // eslint-disable-next-line no-await-in-loop
         await this.player?.load(src);
-        console.log('[ShakaPlayerManager] Successfully loaded:', src);
+        log.debug('Successfully loaded:', src);
         return true;
       } catch (error: any) {
-        console.error(`[ShakaPlayerManager] Attempt ${attempt} failed:`, {
+        log.error(`Attempt ${attempt} failed:`, {
           code: error.code,
           category: error.category,
           message: error.message,
@@ -579,17 +559,12 @@ export class ShakaPlayerManager {
         });
 
         if (attempt < this.maxRetries) {
-          console.log(
-            `[ShakaPlayerManager] Retrying in ${this.retryDelay}ms...`,
-          );
+          log.debug(`Retrying in ${this.retryDelay}ms...`);
           // eslint-disable-next-line no-await-in-loop
           await ShakaPlayerManager.delay(this.retryDelay);
         } else {
-          console.error(
-            '[ShakaPlayerManager] All retry attempts exhausted for:',
-            src,
-          );
-          console.error('[ShakaPlayerManager] Final error details:', error);
+          log.error('All retry attempts exhausted for:', src);
+          log.error('Final error details:', error);
           return false;
         }
       }
@@ -611,10 +586,7 @@ export class ShakaPlayerManager {
       }
 
       const src = sources[i];
-      console.log(
-        `[ShakaPlayerManager] Trying source ${i + 1}/${sources.length}:`,
-        src,
-      );
+      log.debug(`Trying source ${i + 1}/${sources.length}:`, src);
 
       // eslint-disable-next-line no-await-in-loop
       const loaded = await this.loadWithRetry(src, token);
@@ -623,11 +595,11 @@ export class ShakaPlayerManager {
       }
 
       if (i < sources.length - 1) {
-        console.log('[ShakaPlayerManager] Moving to next source...');
+        log.debug('Moving to next source...');
       }
     }
 
-    console.error('[ShakaPlayerManager] All sources exhausted after retries');
+    log.error('All sources exhausted after retries');
     return false;
   }
 
@@ -636,23 +608,23 @@ export class ShakaPlayerManager {
    */
   private async waitForCanPlay(): Promise<void> {
     if (!this.videoElement) {
-      console.warn('[ShakaPlayerManager] No video element to wait for');
+      log.warn('No video element to wait for');
       return Promise.resolve();
     }
 
     if (this.videoElement.readyState >= 3) {
-      console.log('[ShakaPlayerManager] Video already ready');
+      log.debug('Video already ready');
       return Promise.resolve();
     }
 
     return new Promise((resolve) => {
       const handleCanPlay = () => {
-        console.log('[ShakaPlayerManager] canplay event received');
+        log.debug('canplay event received');
         resolve();
       };
 
       const timeout = setTimeout(() => {
-        console.warn('[ShakaPlayerManager] canplay timeout, continuing anyway');
+        log.warn('canplay timeout, continuing anyway');
         this.videoElement?.removeEventListener('canplay', handleCanPlay);
         resolve();
       }, 5000);
@@ -678,7 +650,7 @@ export class ShakaPlayerManager {
     const seek = () => {
       if (this.videoElement && this.videoElement.readyState >= 1) {
         this.videoElement.currentTime = time;
-        console.log('[ShakaPlayerManager] Restored time to:', time);
+        log.debug('Restored time to:', time);
       }
     };
 
@@ -701,7 +673,7 @@ export class ShakaPlayerManager {
       try {
         await this.player.unload();
       } catch (error) {
-        console.error('[ShakaPlayerManager] Unload error:', error);
+        log.error('Unload error:', error);
       }
     }
   }
@@ -722,12 +694,12 @@ export class ShakaPlayerManager {
       try {
         await this.player.unload();
       } catch (error) {
-        console.error('[ShakaPlayerManager] Detach error:', error);
+        log.error('Detach error:', error);
       }
     }
 
     this.videoElement?.load();
-    console.log('[ShakaPlayerManager] Source detached');
+    log.debug('Source detached');
   }
 
   /**
@@ -756,7 +728,7 @@ export class ShakaPlayerManager {
         gapsJumped: stats.gapsJumped,
       };
     } catch (error) {
-      console.error('[ShakaPlayerManager] Error getting stats:', error);
+      log.error('Error getting stats:', error);
       return null;
     }
   }
@@ -765,13 +737,13 @@ export class ShakaPlayerManager {
    * Уничтожает плеер
    */
   async destroy(): Promise<void> {
-    console.log('[ShakaPlayerManager] Destroying player');
+    log.debug('Destroying player');
 
     if (this.player) {
       try {
         await this.player.destroy();
       } catch (error) {
-        console.error('[ShakaPlayerManager] Destroy error:', error);
+        log.error('Destroy error:', error);
       }
       this.player = null;
     }

@@ -1,3 +1,7 @@
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('AnimeLIB');
+
 /**
  * Скрипт для извлечения токена аутентификации из localStorage страницы
  */
@@ -49,16 +53,14 @@ export const authExtractorScript = `
 export function extractAuthToken(webview: any): Promise<any> {
   if (!webview) {
     // eslint-disable-next-line no-console
-    console.error('[AnimeLIB] Cannot extract token: webview is null');
+    log.error('Cannot extract token: webview is null');
     return Promise.reject(new Error('Webview is null'));
   }
 
   try {
     if (!webview.executeJavaScript) {
       // eslint-disable-next-line no-console
-      console.error(
-        '[AnimeLIB] Webview does not have executeJavaScript method',
-      );
+      log.error('Webview does not have executeJavaScript method');
       return Promise.reject(new Error('executeJavaScript not available'));
     }
 
@@ -81,27 +83,27 @@ export function extractAuthToken(webview: any): Promise<any> {
             const saved = localStorage.getItem('animeLibAuthToken');
             if (!saved) {
               // eslint-disable-next-line no-console
-              console.error('[AnimeLIB] Verification: FAILED to save token!');
+              log.error('Verification: FAILED to save token!');
             }
           } catch (err) {
             // eslint-disable-next-line no-console
-            console.error('[AnimeLIB] Save error:', err);
+            log.error('Save error:', err);
           }
         } else {
           // eslint-disable-next-line no-console
-          console.log('[AnimeLIB] ===== TOKEN EXTRACTION FAILED =====');
+          log.debug('===== TOKEN EXTRACTION FAILED =====');
         }
         return result;
       })
       .catch((err: any) => {
         if (err.message !== 'Timeout') {
           // eslint-disable-next-line no-console
-          console.warn('[AnimeLIB] Auth extraction skipped:', err.message);
+          log.warn('Auth extraction skipped:', err.message);
         }
       });
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.error('[AnimeLIB] Error calling executeJavaScript:', error);
+    log.error('Error calling executeJavaScript:', error);
     return Promise.reject(error);
   }
 }

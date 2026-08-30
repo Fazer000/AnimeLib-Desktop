@@ -104,7 +104,17 @@ const configuration: webpack.Configuration = {
 
   optimization: {
     minimize: true,
-    minimizer: [new TerserPlugin(), new CssMinimizerPlugin()],
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          compress: {
+            drop_console: true,
+            pure_funcs: ['log.debug', 'log.info', 'log.warn', 'log.error'],
+          },
+        },
+      }),
+      new CssMinimizerPlugin(),
+    ],
   },
 
   plugins: [

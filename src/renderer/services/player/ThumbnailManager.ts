@@ -1,4 +1,6 @@
-/* eslint-disable no-console */
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('ThumbnailManager');
 
 class ThumbnailManager {
   private videoSrc: string | null = null;
@@ -57,7 +59,7 @@ class ThumbnailManager {
       this.ctx.imageSmoothingEnabled = true;
       this.ctx.imageSmoothingQuality = 'high';
     } else {
-      console.error('[ThumbnailManager] Failed to get canvas context');
+      log.error('Failed to get canvas context');
     }
   }
 
@@ -222,7 +224,7 @@ class ThumbnailManager {
   }
 
   loadVideo(src: string): void {
-    console.log('[ThumbnailManager] Video source set:', src);
+    log.debug('Video source set:', src);
 
     if (this.videoSrc !== src) {
       this.destroySeekVideo();
@@ -253,9 +255,7 @@ class ThumbnailManager {
 
     if (times.length === 0) return;
 
-    console.log(
-      `[ThumbnailManager] Pre-caching ${times.length} frames every ${intervalSeconds}s`,
-    );
+    log.debug(`Pre-caching ${times.length} frames every ${intervalSeconds}s`);
 
     times.forEach((time) => {
       // eslint-disable-next-line no-new
@@ -331,7 +331,7 @@ class ThumbnailManager {
   }
 
   clearCache(): void {
-    console.log('[ThumbnailManager] Clearing cache');
+    log.debug('Clearing cache');
     this.generationQueue.forEach((item) =>
       item.reject(new Error('Cache cleared')),
     );
@@ -342,7 +342,7 @@ class ThumbnailManager {
   }
 
   destroy(): void {
-    console.log('[ThumbnailManager] Destroying');
+    log.debug('Destroying');
     this.isDestroyed = true;
     this.clearCache();
     this.destroySeekVideo();

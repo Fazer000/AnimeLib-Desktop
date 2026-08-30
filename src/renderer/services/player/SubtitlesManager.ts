@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import workerUrl from 'jassub/dist/jassub-worker.js';
 import wasmUrl from 'jassub/dist/jassub-worker.wasm';
 import modernWasmUrl from 'jassub/dist/jassub-worker-modern.wasm';
@@ -18,6 +17,10 @@ import {
   SUBTITLES_DEFAULT_SETTINGS,
   SUBTITLES_STORAGE_KEY,
 } from '../../../constants';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('SubtitlesManager');
 
 export interface SubtitleTrack {
   id: number;
@@ -78,7 +81,7 @@ export class SubtitlesManager {
         return { ...SUBTITLES_DEFAULT_SETTINGS, ...JSON.parse(raw) };
       }
     } catch (error) {
-      console.error('[SubtitlesManager] Failed to read settings:', error);
+      log.error('Failed to read settings:', error);
     }
 
     return { ...SUBTITLES_DEFAULT_SETTINGS };
@@ -94,7 +97,7 @@ export class SubtitlesManager {
         JSON.stringify(this.settings),
       );
     } catch (error) {
-      console.error('[SubtitlesManager] Failed to save settings:', error);
+      log.error('Failed to save settings:', error);
     }
 
     this.config.onSettingsChange?.({ ...this.settings });
@@ -107,7 +110,7 @@ export class SubtitlesManager {
     const api = (window as any).electron?.electronAPI;
 
     if (!api?.fetchSubtitles) {
-      console.error('[SubtitlesManager] fetchSubtitles IPC not available');
+      log.error('fetchSubtitles IPC not available');
       return null;
     }
 
@@ -141,7 +144,7 @@ export class SubtitlesManager {
       };
     });
 
-    console.log('[SubtitlesManager] Tracks available:', this.tracks.length);
+    log.debug('Tracks available:', this.tracks.length);
     this.config.onTracksChange?.([...this.tracks]);
 
     const preferred = this.tracks.find(
@@ -235,9 +238,9 @@ export class SubtitlesManager {
         useLocalFonts: false,
       });
 
-      console.log('[SubtitlesManager] JASSUB renderer created');
+      log.debug('JASSUB renderer created');
     } catch (error) {
-      console.error('[SubtitlesManager] JASSUB init failed:', error);
+      log.error('JASSUB init failed:', error);
       this.config.onError?.('Не удалось запустить рендер ASS-субтитров');
     }
   }

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { Player, KodikVideoLinks } from '../../api/animeApi';
 import { ShakaPlayerManager } from './ShakaPlayerManager';
 import { VideoStateManager } from './VideoStateManager';
@@ -14,6 +13,10 @@ import ThumbnailManager from './ThumbnailManager';
 import { AutoplayManager } from './AutoplayManager';
 import { WatchStatsManager } from './WatchStatsManager';
 import { OfflineSourceGuard } from './OfflineSourceGuard';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('VideoPlayerController');
 
 export interface VideoPlayerControllerConfig {
   onError?: (error: string) => void;
@@ -196,7 +199,7 @@ export class VideoPlayerController {
     containerElement: HTMLDivElement,
   ): Promise<boolean> {
     if (this.isInitialized) {
-      console.log('[VideoPlayerController] Already initialized');
+      log.debug('Already initialized');
       return true;
     }
 
@@ -215,7 +218,7 @@ export class VideoPlayerController {
     this.keyboardManager.enable();
 
     this.isInitialized = true;
-    console.log('[VideoPlayerController] Initialized successfully');
+    log.debug('Initialized successfully');
     return true;
   }
 
@@ -224,12 +227,12 @@ export class VideoPlayerController {
    */
   async loadPlayer(options: PlayerLoadOptions): Promise<void> {
     if (!this.isInitialized) {
-      console.error('[VideoPlayerController] Not initialized');
+      log.error('Not initialized');
       return;
     }
 
-    console.log(
-      '[VideoPlayerController] Loading player:',
+    log.debug(
+      'Loading player:',
       options.player.team.name,
       options.player.player,
     );
@@ -249,7 +252,7 @@ export class VideoPlayerController {
     const hasBookmark =
       options.initialTimecode !== undefined && options.initialTimecode > 0;
 
-    console.log('[VideoPlayerController] Load context:', {
+    log.debug('Load context:', {
       isInitialLoad: this.isInitialLoad,
       isVoiceChange,
       isEpisodeChange,
@@ -283,13 +286,10 @@ export class VideoPlayerController {
     this.config.autoplayManager?.setShouldAutoplayOnLoad(this.shouldAutoPlay);
 
     if (hasBookmark) {
-      console.log(
-        '[VideoPlayerController] Bookmark timecode provided:',
-        options.initialTimecode,
-      );
+      log.debug('Bookmark timecode provided:', options.initialTimecode);
       this.savedTime = options.initialTimecode!;
     } else if (isVoiceChange && currentTime !== undefined) {
-      console.log('[VideoPlayerController] Voice change, saving time:', {
+      log.debug('Voice change, saving time:', {
         time: currentTime,
         shouldAutoPlay: this.shouldAutoPlay,
       });
@@ -332,7 +332,7 @@ export class VideoPlayerController {
   private async loadCurrentQuality(): Promise<void> {
     const qualityOption = this.qualityManager.getSelectedQualityOption();
     if (!qualityOption) {
-      console.error('[VideoPlayerController] No quality option available');
+      log.error('No quality option available');
       return;
     }
 
@@ -371,7 +371,7 @@ export class VideoPlayerController {
     await this.shakaManager.detachSource();
 
     if (!options || !(await OfflineSourceGuard.isOnline())) {
-      console.warn('[VideoPlayerController] Offline source lost, no fallback');
+      log.warn('Offline source lost, no fallback');
       this.config.onOfflineSourceLost?.(false);
       return;
     }
@@ -399,7 +399,7 @@ export class VideoPlayerController {
    * Изменяет качество видео
    */
   async changeQuality(quality: string): Promise<void> {
-    console.log('[VideoPlayerController] Changing quality to:', quality);
+    log.debug('Changing quality to:', quality);
 
     const state = this.stateManager.getState();
     const savedTime = state.currentTime || 0;
@@ -421,7 +421,7 @@ export class VideoPlayerController {
    * Очищает плеер
    */
   clearPlayer(): void {
-    console.log('[VideoPlayerController] Clearing player');
+    log.debug('Clearing player');
 
     this.shakaManager.cancelLoad();
     this.offlineGuard.reset();
@@ -449,7 +449,7 @@ export class VideoPlayerController {
    * Полностью уничтожает плеер
    */
   async destroyPlayer(): Promise<void> {
-    console.log('[VideoPlayerController] Destroying player');
+    log.debug('Destroying player');
 
     this.clearPlayer();
 
@@ -474,7 +474,7 @@ export class VideoPlayerController {
         await this.containerElement.requestFullscreen();
       }
     } catch (error) {
-      console.error('[VideoPlayerController] Fullscreen error:', error);
+      log.error('Fullscreen error:', error);
     }
   }
 
@@ -490,10 +490,10 @@ export class VideoPlayerController {
       } else if (this.videoElement.readyState >= 1) {
         await this.videoElement.requestPictureInPicture();
       } else {
-        console.log('[VideoPlayerController] Video not ready for PiP');
+        log.debug('Video not ready for PiP');
       }
     } catch (error) {
-      console.error('[VideoPlayerController] PiP error:', error);
+      log.error('PiP error:', error);
     }
   }
 
@@ -550,7 +550,7 @@ export class VideoPlayerController {
    * Полностью уничтожает контроллер
    */
   async destroy(): Promise<void> {
-    console.log('[VideoPlayerController] Destroying controller');
+    log.debug('Destroying controller');
 
     this.keyboardManager.disable();
     this.offlineGuard.reset();

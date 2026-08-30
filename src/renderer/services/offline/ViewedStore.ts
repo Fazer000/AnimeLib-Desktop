@@ -1,9 +1,11 @@
-/* eslint-disable no-console */
-
 /**
  * Локальные отметки просмотра с отложенной синхронизацией
  */
 import { OFFLINE_VIEWED_STORAGE_KEY, OfflineViewed } from '../../../constants';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('ViewedStore');
 
 type ViewedMap = Record<string, OfflineViewed>;
 
@@ -35,7 +37,7 @@ class ViewedStore {
     try {
       localStorage.setItem(OFFLINE_VIEWED_STORAGE_KEY, JSON.stringify(map));
     } catch (error) {
-      console.error('[ViewedStore] Save failed:', error);
+      log.error('Save failed:', error);
     }
   }
 

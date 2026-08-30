@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useState, useEffect, useRef, memo } from 'react';
 import {
   Box,
@@ -13,6 +12,10 @@ import { TuneRounded } from '@mui/icons-material';
 import Comments from './Comments';
 import CommentsSettingsDialog from './CommentsSettingsDialog';
 import useCommentsSettings from '../../hooks/useCommentsSettings';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('CommentsSection');
 
 interface CommentsSectionProps {
   episodeId: number;
@@ -38,7 +41,7 @@ const CommentsSection = memo(
      * Reset comments loading flag when episode changes
      */
     useEffect(() => {
-      console.log('[CommentsSection] Episode changed, resetting load flag');
+      log.debug('Episode changed, resetting load flag');
       setShouldLoadComments(false);
     }, [episodeId]);
 
@@ -53,15 +56,12 @@ const CommentsSection = memo(
         : null;
 
       if (scrollContainerId && !rootElement) {
-        console.warn(
-          '[CommentsSection] Scroll container not found:',
-          scrollContainerId,
-        );
+        log.warn('Scroll container not found:', scrollContainerId);
         return undefined;
       }
 
-      console.log(
-        '[CommentsSection] Setting up IntersectionObserver with root:',
+      log.debug(
+        'Setting up IntersectionObserver with root:',
         rootElement ? scrollContainerId : 'viewport',
       );
 
@@ -69,7 +69,7 @@ const CommentsSection = memo(
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting && !shouldLoadComments) {
-              console.log('[CommentsSection] Visible, loading comments...');
+              log.debug('Visible, loading comments...');
               setShouldLoadComments(true);
             }
           });

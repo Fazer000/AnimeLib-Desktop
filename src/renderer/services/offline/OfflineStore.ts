@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * Зеркало состояния оффлайн-библиотеки в renderer
  */
@@ -11,6 +9,10 @@ import {
   OfflineRemovalEvent,
   OfflineSnapshot,
 } from '../../../constants';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('OfflineStore');
 
 type Listener = (snapshot: OfflineSnapshot) => void;
 
@@ -110,7 +112,7 @@ class OfflineStore {
       return;
     }
 
-    console.warn('[OfflineStore] Files removed:', fileNames.length);
+    log.warn('Files removed:', fileNames.length);
     this.removalListeners.forEach((listener) => listener(fileNames));
   }
 
@@ -140,7 +142,7 @@ class OfflineStore {
       this.snapshot = await this.api.offlineGetSnapshot();
       this.listeners.forEach((listener) => listener(this.snapshot));
     } catch (error) {
-      console.error('[OfflineStore] Refresh failed:', error);
+      log.error('Refresh failed:', error);
     }
   }
 
@@ -151,7 +153,7 @@ class OfflineStore {
     const removed = await this.api?.offlineVerify?.().catch(() => 0);
 
     if (removed) {
-      console.warn('[OfflineStore] Missing episodes removed:', removed);
+      log.warn('Missing episodes removed:', removed);
     }
 
     await this.refresh();
@@ -206,7 +208,7 @@ class OfflineStore {
       .catch(() => 0);
 
     if (resumed) {
-      console.log('[OfflineStore] Resumed downloads:', resumed);
+      log.debug('Resumed downloads:', resumed);
     }
 
     await this.refresh();

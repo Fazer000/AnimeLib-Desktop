@@ -1,3 +1,7 @@
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('AmbientLightManager');
+
 export default class AmbientLightManager {
   private canvas: HTMLCanvasElement;
 
@@ -253,7 +257,7 @@ export default class AmbientLightManager {
         this.onColorsUpdate(this.currentColors);
       }
     } catch (error) {
-      console.error('[AmbientLightManager] Error extracting colors:', error);
+      log.error('Error extracting colors:', error);
     }
 
     this.timeoutId = setTimeout(

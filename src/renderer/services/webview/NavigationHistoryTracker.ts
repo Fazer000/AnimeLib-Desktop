@@ -1,4 +1,6 @@
-/* eslint-disable no-console */
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('NavHistory');
 
 /**
  * Источник перехода
@@ -61,11 +63,9 @@ export class NavigationHistoryTracker {
     try {
       localStorage.setItem(DEBUG_STORAGE_KEY, enabled.toString());
     } catch (error) {
-      console.error('[NavHistory] Error saving debug flag:', error);
+      log.error('Error saving debug flag:', error);
     }
-    console.log(
-      `[NavHistory] Debug logging ${enabled ? 'enabled' : 'disabled'}`,
-    );
+    log.debug(`Debug logging ${enabled ? 'enabled' : 'disabled'}`);
   }
 
   /**
@@ -95,8 +95,8 @@ export class NavigationHistoryTracker {
     }
 
     if (NavigationHistoryTracker.isEnabled()) {
-      console.log(
-        `[NavHistory] #${record.index} ${record.source} | back:${record.canGoBack} fwd:${record.canGoForward} | ${record.url}`,
+      log.debug(
+        `#${record.index} ${record.source} | back:${record.canGoBack} fwd:${record.canGoForward} | ${record.url}`,
       );
     }
   }
@@ -112,6 +112,7 @@ export class NavigationHistoryTracker {
    * Печатает журнал таблицей
    */
   static print(): void {
+    // eslint-disable-next-line no-console
     console.table(NavigationHistoryTracker.records);
   }
 
@@ -121,7 +122,7 @@ export class NavigationHistoryTracker {
   static clear(): void {
     NavigationHistoryTracker.records = [];
     NavigationHistoryTracker.counter = 0;
-    console.log('[NavHistory] Records cleared');
+    log.debug('Records cleared');
   }
 
   /**
@@ -135,6 +136,6 @@ export class NavigationHistoryTracker {
       records: () => NavigationHistoryTracker.getRecords(),
       clear: () => NavigationHistoryTracker.clear(),
     };
-    console.log('[NavHistory] Debug API available: window.animeLibNav');
+    log.debug('Debug API available: window.animeLibNav');
   }
 }

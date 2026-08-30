@@ -1,4 +1,6 @@
-/* eslint-disable no-console */
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('VideoStateManager');
 
 export interface VideoState {
   isPlaying: boolean;
@@ -69,7 +71,7 @@ export class VideoStateManager {
     this.addListener('waiting', () => this.handleWaiting());
     this.addListener('canplay', () => this.handleCanPlay());
 
-    console.log('[VideoStateManager] Attached to video element');
+    log.debug('Attached to video element');
   }
 
   /**
@@ -82,7 +84,7 @@ export class VideoStateManager {
       });
       this.eventListeners = [];
       this.videoElement = null;
-      console.log('[VideoStateManager] Detached from video element');
+      log.debug('Detached from video element');
     }
   }
 
@@ -95,12 +97,12 @@ export class VideoStateManager {
   }
 
   private handlePlay(): void {
-    console.log('[VideoStateManager] Play event');
+    log.debug('Play event');
     this.updateState({ isPlaying: true });
   }
 
   private handlePause(): void {
-    console.log('[VideoStateManager] Pause event');
+    log.debug('Pause event');
     this.updateState({ isPlaying: false });
   }
 
@@ -142,7 +144,7 @@ export class VideoStateManager {
 
   private handleLoadedMetadata(): void {
     if (!this.videoElement) return;
-    console.log('[VideoStateManager] Metadata loaded');
+    log.debug('Metadata loaded');
     this.updateState({
       duration: this.videoElement.duration || 0,
       isBuffering: false,
@@ -150,12 +152,12 @@ export class VideoStateManager {
   }
 
   private handleWaiting(): void {
-    console.log('[VideoStateManager] Video waiting/buffering');
+    log.debug('Video waiting/buffering');
     this.updateState({ isBuffering: true });
   }
 
   private handleCanPlay(): void {
-    console.log('[VideoStateManager] Can play');
+    log.debug('Can play');
     this.updateState({ isBuffering: false });
   }
 
@@ -177,7 +179,7 @@ export class VideoStateManager {
       this.videoElement.pause();
     } else {
       this.videoElement.play().catch((error: Error) => {
-        console.error('[VideoStateManager] Play error:', error);
+        log.error('Play error:', error);
       });
     }
   }
@@ -224,7 +226,7 @@ export class VideoStateManager {
     this.videoElement.playbackRate = clampedRate;
     this.updateState({ playbackRate: clampedRate });
     VideoStateManager.saveToStorage('videoPlaybackRate', clampedRate);
-    console.log('[VideoStateManager] Playback rate changed to:', clampedRate);
+    log.debug('Playback rate changed to:', clampedRate);
   }
 
   /**

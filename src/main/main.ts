@@ -48,6 +48,10 @@ import {
   PLAYER_PROTOCOL_PREFIX,
 } from '../constants';
 
+import { createLogger } from '../shared/logger';
+
+const log = createLogger('AnimeLIB');
+
 const VIDEO_URLS = {
   ANIMELIB_CDN: [
     'https://video1.cdnlibs.org/*',
@@ -184,9 +188,9 @@ const clearCurrentInterceptor = (): void => {
   }
 };
 
-console.log(`========================================`);
-console.log(`${APP_NAME} v${APP_VERSION}`);
-console.log(`========================================`);
+log.debug(`========================================`);
+log.debug(`${APP_NAME} v${APP_VERSION}`);
+log.debug(`========================================`);
 
 ipcMain.on('window-minimize', () => {
   mainWindow?.minimize();
@@ -207,7 +211,7 @@ ipcMain.on('window-close', () => {
 });
 
 ipcMain.on('window-fullscreen', (event, isFullscreen: boolean) => {
-  console.log(`[Main IPC] Toggle window fullscreen: ${isFullscreen}`);
+  log.debug(`[Main IPC] Toggle window fullscreen: ${isFullscreen}`);
   mainWindow?.setFullScreen(isFullscreen);
 });
 
@@ -218,7 +222,7 @@ ipcMain.handle('get-maximize-state', async () => {
 
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
+  log.debug(msgTemplate(arg));
   event.reply('ipc-example', msgTemplate('pong'));
 });
 
@@ -258,7 +262,7 @@ ipcMain.handle('fetch-image', async (event, { url, referer }) => {
       });
 
       request.on('error', (error) => {
-        console.error('[fetch-image] Error:', error);
+        log.error('[fetch-image] Error:', error);
         resolve({
           success: false,
           error: error.message,
@@ -268,7 +272,7 @@ ipcMain.handle('fetch-image', async (event, { url, referer }) => {
       request.end();
     });
   } catch (error: any) {
-    console.error('[fetch-image] Catch:', error);
+    log.error('[fetch-image] Catch:', error);
     return {
       success: false,
       error: error.message,
@@ -335,7 +339,7 @@ const downloadText = async (
     );
 
     request.on('error', (error) => {
-      console.error('[fetch-subtitles] Error:', error.message);
+      log.error('[fetch-subtitles] Error:', error.message);
       resolve(null);
     });
 
@@ -344,7 +348,7 @@ const downloadText = async (
 };
 
 ipcMain.handle('fetch-subtitles', async (event, urls: string[]) => {
-  console.log('[AnimeLIB] Fetching subtitles, candidates:', urls.length);
+  log.debug('Fetching subtitles, candidates:', urls.length);
 
   const offlineUrl = urls.find((url) => url.startsWith(`${OFFLINE_SCHEME}://`));
 
@@ -358,10 +362,10 @@ ipcMain.handle('fetch-subtitles', async (event, urls: string[]) => {
         offlineLibrary.resolveFile(fileName),
         'utf8',
       );
-      console.log('[AnimeLIB] Subtitles loaded from offline library');
+      log.debug('Subtitles loaded from offline library');
       return { success: true, data };
     } catch (error: any) {
-      console.error('[AnimeLIB] Offline subtitles error:', error.message);
+      log.error('Offline subtitles error:', error.message);
       return { success: false, error: 'Offline subtitles not available' };
     }
   }
@@ -371,7 +375,7 @@ ipcMain.handle('fetch-subtitles', async (event, urls: string[]) => {
     // eslint-disable-next-line no-await-in-loop
     const data = await downloadText(url);
     if (data) {
-      console.log('[AnimeLIB] Subtitles loaded from:', url);
+      log.debug('Subtitles loaded from:', url);
       return { success: true, data };
     }
   }
@@ -380,23 +384,23 @@ ipcMain.handle('fetch-subtitles', async (event, urls: string[]) => {
 });
 
 ipcMain.on('player-button-clicked', (event, url) => {
-  console.log('[AnimeLIB] Player button clicked:', url);
+  log.debug('Player button clicked:', url);
   mainWindow?.webContents.send('open-player-page', url);
 });
 
 ipcMain.on('webview-log', (event, message) => {
-  console.log('[WEBVIEW LOG]:', message);
+  log.debug('[WEBVIEW LOG]:', message);
 });
 
 ipcMain.handle('get-kodik-links', async (event, kodikSrc: string) => {
   try {
-    console.log('[AnimeLIB] Getting Kodik links for:', kodikSrc);
+    log.debug('Getting Kodik links for:', kodikSrc);
     const { VideoLinks } = await import('kodikwrapper');
     const links = await VideoLinks.getLinks({ link: kodikSrc });
-    console.log('[AnimeLIB] Kodik links received successfully');
+    log.debug('Kodik links received successfully');
     return { success: true, data: links };
   } catch (error: any) {
-    console.error('[AnimeLIB] Error getting Kodik links:', error.message);
+    log.error('Error getting Kodik links:', error.message);
     return { success: false, error: error.message };
   }
 });
@@ -409,13 +413,13 @@ const createVideoHeadersInterceptor = (siteUrl: string, authToken: string) => {
     details: OnBeforeSendHeadersListenerDetails,
     callback: (response: BeforeSendResponse) => void,
   ) => {
-    console.log('[AnimeLIB] Intercepting:', details.url);
+    log.debug('Intercepting:', details.url);
 
     const { url } = details;
 
     if (isAnimelibUrl(url)) {
       const baseUrl = new URL(siteUrl).origin;
-      console.log('[AnimeLIB] AnimeLib video - Base URL:', baseUrl);
+      log.debug('AnimeLib video - Base URL:', baseUrl);
       const headers = createAnimelibHeaders(details, siteUrl, authToken);
       callback({ requestHeaders: headers });
       return;
@@ -423,7 +427,7 @@ const createVideoHeadersInterceptor = (siteUrl: string, authToken: string) => {
 
     if (isAnimelibApiUrl(url)) {
       const baseUrl = new URL(siteUrl).origin;
-      console.log('[AnimeLIB] AnimeLib API - Base URL:', baseUrl);
+      log.debug('AnimeLib API - Base URL:', baseUrl);
       callback({
         requestHeaders: {
           ...details.requestHeaders,
@@ -436,7 +440,7 @@ const createVideoHeadersInterceptor = (siteUrl: string, authToken: string) => {
     }
 
     if (isKodikUrl(url)) {
-      console.log('[AnimeLIB] Kodik video detected');
+      log.debug('Kodik video detected');
       const headers = createKodikHeaders(details);
       callback({ requestHeaders: headers });
       return;
@@ -458,7 +462,7 @@ const createCorsHeadersInterceptor = () => {
 
     if (responseHeaders) {
       addCorsHeaders(responseHeaders);
-      console.log('[AnimeLIB] CORS headers added');
+      log.debug('CORS headers added');
     }
 
     callback({ responseHeaders });
@@ -466,7 +470,7 @@ const createCorsHeadersInterceptor = () => {
 };
 
 ipcMain.handle('setup-video-headers', async (event, { siteUrl, authToken }) => {
-  console.log('[AnimeLIB] Setting up video headers for:', siteUrl);
+  log.debug('Setting up video headers for:', siteUrl);
 
   clearCurrentInterceptor();
 
@@ -498,12 +502,12 @@ ipcMain.handle('setup-video-headers', async (event, { siteUrl, authToken }) => {
     session.fromPartition('persist:webview').webRequest.onHeadersReceived(null);
   };
 
-  console.log('[AnimeLIB] Interceptor registered');
+  log.debug('Interceptor registered');
   return { success: true };
 });
 
 ipcMain.handle('clear-video-headers', async () => {
-  console.log('[AnimeLIB] Clearing video headers');
+  log.debug('Clearing video headers');
   clearCurrentInterceptor();
   // eslint-disable-next-line no-use-before-define
   registerApiInterceptor();
@@ -535,7 +539,7 @@ const installExtensions = async (): Promise<void> => {
       extensions.map((name) => installer[name]),
       forceDownload,
     )
-    .catch(console.log);
+    .catch((error: unknown) => log.error('Extension install failed:', error));
 };
 
 /**
@@ -662,7 +666,7 @@ const applyRadicalFix = (): void => {
     }
   });
 
-  console.log(
+  log.debug(
     '[Performance] STRATEGY 1: WebView optimizations + NVIDIA RTX VSR APPLIED',
   );
 };
@@ -691,12 +695,12 @@ app.on('activate', () => {
  */
 const registerCustomProtocol = (): void => {
   protocol.registerHttpProtocol('anime-lib-player', (request, callback) => {
-    console.log('[AnimeLIB] Custom protocol intercepted:', request.url);
+    log.debug('Custom protocol intercepted:', request.url);
 
     const playerUrl = decodeURIComponent(
       request.url.replace(PLAYER_PROTOCOL_PREFIX, ''),
     );
-    console.log('[AnimeLIB] Player URL:', playerUrl);
+    log.debug('Player URL:', playerUrl);
 
     mainWindow?.webContents.send('open-player-page', playerUrl);
 
@@ -724,7 +728,7 @@ const registerPlayerNavigationGuard = (): void => {
       const playerUrl = decodeURIComponent(
         url.replace(PLAYER_PROTOCOL_PREFIX, ''),
       );
-      console.log('[AnimeLIB] Player navigation intercepted:', playerUrl);
+      log.debug('Player navigation intercepted:', playerUrl);
 
       mainWindow?.webContents.send('open-player-page', playerUrl);
     });
@@ -771,7 +775,7 @@ const registerApiInterceptor = (): void => {
       },
     );
 
-  console.log('[AnimeLIB] Base API interceptor registered');
+  log.debug('Base API interceptor registered');
 };
 
 /**
@@ -785,7 +789,7 @@ const registerBookmarksWatcher = (): void => {
       return;
     }
 
-    console.log('[AnimeLIB] Bookmarks changed:', details.method, details.url);
+    log.debug('Bookmarks changed:', details.method, details.url);
     mainWindow?.webContents.send('bookmarks-changed');
   };
 
@@ -798,7 +802,7 @@ const registerBookmarksWatcher = (): void => {
     },
   );
 
-  console.log('[AnimeLIB] Bookmarks watcher registered');
+  log.debug('Bookmarks watcher registered');
 };
 
 app
@@ -813,4 +817,4 @@ app
     registerOfflineHandlers(() => mainWindow);
     createWindow();
   })
-  .catch(console.log);
+  .catch((error) => log.error('Startup failed:', error));

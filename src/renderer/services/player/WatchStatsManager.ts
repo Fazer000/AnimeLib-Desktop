@@ -1,7 +1,10 @@
-/* eslint-disable no-console */
 import { animeApi } from '../../api/animeApi';
 import { WATCH_VIEW_THRESHOLD } from '../../../constants';
 import { viewedStore } from '../offline';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('WatchStatsManager');
 
 export interface OfflineWatchContext {
   animeId: string;
@@ -78,11 +81,7 @@ export class WatchStatsManager {
       synced: false,
     });
 
-    console.log(
-      '[WatchStatsManager] Offline view saved:',
-      context.animeId,
-      context.episodeId,
-    );
+    log.debug('Offline view saved:', context.animeId, context.episodeId);
   }
 
   /**

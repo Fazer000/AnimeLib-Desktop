@@ -9,6 +9,10 @@ import AnimeInfoHandle from './toolbar/AnimeInfoHandle';
 import SearchModal from './toolbar/SearchModal';
 import { buildAnimePageUrl } from '../utils/urlHelpers';
 
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('Toolbar');
+
 const ANIME_INFO_HIDE_DELAY = 3000;
 
 interface ToolbarProps {
@@ -84,7 +88,7 @@ function ToolbarRefactored({
   const handleShowAnimeInfo = () => {
     clearHideAnimeInfoTimer();
     // eslint-disable-next-line no-console
-    console.log('[Toolbar] Show anime info, animeId:', animeId);
+    log.debug('Show anime info, animeId:', animeId);
     if (animeId) {
       setShowAnimeInfo(true);
     }
@@ -94,7 +98,7 @@ function ToolbarRefactored({
     clearHideAnimeInfoTimer();
     hideAnimeInfoTimerRef.current = setTimeout(() => {
       // eslint-disable-next-line no-console
-      console.log('[Toolbar] Hide anime info');
+      log.debug('Hide anime info');
       setShowAnimeInfo(false);
       hideAnimeInfoTimerRef.current = null;
     }, ANIME_INFO_HIDE_DELAY);
@@ -102,20 +106,20 @@ function ToolbarRefactored({
 
   const handleOpenSearch = () => {
     // eslint-disable-next-line no-console
-    console.log('[Toolbar] Opening search modal');
+    log.debug('Opening search modal');
     setShowSearchModal(true);
   };
 
   const handleCloseSearch = () => {
     // eslint-disable-next-line no-console
-    console.log('[Toolbar] Closing search modal');
+    log.debug('Closing search modal');
     setShowSearchModal(false);
   };
 
   const handleAnimeSelect = (slugUrl: string, openInPlayer = false) => {
     // eslint-disable-next-line no-console
-    console.log(
-      '[Toolbar] Anime selected from search:',
+    log.debug(
+      'Anime selected from search:',
       slugUrl,
       'openInPlayer:',
       openInPlayer,
@@ -124,22 +128,22 @@ function ToolbarRefactored({
     const fullUrl = buildAnimePageUrl(slugUrl);
 
     // eslint-disable-next-line no-console
-    console.log('[Toolbar] Navigating to:', fullUrl);
+    log.debug('Navigating to:', fullUrl);
 
     if (openInPlayer) {
       if (!onPlayerButtonClick) {
         // eslint-disable-next-line no-console
-        console.warn('[Toolbar] onPlayerButtonClick not provided');
+        log.warn('onPlayerButtonClick not provided');
         return;
       }
       onPlayerButtonClick(fullUrl, slugUrl);
     } else if (onUrlChange) {
       // eslint-disable-next-line no-console
-      console.log('[Toolbar] Navigating WebView to:', fullUrl);
+      log.debug('Navigating WebView to:', fullUrl);
       onUrlChange(fullUrl);
     } else {
       // eslint-disable-next-line no-console
-      console.warn('[Toolbar] onUrlChange not provided');
+      log.warn('onUrlChange not provided');
     }
   };
   return (

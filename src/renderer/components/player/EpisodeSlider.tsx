@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Box, Button, IconButton, Typography, useTheme } from '@mui/material';
 import {

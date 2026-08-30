@@ -1,9 +1,12 @@
-/* eslint-disable no-console */
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import { Star } from '@mui/icons-material';
 import { animeApi, AnimeInfo } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('AnimeInfoCard');
 
 interface AnimeInfoCardProps {
   animeId: string;
@@ -35,7 +38,7 @@ function AnimeInfoCard({
         const response = await animeApi.getAnimeInfo(animeId);
         setAnimeInfo(response.data);
       } catch (error) {
-        console.error('[AnimeInfoCard] Error loading anime info:', error);
+        log.error('Error loading anime info:', error);
       } finally {
         setLoading(false);
       }

@@ -4,6 +4,10 @@
 
 import { BrowserWindow, Rectangle, screen } from 'electron';
 
+import { createLogger } from '../shared/logger';
+
+const log = createLogger('WindowState');
+
 const STORE_KEYS = {
   BOUNDS: 'windowBounds',
   MAXIMIZED: 'windowMaximized',
@@ -89,12 +93,12 @@ export const restoreWindowState = (
     }
 
     if (fullscreen) {
-      console.log('[WindowState] Restoring fullscreen');
+      log.debug('Restoring fullscreen');
       window.setFullScreen(true);
       return;
     }
 
-    console.log('[WindowState] Restoring maximized');
+    log.debug('Restoring maximized');
     window.maximize();
   }, RESTORE_DELAY);
 };

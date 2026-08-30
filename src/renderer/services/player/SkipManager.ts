@@ -1,5 +1,8 @@
-/* eslint-disable no-console */
 import { loadFromStorage, saveToStorage } from '../../utils/videoHelpers';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('SkipManager');
 
 export interface SkipManagerConfig {
   onSkipTimeChange?: (skipTime: number) => void;
@@ -30,14 +33,14 @@ export class SkipManager {
    */
   setSkipTime(time: number): void {
     if (time < 0 || time > 600) {
-      console.warn('[SkipManager] Invalid skip time:', time);
+      log.warn('Invalid skip time:', time);
       return;
     }
 
     this.skipTime = time;
     saveToStorage('videoSkipTime', time);
     this.config.onSkipTimeChange?.(time);
-    console.log('[SkipManager] Skip time changed to:', time);
+    log.debug('Skip time changed to:', time);
   }
 
   /**

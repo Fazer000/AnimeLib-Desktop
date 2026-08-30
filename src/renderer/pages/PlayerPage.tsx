@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Typography } from '@mui/material';
 import {
@@ -29,6 +28,10 @@ import {
 } from '../../constants';
 import { getFittedWidth, getFittedHeight } from '../utils/videoHelpers';
 import { buildAnimePageUrl } from '../utils/urlHelpers';
+
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('PlayerPage');
 
 interface PlayerPageProps {
   playerUrl: string;
@@ -164,16 +167,10 @@ function PlayerPageRefactored({
     () =>
       new BookmarkManager({
         onEpisodeFound: (episodeIndex) => {
-          console.log(
-            '[PlayerPage] Bookmark manager found episode:',
-            episodeIndex,
-          );
+          log.debug('Bookmark manager found episode:', episodeIndex);
         },
         onTimecodeReady: (timecode) => {
-          console.log(
-            '[PlayerPage] Bookmark manager timecode ready:',
-            timecode,
-          );
+          log.debug('Bookmark manager timecode ready:', timecode);
         },
       }),
   );
@@ -187,7 +184,7 @@ function PlayerPageRefactored({
     if (offlineMode) {
       const offlineEpisodes = offlineCatalog.getEpisodes(currentAnimeId);
       setEpisodes(offlineEpisodes);
-      console.log('[PlayerPage] Offline episodes:', offlineEpisodes.length);
+      log.debug('Offline episodes:', offlineEpisodes.length);
       return;
     }
 
@@ -195,9 +192,9 @@ function PlayerPageRefactored({
     try {
       const data = await animeApi.getEpisodes(currentAnimeId);
       setEpisodes(data.data);
-      console.log('[PlayerPage] Loaded episodes:', data.data.length);
+      log.debug('Loaded episodes:', data.data.length);
     } catch (err) {
-      console.error('[PlayerPage] Error loading episodes:', err);
+      log.error('Error loading episodes:', err);
     } finally {
       setLoading(false);
     }
@@ -238,7 +235,7 @@ function PlayerPageRefactored({
         ) {
           setInitialTimecode(progress.seconds);
           setHasBookmark(true);
-          console.log('[PlayerPage] Offline progress:', progress.seconds);
+          log.debug('Offline progress:', progress.seconds);
         }
 
         setBookmarkChecked(true);
@@ -272,8 +269,8 @@ function PlayerPageRefactored({
           setBookmarkedEpisodeId(bookmarkManager.getBookmarkedEpisodeId());
           setCurrentEpisodeIndex(targetIndex);
           setBookmarkChecked(true);
-          console.log(
-            '[PlayerPage] Requested episode:',
+          log.debug(
+            'Requested episode:',
             targetIndex,
             useLocal ? 'local progress' : 'site bookmark',
             seconds,
@@ -282,8 +279,8 @@ function PlayerPageRefactored({
         }
 
         if (result.episodeIndex !== null) {
-          console.log(
-            '[PlayerPage] Bookmark found - episode:',
+          log.debug(
+            'Bookmark found - episode:',
             result.episodeIndex,
             'timecode:',
             result.timecodeSeconds,
@@ -291,8 +288,8 @@ function PlayerPageRefactored({
 
           if (result.timecodeSeconds !== null) {
             setInitialTimecode(result.timecodeSeconds);
-            console.log(
-              `[PlayerPage] Bookmark timecode set BEFORE episode change: ${result.timecodeSeconds}s`,
+            log.debug(
+              `Bookmark timecode set BEFORE episode change: ${result.timecodeSeconds}s`,
             );
           }
 
@@ -300,20 +297,17 @@ function PlayerPageRefactored({
 
           const bookmarkedEpId = bookmarkManager.getBookmarkedEpisodeId();
           setBookmarkedEpisodeId(bookmarkedEpId);
-          console.log('[PlayerPage] Bookmarked episode ID:', bookmarkedEpId);
+          log.debug('Bookmarked episode ID:', bookmarkedEpId);
 
           setCurrentEpisodeIndex(result.episodeIndex);
-          console.log(
-            '[PlayerPage] Switching to bookmarked episode:',
-            result.episodeIndex,
-          );
+          log.debug('Switching to bookmarked episode:', result.episodeIndex);
         } else {
-          console.log('[PlayerPage] No bookmark found, using first episode');
+          log.debug('No bookmark found, using first episode');
         }
 
         setBookmarkChecked(true);
       } catch (err) {
-        console.error('[PlayerPage] Error loading bookmark:', err);
+        log.error('Error loading bookmark:', err);
         setBookmarkChecked(true);
       }
     },
@@ -331,7 +325,7 @@ function PlayerPageRefactored({
           episodeId,
         );
         setPlayers(offlinePlayers);
-        console.log('[PlayerPage] Offline players:', offlinePlayers.length);
+        log.debug('Offline players:', offlinePlayers.length);
         return;
       }
 
@@ -339,16 +333,13 @@ function PlayerPageRefactored({
       try {
         const data = await animeApi.getEpisodePlayers(episodeId);
         if (requestId !== episodeRequestIdRef.current) {
-          console.log(
-            '[PlayerPage] Stale players response ignored:',
-            episodeId,
-          );
+          log.debug('Stale players response ignored:', episodeId);
           return;
         }
         setPlayers(data.data.players);
-        console.log('[PlayerPage] Loaded players:', data.data.players.length);
+        log.debug('Loaded players:', data.data.players.length);
       } catch (err) {
-        console.error('[PlayerPage] Error loading players:', err);
+        log.error('Error loading players:', err);
         if (requestId === episodeRequestIdRef.current) {
           setPlayers([]);
         }
@@ -369,14 +360,14 @@ function PlayerPageRefactored({
       setKodikError(false);
       try {
         const data = await animeApi.getKodikVideoLinks(kodikSrc);
-        console.log('[PlayerPage] Loaded Kodik links:', data.success);
+        log.debug('Loaded Kodik links:', data.success);
         if (!data.success) {
           setKodikError(true);
           return null;
         }
         return data;
       } catch (err) {
-        console.error('[PlayerPage] Error loading Kodik links:', err);
+        log.error('Error loading Kodik links:', err);
         setKodikError(true);
         return null;
       } finally {
@@ -395,9 +386,9 @@ function PlayerPageRefactored({
     try {
       const data = await animeApi.getRelatedAnime(currentAnimeId);
       setRelatedAnime(data.data);
-      console.log('[PlayerPage] Loaded related anime:', data.data.length);
+      log.debug('Loaded related anime:', data.data.length);
     } catch (err) {
-      console.error('[PlayerPage] Error loading related anime:', err);
+      log.error('Error loading related anime:', err);
       setRelatedAnime([]);
     }
   }, [currentAnimeId, offlineMode]);
@@ -424,9 +415,7 @@ function PlayerPageRefactored({
    */
   useEffect(() => {
     if (!bookmarkChecked) {
-      console.log(
-        '[PlayerPage] Waiting for bookmark check before loading episode...',
-      );
+      log.debug('Waiting for bookmark check before loading episode...');
       return;
     }
 
@@ -434,15 +423,15 @@ function PlayerPageRefactored({
       const episode = episodes[currentEpisodeIndex];
       episodeRequestIdRef.current += 1;
       const requestId = episodeRequestIdRef.current;
-      console.log('[PlayerPage] Episode change started:', episode.number);
-      console.log(
-        '[PlayerPage] Current initialTimecode:',
+      log.debug('Episode change started:', episode.number);
+      log.debug(
+        'Current initialTimecode:',
         initialTimecode,
         '(will be preserved)',
       );
 
       if (videoPlayerRef.current) {
-        console.log('[PlayerPage] Clearing current player');
+        log.debug('Clearing current player');
         videoPlayerRef.current.destroyPlayer();
       }
 
@@ -455,15 +444,15 @@ function PlayerPageRefactored({
       const currentBookmark = bookmarkManager.getCurrentBookmark();
       if (currentBookmark && currentBookmark.item_id === episode.id) {
         setHasBookmark(true);
-        console.log('[PlayerPage] This episode has a bookmark');
+        log.debug('This episode has a bookmark');
       } else {
         setHasBookmark(false);
       }
 
-      console.log('[PlayerPage] Loading players for episode:', episode.number);
+      log.debug('Loading players for episode:', episode.number);
       loadEpisodePlayers(episode.id, requestId);
 
-      console.log('[PlayerPage] Episode change completed:', episode.number);
+      log.debug('Episode change completed:', episode.number);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -483,8 +472,8 @@ function PlayerPageRefactored({
     }
 
     if (playerLoadedRef.current) {
-      console.log(
-        '[PlayerPage] Player already loaded for this episode, skipping auto-selection',
+      log.debug(
+        'Player already loaded for this episode, skipping auto-selection',
       );
       return;
     }
@@ -499,15 +488,15 @@ function PlayerPageRefactored({
         return;
       }
 
-      console.log(
-        '[PlayerPage] Auto-selecting player:',
+      log.debug(
+        'Auto-selecting player:',
         autoSelected.team.name,
         autoSelected.player,
       );
 
       if (initialTimecode !== null) {
-        console.log(
-          '[PlayerPage] Bookmark timecode exists, will be applied after player loads:',
+        log.debug(
+          'Bookmark timecode exists, will be applied after player loads:',
           initialTimecode,
         );
       }
@@ -521,11 +510,11 @@ function PlayerPageRefactored({
         shouldAutoplayNextEpisodeRef.current = false;
 
         if (autoSelected.player === 'Kodik' && autoSelected.src) {
-          console.log('[PlayerPage] Loading Kodik player');
+          log.debug('Loading Kodik player');
           const kodikData = await loadKodikLinks(autoSelected.src);
 
           if (requestId !== episodeRequestIdRef.current) {
-            console.log('[PlayerPage] Stale Kodik links ignored');
+            log.debug('Stale Kodik links ignored');
             return;
           }
 
@@ -537,10 +526,7 @@ function PlayerPageRefactored({
             );
           }
         } else {
-          console.log(
-            '[PlayerPage] Loading non-Kodik player:',
-            autoSelected.team.name,
-          );
+          log.debug('Loading non-Kodik player:', autoSelected.team.name);
           videoPlayerRef.current.loadPlayer(autoSelected, null, shouldAutoplay);
         }
       }
@@ -578,7 +564,7 @@ function PlayerPageRefactored({
    * Handle video error
    */
   const handleVideoError = useCallback((err: string) => {
-    console.error('[PlayerPage] VideoPlayer error:', err);
+    log.error('VideoPlayer error:', err);
     if (
       err.includes('Ошибка загрузки видео') ||
       err.includes('Failed to load')
@@ -592,11 +578,7 @@ function PlayerPageRefactored({
    */
   const handlePlayerSelect = useCallback(
     async (player: Player) => {
-      console.log(
-        '[PlayerPage] Player selected:',
-        player.team.name,
-        player.player,
-      );
+      log.debug('Player selected:', player.team.name, player.player);
 
       const requestId = episodeRequestIdRef.current;
 
@@ -608,20 +590,17 @@ function PlayerPageRefactored({
 
       if (videoPlayerRef.current) {
         if (player.player === 'Kodik' && player.src) {
-          console.log('[PlayerPage] Loading Kodik player');
+          log.debug('Loading Kodik player');
           const kodikData = await loadKodikLinks(player.src);
           if (requestId !== episodeRequestIdRef.current) {
-            console.log('[PlayerPage] Stale Kodik links ignored');
+            log.debug('Stale Kodik links ignored');
             return;
           }
           if (kodikData) {
             videoPlayerRef.current.loadPlayer(player, kodikData);
           }
         } else {
-          console.log(
-            '[PlayerPage] Loading non-Kodik player:',
-            player.team.name,
-          );
+          log.debug('Loading non-Kodik player:', player.team.name);
           videoPlayerRef.current.loadPlayer(player, null);
         }
       }
@@ -633,10 +612,10 @@ function PlayerPageRefactored({
    * Handle player refresh
    */
   const handleRefresh = useCallback(async () => {
-    console.log('[PlayerPage] Refreshing player');
+    log.debug('Refreshing player');
 
     if (!selectedPlayer || !videoPlayerRef.current) {
-      console.warn('[PlayerPage] Cannot refresh: no player selected');
+      log.warn('Cannot refresh: no player selected');
       return;
     }
 
@@ -646,17 +625,17 @@ function PlayerPageRefactored({
     setKodikError(false);
 
     if (selectedPlayer.player === 'Kodik' && selectedPlayer.src) {
-      console.log('[PlayerPage] Refreshing Kodik player');
+      log.debug('Refreshing Kodik player');
       const kodikData = await loadKodikLinks(selectedPlayer.src);
       if (requestId !== episodeRequestIdRef.current) {
-        console.log('[PlayerPage] Stale Kodik links ignored');
+        log.debug('Stale Kodik links ignored');
         return;
       }
       if (kodikData) {
         videoPlayerRef.current.loadPlayer(selectedPlayer, kodikData);
       }
     } else {
-      console.log('[PlayerPage] Refreshing non-Kodik player');
+      log.debug('Refreshing non-Kodik player');
       videoPlayerRef.current.loadPlayer(selectedPlayer, null);
     }
   }, [selectedPlayer, loadKodikLinks]);
@@ -665,7 +644,7 @@ function PlayerPageRefactored({
    * Handle player type selection
    */
   const handlePlayerTypeSelect = useCallback((playerType: string) => {
-    console.log('[PlayerPage] Switching to player type tab:', playerType);
+    log.debug('Switching to player type tab:', playerType);
     setSelectedPlayerType(playerType);
   }, []);
 
@@ -675,10 +654,7 @@ function PlayerPageRefactored({
   const handleEpisodeClick = useCallback(
     (episodeIndex: number) => {
       if (episodeIndex !== currentEpisodeIndex) {
-        console.log(
-          '[PlayerPage] Switching to episode (manual):',
-          episodeIndex + 1,
-        );
+        log.debug('Switching to episode (manual):', episodeIndex + 1);
         setCurrentEpisodeIndex(episodeIndex);
         setHasBookmark(false);
         setInitialTimecode(null);
@@ -693,10 +669,7 @@ function PlayerPageRefactored({
   const handleEpisodeClickWithAutoplay = useCallback(
     (episodeIndex: number) => {
       if (episodeIndex !== currentEpisodeIndex) {
-        console.log(
-          '[PlayerPage] Switching to episode (from hint):',
-          episodeIndex + 1,
-        );
+        log.debug('Switching to episode (from hint):', episodeIndex + 1);
         setCurrentEpisodeIndex(episodeIndex);
         setHasBookmark(false);
         setInitialTimecode(null);
@@ -715,7 +688,7 @@ function PlayerPageRefactored({
     try {
       localStorage.setItem('playerAutoplayEnabled', enabled.toString());
     } catch (error) {
-      console.error('[PlayerPage] Error saving autoplay setting:', error);
+      log.error('Error saving autoplay setting:', error);
     }
   }, []);
 
@@ -724,7 +697,7 @@ function PlayerPageRefactored({
     try {
       localStorage.setItem('playerAmbientLightEnabled', enabled.toString());
     } catch (error) {
-      console.error('[PlayerPage] Error saving ambient light setting:', error);
+      log.error('Error saving ambient light setting:', error);
     }
   }, []);
 
@@ -736,9 +709,9 @@ function PlayerPageRefactored({
       const newState = !sidebarCollapsed;
       localStorage.setItem(sidebarStorageKey, newState.toString());
       setSidebarCollapsed(newState);
-      console.log('[PlayerPage] Sidebar collapsed:', newState);
+      log.debug('Sidebar collapsed:', newState);
     } catch (error) {
-      console.error('[PlayerPage] Error saving sidebar state:', error);
+      log.error('Error saving sidebar state:', error);
     }
   }, [sidebarCollapsed, sidebarStorageKey]);
 
@@ -764,10 +737,7 @@ function PlayerPageRefactored({
       return;
     }
 
-    console.log(
-      '[PlayerPage] Auto-saving bookmark in background:',
-      currentTime,
-    );
+    log.debug('Auto-saving bookmark in background:', currentTime);
 
     const meta = {
       team: selectedPlayer.team.id,
@@ -792,12 +762,12 @@ function PlayerPageRefactored({
       .saveBookmark(currentAnimeId, currentEpisode.id, currentTime, meta)
       .then((success) => {
         persist(success);
-        console.log('[PlayerPage] Background bookmark synced:', success);
+        log.debug('Background bookmark synced:', success);
         return null;
       })
       .catch((err) => {
         persist(false);
-        console.error('[PlayerPage] Error saving bookmark in background:', err);
+        log.error('Error saving bookmark in background:', err);
         return null;
       });
   }, [
@@ -819,12 +789,12 @@ function PlayerPageRefactored({
         (window as any).electron.electronAPI
           .clearVideoHeaders()
           .then(() => {
-            console.log('[PlayerPage] Video headers cleared');
+            log.debug('Video headers cleared');
             navigate();
             return null;
           })
           .catch((err: any) => {
-            console.error('[PlayerPage] Error clearing video headers:', err);
+            log.error('Error clearing video headers:', err);
             navigate();
             return null;
           });
@@ -841,10 +811,10 @@ function PlayerPageRefactored({
   const handleRelatedAnimeClick = useCallback(
     (slugUrl: string) => {
       const animeUrl = buildAnimePageUrl(slugUrl);
-      console.log('[PlayerPage] Opening related anime page:', animeUrl);
+      log.debug('Opening related anime page:', animeUrl);
 
       if (!onNavigateToUrl) {
-        console.warn('[PlayerPage] onNavigateToUrl not provided');
+        log.warn('onNavigateToUrl not provided');
         return;
       }
 
@@ -865,7 +835,7 @@ function PlayerPageRefactored({
    * Handle back navigation - with auto-save bookmark
    */
   const handleBack = useCallback(() => {
-    console.log('[PlayerPage] Going back');
+    log.debug('Going back');
     exitPlayer(onBack);
   }, [exitPlayer, onBack]);
 
@@ -874,11 +844,11 @@ function PlayerPageRefactored({
    */
   const handleUrlChange = useCallback(
     (newUrl: string) => {
-      console.log('[PlayerPage] URL changed:', newUrl);
+      log.debug('URL changed:', newUrl);
       if (onNavigateToUrl) {
         onNavigateToUrl(newUrl);
       } else {
-        console.warn('[PlayerPage] onNavigateToUrl not provided');
+        log.warn('onNavigateToUrl not provided');
       }
     },
     [onNavigateToUrl],
@@ -908,13 +878,13 @@ function PlayerPageRefactored({
   const handleSaveBookmark = useCallback(
     async (episodeId: number, currentTime: number) => {
       if (!currentAnimeId || !selectedPlayer) {
-        console.warn('[PlayerPage] Cannot save bookmark: no animeId or player');
+        log.warn('Cannot save bookmark: no animeId or player');
         return;
       }
 
       const episode = episodes.find((ep) => ep.id === episodeId);
       if (!episode) {
-        console.warn('[PlayerPage] Cannot save bookmark: episode not found');
+        log.warn('Cannot save bookmark: episode not found');
         return;
       }
 
@@ -925,7 +895,7 @@ function PlayerPageRefactored({
         item_number: episode.number,
       };
 
-      console.log('[PlayerPage] Saving bookmark:', {
+      log.debug('Saving bookmark:', {
         animeId: currentAnimeId,
         episodeId,
         currentTime,
@@ -954,9 +924,9 @@ function PlayerPageRefactored({
       setBookmarkedEpisodeId(episodeId);
 
       if (success) {
-        console.log('[PlayerPage] Bookmark saved successfully');
+        log.debug('Bookmark saved successfully');
       } else {
-        console.warn('[PlayerPage] Bookmark kept locally, will sync later');
+        log.warn('Bookmark kept locally, will sync later');
       }
     },
     [currentAnimeId, bookmarkManager, selectedPlayer, episodes],
@@ -967,15 +937,12 @@ function PlayerPageRefactored({
    */
   useEffect(() => {
     return () => {
-      console.log('[PlayerPage] Component unmounting, clearing video headers');
+      log.debug('Component unmounting, clearing video headers');
       if ((window as any).electron?.electronAPI?.clearVideoHeaders) {
         (window as any).electron.electronAPI
           .clearVideoHeaders()
           .catch((err: any) => {
-            console.error(
-              '[PlayerPage] Error clearing video headers on unmount:',
-              err,
-            );
+            log.error('Error clearing video headers on unmount:', err);
           });
       }
     };
@@ -996,13 +963,11 @@ function PlayerPageRefactored({
         onBack={handleBack}
         onRefresh={handleRefresh}
         onHome={() => {
-          console.log('[PlayerPage] Home button clicked');
+          log.debug('Home button clicked');
           if (onHome) {
             onHome();
           } else {
-            console.warn(
-              '[PlayerPage] onHome not provided, falling back to onBack',
-            );
+            log.warn('onHome not provided, falling back to onBack');
             onBack();
           }
         }}
@@ -1234,9 +1199,7 @@ function PlayerPageRefactored({
                       onAspectRatioChange={setVideoAspectRatio}
                       initialTimecode={initialTimecode}
                       onTimecodeApplied={() => {
-                        console.log(
-                          '[PlayerPage] Timecode applied successfully, clearing...',
-                        );
+                        log.debug('Timecode applied successfully, clearing...');
                         setInitialTimecode(null);
                       }}
                       onSaveBookmark={handleSaveBookmark}

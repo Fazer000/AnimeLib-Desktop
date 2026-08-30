@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
@@ -43,6 +42,10 @@ import {
   OFFLINE_TAB_HEIGHT,
 } from '../../../constants';
 import { getSiteOrigin } from '../../utils/urlHelpers';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('DownloadManager');
 
 interface DownloadManagerDialogProps {
   open: boolean;
@@ -142,9 +145,7 @@ function DownloadManagerDialog({
     animeApi
       .getAnimeInfo(animeId)
       .then((response) => setAnimeInfo(response.data))
-      .catch((error) =>
-        console.error('[DownloadManager] Anime info failed:', error),
-      );
+      .catch((error) => log.error('Anime info failed:', error));
   }, [open, animeId, animeInfo]);
 
   const teams = useMemo(() => {
@@ -300,11 +301,7 @@ function DownloadManagerDialog({
           [player.id]: Object.keys(response.data).map((item) => `${item}p`),
         }));
       } catch (error) {
-        console.error(
-          '[DownloadManager] Kodik links failed:',
-          player.id,
-          error,
-        );
+        log.error('Kodik links failed:', player.id, error);
       }
     }
   };
@@ -329,7 +326,7 @@ function DownloadManagerDialog({
       }));
       await loadKodikQualities(response.data.players);
     } catch (error) {
-      console.error('[DownloadManager] Players load failed:', episodeId, error);
+      log.error('Players load failed:', episodeId, error);
       setPlayersByEpisode((prev) => ({ ...prev, [episodeId]: [] }));
     } finally {
       setLoadingIds((prev) => prev.filter((id) => id !== episodeId));
@@ -426,7 +423,7 @@ function DownloadManagerDialog({
         : resolveEpisodeQuality(qualities, defaultQuality);
 
       if (!player) {
-        console.warn('[DownloadManager] Skipped episode:', episode.number);
+        log.warn('Skipped episode:', episode.number);
         return;
       }
       const isKodik = player.player !== OFFLINE_DOWNLOADABLE_PLAYER;
@@ -457,10 +454,7 @@ function DownloadManagerDialog({
       }
 
       if (!primaryUrl) {
-        console.warn(
-          '[DownloadManager] No source for episode:',
-          episode.number,
-        );
+        log.warn('No source for episode:', episode.number);
         return;
       }
 

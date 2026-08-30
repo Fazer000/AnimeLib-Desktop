@@ -1,4 +1,6 @@
-/* eslint-disable no-console */
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('PlayerHistory');
 
 /**
  * Запись о переходе в плеер
@@ -35,7 +37,7 @@ export class PlayerHistoryManager {
    */
   open(playerUrl: string, animeId: string, fromUrl: string): void {
     this.pending = { playerUrl, animeId, fromUrl, toUrl: null };
-    console.log('[PlayerHistory] Player opened from:', fromUrl);
+    log.debug('Player opened from:', fromUrl);
   }
 
   /**
@@ -48,7 +50,7 @@ export class PlayerHistoryManager {
 
     this.entries.push({ ...this.pending, toUrl });
     this.pending = null;
-    console.log('[PlayerHistory] Entry committed, depth:', this.entries.length);
+    log.debug('Entry committed, depth:', this.entries.length);
   }
 
   /**
@@ -56,7 +58,7 @@ export class PlayerHistoryManager {
    */
   discard(): void {
     if (this.pending) {
-      console.log('[PlayerHistory] Entry discarded');
+      log.debug('Entry discarded');
     }
     this.pending = null;
   }
@@ -80,7 +82,7 @@ export class PlayerHistoryManager {
 
     this.entries.pop();
     this.pending = { ...last, toUrl: null };
-    console.log('[PlayerHistory] Restoring player:', last.playerUrl);
+    log.debug('Restoring player:', last.playerUrl);
 
     return last;
   }
@@ -91,7 +93,7 @@ export class PlayerHistoryManager {
   clear(): void {
     this.entries = [];
     this.pending = null;
-    console.log('[PlayerHistory] Cleared');
+    log.debug('Cleared');
   }
 
   /**

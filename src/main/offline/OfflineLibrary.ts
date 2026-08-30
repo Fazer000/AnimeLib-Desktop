@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * Каталог скачанных серий и настройки директории загрузок
  */
@@ -16,6 +14,10 @@ import {
   OfflineAnimeMeta,
   OfflineEpisode,
 } from '../../constants';
+
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('OfflineLibrary');
 
 interface OfflineSettings {
   downloadsPath: string;
@@ -36,7 +38,7 @@ class OfflineLibrary {
     this.downloadsPath = OfflineLibrary.readSettings().downloadsPath;
     fs.mkdirSync(this.downloadsPath, { recursive: true });
     this.readIndex();
-    console.log('[OfflineLibrary] Path:', this.downloadsPath);
+    log.debug('Path:', this.downloadsPath);
   }
 
   /**
@@ -59,7 +61,7 @@ class OfflineLibrary {
    */
   public verify(): number {
     if (!fs.existsSync(this.downloadsPath)) {
-      console.warn('[OfflineLibrary] Path unavailable, verify skipped');
+      log.warn('Path unavailable, verify skipped');
       return 0;
     }
 
@@ -95,7 +97,7 @@ class OfflineLibrary {
 
     if (removed > 0 || this.anime.length !== before) {
       this.writeIndex();
-      console.warn('[OfflineLibrary] Missing episodes removed:', removed);
+      log.warn('Missing episodes removed:', removed);
     }
 
     return removed;
@@ -138,12 +140,12 @@ class OfflineLibrary {
         fs.rmSync(path.join(this.downloadsPath, name), { force: true });
         removed += 1;
       } catch (error) {
-        console.error('[OfflineLibrary] Failed to remove orphan:', error);
+        log.error('Failed to remove orphan:', error);
       }
     });
 
     if (removed > 0) {
-      console.warn('[OfflineLibrary] Orphan files removed:', removed);
+      log.warn('Orphan files removed:', removed);
     }
 
     return removed;
@@ -199,7 +201,7 @@ class OfflineLibrary {
     fs.mkdirSync(newPath, { recursive: true });
     OfflineLibrary.writeSettings(newPath);
     this.readIndex();
-    console.log('[OfflineLibrary] Path changed:', newPath);
+    log.debug('Path changed:', newPath);
   }
 
   /**
@@ -284,7 +286,7 @@ class OfflineLibrary {
     const existing = OfflineLibrary.readIndexAt(newPath);
 
     if (!this.canFit(newPath, files)) {
-      console.error('[OfflineLibrary] Not enough space at:', newPath);
+      log.error('Not enough space at:', newPath);
       return { moved: 0, failed: 0, fits: false };
     }
 
@@ -303,7 +305,7 @@ class OfflineLibrary {
           moved += 1;
         } catch (error) {
           failed += 1;
-          console.error('[OfflineLibrary] Move failed:', name, error);
+          log.error('Move failed:', name, error);
         }
       }
 
@@ -313,7 +315,7 @@ class OfflineLibrary {
     try {
       fs.rmSync(this.getIndexFile(), { force: true });
     } catch (error) {
-      console.error('[OfflineLibrary] Failed to remove old index:', error);
+      log.error('Failed to remove old index:', error);
     }
 
     this.downloadsPath = newPath;
@@ -322,13 +324,13 @@ class OfflineLibrary {
     const adopted = this.mergeAnime(existing);
 
     if (adopted > 0) {
-      console.log('[OfflineLibrary] Adopted episodes from target:', adopted);
+      log.debug('Adopted episodes from target:', adopted);
     }
 
     this.writeIndex();
     this.verify();
 
-    console.log('[OfflineLibrary] Migrated:', moved, 'failed:', failed);
+    log.debug('Migrated:', moved, 'failed:', failed);
 
     return { moved, failed, fits: true };
   }
@@ -416,7 +418,7 @@ class OfflineLibrary {
         'utf8',
       );
     } catch (error) {
-      console.error('[OfflineLibrary] Failed to write index:', error);
+      log.error('Failed to write index:', error);
     }
   }
 
@@ -535,7 +537,7 @@ class OfflineLibrary {
             fs.rmSync(this.resolveFile(fileName), { force: true });
             removed.push(fileName);
           } catch (error) {
-            console.error('[OfflineLibrary] Failed to remove file:', error);
+            log.error('Failed to remove file:', error);
           }
         });
     }
@@ -568,7 +570,7 @@ class OfflineLibrary {
         fs.rmSync(this.resolveFile(entry.coverFileName), { force: true });
         removed.push(entry.coverFileName);
       } catch (error) {
-        console.error('[OfflineLibrary] Failed to remove cover:', error);
+        log.error('Failed to remove cover:', error);
       }
     }
 

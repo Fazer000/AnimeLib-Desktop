@@ -1,6 +1,8 @@
-/* eslint-disable no-console */
-
 import { PLAYER_EPISODES_VISIBLE_BY_DEFAULT } from '../../../constants';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('UIStateManager');
 
 export interface UIState {
   showControls: boolean;
@@ -151,7 +153,7 @@ export class UIStateManager {
     }
 
     this.autoHideTimer = setTimeout(() => {
-      console.log('[UIStateManager] Auto-hiding controls');
+      log.debug('Auto-hiding controls');
       this.hidePlayerControls();
     }, delay);
   }

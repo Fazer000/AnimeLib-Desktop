@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useState, useCallback, useMemo, memo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -27,6 +26,10 @@ import {
 } from '@mui/icons-material';
 import { SpoilerInline } from './tiptap/SpoilerInline';
 import '../../CommentEditor.css';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('CommentEditor');
 
 export interface CommentSubmitData {
   comment: {
@@ -240,7 +243,7 @@ function CommentEditorComponent({
       await onSubmit(data);
       editor.commands.clearContent();
     } catch (error) {
-      console.error('[CommentEditor] Error submitting comment:', error);
+      log.error('Error submitting comment:', error);
     } finally {
       setIsSubmitting(false);
     }

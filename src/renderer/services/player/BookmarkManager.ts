@@ -1,5 +1,8 @@
-/* eslint-disable no-console */
 import { animeApi, Episode, AnimeBookmark } from '../../api/animeApi';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('BookmarkManager');
 
 export interface BookmarkManagerConfig {
   onBookmarkLoaded?: (bookmark: AnimeBookmark) => void;
@@ -40,16 +43,16 @@ export class BookmarkManager {
     timecodeSeconds: number | null;
   }> {
     if (this.bookmarkProcessed) {
-      console.log('[BookmarkManager] Bookmark already processed, skipping');
+      log.debug('Bookmark already processed, skipping');
       return { episodeIndex: null, timecodeSeconds: null };
     }
 
     try {
-      console.log('[BookmarkManager] Loading bookmark for:', animeSlugUrl);
+      log.debug('Loading bookmark for:', animeSlugUrl);
       const response = await animeApi.getAnimeBookmark(animeSlugUrl);
 
       if (!response.data) {
-        console.log('[BookmarkManager] No bookmark found');
+        log.debug('No bookmark found');
         this.bookmarkProcessed = true;
         return { episodeIndex: null, timecodeSeconds: null };
       }
@@ -57,7 +60,7 @@ export class BookmarkManager {
       const bookmark = response.data;
       this.currentBookmark = bookmark;
 
-      console.log('[BookmarkManager] Bookmark loaded:', {
+      log.debug('Bookmark loaded:', {
         episodeId: bookmark.item_id,
         progress: bookmark.progress,
       });
@@ -72,13 +75,13 @@ export class BookmarkManager {
       );
 
       if (episodeIndex === -1) {
-        console.log('[BookmarkManager] Episode not found in list');
+        log.debug('Episode not found in list');
         this.bookmarkProcessed = true;
         return { episodeIndex: null, timecodeSeconds: null };
       }
 
-      console.log(
-        `[BookmarkManager] Found episode at index ${episodeIndex}: ${episodes[episodeIndex].number}`,
+      log.debug(
+        `Found episode at index ${episodeIndex}: ${episodes[episodeIndex].number}`,
       );
 
       const timecodeSeconds = BookmarkManager.timecodeToSecondsInternal(
@@ -86,9 +89,7 @@ export class BookmarkManager {
       );
       this.pendingTimecode = timecodeSeconds;
 
-      console.log(
-        `[BookmarkManager] Timecode: ${bookmark.progress} = ${timecodeSeconds}s`,
-      );
+      log.debug(`Timecode: ${bookmark.progress} = ${timecodeSeconds}s`);
 
       if (this.config.onEpisodeFound) {
         this.config.onEpisodeFound(episodeIndex);
@@ -102,7 +103,7 @@ export class BookmarkManager {
 
       return { episodeIndex, timecodeSeconds };
     } catch (error) {
-      console.error('[BookmarkManager] Error loading bookmark:', error);
+      log.error('Error loading bookmark:', error);
       this.bookmarkProcessed = true;
       return { episodeIndex: null, timecodeSeconds: null };
     }
@@ -133,10 +134,10 @@ export class BookmarkManager {
         return parts[0] * 3600 + parts[1] * 60 + parts[2];
       }
 
-      console.warn('[BookmarkManager] Invalid timecode format:', timecode);
+      log.warn('Invalid timecode format:', timecode);
       return 0;
     } catch (error) {
-      console.error('[BookmarkManager] Error parsing timecode:', error);
+      log.error('Error parsing timecode:', error);
       return 0;
     }
   }
@@ -178,7 +179,7 @@ export class BookmarkManager {
     this.currentBookmark = null;
     this.bookmarkProcessed = false;
     this.pendingTimecode = null;
-    console.log('[BookmarkManager] State reset');
+    log.debug('State reset');
   }
 
   /**
@@ -245,7 +246,7 @@ export class BookmarkManager {
     try {
       const timecode = BookmarkManager.secondsToTimecode(currentTimeSeconds);
 
-      console.log('[BookmarkManager] Saving bookmark:', {
+      log.debug('Saving bookmark:', {
         anime: animeSlugUrl,
         episode: episodeId,
         timecode,
@@ -255,10 +256,10 @@ export class BookmarkManager {
 
       await animeApi.saveAnimeBookmark(animeSlugUrl, episodeId, timecode, meta);
 
-      console.log('[BookmarkManager] Bookmark saved successfully');
+      log.debug('Bookmark saved successfully');
       return true;
     } catch (error) {
-      console.error('[BookmarkManager] Error saving bookmark:', error);
+      log.error('Error saving bookmark:', error);
       return false;
     }
   }

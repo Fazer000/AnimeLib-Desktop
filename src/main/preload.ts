@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import type { UpdateInfo, UpdateResult } from '../constants/update';
 import type {
@@ -7,6 +6,10 @@ import type {
   OfflineDirectoryResult,
   OfflineSnapshot,
 } from '../constants/offline';
+
+import { createLogger } from '../shared/logger';
+
+const log = createLogger('AnimeLIB');
 
 export type Channels =
   | 'ipc-example'
@@ -68,45 +71,45 @@ const electronHandler = {
   },
   electronAPI: {
     onPlayerButtonClicked: (url: string) => {
-      console.log('[AnimeLIB] Preload: Sending player button click:', url);
+      log.debug('Preload: Sending player button click:', url);
       ipcRenderer.send('player-button-clicked', url);
     },
     setupVideoHeaders: async (siteUrl: string, authToken?: string) => {
-      console.log('[AnimeLIB] Preload: Setting up video headers for:', siteUrl);
+      log.debug('Preload: Setting up video headers for:', siteUrl);
       return ipcRenderer.invoke('setup-video-headers', { siteUrl, authToken });
     },
     clearVideoHeaders: async () => {
-      console.log('[AnimeLIB] Preload: Clearing video headers');
+      log.debug('Preload: Clearing video headers');
       return ipcRenderer.invoke('clear-video-headers');
     },
     setFullscreen: (isFullscreen: boolean) => {
-      console.log('[AnimeLIB] Preload: Setting fullscreen:', isFullscreen);
+      log.debug('Preload: Setting fullscreen:', isFullscreen);
       ipcRenderer.send('window-fullscreen', isFullscreen);
     },
     getMaximizeState: async (): Promise<boolean> => {
-      console.log('[AnimeLIB] Preload: Getting maximize state');
+      log.debug('Preload: Getting maximize state');
       return ipcRenderer.invoke('get-maximize-state');
     },
     getKodikLinks: async (kodikSrc: string) => {
-      console.log('[AnimeLIB] Preload: Getting Kodik links for:', kodikSrc);
+      log.debug('Preload: Getting Kodik links for:', kodikSrc);
       return ipcRenderer.invoke('get-kodik-links', kodikSrc);
     },
     fetchSubtitles: async (
       urls: string[],
     ): Promise<{ success: boolean; data?: string; error?: string }> => {
-      console.log('[AnimeLIB] Preload: Fetching subtitles');
+      log.debug('Preload: Fetching subtitles');
       return ipcRenderer.invoke('fetch-subtitles', urls);
     },
     checkForUpdate: async (): Promise<UpdateInfo> => {
-      console.log('[AnimeLIB] Preload: Checking for update');
+      log.debug('Preload: Checking for update');
       return ipcRenderer.invoke('check-for-update');
     },
     downloadUpdate: async (): Promise<UpdateResult> => {
-      console.log('[AnimeLIB] Preload: Downloading update');
+      log.debug('Preload: Downloading update');
       return ipcRenderer.invoke('download-update');
     },
     openReleasePage: () => {
-      console.log('[AnimeLIB] Preload: Opening release page');
+      log.debug('Preload: Opening release page');
       ipcRenderer.send('open-release-page');
     },
     offlineGetSnapshot: async (): Promise<OfflineSnapshot> =>

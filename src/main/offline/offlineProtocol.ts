@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * Протокол доступа к локальным видеофайлам с поддержкой Range
  */
@@ -8,6 +6,10 @@ import { Readable } from 'stream';
 import { BrowserWindow, protocol, session } from 'electron';
 import { OFFLINE_SCHEME } from '../../constants';
 import { offlineLibrary } from './OfflineLibrary';
+
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('OfflineProtocol');
 
 const WEBVIEW_PARTITION = 'persist:webview';
 
@@ -63,7 +65,7 @@ const notifyMissing = (fileName: string): void => {
   }
 
   missingFiles.add(fileName);
-  console.error('[OfflineProtocol] File missing:', fileName);
+  log.error('File missing:', fileName);
   getMainWindow()?.webContents.send('offline-file-missing', fileName);
 };
 
@@ -161,7 +163,7 @@ const handleOfflineRequest = async (request: Request): Promise<Response> => {
       const buffer = await readSlice(filePath, start, length);
 
       if (buffer.length !== length) {
-        console.error('[OfflineProtocol] Short read:', buffer.length, length);
+        log.error('Short read:', buffer.length, length);
         return new Response('Short read', { status: 500 });
       }
 
@@ -181,7 +183,7 @@ const handleOfflineRequest = async (request: Request): Promise<Response> => {
       ) {
         return;
       }
-      console.error('[OfflineProtocol] Stream error:', error);
+      log.error('Stream error:', error);
     });
 
     return new Response(Readable.toWeb(stream) as any, {
@@ -189,7 +191,7 @@ const handleOfflineRequest = async (request: Request): Promise<Response> => {
       headers,
     });
   } catch (error) {
-    console.error('[OfflineProtocol] Error:', error);
+    log.error('Error:', error);
     return new Response('Error', { status: 500 });
   }
 };
@@ -207,5 +209,5 @@ export const registerOfflineProtocol = (
     .fromPartition(WEBVIEW_PARTITION)
     .protocol.handle(OFFLINE_SCHEME, handleOfflineRequest);
 
-  console.log('[OfflineProtocol] Registered for default and webview sessions');
+  log.debug('Registered for default and webview sessions');
 };

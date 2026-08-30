@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * Проверка обновлений через GitHub Releases и запуск установщика
  */
@@ -20,6 +18,10 @@ import {
   UpdateInfo,
   UpdateResult,
 } from '../constants';
+
+import { createLogger } from '../shared/logger';
+
+const log = createLogger('Updater');
 
 /**
  * Возвращает расширение установщика для текущей платформы
@@ -208,7 +210,7 @@ export const checkForUpdate = async (): Promise<UpdateInfo> => {
   const release = await requestJson(UPDATE_LATEST_RELEASE_API);
 
   if (!release?.tag_name) {
-    console.log('[Updater] Release info unavailable');
+    log.debug('Release info unavailable');
     return base;
   }
 
@@ -244,7 +246,7 @@ const downloadAndInstall = async (
   const fileName = path.basename(new URL(info.downloadUrl).pathname);
   const filePath = path.join(os.tmpdir(), fileName);
 
-  console.log('[Updater] Downloading:', info.downloadUrl);
+  log.debug('Downloading:', info.downloadUrl);
 
   const downloaded = await downloadFile(info.downloadUrl, filePath, (percent) =>
     window?.webContents.send('update-download-progress', percent),
@@ -255,7 +257,7 @@ const downloadAndInstall = async (
     return { success: false, error: 'Не удалось скачать обновление' };
   }
 
-  console.log('[Updater] Downloaded to:', filePath);
+  log.debug('Downloaded to:', filePath);
 
   if (process.platform === 'win32') {
     await shell.openPath(filePath);
@@ -275,8 +277,8 @@ export const registerUpdateHandlers = (
 ): void => {
   ipcMain.handle('check-for-update', async () => {
     const info = await checkForUpdate();
-    console.log(
-      `[Updater] Current: ${info.currentVersion}, latest: ${info.latestVersion}, available: ${info.available}`,
+    log.debug(
+      `Current: ${info.currentVersion}, latest: ${info.latestVersion}, available: ${info.available}`,
     );
     return info;
   });
@@ -295,5 +297,5 @@ export const registerUpdateHandlers = (
     shell.openExternal(UPDATE_RELEASES_PAGE);
   });
 
-  console.log('[Updater] Update handlers registered');
+  log.debug('Update handlers registered');
 };

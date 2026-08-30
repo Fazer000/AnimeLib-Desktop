@@ -1,4 +1,6 @@
-/* eslint-disable no-console */
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('SegmentManager');
 
 export interface TimeCodeSegment {
   type: 'opening' | 'ending' | 'compilation' | 'splashScreen';
@@ -80,7 +82,7 @@ export class SegmentManager {
   setSegments(segments: TimeCodeSegment[]): void {
     this.segments = segments;
     this.skippedSegments.clear();
-    console.log('[SegmentManager] Segments set:', segments.length);
+    log.debug('Segments set:', segments.length);
   }
 
   /**
@@ -89,7 +91,7 @@ export class SegmentManager {
   setDuration(duration: number): void {
     if (this.videoDuration !== duration && duration > 0) {
       this.skippedSegments.clear();
-      console.log('[SegmentManager] Duration changed, cleared skip history');
+      log.debug('Duration changed, cleared skip history');
     }
     this.videoDuration = duration;
   }
@@ -118,9 +120,7 @@ export class SegmentManager {
         const segmentKey = `${this.currentSegment.from}-${this.currentSegment.to}-${this.currentSegment.type}`;
 
         if (!this.skippedSegments.has(segmentKey)) {
-          console.log(
-            `[SegmentManager] Auto-skipping ${this.currentSegment.type} segment`,
-          );
+          log.debug(`Auto-skipping ${this.currentSegment.type} segment`);
           this.skippedSegments.add(segmentKey);
           this.skipCurrentSegment();
         }
@@ -148,7 +148,7 @@ export class SegmentManager {
   updateSettings(settings: Partial<SegmentSettings>): void {
     this.settings = { ...this.settings, ...settings };
     this.saveSettings();
-    console.log('[SegmentManager] Settings updated:', this.settings);
+    log.debug('Settings updated:', this.settings);
   }
 
   /**
@@ -174,7 +174,7 @@ export class SegmentManager {
    */
   skipCurrentSegment(): void {
     if (!this.currentSegment) {
-      console.warn('[SegmentManager] No current segment to skip');
+      log.warn('No current segment to skip');
       return;
     }
 
@@ -182,11 +182,9 @@ export class SegmentManager {
 
     if (this.videoDuration > 0 && skipToTime >= this.videoDuration) {
       skipToTime = this.videoDuration - 0.5;
-      console.log(
-        `[SegmentManager] Segment goes to end, skipping to ${skipToTime} (near end)`,
-      );
+      log.debug(`Segment goes to end, skipping to ${skipToTime} (near end)`);
     } else {
-      console.log('[SegmentManager] Skipping to:', skipToTime);
+      log.debug('Skipping to:', skipToTime);
     }
 
     this.onSkipSegment?.(skipToTime);

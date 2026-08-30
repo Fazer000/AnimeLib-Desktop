@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useState, useEffect } from 'react';
 import {
   Modal,
@@ -14,6 +13,10 @@ import {
 import { Close, Search, PlayArrowRounded } from '@mui/icons-material';
 import { animeApi } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('SearchModal');
 
 interface SearchResult {
   id: number;
@@ -207,11 +210,11 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
     setIsSearching(true);
     const timeoutId = setTimeout(async () => {
       try {
-        console.log('[SearchModal] Searching for:', searchQuery);
+        log.debug('Searching for:', searchQuery);
         const response = await animeApi.searchAnime(searchQuery);
         setSearchResults(response.data || []);
       } catch (error) {
-        console.error('[SearchModal] Search error:', error);
+        log.error('Search error:', error);
         setSearchResults([]);
       } finally {
         setIsSearching(false);
@@ -226,8 +229,8 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
   };
 
   const handleAnimeClick = (result: SearchResult, openInPlayer = false) => {
-    console.log(
-      '[SearchModal] Anime selected:',
+    log.debug(
+      'Anime selected:',
       result.slug_url,
       'openInPlayer:',
       openInPlayer,

@@ -1,4 +1,6 @@
-/* eslint-disable no-console */
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('AutoplayManager');
 
 export interface AutoplayConfig {
   enabled: boolean;
@@ -46,7 +48,7 @@ export class AutoplayManager {
   attachVideo(video: HTMLVideoElement): void {
     this.detachVideo();
     this.videoElement = video;
-    console.log('[AutoplayManager] Video element attached');
+    log.debug('Video element attached');
   }
 
   /**
@@ -89,12 +91,12 @@ export class AutoplayManager {
    */
   private shouldAutoplay(): boolean {
     if (this.isFirstLoad) {
-      console.log('[AutoplayManager] First load - skipping autoplay');
+      log.debug('First load - skipping autoplay');
       return false;
     }
 
     if (this.hasBookmarkPending) {
-      console.log('[AutoplayManager] Bookmark pending - skipping autoplay');
+      log.debug('Bookmark pending - skipping autoplay');
       return false;
     }
 
@@ -105,33 +107,33 @@ export class AutoplayManager {
    * Определить нужно ли автовоспроизведение на основе контекста загрузки
    */
   determineAutoplay(context: LoadContext): boolean {
-    console.log('[AutoplayManager] Determining autoplay:', context);
+    log.debug('Determining autoplay:', context);
 
     if (this.isFirstLoad) {
       this.isFirstLoad = false;
-      console.log('[AutoplayManager] First load - no autoplay');
+      log.debug('First load - no autoplay');
       return false;
     }
 
     if (context.hasBookmark) {
-      console.log('[AutoplayManager] Bookmark - autoplay enabled');
+      log.debug('Bookmark - autoplay enabled');
       return true;
     }
 
     if (context.isFromHint) {
-      console.log('[AutoplayManager] From hint - autoplay enabled');
+      log.debug('From hint - autoplay enabled');
       return true;
     }
 
     if (context.isVoiceChange) {
-      console.log(
-        '[AutoplayManager] Voice change - preserving play state:',
+      log.debug(
+        'Voice change - preserving play state:',
         context.currentTime !== undefined,
       );
       return context.currentTime !== undefined;
     }
 
-    console.log('[AutoplayManager] Default - no autoplay');
+    log.debug('Default - no autoplay');
     return false;
   }
 
@@ -140,7 +142,7 @@ export class AutoplayManager {
    */
   setupAutoplayOnLoad(): void {
     if (!this.videoElement) {
-      console.warn('[AutoplayManager] No video element');
+      log.warn('No video element');
       return;
     }
 
@@ -149,7 +151,7 @@ export class AutoplayManager {
     }
 
     if (!this.shouldAutoplayOnLoad) {
-      console.log('[AutoplayManager] Autoplay not requested for this load');
+      log.debug('Autoplay not requested for this load');
       return;
     }
 
@@ -158,22 +160,22 @@ export class AutoplayManager {
         return;
       }
 
-      console.log('[AutoplayManager] Video ready - starting autoplay');
+      log.debug('Video ready - starting autoplay');
 
       setTimeout(() => {
         if (!this.videoElement || !this.videoElement.paused) {
-          console.log('[AutoplayManager] Video already playing');
+          log.debug('Video already playing');
           return;
         }
 
         this.videoElement
           .play()
           .then(() => {
-            console.log('[AutoplayManager] Autoplay started successfully');
+            log.debug('Autoplay started successfully');
             return undefined;
           })
           .catch((error) => {
-            console.warn('[AutoplayManager] Autoplay failed:', error);
+            log.warn('Autoplay failed:', error);
           });
       }, 100);
     };
@@ -186,7 +188,7 @@ export class AutoplayManager {
    */
   setShouldAutoplayOnLoad(should: boolean): void {
     this.shouldAutoplayOnLoad = should;
-    console.log('[AutoplayManager] Autoplay on load set to:', should);
+    log.debug('Autoplay on load set to:', should);
   }
 
   /**
@@ -202,20 +204,15 @@ export class AutoplayManager {
     }
 
     this.endedHandler = () => {
-      console.log(
-        '[AutoplayManager] Video ended, autoplay enabled, checking for next episode',
-      );
+      log.debug('Video ended, autoplay enabled, checking for next episode');
 
       const hasNextEpisode = currentEpisodeIndex < totalEpisodes - 1;
 
       if (hasNextEpisode) {
-        console.log(
-          '[AutoplayManager] Auto-advancing to next episode:',
-          currentEpisodeIndex + 1,
-        );
+        log.debug('Auto-advancing to next episode:', currentEpisodeIndex + 1);
         this.config.onEpisodeChange?.(currentEpisodeIndex + 1);
       } else {
-        console.log('[AutoplayManager] No more episodes to auto-advance to');
+        log.debug('No more episodes to auto-advance to');
       }
     };
 

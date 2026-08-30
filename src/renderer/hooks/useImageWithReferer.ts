@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('useImageWithReferer');
+
 /**
  * Hook to load images with custom referer header using Electron IPC
  */
@@ -51,7 +55,7 @@ function useImageWithReferer(imageUrl: string | undefined): string {
         }
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error('[useImageWithReferer] Failed to load image:', error);
+        log.error('Failed to load image:', error);
         if (!isCancelled) {
           setBlobUrl(imageUrl);
         }

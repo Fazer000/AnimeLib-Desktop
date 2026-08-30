@@ -1,4 +1,3 @@
-/* eslint-disable react/require-default-props, jsx-a11y/anchor-is-valid, no-console */
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -11,10 +10,18 @@ import {
 import { Link, Close } from '@mui/icons-material';
 import { saveSiteUrl } from '../../utils/urlHelpers';
 
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('UrlBar');
+
 interface UrlBarProps {
+  // eslint-disable-next-line react/require-default-props
   currentUrl?: string;
+  // eslint-disable-next-line react/require-default-props
   showUrlInput?: boolean;
+  // eslint-disable-next-line react/require-default-props
   onUrlChange?: (url: string) => void;
+  // eslint-disable-next-line react/require-default-props
   onToggleUrlInput?: () => void;
 }
 
@@ -38,7 +45,7 @@ function UrlBar({
     if (showUrlInput) {
       const savedUrl = localStorage.getItem('animeLibUrl') || '';
       setLocalUrl(savedUrl);
-      console.log('[UrlBar] Loaded animeLibUrl from localStorage:', savedUrl);
+      log.debug('Loaded animeLibUrl from localStorage:', savedUrl);
     }
   }, [showUrlInput]);
 
@@ -49,7 +56,7 @@ function UrlBar({
     }
 
     const baseUrl = saveSiteUrl(trimmedUrl);
-    console.log('[UrlBar] Saved base animeLibUrl to localStorage:', baseUrl);
+    log.debug('Saved base animeLibUrl to localStorage:', baseUrl);
 
     if (onUrlChange) {
       onUrlChange(trimmedUrl);
@@ -159,6 +166,7 @@ function UrlBar({
           }}
           aria-label="Переключить URL ввод"
         >
+          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
           <Link sx={{ fontSize: 16 }} />
         </IconButton>
       )}

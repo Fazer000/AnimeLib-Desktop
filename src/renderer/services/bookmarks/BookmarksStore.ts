@@ -1,6 +1,8 @@
-/* eslint-disable no-console */
-
 import { animeApi, BookmarkItem } from '../../api/animeApi';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('BookmarksStore');
 
 export type BookmarksListener = (items: BookmarkItem[]) => void;
 
@@ -69,7 +71,7 @@ export class BookmarksStore {
     try {
       this.setItems(await animeApi.getWatchingBookmarks());
     } catch (error) {
-      console.error('[BookmarksStore] Failed to refresh bookmarks:', error);
+      log.error('Failed to refresh bookmarks:', error);
     } finally {
       this.isLoading = false;
 
@@ -93,7 +95,7 @@ export class BookmarksStore {
     this.signature = signature;
     this.items = items;
 
-    console.log('[BookmarksStore] Bookmarks updated:', items.length);
+    log.debug('Bookmarks updated:', items.length);
     this.listeners.forEach((listener) => listener(items));
   }
 

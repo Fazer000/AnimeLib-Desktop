@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * Загрузка HLS: склейка сегментов и генерация локального плейлиста
  */
@@ -11,6 +9,10 @@ import {
   OFFLINE_MIN_FREE_SPACE_BYTES,
 } from '../../constants';
 import { httpGet, toAbsoluteUrl } from './httpClient';
+
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('HlsDownloader');
 
 interface Segment {
   url: string;
@@ -193,7 +195,7 @@ class HlsDownloader {
       );
 
       if (fs.statSync(mediaPath).size !== written) {
-        console.warn('[HlsDownloader] State mismatch, restarting');
+        log.warn('State mismatch, restarting');
         return [];
       }
 
@@ -218,7 +220,7 @@ class HlsDownloader {
         'utf8',
       );
     } catch (error) {
-      console.error('[HlsDownloader] Failed to write state:', error);
+      log.error('Failed to write state:', error);
     }
   }
 
@@ -298,7 +300,7 @@ class HlsDownloader {
         }
 
         if (expected > 0 && body.length !== expected) {
-          console.warn('[HlsDownloader] Range length mismatch:', body.length);
+          log.warn('Range length mismatch:', body.length);
           // eslint-disable-next-line no-continue
           continue;
         }
@@ -307,9 +309,9 @@ class HlsDownloader {
           return body;
         }
 
-        console.warn('[HlsDownloader] Invalid chunk, retrying:', url);
+        log.warn('Invalid chunk, retrying:', url);
       } catch (error) {
-        console.error('[HlsDownloader] Segment error:', error);
+        log.error('Segment error:', error);
       }
     }
 
@@ -380,7 +382,7 @@ class HlsDownloader {
       const variant = pickVariant(text, baseUrl);
 
       if (!variant) {
-        console.error('[HlsDownloader] No variant found');
+        log.error('No variant found');
         return { outcome: 'failed', bytes: 0 };
       }
 
@@ -393,12 +395,12 @@ class HlsDownloader {
     const { segments } = info;
 
     if (info.encrypted) {
-      console.error('[HlsDownloader] Encrypted stream is not supported');
+      log.error('Encrypted stream is not supported');
       return { outcome: 'failed', bytes: 0 };
     }
 
     if (segments.length === 0) {
-      console.error('[HlsDownloader] Empty playlist');
+      log.error('Empty playlist');
       return { outcome: 'failed', bytes: 0 };
     }
 
@@ -419,7 +421,7 @@ class HlsDownloader {
       );
 
       if (!initChunk) {
-        console.error('[HlsDownloader] Init segment failed');
+        log.error('Init segment failed');
         return { outcome: 'failed', bytes: 0 };
       }
 
@@ -431,9 +433,7 @@ class HlsDownloader {
     const initCount = state.some((item) => item.init) ? 1 : 0;
     const startIndex = Math.max(state.length - initCount, 0);
 
-    console.log(
-      `[HlsDownloader] Segments: ${segments.length}, resuming from ${startIndex}`,
-    );
+    log.debug(`Segments: ${segments.length}, resuming from ${startIndex}`);
 
     // eslint-disable-next-line no-plusplus
     for (let index = startIndex; index < segments.length; index++) {
@@ -451,7 +451,7 @@ class HlsDownloader {
 
       if (!chunk) {
         this.writeState(mediaPath, url, state);
-        console.error('[HlsDownloader] Segment failed at:', index);
+        log.error('Segment failed at:', index);
         return { outcome: 'failed', bytes };
       }
 
@@ -491,7 +491,7 @@ class HlsDownloader {
 
     fs.rmSync(this.statePath(mediaPath), { force: true });
 
-    console.log('[HlsDownloader] Completed, bytes:', bytes);
+    log.debug('Completed, bytes:', bytes);
 
     return { outcome: 'completed', bytes };
   }

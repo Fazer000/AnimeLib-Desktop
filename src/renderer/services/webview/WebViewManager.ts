@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * WebViewManager - Manages webview navigation, URL tracking, and state
  *
@@ -35,6 +34,10 @@ import {
 } from '../../utils/urlHelpers';
 import { NavigationHistoryTracker } from './NavigationHistoryTracker';
 import type { NavigationSource } from './NavigationHistoryTracker';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('WebViewManager');
 
 export interface NavigationState {
   canGoBack: boolean;
@@ -74,13 +77,13 @@ export class WebViewManager {
    */
   public attachWebView(webview: any): void {
     if (!webview) {
-      console.error('[WebViewManager] Cannot attach null webview');
+      log.error('Cannot attach null webview');
       return;
     }
 
     this.webview = webview;
     this.isInitialized = true;
-    console.log('[WebViewManager] WebView attached');
+    log.debug('WebView attached');
 
     webview.addEventListener('dom-ready', () => {
       this.injectRenderingImprovements();
@@ -101,12 +104,9 @@ export class WebViewManager {
 
     try {
       this.webview.insertCSS(css);
-      console.log('[WebViewManager] Rendering improvements injected');
+      log.debug('Rendering improvements injected');
     } catch (error) {
-      console.error(
-        '[WebViewManager] Error injecting rendering improvements:',
-        error,
-      );
+      log.error('Error injecting rendering improvements:', error);
     }
   }
 
@@ -118,7 +118,7 @@ export class WebViewManager {
     this.isInitialized = false;
     this.pendingHistoryResetUrl = null;
     this.historyResetArmed = false;
-    console.log('[WebViewManager] WebView detached');
+    log.debug('WebView detached');
   }
 
   /**
@@ -170,7 +170,7 @@ export class WebViewManager {
         currentUrl: this.currentUrl,
       };
     } catch (error) {
-      console.error('[WebViewManager] Error getting navigation state:', error);
+      log.error('Error getting navigation state:', error);
       return {
         canGoBack: false,
         canGoForward: false,
@@ -184,9 +184,7 @@ export class WebViewManager {
    */
   public updateNavigationState(): void {
     if (!this.isReady()) {
-      console.log(
-        '[WebViewManager] WebView not ready yet, skipping state update',
-      );
+      log.debug('WebView not ready yet, skipping state update');
       return;
     }
 
@@ -205,7 +203,7 @@ export class WebViewManager {
    */
   public goBack(): boolean {
     if (!this.isReady()) {
-      console.warn('[WebViewManager] Cannot go back, webview not ready');
+      log.warn('Cannot go back, webview not ready');
       return false;
     }
 
@@ -220,7 +218,7 @@ export class WebViewManager {
         return true;
       }
     } catch (error) {
-      console.error('[WebViewManager] Error in goBack:', error);
+      log.error('Error in goBack:', error);
     }
 
     return false;
@@ -231,7 +229,7 @@ export class WebViewManager {
    */
   public goForward(): boolean {
     if (!this.isReady()) {
-      console.warn('[WebViewManager] Cannot go forward, webview not ready');
+      log.warn('Cannot go forward, webview not ready');
       return false;
     }
 
@@ -246,7 +244,7 @@ export class WebViewManager {
         return true;
       }
     } catch (error) {
-      console.error('[WebViewManager] Error in goForward:', error);
+      log.error('Error in goForward:', error);
     }
 
     return false;
@@ -257,7 +255,7 @@ export class WebViewManager {
    */
   public reload(): void {
     if (!this.isReady()) {
-      console.warn('[WebViewManager] Cannot reload, webview not ready');
+      log.warn('Cannot reload, webview not ready');
       return;
     }
 
@@ -267,9 +265,9 @@ export class WebViewManager {
         url: this.getCurrentUrl(),
       });
       this.webview.reload();
-      console.log('[WebViewManager] Reloading webview');
+      log.debug('Reloading webview');
     } catch (error) {
-      console.error('[WebViewManager] Error reloading:', error);
+      log.error('Error reloading:', error);
     }
   }
 
@@ -278,17 +276,17 @@ export class WebViewManager {
    */
   public navigateTo(url: string): void {
     if (!this.isReady()) {
-      console.error('[WebViewManager] Cannot navigate, webview not ready');
+      log.error('Cannot navigate, webview not ready');
       return;
     }
 
     if (!url.trim()) {
-      console.error('[WebViewManager] Cannot navigate to empty URL');
+      log.error('Cannot navigate to empty URL');
       return;
     }
 
     try {
-      console.log('[WebViewManager] Navigating to:', url);
+      log.debug('Navigating to:', url);
       this.webview.src = url;
       this.currentUrl = url;
 
@@ -296,7 +294,7 @@ export class WebViewManager {
         this.callbacks.onUrlChange(url);
       }
     } catch (error) {
-      console.error('[WebViewManager] Error navigating to URL:', error);
+      log.error('Error navigating to URL:', error);
     }
   }
 
@@ -305,7 +303,7 @@ export class WebViewManager {
    */
   public navigateToHome(): void {
     const homeUrl = WebViewManager.getHomeUrl();
-    console.log('[WebViewManager] Navigating to home URL:', homeUrl);
+    log.debug('Navigating to home URL:', homeUrl);
 
     if (this.getCurrentUrl() === homeUrl) {
       this.clearHistory();
@@ -332,9 +330,9 @@ export class WebViewManager {
         source: 'home-reset',
         url: this.getCurrentUrl(),
       });
-      console.log('[WebViewManager] Navigation history cleared');
+      log.debug('Navigation history cleared');
     } catch (error) {
-      console.error('[WebViewManager] Error clearing history:', error);
+      log.error('Error clearing history:', error);
     }
   }
 
@@ -349,7 +347,7 @@ export class WebViewManager {
     try {
       this.webview.setAudioMuted(muted);
     } catch (error) {
-      console.error('[WebViewManager] Error setting audio muted:', error);
+      log.error('Error setting audio muted:', error);
     }
   }
 
@@ -367,22 +365,19 @@ export class WebViewManager {
     try {
       if (isFullUrl) {
         localStorage.setItem('animeLibCurrentPage', url);
-        console.log('[WebViewManager] Full URL saved:', url);
+        log.debug('Full URL saved:', url);
         return;
       }
 
       if (!isSiteUrl(url)) {
-        console.log(
-          '[WebViewManager] Base URL not updated, foreign domain:',
-          url,
-        );
+        log.debug('Base URL not updated, foreign domain:', url);
         return;
       }
 
       const baseUrl = saveSiteUrl(url);
-      console.log('[WebViewManager] Base URL saved:', baseUrl);
+      log.debug('Base URL saved:', baseUrl);
     } catch (error) {
-      console.error('[WebViewManager] Error saving URL:', error);
+      log.error('Error saving URL:', error);
     }
   }
 
@@ -443,7 +438,7 @@ export class WebViewManager {
     url: string,
     source: NavigationSource = 'navigate',
   ): void {
-    console.log('[WebViewManager] Navigation event:', url);
+    log.debug('Navigation event:', url);
     this.currentUrl = url;
 
     WebViewManager.saveUrl(url, true);
@@ -455,7 +450,7 @@ export class WebViewManager {
     ) {
       this.pendingHistoryResetUrl = null;
       this.historyResetArmed = true;
-      console.log('[WebViewManager] History reset armed for:', url);
+      log.debug('History reset armed for:', url);
     }
 
     this.updateNavigationState();
@@ -478,7 +473,7 @@ export class WebViewManager {
    */
   public handleLoadStop(): void {
     const url = this.getCurrentUrl();
-    console.log('[WebViewManager] Load stop:', url);
+    log.debug('Load stop:', url);
 
     WebViewManager.saveUrl(url, true);
 
@@ -498,7 +493,7 @@ export class WebViewManager {
    * Handle error event
    */
   public handleError(error: any): void {
-    console.error('[WebViewManager] Error:', error);
+    log.error('Error:', error);
 
     if (this.callbacks.onError) {
       this.callbacks.onError(error);

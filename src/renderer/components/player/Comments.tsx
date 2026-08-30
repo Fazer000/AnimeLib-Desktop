@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, {
   useState,
   useEffect,
@@ -42,6 +41,10 @@ import CommentText from './CommentText';
 import { animeApi } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 import CommentEditor, { CommentSubmitData } from './CommentEditor';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('Comments');
 
 export interface ReplyControls {
   episodeId: number;
@@ -1058,7 +1061,7 @@ function Comments({
           setLoading(isLoading);
         },
         onError: (error) => {
-          console.error('[Comments] Error:', error);
+          log.error('Error:', error);
         },
         sortBy: 'id',
         sortType: 'desc',
@@ -1161,7 +1164,7 @@ function Comments({
           updateCommentVotes(prev, commentId, newVote, currentVote),
         );
       } catch (error) {
-        console.error('[Comments] Error voting:', error);
+        log.error('Error voting:', error);
       } finally {
         setVotingComments((prev) => {
           const next = new Set(prev);
@@ -1181,7 +1184,7 @@ function Comments({
       try {
         const result = await animeApi.submitComment(data);
         const created = result?.data?.data;
-        console.log('[Comments] Comment submitted successfully');
+        log.debug('Comment submitted successfully');
 
         if (created?.id && created?.user) {
           commentsManager.insertComment(created);
@@ -1189,14 +1192,14 @@ function Comments({
           return;
         }
 
-        console.warn('[Comments] Incomplete response, reloading comments');
+        log.warn('Incomplete response, reloading comments');
         commentsManager.reset();
         setComments([]);
         setDisplayCount(20);
         setHasMore(true);
         await commentsManager.loadComments(episodeId, 1);
       } catch (error) {
-        console.error('[Comments] Error submitting comment:', error);
+        log.error('Error submitting comment:', error);
         throw error;
       }
     },
@@ -1230,7 +1233,7 @@ function Comments({
         commentsManager.removeComment(commentId);
         setToast(message ?? 'Комментарий был удалён');
       } catch (error) {
-        console.error('[Comments] Error deleting comment:', error);
+        log.error('Error deleting comment:', error);
         setToast('Не удалось удалить комментарий');
       }
     },
@@ -1245,7 +1248,7 @@ function Comments({
           commentsManager.updateComment(updated);
         }
       } catch (error) {
-        console.error('[Comments] Error updating comment:', error);
+        log.error('Error updating comment:', error);
         setToast('Не удалось сохранить изменения');
       }
     },
@@ -1271,7 +1274,7 @@ function Comments({
         commentsManager.removeUserComments(userId);
         setToast('Пользователь добавлен в игнор-лист');
       } catch (error) {
-        console.error('[Comments] Error ignoring user:', error);
+        log.error('Error ignoring user:', error);
         setToast('Не удалось добавить в игнор-лист');
       }
     },
@@ -1315,11 +1318,11 @@ function Comments({
    */
   useEffect(() => {
     if (!shouldLoad) {
-      console.log('[Comments] shouldLoad is false, skipping initial load');
+      log.debug('shouldLoad is false, skipping initial load');
       return;
     }
 
-    console.log('[Comments] shouldLoad is true, loading comments');
+    log.debug('shouldLoad is true, loading comments');
     const { sortBy, sortType } = getSortParams(sortOption);
     commentsManager.updateSortOptions(sortBy, sortType);
     commentsManager.reset();
@@ -1344,7 +1347,7 @@ function Comments({
 
     observerRef.current = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting && commentsManager.canLoadMore()) {
-        console.log('[Comments] Load more triggered');
+        log.debug('Load more triggered');
         loadComments();
       }
     }, options);
@@ -1371,7 +1374,7 @@ function Comments({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            console.log('[Comments] Showing more comments');
+            log.debug('Showing more comments');
             setDisplayCount((prev) => Math.min(prev + 20, comments.length));
           }
         });

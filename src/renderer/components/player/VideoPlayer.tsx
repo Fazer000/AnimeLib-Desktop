@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, {
   useRef,
   useEffect,
@@ -23,7 +22,6 @@ import {
   animeApi,
 } from '../../api/animeApi';
 import VideoControls from './VideoControls';
-// @ts-ignore
 import SubtitlesOverlay from './SubtitlesOverlay';
 import AnimeInfoComponent from './AnimeInfo';
 import EpisodeNavigationHint from './EpisodeNavigationHint';
@@ -56,6 +54,10 @@ import {
   SubtitleCue,
   SubtitleStyleSettings,
 } from '../../utils/subtitleHelpers';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('VideoPlayer');
 
 type FullscreenPhase = 'enter' | 'exit' | null;
 
@@ -259,17 +261,14 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     useEffect(() => {
       const initController = async () => {
         if (!videoRef.current || !containerRef.current) {
-          console.error('[VideoPlayer] Video or container ref not ready');
+          log.error('Video or container ref not ready');
           return;
         }
 
-        console.log('[VideoPlayer] Initializing controller...');
+        log.debug('Initializing controller...');
 
         const initialSkipTime = skipManager.getSkipTime();
-        console.log(
-          '[VideoPlayer] Initial skip time from storage:',
-          initialSkipTime,
-        );
+        log.debug('Initial skip time from storage:', initialSkipTime);
 
         const controller = new VideoPlayerController({
           onError,
@@ -320,9 +319,9 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           controllerRef.current = controller;
           setSubtitleSettings(controller.getSubtitlesManager().getSettings());
           setIsControllerReady(true);
-          console.log('[VideoPlayer] Controller initialized successfully');
+          log.debug('Controller initialized successfully');
         } else {
-          console.error('[VideoPlayer] Controller initialization failed');
+          log.error('Controller initialization failed');
           setIsControllerReady(false);
         }
       };
@@ -360,11 +359,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         const { player, kodikLinks, isFromHint } = pendingLoadRef.current;
         pendingLoadRef.current = null;
 
-        console.log(
-          '[VideoPlayer] Processing pending load:',
-          player.team.name,
-          player.player,
-        );
+        log.debug('Processing pending load:', player.team.name, player.player);
 
         setCurrentPlayerData(player);
 
@@ -379,7 +374,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             offlineAnimeId: offlineMode ? animeId : undefined,
           })
           .catch((error) => {
-            console.error('[VideoPlayer] Error in pending load:', error);
+            log.error('Error in pending load:', error);
           });
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -400,7 +395,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           const response = await animeApi.getAnimeInfo(animeId);
           setAnimeInfo(response.data);
         } catch (error) {
-          console.error('[VideoPlayer] Failed to load anime info:', error);
+          log.error('Failed to load anime info:', error);
         }
       };
 
@@ -433,7 +428,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         const { videoWidth, videoHeight, duration } = video;
         if (videoWidth && videoHeight) {
           const aspectRatio = videoWidth / videoHeight;
-          console.log('[VideoPlayer] Video aspect ratio:', aspectRatio, {
+          log.debug('Video aspect ratio:', aspectRatio, {
             width: videoWidth,
             height: videoHeight,
           });
@@ -491,8 +486,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
       const handleVideoEnded = () => {
         if (!nextEpisodeNotificationShownRef.current) {
-          console.log(
-            '[VideoPlayer] Video ended with autoplay disabled, showing next episode notification',
+          log.debug(
+            'Video ended with autoplay disabled, showing next episode notification',
           );
           setShowNextEpisodeNotification(true);
           nextEpisodeNotificationShownRef.current = true;
@@ -518,7 +513,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         uiStateManager.setFullscreen(isFullscreen);
         uiStateManager.showPlayerControls();
         uiStateManager.startAutoHide(isPlayingRef.current);
-        console.log('[VideoPlayer] Player fullscreen changed:', isFullscreen);
+        log.debug('Player fullscreen changed:', isFullscreen);
       };
 
       document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -582,16 +577,16 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           isFromHint?: boolean,
         ) => {
           if (!controllerRef.current || !isControllerReady) {
-            console.log(
-              '[VideoPlayer] Controller not ready yet, queueing load:',
+            log.debug(
+              'Controller not ready yet, queueing load:',
               player.team.name,
             );
             pendingLoadRef.current = { player, kodikLinks, isFromHint };
             return;
           }
 
-          console.log(
-            '[VideoPlayer] Loading player:',
+          log.debug(
+            'Loading player:',
             player.team.name,
             player.player,
             'isFromHint:',
@@ -609,7 +604,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
                 authToken = tokenData.access_token;
               }
             } catch (error) {
-              console.error('[VideoPlayer] Error parsing auth token:', error);
+              log.error('Error parsing auth token:', error);
             }
           }
 
@@ -619,12 +614,9 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
                 siteUrl,
                 authToken,
               );
-              console.log('[VideoPlayer] Video headers setup complete');
+              log.debug('Video headers setup complete');
             } catch (error) {
-              console.error(
-                '[VideoPlayer] Error setting up video headers:',
-                error,
-              );
+              log.error('Error setting up video headers:', error);
             }
           }
 
@@ -645,8 +637,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
           if (initialTimecode !== null) {
             timecodeAppliedRef.current = true;
-            console.log(
-              `[VideoPlayer] Timecode ${initialTimecode}s will be applied by controller`,
+            log.debug(
+              `Timecode ${initialTimecode}s will be applied by controller`,
             );
             if (onTimecodeApplied) {
               onTimecodeApplied();
@@ -655,23 +647,21 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         },
 
         clearPlayer: () => {
-          console.log('[VideoPlayer] Clearing player');
+          log.debug('Clearing player');
           controllerRef.current?.clearPlayer();
           setCurrentPlayerData(null);
           pendingLoadRef.current = null;
         },
 
         destroyPlayer: async () => {
-          console.log(
-            '[VideoPlayer] Destroying player (but keeping controller)',
-          );
+          log.debug('Destroying player (but keeping controller)');
           controllerRef.current?.clearPlayer();
           setCurrentPlayerData(null);
           pendingLoadRef.current = null;
         },
 
         seekTo: (time: number) => {
-          console.log('[VideoPlayer] Seeking to time:', time);
+          log.debug('Seeking to time:', time);
           controllerRef.current?.seekTo(time);
         },
 
@@ -717,7 +707,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     }, []);
 
     const handleQualityChange = useCallback(async (quality: string) => {
-      console.log('[VideoPlayer] Quality changed to:', quality);
+      log.debug('Quality changed to:', quality);
       await controllerRef.current?.changeQuality(quality);
     }, []);
 
@@ -766,13 +756,13 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
       const currentEpisode = episodes[currentEpisodeIndex];
       if (!currentEpisode) {
-        console.warn('[VideoPlayer] Cannot save bookmark: no current episode');
+        log.warn('Cannot save bookmark: no current episode');
         return;
       }
 
       const { currentTime } = videoState;
 
-      console.log('[VideoPlayer] Saving bookmark:', {
+      log.debug('Saving bookmark:', {
         episodeId: currentEpisode.id,
         episodeName: currentEpisode.name,
         currentTime,
@@ -842,15 +832,13 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     );
 
     const handleNextEpisodeCancel = useCallback(() => {
-      console.log('[VideoPlayer] Next episode cancelled by user');
+      log.debug('Next episode cancelled by user');
       nextEpisodeCancelledRef.current = true;
       setShowNextEpisodeNotification(false);
       const video = videoRef.current;
       if (video) {
         video.pause();
-        console.log(
-          '[VideoPlayer] Next episode cancelled: video paused at end',
-        );
+        log.debug('Next episode cancelled: video paused at end');
       }
     }, []);
 

@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * IPC обработчики оффлайн-библиотеки
  */
@@ -16,11 +14,14 @@ import {
 import { offlineLibrary } from './OfflineLibrary';
 import { downloadManager } from './DownloadManager';
 
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('Offline');
+
 export {
   registerOfflineProtocol,
   registerOfflineSchemes,
 } from './offlineProtocol';
-
 /**
  * Собирает снимок состояния для renderer
  */
@@ -76,7 +77,7 @@ export const registerOfflineHandlers = (
   ipcMain.handle(
     'offline-enqueue',
     async (event, requests: DownloadRequest[]) => {
-      console.log('[Offline] Enqueue:', requests.length);
+      log.debug('Enqueue:', requests.length);
       return downloadManager.enqueue(requests);
     },
   );
@@ -142,7 +143,7 @@ export const registerOfflineHandlers = (
       }
 
       if (downloadManager.getReservedFiles().length > 0) {
-        console.warn('[Offline] Path change blocked: active downloads');
+        log.warn('Path change blocked: active downloads');
         return { path: current, status: 'busy', moved: 0, failed: 0 };
       }
 
@@ -191,5 +192,5 @@ export const registerOfflineHandlers = (
       }),
   );
 
-  console.log('[Offline] Handlers registered');
+  log.debug('Handlers registered');
 };

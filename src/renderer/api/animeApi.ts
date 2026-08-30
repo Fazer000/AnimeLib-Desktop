@@ -1,5 +1,8 @@
-/* eslint-disable no-console */
 import axios from 'axios';
+
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('AnimeAPI');
 
 export interface Episode {
   id: number;
@@ -228,7 +231,7 @@ const getAuthToken = (): string | null => {
       return parsed.access_token;
     }
   } catch (error) {
-    console.error('Error getting auth token:', error);
+    log.error('Error getting auth token:', error);
   }
   return null;
 };
@@ -250,7 +253,7 @@ const getUserId = (): string | null => {
     const payload = JSON.parse(atob(token.split('.')[1]));
     return payload.sub ? String(payload.sub) : null;
   } catch (error) {
-    console.error('[AnimeAPI] Error parsing user id from token:', error);
+    log.error('Error parsing user id from token:', error);
     return null;
   }
 };
@@ -299,25 +302,25 @@ statsApiClient.interceptors.request.use((config) => {
 
 export const animeApi = {
   getEpisodes: async (animeId: string): Promise<EpisodesResponse> => {
-    console.log('[AnimeAPI] Loading episodes for anime_id:', animeId);
+    log.debug('Loading episodes for anime_id:', animeId);
 
     const response = await animeApiClient.get(`/episodes?anime_id=${animeId}`);
-    console.log('[AnimeAPI] Episodes loaded:', response.data);
+    log.debug('Episodes loaded:', response.data);
 
     return response.data;
   },
 
   getEpisodePlayers: async (episodeId: number): Promise<EpisodeResponse> => {
-    console.log('[AnimeAPI] Loading players for episode_id:', episodeId);
+    log.debug('Loading players for episode_id:', episodeId);
 
     const response = await animeApiClient.get(`/episodes/${episodeId}`);
-    console.log('[AnimeAPI] Players loaded:', response.data);
+    log.debug('Players loaded:', response.data);
 
     return response.data;
   },
 
   getKodikVideoLinks: async (kodikSrc: string): Promise<KodikVideoLinks> => {
-    console.log('[AnimeAPI] Loading Kodik links for src:', kodikSrc);
+    log.debug('Loading Kodik links for src:', kodikSrc);
 
     const electronAPI = (window as any).electron?.electronAPI;
 
@@ -331,12 +334,12 @@ export const animeApi = {
       throw new Error(result?.error || 'Failed to get Kodik links');
     }
 
-    console.log('[AnimeAPI] Kodik links loaded successfully');
+    log.debug('Kodik links loaded successfully');
     return result;
   },
 
   getAnimeInfo: async (animeId: string): Promise<AnimeInfoResponse> => {
-    console.log('[AnimeAPI] Loading anime info for anime_id:', animeId);
+    log.debug('Loading anime info for anime_id:', animeId);
 
     const fields = [
       'rate',
@@ -351,7 +354,7 @@ export const animeApi = {
     const response = await animeApiClient.get(
       `/anime/${animeId}?${fields.map((field) => `fields[]=${field}`).join('&')}`,
     );
-    console.log('[AnimeAPI] Anime info loaded:', response.data);
+    log.debug('Anime info loaded:', response.data);
 
     return response.data;
   },
@@ -359,20 +362,20 @@ export const animeApi = {
   getAnimeBookmark: async (
     animeSlugUrl: string,
   ): Promise<AnimeBookmarkResponse> => {
-    console.log('[AnimeAPI] Loading bookmark for anime:', animeSlugUrl);
+    log.debug('Loading bookmark for anime:', animeSlugUrl);
 
     try {
       const response = await animeApiClient.get(
         `/anime/${animeSlugUrl}/bookmark`,
       );
-      console.log('[AnimeAPI] Bookmark loaded:', response.data);
+      log.debug('Bookmark loaded:', response.data);
       return response.data;
     } catch (error: any) {
       if (error.response && error.response.status === 404) {
-        console.log('[AnimeAPI] No bookmark found for anime:', animeSlugUrl);
+        log.debug('No bookmark found for anime:', animeSlugUrl);
         return { data: null };
       }
-      console.error('[AnimeAPI] Error loading bookmark:', error);
+      log.error('Error loading bookmark:', error);
       throw error;
     }
   },
@@ -399,11 +402,11 @@ export const animeApi = {
         },
         meta,
       });
-      console.log('[AnimeAPI] Закладка успешно сохранена:', response.data);
+      log.debug('Закладка успешно сохранена:', response.data);
       return { success: true };
     } catch (error: any) {
-      console.error(
-        '[AnimeAPI] Ошибка при сохранении закладки (status 21), пробуем с другим статусом:',
+      log.error(
+        'Ошибка при сохранении закладки (status 21), пробуем с другим статусом:',
         error,
       );
 
@@ -426,16 +429,13 @@ export const animeApi = {
           },
           meta,
         });
-        console.log(
-          '[AnimeAPI] Закладка успешно сохранена после повторной попытки:',
+        log.debug(
+          'Закладка успешно сохранена после повторной попытки:',
           responseFinal.data,
         );
         return { success: true };
       } catch (retryError: any) {
-        console.error(
-          '[AnimeAPI] Ошибка при повторном сохранении закладки:',
-          retryError,
-        );
+        log.error('Ошибка при повторном сохранении закладки:', retryError);
         throw retryError;
       }
     }
@@ -450,10 +450,10 @@ export const animeApi = {
   ): Promise<boolean> => {
     try {
       await statsApiClient.post(`/anime/${animeId}/players/${playerId}/view`);
-      console.log('[AnimeAPI] Player marked as viewed:', animeId, playerId);
+      log.debug('Player marked as viewed:', animeId, playerId);
       return true;
     } catch (error) {
-      console.error('[AnimeAPI] Failed to mark player as viewed:', error);
+      log.error('Failed to mark player as viewed:', error);
       return false;
     }
   },
@@ -488,7 +488,7 @@ export const animeApi = {
           coverUrl: item.media.cover?.thumbnail || null,
         }));
     } catch (error) {
-      console.error('[AnimeAPI] Failed to load bookmarks:', error);
+      log.error('Failed to load bookmarks:', error);
       return [];
     }
   },
@@ -513,12 +513,7 @@ export const animeApi = {
     };
   }> => {
     try {
-      console.log(
-        '[AnimeAPI] Loading comments for episode:',
-        episodeId,
-        'page:',
-        page,
-      );
+      log.debug('Loading comments for episode:', episodeId, 'page:', page);
       const response = await animeApiClient.get('/comments', {
         params: {
           page,
@@ -529,14 +524,14 @@ export const animeApi = {
         },
       });
 
-      console.log(
-        '[AnimeAPI] Comments loaded:',
+      log.debug(
+        'Comments loaded:',
         response.data.data.root.length,
         'root comments',
       );
       return response.data;
     } catch (error) {
-      console.error('[AnimeAPI] Error loading comments:', error);
+      log.error('Error loading comments:', error);
       throw error;
     }
   },
@@ -554,16 +549,12 @@ export const animeApi = {
    */
   deleteComment: async (commentId: number): Promise<string | null> => {
     try {
-      console.log('[AnimeAPI] Deleting comment:', commentId);
+      log.debug('Deleting comment:', commentId);
       const response = await statsApiClient.delete(`/comments/${commentId}`);
       return response.data?.data?.toast?.message ?? null;
     } catch (error) {
       const response = (error as any)?.response;
-      console.error(
-        '[AnimeAPI] Error deleting comment:',
-        response?.status,
-        response?.data,
-      );
+      log.error('Error deleting comment:', response?.status, response?.data);
       throw error;
     }
   },
@@ -576,7 +567,7 @@ export const animeApi = {
     comment: { type: 'doc'; content: unknown[] },
   ): Promise<any> => {
     try {
-      console.log('[AnimeAPI] Updating comment:', commentId);
+      log.debug('Updating comment:', commentId);
       const response = await statsApiClient.put(`/comments/${commentId}`, {
         comment,
         attachments: [],
@@ -584,11 +575,7 @@ export const animeApi = {
       return response.data?.data ?? null;
     } catch (error) {
       const response = (error as any)?.response;
-      console.error(
-        '[AnimeAPI] Error updating comment:',
-        response?.status,
-        response?.data,
-      );
+      log.error('Error updating comment:', response?.status, response?.data);
       throw error;
     }
   },
@@ -605,16 +592,12 @@ export const animeApi = {
     };
 
     try {
-      console.log('[AnimeAPI] Ignoring user, payload:', payload);
+      log.debug('Ignoring user, payload:', payload);
       const response = await statsApiClient.post('/ignore', payload);
       return response.data?.data ?? null;
     } catch (error) {
       const response = (error as any)?.response;
-      console.error(
-        '[AnimeAPI] Error ignoring user:',
-        response?.status,
-        response?.data,
-      );
+      log.error('Error ignoring user:', response?.status, response?.data);
       throw error;
     }
   },
@@ -624,7 +607,7 @@ export const animeApi = {
     vote: 0 | 1,
   ): Promise<{ success: boolean }> => {
     try {
-      console.log('[AnimeAPI] Voting for comment:', commentId, 'vote:', vote);
+      log.debug('Voting for comment:', commentId, 'vote:', vote);
       const response = await animeApiClient.post(
         `/comments/${commentId}/vote`,
         {
@@ -632,10 +615,10 @@ export const animeApi = {
         },
       );
 
-      console.log('[AnimeAPI] Vote successful:', response.data);
+      log.debug('Vote successful:', response.data);
       return { success: true };
     } catch (error) {
-      console.error('[AnimeAPI] Error voting for comment:', error);
+      log.error('Error voting for comment:', error);
       throw error;
     }
   },
@@ -655,15 +638,15 @@ export const animeApi = {
     comment_level: number;
   }): Promise<{ success: boolean; data: any }> => {
     try {
-      console.log('[AnimeAPI] Submitting comment:', commentData);
+      log.debug('Submitting comment:', commentData);
       const response = await animeApiClient.post('/comments', commentData);
 
-      console.log('[AnimeAPI] Comment submitted successfully:', response.data);
+      log.debug('Comment submitted successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
       const response = (error as any)?.response;
-      console.error(
-        '[AnimeAPI] Error submitting comment:',
+      log.error(
+        'Error submitting comment:',
         response?.status,
         response?.data,
         'payload:',
@@ -680,19 +663,15 @@ export const animeApi = {
     animeSlugUrl: string,
   ): Promise<RelatedAnimeResponse> => {
     try {
-      console.log('[AnimeAPI] Loading related anime for:', animeSlugUrl);
+      log.debug('Loading related anime for:', animeSlugUrl);
       const response = await animeApiClient.get(
         `/anime/${animeSlugUrl}/relations`,
       );
 
-      console.log(
-        '[AnimeAPI] Related anime loaded:',
-        response.data.data.length,
-        'items',
-      );
+      log.debug('Related anime loaded:', response.data.data.length, 'items');
       return response.data;
     } catch (error) {
-      console.error('[AnimeAPI] Error loading related anime:', error);
+      log.error('Error loading related anime:', error);
       throw error;
     }
   },
@@ -702,7 +681,7 @@ export const animeApi = {
    */
   searchAnime: async (query: string): Promise<any> => {
     try {
-      console.log('[AnimeAPI] Searching anime:', query);
+      log.debug('Searching anime:', query);
 
       const bearerToken = localStorage.getItem('animeLibAuthToken');
       let authToken: string | undefined;
@@ -713,7 +692,7 @@ export const animeApi = {
             authToken = tokenData.access_token;
           }
         } catch (error) {
-          console.error('[AnimeAPI] Error parsing auth token:', error);
+          log.error('Error parsing auth token:', error);
         }
       }
 
@@ -743,14 +722,10 @@ export const animeApi = {
         },
       });
 
-      console.log(
-        '[AnimeAPI] Search results:',
-        response.data.data.length,
-        'items',
-      );
+      log.debug('Search results:', response.data.data.length, 'items');
       return response.data;
     } catch (error) {
-      console.error('[AnimeAPI] Error searching anime:', error);
+      log.error('Error searching anime:', error);
       throw error;
     }
   },

@@ -10,6 +10,7 @@ pids
 # Testing
 coverage
 .eslintcache
+scripts
 
 # Dependencies
 node_modules
@@ -18,10 +19,10 @@ node_modules
 release/app/dist
 release/build
 .erb/dll
-develop/
+develop
 dist
 build
-out/
+out
 
 # TypeScript
 *.tsbuildinfo

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useState, useEffect } from 'react';
 import { Box, IconButton, Typography, useTheme, Button } from '@mui/material';
 import {
@@ -35,6 +34,10 @@ import {
   PLAYER_FULLSCREEN_EASING,
   PLAYER_FULLSCREEN_TRANSITION,
 } from '../../../constants';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('VideoControls');
 
 const ICON_SX = { fontSize: `${PLAYER_CONTROL_ICON_SIZE}px` };
 
@@ -232,13 +235,13 @@ function VideoControls({
 
   const handleSettingsMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     event.stopPropagation();
-    console.log('[VideoControls] Opening settings menu');
+    log.debug('Opening settings menu');
     setAnchorEl(event.currentTarget);
     onMenuOpenChange?.(true);
   };
 
   const handleSettingsMenuClose = () => {
-    console.log('[VideoControls] Closing settings menu');
+    log.debug('Closing settings menu');
     setAnchorEl(null);
     onMenuOpenChange?.(false);
   };

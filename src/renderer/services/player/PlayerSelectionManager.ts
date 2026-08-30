@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * PlayerSelectionManager - Manages player selection, user preferences, and auto-selection logic
  *
@@ -25,6 +24,10 @@
 
 import { Player } from '../../api/animeApi';
 import { PLAYER_TYPE_ANIMELIB, PLAYER_TYPE_KODIK } from '../../../constants';
+
+import { createLogger } from '../../../shared/logger';
+
+const log = createLogger('PlayerSelectionManager');
 
 export interface PlayerPreferences {
   teamName: string;
@@ -64,10 +67,10 @@ export class PlayerSelectionManager {
         const prefs: PlayerPreferences = JSON.parse(saved);
         this.lastSelectedTeamName = prefs.teamName || '';
         this.lastSelectedPlayerType = prefs.playerType || '';
-        console.log('[PlayerSelectionManager] Loaded preferences:', prefs);
+        log.debug('Loaded preferences:', prefs);
       }
     } catch (err) {
-      console.error('[PlayerSelectionManager] Error loading preferences:', err);
+      log.error('Error loading preferences:', err);
     }
   }
 
@@ -85,9 +88,9 @@ export class PlayerSelectionManager {
 
     try {
       localStorage.setItem('playerPreferences', JSON.stringify(prefs));
-      console.log('[PlayerSelectionManager] Saved preferences:', prefs);
+      log.debug('Saved preferences:', prefs);
     } catch (err) {
-      console.error('[PlayerSelectionManager] Error saving preferences:', err);
+      log.error('Error saving preferences:', err);
     }
   }
 
@@ -124,11 +127,7 @@ export class PlayerSelectionManager {
     );
 
     if (matched) {
-      console.log(
-        '[PlayerSelectionManager] Auto-selected player:',
-        matched.team.name,
-        matched.player,
-      );
+      log.debug('Auto-selected player:', matched.team.name, matched.player);
     }
 
     return matched || null;
@@ -149,8 +148,8 @@ export class PlayerSelectionManager {
     if (this.hasPreferences()) {
       const preferredPlayer = this.autoSelectPlayer(players);
       if (preferredPlayer) {
-        console.log(
-          '[PlayerSelectionManager] Selected from preferences:',
+        log.debug(
+          'Selected from preferences:',
           preferredPlayer.team.name,
           preferredPlayer.player,
         );
@@ -162,8 +161,8 @@ export class PlayerSelectionManager {
       (p) => p.player === PLAYER_TYPE_ANIMELIB,
     );
     if (animelibPlayer) {
-      console.log(
-        '[PlayerSelectionManager] No preferences, selected first Animelib:',
+      log.debug(
+        'No preferences, selected first Animelib:',
         animelibPlayer.team.name,
       );
       return animelibPlayer;
@@ -171,16 +170,13 @@ export class PlayerSelectionManager {
 
     const kodikPlayer = players.find((p) => p.player === PLAYER_TYPE_KODIK);
     if (kodikPlayer) {
-      console.log(
-        '[PlayerSelectionManager] No AnimeLib, selected first Kodik:',
-        kodikPlayer.team.name,
-      );
+      log.debug('No AnimeLib, selected first Kodik:', kodikPlayer.team.name);
       return kodikPlayer;
     }
 
     const firstPlayer = players[0];
-    console.log(
-      '[PlayerSelectionManager] Fallback to first player:',
+    log.debug(
+      'Fallback to first player:',
       firstPlayer.team.name,
       firstPlayer.player,
     );
@@ -233,20 +229,14 @@ export class PlayerSelectionManager {
       this.lastSelectedPlayerType &&
       groupedPlayers[this.lastSelectedPlayerType]
     ) {
-      console.log(
-        '[PlayerSelectionManager] Auto-selected player type:',
-        this.lastSelectedPlayerType,
-      );
+      log.debug('Auto-selected player type:', this.lastSelectedPlayerType);
       return this.lastSelectedPlayerType;
     }
 
     const sortedTypes =
       PlayerSelectionManager.getSortedPlayerTypes(groupedPlayers);
     if (sortedTypes.length > 0) {
-      console.log(
-        '[PlayerSelectionManager] Auto-selected first player type:',
-        sortedTypes[0],
-      );
+      log.debug('Auto-selected first player type:', sortedTypes[0]);
       return sortedTypes[0];
     }
 
@@ -291,12 +281,9 @@ export class PlayerSelectionManager {
     this.lastSelectedPlayerType = '';
     try {
       localStorage.removeItem('playerPreferences');
-      console.log('[PlayerSelectionManager] Cleared preferences');
+      log.debug('Cleared preferences');
     } catch (err) {
-      console.error(
-        '[PlayerSelectionManager] Error clearing preferences:',
-        err,
-      );
+      log.error('Error clearing preferences:', err);
     }
   }
 }
