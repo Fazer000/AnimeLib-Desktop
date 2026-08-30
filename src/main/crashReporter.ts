@@ -4,8 +4,9 @@
  */
 import fs from 'fs';
 import path from 'path';
-import { app, BrowserWindow, WebContents, dialog, ipcMain } from 'electron';
+import { app, BrowserWindow, WebContents, dialog } from 'electron';
 import { APP_NAME, APP_VERSION } from '../constants';
+import { onIpc } from './ipc';
 
 const LOG_FILE = 'crash.log';
 const MAX_LOG_BYTES = 512 * 1024;
@@ -137,19 +138,19 @@ export const registerCrashHandlers = (
     logCrash('child-process-gone', details);
   });
 
-  ipcMain.on('report-renderer-error', (_event, payload: unknown) => {
+  onIpc('report-renderer-error', (_event, payload: unknown) => {
     logCrash('renderer', payload);
   });
 
   // Ручная проверка перехвата, только в dev-сборке
   if (isDev) {
-    ipcMain.on('debug-crash-main', () => {
+    onIpc('debug-crash-main', () => {
       setTimeout(() => {
         throw new Error('Проверка перехвата: намеренное падение main');
       }, 0);
     });
 
-    ipcMain.on('debug-crash-renderer', () => {
+    onIpc('debug-crash-renderer', () => {
       getWindow()?.webContents.forcefullyCrashRenderer();
     });
   }

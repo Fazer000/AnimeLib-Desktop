@@ -348,23 +348,6 @@ function App() {
     return undefined;
   }, [handlePlayerButtonClick]);
 
-  useEffect(() => {
-    if (window.electron?.ipcRenderer) {
-      const unsubscribe = window.electron.ipcRenderer.on(
-        'player-button-clicked',
-        (...args: unknown[]) => {
-          const url = args[0] as string;
-          log.debug('[AnimeLIB] Received player button click via IPC:', url);
-          handlePlayerButtonClick(url);
-        },
-      );
-
-      return unsubscribe;
-    }
-
-    return undefined;
-  }, [handlePlayerButtonClick]);
-
   const handleUrlSubmit = useCallback((url: string) => {
     setSavedUrl(saveSiteUrl(url));
   }, []);

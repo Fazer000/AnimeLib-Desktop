@@ -13,13 +13,10 @@ import {
   app,
   BrowserWindow,
   shell,
-  ipcMain,
   protocol,
   session,
   OnBeforeSendHeadersListenerDetails,
   BeforeSendResponse,
-  OnHeadersReceivedListenerDetails,
-  HeadersReceivedResponse,
   OnCompletedListenerDetails,
   Rectangle,
 } from 'electron';
@@ -27,6 +24,7 @@ import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { registerUpdateHandlers } from './updater';
 import { registerCrashHandlers } from './crashReporter';
+import { addCorsHeaders } from './corsHeaders';
 import {
   registerOfflineHandlers,
   registerOfflineProtocol,
@@ -50,6 +48,7 @@ import {
 } from '../constants';
 
 import { createLogger } from '../shared/logger';
+import { handleIpc, onIpc } from './ipc';
 
 const log = createLogger('AnimeLIB');
 
@@ -107,7 +106,7 @@ let currentInterceptor: (() => void) | null = null;
 const createAnimelibHeaders = (
   details: OnBeforeSendHeadersListenerDetails,
   siteUrl: string,
-  authToken: string,
+  authToken?: string,
 ): Record<string, string> => {
   const baseUrl = new URL(siteUrl).origin;
   return {
@@ -115,7 +114,7 @@ const createAnimelibHeaders = (
     ...COMMON_HEADERS,
     Referer: `${baseUrl}/`,
     Origin: baseUrl,
-    Authorization: `Bearer ${authToken}`,
+    ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
     'Site-Id': '5',
     'Client-Time-Zone': 'Europe/Samara',
     'Sec-Ch-Ua':
@@ -170,16 +169,6 @@ const isKodikUrl = (url: string): boolean =>
   KODIK_HOSTS.some((host) => url.includes(host));
 
 /**
- * Добавляет CORS заголовки к ответу
- */
-const addCorsHeaders = (responseHeaders: Record<string, string[]>): void => {
-  responseHeaders['Access-Control-Allow-Origin'] = ['*'];
-  responseHeaders['Access-Control-Allow-Methods'] = ['GET, POST, OPTIONS'];
-  responseHeaders['Access-Control-Allow-Headers'] = ['*'];
-  responseHeaders['Access-Control-Allow-Credentials'] = ['true'];
-};
-
-/**
  * Очищает текущий перехватчик запросов
  */
 const clearCurrentInterceptor = (): void => {
@@ -193,11 +182,11 @@ log.debug(`========================================`);
 log.debug(`${APP_NAME} v${APP_VERSION}`);
 log.debug(`========================================`);
 
-ipcMain.on('window-minimize', () => {
+onIpc('window-minimize', () => {
   mainWindow?.minimize();
 });
 
-ipcMain.on('window-maximize', () => {
+onIpc('window-maximize', () => {
   if (mainWindow) {
     if (mainWindow.isMaximized()) {
       mainWindow.unmaximize();
@@ -207,27 +196,21 @@ ipcMain.on('window-maximize', () => {
   }
 });
 
-ipcMain.on('window-close', () => {
+onIpc('window-close', () => {
   mainWindow?.close();
 });
 
-ipcMain.on('window-fullscreen', (event, isFullscreen: boolean) => {
+onIpc('window-fullscreen', (event, isFullscreen: boolean) => {
   log.debug(`[Main IPC] Toggle window fullscreen: ${isFullscreen}`);
   mainWindow?.setFullScreen(isFullscreen);
 });
 
-ipcMain.handle('get-maximize-state', async () => {
+handleIpc('get-maximize-state', async () => {
   const storeInstance = await initStore();
   return getSavedMaximized(storeInstance);
 });
 
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  log.debug(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
-});
-
-ipcMain.handle('fetch-image', async (event, { url, referer }) => {
+handleIpc('fetch-image', async (event, { url, referer }) => {
   try {
     const https = await import('https');
     const http = await import('http');
@@ -348,7 +331,7 @@ const downloadText = async (
   });
 };
 
-ipcMain.handle('fetch-subtitles', async (event, urls: string[]) => {
+handleIpc('fetch-subtitles', async (event, urls: string[]) => {
   log.debug('Fetching subtitles, candidates:', urls.length);
 
   const offlineUrl = urls.find((url) => url.startsWith(`${OFFLINE_SCHEME}://`));
@@ -384,16 +367,16 @@ ipcMain.handle('fetch-subtitles', async (event, urls: string[]) => {
   return { success: false, error: 'Subtitles not available' };
 });
 
-ipcMain.on('player-button-clicked', (event, url) => {
+onIpc('player-button-clicked', (event, url) => {
   log.debug('Player button clicked:', url);
   mainWindow?.webContents.send('open-player-page', url);
 });
 
-ipcMain.on('webview-log', (event, message) => {
+onIpc('webview-log', (event, message) => {
   log.debug('[WEBVIEW LOG]:', message);
 });
 
-ipcMain.handle('get-kodik-links', async (event, kodikSrc: string) => {
+handleIpc('get-kodik-links', async (event, kodikSrc: string) => {
   try {
     log.debug('Getting Kodik links for:', kodikSrc);
     const { VideoLinks } = await import('kodikwrapper');
@@ -409,7 +392,7 @@ ipcMain.handle('get-kodik-links', async (event, kodikSrc: string) => {
 /**
  * Создает обработчик для перехвата заголовков видео запросов
  */
-const createVideoHeadersInterceptor = (siteUrl: string, authToken: string) => {
+const createVideoHeadersInterceptor = (siteUrl: string, authToken?: string) => {
   return (
     details: OnBeforeSendHeadersListenerDetails,
     callback: (response: BeforeSendResponse) => void,
@@ -452,31 +435,35 @@ const createVideoHeadersInterceptor = (siteUrl: string, authToken: string) => {
 };
 
 /**
- * Создает обработчик для добавления CORS заголовков
+ * Разрешает окну приложения читать ответы CDN и API.
+ * Сессия окна (persist:webview) отделена от сессии гостевой страницы,
+ * поэтому послабление не касается контента сайта.
  */
-const createCorsHeadersInterceptor = () => {
-  return (
-    details: OnHeadersReceivedListenerDetails,
-    callback: (response: HeadersReceivedResponse) => void,
-  ) => {
-    const { responseHeaders } = details;
+const registerCorsPolicy = (): void => {
+  session
+    .fromPartition('persist:webview')
+    .webRequest.onHeadersReceived(
+      { urls: ['*://*/*'] },
+      (details, callback) => {
+        const { responseHeaders } = details;
 
-    if (responseHeaders) {
-      addCorsHeaders(responseHeaders);
-      log.debug('CORS headers added');
-    }
+        if (responseHeaders) {
+          addCorsHeaders(responseHeaders);
+        }
 
-    callback({ responseHeaders });
-  };
+        callback({ responseHeaders });
+      },
+    );
+
+  log.debug('CORS policy registered for app session');
 };
 
-ipcMain.handle('setup-video-headers', async (event, { siteUrl, authToken }) => {
+handleIpc('setup-video-headers', async (event, { siteUrl, authToken }) => {
   log.debug('Setting up video headers for:', siteUrl);
 
   clearCurrentInterceptor();
 
   const headerInterceptor = createVideoHeadersInterceptor(siteUrl, authToken);
-  const corsInterceptor = createCorsHeadersInterceptor();
 
   session.fromPartition('persist:webview').webRequest.onBeforeSendHeaders(
     {
@@ -489,25 +476,17 @@ ipcMain.handle('setup-video-headers', async (event, { siteUrl, authToken }) => {
     headerInterceptor,
   );
 
-  session
-    .fromPartition('persist:webview')
-    .webRequest.onHeadersReceived(
-      { urls: [...VIDEO_URLS.ANIMELIB_API, ...VIDEO_URLS.KODIK] },
-      corsInterceptor,
-    );
-
   currentInterceptor = () => {
     session
       .fromPartition('persist:webview')
       .webRequest.onBeforeSendHeaders(null);
-    session.fromPartition('persist:webview').webRequest.onHeadersReceived(null);
   };
 
   log.debug('Interceptor registered');
   return { success: true };
 });
 
-ipcMain.handle('clear-video-headers', async () => {
+handleIpc('clear-video-headers', async () => {
   log.debug('Clearing video headers');
   clearCurrentInterceptor();
   // eslint-disable-next-line no-use-before-define
@@ -577,7 +556,6 @@ const createWindowConfig = (iconPath: string, bounds: Rectangle | null) => ({
       : path.join(__dirname, '../../.erb/dll/preload.js'),
     nodeIntegration: false,
     contextIsolation: true,
-    webSecurity: false,
     webviewTag: true,
     enableWebSQL: false,
     spellcheck: false,
@@ -762,19 +740,6 @@ const registerApiInterceptor = (): void => {
       },
     );
 
-  session
-    .fromPartition('persist:webview')
-    .webRequest.onHeadersReceived(
-      { urls: [...VIDEO_URLS.ANIMELIB_API, ...VIDEO_URLS.ANIMELIB_CDN] },
-      (details, callback) => {
-        const { responseHeaders } = details;
-        if (responseHeaders) {
-          addCorsHeaders(responseHeaders);
-        }
-        callback({ responseHeaders });
-      },
-    );
-
   log.debug('Base API interceptor registered');
 };
 
@@ -812,6 +777,7 @@ app
   .then(() => {
     registerPlayerNavigationGuard();
     registerCustomProtocol();
+    registerCorsPolicy();
     registerApiInterceptor();
     registerBookmarksWatcher();
     registerUpdateHandlers(() => mainWindow);

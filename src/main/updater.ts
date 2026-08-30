@@ -5,7 +5,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import https from 'https';
-import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { app, BrowserWindow, shell } from 'electron';
 import {
   APP_VERSION,
   UPDATE_ASSET_PREFIX,
@@ -21,6 +21,7 @@ import {
 
 import { createLogger } from '../shared/logger';
 import { isNewerVersion } from '../shared/version';
+import { handleIpc, onIpc } from './ipc';
 
 const log = createLogger('Updater');
 
@@ -249,7 +250,7 @@ const downloadAndInstall = async (
 export const registerUpdateHandlers = (
   getWindow: () => BrowserWindow | null,
 ): void => {
-  ipcMain.handle('check-for-update', async () => {
+  handleIpc('check-for-update', async () => {
     const info = await checkForUpdate();
     log.debug(
       `Current: ${info.currentVersion}, latest: ${info.latestVersion}, available: ${info.available}`,
@@ -257,7 +258,7 @@ export const registerUpdateHandlers = (
     return info;
   });
 
-  ipcMain.handle('download-update', async () => {
+  handleIpc('download-update', async () => {
     const info = await checkForUpdate();
 
     if (!info.available) {
@@ -267,7 +268,7 @@ export const registerUpdateHandlers = (
     return downloadAndInstall(getWindow(), info);
   });
 
-  ipcMain.on('open-release-page', () => {
+  onIpc('open-release-page', () => {
     shell.openExternal(UPDATE_RELEASES_PAGE);
   });
 

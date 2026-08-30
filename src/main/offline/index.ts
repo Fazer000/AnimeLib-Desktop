@@ -2,7 +2,7 @@
  * IPC обработчики оффлайн-библиотеки
  */
 import https from 'https';
-import { BrowserWindow, dialog, ipcMain, shell } from 'electron';
+import { BrowserWindow, dialog, shell } from 'electron';
 import {
   CONNECTIVITY_CHECK_TIMEOUT_MS,
   CONNECTIVITY_PROBE_URL,
@@ -15,6 +15,7 @@ import { offlineLibrary } from './OfflineLibrary';
 import { downloadManager } from './DownloadManager';
 
 import { createLogger } from '../../shared/logger';
+import { handleIpc, onIpc } from '../ipc';
 
 const log = createLogger('Offline');
 
@@ -57,13 +58,11 @@ export const registerOfflineHandlers = (
   offlineLibrary.verify();
   offlineLibrary.cleanupOrphans(downloadManager.getReservedFiles());
 
-  ipcMain.handle('offline-get-snapshot', async () => buildSnapshot());
+  handleIpc('offline-get-snapshot', async () => buildSnapshot());
 
-  ipcMain.handle('offline-free-space', async () =>
-    offlineLibrary.getFreeSpace(),
-  );
+  handleIpc('offline-free-space', async () => offlineLibrary.getFreeSpace());
 
-  ipcMain.handle('offline-verify', async () => {
+  handleIpc('offline-verify', async () => {
     const removed = offlineLibrary.verify();
     offlineLibrary.cleanupOrphans(downloadManager.getReservedFiles());
 
@@ -74,31 +73,28 @@ export const registerOfflineHandlers = (
     return removed;
   });
 
-  ipcMain.handle(
-    'offline-enqueue',
-    async (event, requests: DownloadRequest[]) => {
-      log.debug('Enqueue:', requests.length);
-      return downloadManager.enqueue(requests);
-    },
-  );
+  handleIpc('offline-enqueue', async (event, requests: DownloadRequest[]) => {
+    log.debug('Enqueue:', requests.length);
+    return downloadManager.enqueue(requests);
+  });
 
-  ipcMain.handle(
+  handleIpc(
     'offline-resume',
     async (event, payload: { authToken: string; taskId?: string }) =>
       downloadManager.resume(payload.authToken, payload.taskId),
   );
 
-  ipcMain.handle('offline-cancel-task', async (event, taskId: string) => {
+  handleIpc('offline-cancel-task', async (event, taskId: string) => {
     downloadManager.cancel(taskId);
     return true;
   });
 
-  ipcMain.handle('offline-clear-finished', async () => {
+  handleIpc('offline-clear-finished', async () => {
     downloadManager.clearFinished();
     return true;
   });
 
-  ipcMain.handle(
+  handleIpc(
     'offline-remove-episode',
     async (
       event,
@@ -120,13 +116,13 @@ export const registerOfflineHandlers = (
     },
   );
 
-  ipcMain.handle('offline-remove-anime', async (event, animeId: string) => {
+  handleIpc('offline-remove-anime', async (event, animeId: string) => {
     const fileNames = offlineLibrary.removeAnime(animeId);
     notifyRemoval(getWindow(), animeId, fileNames);
     return true;
   });
 
-  ipcMain.handle(
+  handleIpc(
     'offline-choose-directory',
     async (): Promise<OfflineDirectoryResult> => {
       const window = getWindow();
@@ -169,11 +165,11 @@ export const registerOfflineHandlers = (
     },
   );
 
-  ipcMain.on('offline-open-directory', () => {
+  onIpc('offline-open-directory', () => {
     shell.openPath(offlineLibrary.getDownloadsPath());
   });
 
-  ipcMain.handle(
+  handleIpc(
     'offline-check-connection',
     async () =>
       new Promise<boolean>((resolve) => {

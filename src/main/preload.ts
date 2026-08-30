@@ -9,76 +9,57 @@ import type {
 } from '../constants';
 
 import { createLogger } from '../shared/logger';
+import type {
+  FetchImagePayload,
+  FetchImageResult,
+  FetchSubtitlesResult,
+  IpcEventChannel,
+  IpcEventMap,
+  IpcInvokeChannel,
+  IpcRequest,
+  IpcResponse,
+  IpcSendChannel,
+  IpcSendMap,
+  KodikLinksResult,
+  RemoveEpisodePayload,
+  RendererErrorReport,
+  ResumeDownloadsPayload,
+} from '../shared/ipc';
 
 const log = createLogger('AnimeLIB');
 
-export type Channels =
-  | 'ipc-example'
-  | 'player-button-clicked'
-  | 'window-minimize'
-  | 'window-maximize'
-  | 'window-close'
-  | 'window-fullscreen'
-  | 'open-player-page'
-  | 'webview-log'
-  | 'setup-video-headers'
-  | 'clear-video-headers'
-  | 'get-maximize-state'
-  | 'get-kodik-links'
-  | 'fetch-subtitles'
-  | 'fetch-image'
-  | 'bookmarks-changed'
-  | 'check-for-update'
-  | 'download-update'
-  | 'open-release-page'
-  | 'update-download-progress'
-  | 'offline-get-snapshot'
-  | 'offline-enqueue'
-  | 'offline-cancel-task'
-  | 'offline-clear-finished'
-  | 'offline-remove-episode'
-  | 'offline-remove-anime'
-  | 'offline-choose-directory'
-  | 'offline-open-directory'
-  | 'offline-check-connection'
-  | 'offline-tasks-changed'
-  | 'offline-library-changed'
-  | 'offline-files-removed'
-  | 'offline-file-missing'
-  | 'offline-verify'
-  | 'offline-resume'
-  | 'offline-free-space'
-  | 'offline-migration-progress'
-  | 'report-renderer-error'
-  | 'debug-crash-main'
-  | 'debug-crash-renderer';
-
-/** Картинка, загруженная главным процессом с нужным Referer. */
-export interface FetchImageResult {
-  success: boolean;
-  data?: string;
-  contentType?: string;
-  error?: string;
-}
-
 const electronHandler = {
   ipcRenderer: {
-    sendMessage(channel: Channels, ...args: unknown[]) {
+    sendMessage<C extends IpcSendChannel>(
+      channel: C,
+      ...args: IpcSendMap[C] extends void ? [] : [payload: IpcSendMap[C]]
+    ) {
       ipcRenderer.send(channel, ...args);
     },
-    on(channel: Channels, func: (...args: unknown[]) => void) {
+    on<C extends IpcEventChannel>(
+      channel: C,
+      func: (...args: IpcEventMap[C]) => void,
+    ) {
       const subscription = (_event: IpcRendererEvent, ...args: unknown[]) =>
-        func(...args);
+        func(...(args as IpcEventMap[C]));
       ipcRenderer.on(channel, subscription);
 
       return () => {
         ipcRenderer.removeListener(channel, subscription);
       };
     },
-    once(channel: Channels, func: (...args: unknown[]) => void) {
-      ipcRenderer.once(channel, (_event, ...args) => func(...args));
+    once<C extends IpcEventChannel>(
+      channel: C,
+      func: (...args: IpcEventMap[C]) => void,
+    ) {
+      ipcRenderer.once(channel, (_event, ...args) =>
+        func(...(args as IpcEventMap[C])),
+      );
     },
-    invoke(channel: Channels, ...args: unknown[]) {
+    invoke<C extends IpcInvokeChannel>(
+      channel: C,
+      ...args: IpcRequest<C> extends void ? [] : [payload: IpcRequest<C>]
+    ): Promise<IpcResponse<C>> {
       return ipcRenderer.invoke(channel, ...args);
     },
   },
@@ -103,24 +84,16 @@ const electronHandler = {
       log.debug('Preload: Getting maximize state');
       return ipcRenderer.invoke('get-maximize-state');
     },
-    getKodikLinks: async (kodikSrc: string) => {
+    getKodikLinks: async (kodikSrc: string): Promise<KodikLinksResult> => {
       log.debug('Preload: Getting Kodik links for:', kodikSrc);
       return ipcRenderer.invoke('get-kodik-links', kodikSrc);
     },
-    reportRendererError: (payload: {
-      message: string;
-      stack?: string;
-      componentStack?: string;
-    }) => {
+    reportRendererError: (payload: RendererErrorReport) => {
       ipcRenderer.send('report-renderer-error', payload);
     },
-    fetchImage: async (payload: {
-      url: string;
-      referer: string;
-    }): Promise<FetchImageResult> => ipcRenderer.invoke('fetch-image', payload),
-    fetchSubtitles: async (
-      urls: string[],
-    ): Promise<{ success: boolean; data?: string; error?: string }> => {
+    fetchImage: async (payload: FetchImagePayload): Promise<FetchImageResult> =>
+      ipcRenderer.invoke('fetch-image', payload),
+    fetchSubtitles: async (urls: string[]): Promise<FetchSubtitlesResult> => {
       log.debug('Preload: Fetching subtitles');
       return ipcRenderer.invoke('fetch-subtitles', urls);
     },
@@ -146,12 +119,9 @@ const electronHandler = {
       ipcRenderer.invoke('offline-cancel-task', taskId),
     offlineClearFinished: async (): Promise<boolean> =>
       ipcRenderer.invoke('offline-clear-finished'),
-    offlineRemoveEpisode: async (payload: {
-      animeId: string;
-      episodeId: number;
-      playerId: number;
-      quality: string;
-    }): Promise<boolean> =>
+    offlineRemoveEpisode: async (
+      payload: RemoveEpisodePayload,
+    ): Promise<boolean> =>
       ipcRenderer.invoke('offline-remove-episode', payload),
     offlineRemoveAnime: async (animeId: string): Promise<boolean> =>
       ipcRenderer.invoke('offline-remove-anime', animeId),
@@ -164,10 +134,8 @@ const electronHandler = {
       ipcRenderer.invoke('offline-check-connection'),
     offlineVerify: async (): Promise<number> =>
       ipcRenderer.invoke('offline-verify'),
-    offlineResume: async (payload: {
-      authToken: string;
-      taskId?: string;
-    }): Promise<number> => ipcRenderer.invoke('offline-resume', payload),
+    offlineResume: async (payload: ResumeDownloadsPayload): Promise<number> =>
+      ipcRenderer.invoke('offline-resume', payload),
     offlineGetFreeSpace: async (): Promise<number> =>
       ipcRenderer.invoke('offline-free-space'),
   },

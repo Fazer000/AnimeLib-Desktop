@@ -392,12 +392,12 @@ export const animeApi = {
 
     const result = await electronAPI.getKodikLinks(kodikSrc);
 
-    if (!result || !result.success) {
+    if (!result?.success || !result.data) {
       throw new Error(result?.error || 'Failed to get Kodik links');
     }
 
     log.debug('Kodik links loaded successfully');
-    return result;
+    return { success: true, data: result.data };
   },
 
   getAnimeInfo: async (animeId: string): Promise<AnimeInfoResponse> => {
