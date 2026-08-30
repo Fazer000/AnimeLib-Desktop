@@ -50,6 +50,8 @@ import {
   SUBTITLES_DEFAULT_SETTINGS,
 } from '../../../constants';
 import { getSiteOrigin } from '../../utils/urlHelpers';
+import { useMediaSession } from './hooks/useMediaSession';
+import { useVideoAspectRatio } from './hooks/useVideoAspectRatio';
 import { offlineCatalog } from '../../services/offline';
 import {
   SubtitleCue,
@@ -119,6 +121,8 @@ interface VideoPlayerProps {
   onAmbientLightChange?: (enabled: boolean) => void;
   // eslint-disable-next-line react/require-default-props
   offlineMode?: boolean;
+  // eslint-disable-next-line react/require-default-props
+  onPlayingChange?: (isPlaying: boolean) => void;
 }
 
 interface VideoPlayerRef {
@@ -131,7 +135,6 @@ interface VideoPlayerRef {
   destroyPlayer: () => void;
   seekTo: (time: number) => void;
   videoRef: React.RefObject<HTMLVideoElement | null>;
-  isPlaying: () => boolean;
 }
 
 /**
@@ -165,6 +168,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       ambientLightEnabled = true,
       onAmbientLightChange,
       offlineMode = false,
+      onPlayingChange,
     },
     ref,
   ) => {
@@ -228,8 +232,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           onStateChange: (state) => setUIState(state),
         }),
     );
-
-    const videoAspectRatioRef = useRef<number | null>(null);
 
     const [fullscreenPhase, setFullscreenPhase] =
       useState<FullscreenPhase>(null);
@@ -424,6 +426,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       timecodeAppliedRef.current = false;
     }, [currentPlayerData]);
 
+    useVideoAspectRatio(videoRef, currentPlayerData, onAspectRatioChange);
+
     useEffect(() => {
       const video = videoRef.current;
 
@@ -437,37 +441,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       );
       autoplayManager.setupAutoplayOnLoad();
     }, [currentPlayerData, initialTimecode, autoplayManager]);
-
-    useEffect(() => {
-      const video = videoRef.current;
-      if (!video) return undefined;
-
-      const handleLoadedMetadata = () => {
-        const { videoWidth, videoHeight } = video;
-        if (videoWidth && videoHeight) {
-          const aspectRatio = videoWidth / videoHeight;
-          log.debug('Video aspect ratio:', aspectRatio, {
-            width: videoWidth,
-            height: videoHeight,
-          });
-          videoAspectRatioRef.current = aspectRatio;
-          onAspectRatioChange?.(aspectRatio);
-        } else {
-          videoAspectRatioRef.current = null;
-          onAspectRatioChange?.(null);
-        }
-      };
-
-      if (video.readyState >= 1) {
-        handleLoadedMetadata();
-      }
-
-      video.addEventListener('loadedmetadata', handleLoadedMetadata);
-
-      return () => {
-        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      };
-    }, [currentPlayerData, onAspectRatioChange]);
 
     useEffect(() => {
       const video = videoRef.current;
@@ -567,12 +540,13 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     useEffect(() => {
       isPlayingRef.current = videoState.isPlaying;
+      onPlayingChange?.(videoState.isPlaying);
       uiStateManager.startAutoHide(videoState.isPlaying);
 
       return () => {
         uiStateManager.stopAutoHide();
       };
-    }, [videoState.isPlaying, uiStateManager]);
+    }, [videoState.isPlaying, uiStateManager, onPlayingChange]);
 
     useEffect(() => {
       if (videoState.isPlaying) {
@@ -681,8 +655,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           controllerRef.current?.seekTo(time);
         },
 
-        isPlaying: () => videoState.isPlaying,
-
         videoRef,
       }),
       [
@@ -694,7 +666,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         offlineMode,
         animeId,
         onTimecodeApplied,
-        videoState.isPlaying,
       ],
     );
 
@@ -900,52 +871,14 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       onEpisodeSelectWithAutoplay,
     ]);
 
-    useEffect(() => {
-      if (!('mediaSession' in navigator)) return;
-
-      navigator.mediaSession.setActionHandler('play', () => {
-        handleTogglePlay();
-      });
-
-      navigator.mediaSession.setActionHandler('pause', () => {
-        handleTogglePlay();
-      });
-
-      navigator.mediaSession.setActionHandler('nexttrack', () => {
-        if (currentEpisodeIndex < episodes.length - 1) {
-          const selectWithAutoplay =
-            onEpisodeSelectWithAutoplay ?? onEpisodeSelect;
-          selectWithAutoplay(currentEpisodeIndex + 1);
-        }
-      });
-
-      navigator.mediaSession.setActionHandler('previoustrack', () => {
-        if (currentEpisodeIndex > 0) {
-          onEpisodeSelect(currentEpisodeIndex - 1);
-        }
-      });
-
-      // eslint-disable-next-line consistent-return
-      return () => {
-        navigator.mediaSession.setActionHandler('play', null);
-        navigator.mediaSession.setActionHandler('pause', null);
-        navigator.mediaSession.setActionHandler('nexttrack', null);
-        navigator.mediaSession.setActionHandler('previoustrack', null);
-      };
-    }, [
-      handleTogglePlay,
+    useMediaSession({
+      isPlaying: videoState.isPlaying,
       currentEpisodeIndex,
-      episodes.length,
+      episodeCount: episodes.length,
+      onTogglePlay: handleTogglePlay,
       onEpisodeSelect,
       onEpisodeSelectWithAutoplay,
-    ]);
-
-    useEffect(() => {
-      if (!('mediaSession' in navigator)) return;
-      navigator.mediaSession.playbackState = videoState.isPlaying
-        ? 'playing'
-        : 'paused';
-    }, [videoState.isPlaying]);
+    });
 
     const fullscreenAnimationName =
       fullscreenPhase === 'enter'

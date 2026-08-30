@@ -28,6 +28,8 @@ import {
 } from '../../constants';
 import { getFittedWidth, getFittedHeight } from '../utils/videoHelpers';
 import { buildAnimePageUrl } from '../utils/urlHelpers';
+import { usePersistedFlag } from '../hooks/usePersistedFlag';
+import { useFullscreenState } from '../hooks/useFullscreenState';
 
 import { createLogger } from '../../shared/logger';
 
@@ -91,39 +93,22 @@ function PlayerPageRefactored({
     null,
   );
 
-  const [autoplayEnabled, setAutoplayEnabled] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('playerAutoplayEnabled') === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const [autoplayEnabled, handleAutoplayChange] = usePersistedFlag(
+    'playerAutoplayEnabled',
+    false,
+  );
 
-  const [ambientLightEnabled, setAmbientLightEnabled] = useState<boolean>(
-    () => {
-      try {
-        const stored = localStorage.getItem('playerAmbientLightEnabled');
-        return stored === null ? true : stored === 'true';
-      } catch {
-        return true;
-      }
-    },
+  const [ambientLightEnabled, handleAmbientLightChange] = usePersistedFlag(
+    'playerAmbientLightEnabled',
+    true,
   );
 
   const [relatedAnime, setRelatedAnime] = useState<RelatedAnimeType[]>([]);
 
-  const sidebarStorageKey = offlineMode
-    ? 'playerSidebarCollapsedOffline'
-    : 'playerSidebarCollapsed';
-
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem(sidebarStorageKey);
-      return saved === null ? offlineMode : saved === 'true';
-    } catch {
-      return offlineMode;
-    }
-  });
+  const [sidebarCollapsed, setSidebarCollapsed] = usePersistedFlag(
+    offlineMode ? 'playerSidebarCollapsedOffline' : 'playerSidebarCollapsed',
+    offlineMode,
+  );
 
   const [videoAspectRatio, setVideoAspectRatio] = useState<number | null>(null);
 
@@ -132,35 +117,9 @@ function PlayerPageRefactored({
 
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (videoPlayerRef.current) {
-        const playing = videoPlayerRef.current.isPlaying();
-        setIsVideoPlaying((prev) => {
-          if (prev !== playing) {
-            return playing;
-          }
-          return prev;
-        });
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   const playerLoadedRef = useRef<boolean>(false);
 
-  const [isPlayerFullscreen, setIsPlayerFullscreen] = useState<boolean>(false);
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsPlayerFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () =>
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
+  const isPlayerFullscreen = useFullscreenState();
 
   const [playerSelectionManager] = useState(() => new PlayerSelectionManager());
   const [bookmarkManager] = useState(
@@ -683,37 +642,9 @@ function PlayerPageRefactored({
   /**
    * Handle autoplay change
    */
-  const handleAutoplayChange = useCallback((enabled: boolean) => {
-    setAutoplayEnabled(enabled);
-    try {
-      localStorage.setItem('playerAutoplayEnabled', enabled.toString());
-    } catch (error) {
-      log.error('Error saving autoplay setting:', error);
-    }
-  }, []);
-
-  const handleAmbientLightChange = useCallback((enabled: boolean) => {
-    setAmbientLightEnabled(enabled);
-    try {
-      localStorage.setItem('playerAmbientLightEnabled', enabled.toString());
-    } catch (error) {
-      log.error('Error saving ambient light setting:', error);
-    }
-  }, []);
-
-  /**
-   * Handle sidebar toggle
-   */
   const handleSidebarToggle = useCallback(() => {
-    try {
-      const newState = !sidebarCollapsed;
-      localStorage.setItem(sidebarStorageKey, newState.toString());
-      setSidebarCollapsed(newState);
-      log.debug('Sidebar collapsed:', newState);
-    } catch (error) {
-      log.error('Error saving sidebar state:', error);
-    }
-  }, [sidebarCollapsed, sidebarStorageKey]);
+    setSidebarCollapsed(!sidebarCollapsed);
+  }, [sidebarCollapsed, setSidebarCollapsed]);
 
   /**
    * Сохраняет закладку с текущим таймкодом в фоне
@@ -1197,6 +1128,7 @@ function PlayerPageRefactored({
                         handleEpisodeClickWithAutoplay
                       }
                       onAspectRatioChange={setVideoAspectRatio}
+                      onPlayingChange={setIsVideoPlaying}
                       initialTimecode={initialTimecode}
                       onTimecodeApplied={() => {
                         log.debug('Timecode applied successfully, clearing...');
