@@ -59,6 +59,7 @@ import {
 } from '../../utils/subtitleHelpers';
 
 import { createLogger } from '../../../shared/logger';
+import { BLACK_SHORT, SURFACE, SURFACE_DEEPEST } from '../../theme/palette';
 
 const log = createLogger('VideoPlayer');
 
@@ -903,7 +904,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           position: 'relative',
           width: '100%',
           height: '100%',
-          backgroundColor: '#1c1c1c',
+          backgroundColor: SURFACE,
           overflow: 'hidden',
           borderRadius: PLAYER_BORDER_RADIUS,
           cursor: uiState.showControls ? 'default' : 'none',
@@ -954,7 +955,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             height: '100%',
             display: 'block',
             visibility: 'visible',
-            backgroundColor: '#000',
+            backgroundColor: BLACK_SHORT,
             cursor: 'inherit',
             objectFit: 'contain',
           }}
@@ -981,7 +982,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: '#0a0a0a',
+              backgroundColor: SURFACE_DEEPEST,
               zIndex: 999,
               cursor: 'inherit',
             }}

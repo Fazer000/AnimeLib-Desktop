@@ -1,6 +1,7 @@
 import { animeApi } from '../../api/animeApi';
 
 import { createLogger } from '../../../shared/logger';
+import { DANGER_SOFT, SUCCESS } from '../../theme/palette';
 
 const log = createLogger('CommentsManager');
 
@@ -388,8 +389,8 @@ export class CommentsManager {
    * Получить цвет для отображения голосов
    */
   public static getVoteColor(count: number): string {
-    if (count > 0) return '#4ade80';
-    if (count < 0) return '#f87171';
+    if (count > 0) return SUCCESS;
+    if (count < 0) return DANGER_SOFT;
     return 'inherit';
   }
 

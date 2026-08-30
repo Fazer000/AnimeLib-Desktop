@@ -1,5 +1,6 @@
 import React, { useState, useLayoutEffect, memo, useRef } from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
+import { ACCENT, SURFACE_DARKER, SURFACE_MUTED } from '../../theme/palette';
 
 interface ThumbnailPreviewProps {
   thumbnailUrl: string | null;
@@ -105,7 +106,7 @@ const ThumbnailPreview = memo(
             position: 'relative',
             width: PREVIEW_WIDTH,
             height: PREVIEW_HEIGHT,
-            backgroundColor: '#1a1a1a',
+            backgroundColor: SURFACE_DARKER,
             borderRadius: 1,
             overflow: 'hidden',
             boxShadow: '0 4px 16px rgba(0, 0, 0, 0.7)',
@@ -161,10 +162,10 @@ const ThumbnailPreview = memo(
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: '#2a2a2a',
+                backgroundColor: SURFACE_MUTED,
               }}
             >
-              <CircularProgress size={28} sx={{ color: '#7C3AED' }} />
+              <CircularProgress size={28} sx={{ color: ACCENT }} />
             </Box>
           )}
 
@@ -176,7 +177,7 @@ const ThumbnailPreview = memo(
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: '#2a2a2a',
+                backgroundColor: SURFACE_MUTED,
               }}
             >
               <Typography
@@ -193,7 +194,7 @@ const ThumbnailPreview = memo(
               left: 0,
               height: 3,
               width: `${duration > 0 ? (time / duration) * 100 : 0}%`,
-              backgroundColor: '#7C3AED',
+              backgroundColor: ACCENT,
               zIndex: 3,
               transition: 'width 0.1s ease',
             }}

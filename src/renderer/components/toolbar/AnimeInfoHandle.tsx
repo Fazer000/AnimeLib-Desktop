@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import { KeyboardArrowDownRounded } from '@mui/icons-material';
+import { WHITE } from '../../theme/palette';
 
 interface AnimeInfoHandleProps {
   hidden: boolean;
@@ -35,7 +36,7 @@ function AnimeInfoHandle({ hidden }: AnimeInfoHandleProps) {
       <KeyboardArrowDownRounded
         sx={{
           fontSize: 16,
-          color: '#ffffff',
+          color: WHITE,
           mt: -0.25,
           animation: 'handleHint 1.8s ease-in-out infinite',
           '@keyframes handleHint': {

@@ -10,6 +10,7 @@ import SearchModal from './toolbar/SearchModal';
 import { buildAnimePageUrl } from '../utils/urlHelpers';
 
 import { createLogger } from '../../shared/logger';
+import { SURFACE_HEADER } from '../theme/palette';
 
 const log = createLogger('Toolbar');
 
@@ -59,7 +60,7 @@ function ToolbarRefactored({
   onMaximize,
   onClose,
 
-  backgroundColor = '#252527',
+  backgroundColor = SURFACE_HEADER,
   height = 32,
 
   isPlayerPage = false,

@@ -32,6 +32,16 @@ import { usePersistedFlag } from '../hooks/usePersistedFlag';
 import { useFullscreenState } from '../hooks/useFullscreenState';
 
 import { createLogger } from '../../shared/logger';
+import {
+  ACCENT,
+  ACCENT_DEEP,
+  BLACK_SHORT,
+  SURFACE_DEEPEST,
+  SURFACE_HEADER,
+  TEXT_PRIMARY,
+  WHITE,
+  WHITE_SHORT,
+} from '../theme/palette';
 
 const log = createLogger('PlayerPage');
 
@@ -884,7 +894,7 @@ function PlayerPageRefactored({
         height: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: '#0a0a0a',
+        backgroundColor: SURFACE_DEEPEST,
         overflow: 'hidden',
       }}
     >
@@ -901,7 +911,7 @@ function PlayerPageRefactored({
           }
         }}
         canGoBack
-        backgroundColor="#252527"
+        backgroundColor={SURFACE_HEADER}
         height={TOOLBAR_HEIGHT}
         isPlayerPage
         showUrlInput={showUrlInput}
@@ -1029,8 +1039,8 @@ function PlayerPageRefactored({
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        backgroundColor: '#000',
-                        color: '#ffffff',
+                        backgroundColor: BLACK_SHORT,
+                        color: WHITE,
                         textAlign: 'center',
                         zIndex: 10,
                       }}
@@ -1040,14 +1050,14 @@ function PlayerPageRefactored({
                         sx={{
                           fontSize: '120px',
                           fontWeight: 'bold',
-                          color: '#7C3AED',
+                          color: ACCENT,
                         }}
                       >
                         404
                       </Typography>
                       <Typography
                         variant="h4"
-                        color="#bfbfbf"
+                        color={TEXT_PRIMARY}
                         sx={{
                           marginBottom: 1,
                         }}
@@ -1069,8 +1079,8 @@ function PlayerPageRefactored({
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        backgroundColor: '#000',
-                        color: '#ffffff',
+                        backgroundColor: BLACK_SHORT,
+                        color: WHITE,
                         textAlign: 'center',
                         zIndex: 10,
                         gap: 2,
@@ -1078,11 +1088,11 @@ function PlayerPageRefactored({
                     >
                       <Typography
                         variant="h4"
-                        sx={{ color: '#7C3AED', fontWeight: 'bold' }}
+                        sx={{ color: ACCENT, fontWeight: 'bold' }}
                       >
                         Ошибка Kodik
                       </Typography>
-                      <Typography variant="body1" color="#bfbfbf">
+                      <Typography variant="body1" color={TEXT_PRIMARY}>
                         Не удалось получить ссылку на видео. Сервис недоступен
                         или превышено время ожидания.
                       </Typography>
@@ -1093,13 +1103,13 @@ function PlayerPageRefactored({
                           mt: 1,
                           px: 3,
                           py: 1,
-                          backgroundColor: '#7C3AED',
-                          color: '#fff',
+                          backgroundColor: ACCENT,
+                          color: WHITE_SHORT,
                           border: 'none',
                           borderRadius: '8px',
                           fontSize: '14px',
                           cursor: 'pointer',
-                          '&:hover': { backgroundColor: '#6D28D9' },
+                          '&:hover': { backgroundColor: ACCENT_DEEP },
                         }}
                       >
                         Повторить

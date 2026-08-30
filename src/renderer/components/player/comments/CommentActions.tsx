@@ -11,9 +11,10 @@ import { Comment } from '../../../services/player';
 import CommentEditor, { CommentSubmitData } from '../CommentEditor';
 import { DeleteCommentDialog, IgnoreUserDialog } from './dialogs';
 import type { ReplyControls } from './types';
+import { ACCENT_SOFT, DANGER_SOFT } from '../../../theme/palette';
 
 const REPLY_LINK_SX = {
-  color: '#a78bfa',
+  color: ACCENT_SOFT,
   fontSize: '0.8125rem',
   cursor: 'pointer',
   userSelect: 'none' as const,
@@ -110,7 +111,7 @@ const CommentActions = memo(
                 setAnchorEl(null);
                 setConfirmOpen(true);
               }}
-              sx={{ color: '#f87171', gap: 1 }}
+              sx={{ color: DANGER_SOFT, gap: 1 }}
             >
               <DeleteOutline sx={{ fontSize: 18 }} />
               Удалить

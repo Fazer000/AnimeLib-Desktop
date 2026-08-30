@@ -37,6 +37,7 @@ import {
 } from '../../../constants';
 
 import { createLogger } from '../../../shared/logger';
+import { ACCENT, WHITE_SHORT } from '../../theme/palette';
 
 const log = createLogger('VideoControls');
 
@@ -334,7 +335,7 @@ function VideoControls({
             color={
               sidebarCollapsed
                 ? theme.palette.customColors.dtPrimaryTextColor
-                : '#7C3AED'
+                : ACCENT
             }
             onClick={onSidebarToggle}
             icon={<GraphicEqRounded sx={ICON_SX} />}
@@ -433,7 +434,7 @@ function VideoControls({
               sx={{
                 ...overlayButtonSx,
                 color: episodesVisible
-                  ? '#7C3AED'
+                  ? ACCENT
                   : theme.palette.customColors.dtPrimaryTextColor,
               }}
             >
@@ -530,13 +531,13 @@ function VideoControls({
                     onSaveBookmark();
                   }}
                   sx={{
-                    color: hasBookmark ? '#7C3AED' : 'white',
+                    color: hasBookmark ? ACCENT : 'white',
                     padding: 0.25,
                     borderRadius: 2,
                     '&:hover': {
                       backgroundColor: 'rgba(255, 255, 255, 0.1)',
                       transform: 'scale(1.1)',
-                      color: '#7C3AED',
+                      color: ACCENT,
                     },
                     transition: 'all 0.2s ease',
                   }}
@@ -556,7 +557,7 @@ function VideoControls({
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     transform: 'scale(1.1)',
-                    color: '#7C3AED',
+                    color: ACCENT,
                   },
                   transition: 'all 0.2s ease',
                 }}
@@ -573,7 +574,7 @@ function VideoControls({
                         px: 0.4,
                         borderRadius: 0.5,
                         backgroundColor: getQualityTagColor(qualityBadge),
-                        color: '#fff',
+                        color: WHITE_SHORT,
                         fontSize: '9px',
                         fontWeight: 700,
                         lineHeight: 1.4,
@@ -600,7 +601,7 @@ function VideoControls({
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     transform: 'scale(1.1)',
-                    color: '#7C3AED',
+                    color: ACCENT,
                   },
                   transition: 'all 0.2s ease',
                 }}
@@ -628,7 +629,7 @@ function VideoControls({
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     transform: 'scale(1.1)',
-                    color: '#7C3AED',
+                    color: ACCENT,
                   },
                   transition: 'all 0.2s ease',
                 }}

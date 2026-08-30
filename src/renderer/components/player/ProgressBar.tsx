@@ -9,6 +9,7 @@ import { Box, Slider } from '@mui/material';
 import { formatTime } from '../../utils/videoHelpers';
 import { ThumbnailManager, PlaybackTimeStore } from '../../services/player';
 import ThumbnailPreview from './ThumbnailPreview';
+import { ACCENT, ACCENT_LIGHT, WHITE_SHORT } from '../../theme/palette';
 
 interface TimeCode {
   type: 'opening' | 'ending' | 'compilation' | 'splashScreen';
@@ -93,7 +94,7 @@ const HOVER_MARKER_SX = {
 };
 
 const SLIDER_SX = {
-  color: '#7C3AED',
+  color: ACCENT,
   height: 28,
   padding: '0 !important',
   cursor: 'pointer',
@@ -108,8 +109,8 @@ const SLIDER_SX = {
   '& .MuiSlider-thumb': {
     width: 14,
     height: 14,
-    backgroundColor: '#fff',
-    border: '3px solid #BB86FC',
+    backgroundColor: WHITE_SHORT,
+    border: `3px solid ${ACCENT_LIGHT}`,
     opacity: 0,
     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
     cursor: 'grab',
@@ -134,7 +135,7 @@ const TOOLTIP_SX = {
   position: 'absolute',
   bottom: 24,
   transform: 'translateX(-50%)',
-  color: '#fff',
+  color: WHITE_SHORT,
   padding: '6px 12px',
   backgroundColor: 'rgba(41, 41, 41, 0.62)',
   backdropFilter: 'blur(10px)',
@@ -437,7 +438,7 @@ function ProgressBar({
                   left: 0,
                   height: '100%',
                   width: 0,
-                  background: '#7C3AED',
+                  background: ACCENT,
                   borderRadius: 10,
                   transition: progressTransition,
                   willChange: isDragging ? 'width' : 'auto',

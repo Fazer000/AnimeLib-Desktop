@@ -15,6 +15,7 @@ import {
   formatProgress,
   formatSpeed,
 } from '../../utils/offlineFormat';
+import { ACCENT, DANGER } from '../../theme/palette';
 
 interface DownloadsListProps {
   tasks: DownloadTask[];
@@ -87,7 +88,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
             sx={{
               textTransform: 'none',
               fontSize: OFFLINE_FONT.button,
-              color: '#ef5350',
+              color: DANGER,
               '&:hover': { backgroundColor: 'rgba(239, 83, 80, 0.12)' },
             }}
           >
@@ -118,9 +119,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
                 sx={{
                   fontSize: OFFLINE_FONT.hint,
                   color:
-                    task.status === 'error'
-                      ? '#ef5350'
-                      : 'rgba(255,255,255,0.55)',
+                    task.status === 'error' ? DANGER : 'rgba(255,255,255,0.55)',
                 }}
               >
                 {task.status === 'downloading'
@@ -134,7 +133,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
                   onClick={() => offlineStore.resume(task.id)}
                 >
                   <PlayArrowRounded
-                    sx={{ fontSize: OFFLINE_ICON.lg, color: '#7C3AED' }}
+                    sx={{ fontSize: OFFLINE_ICON.lg, color: ACCENT }}
                   />
                 </IconButton>
               )}
@@ -159,7 +158,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
                 height: 5,
                 borderRadius: 2.5,
                 backgroundColor: 'rgba(255,255,255,0.12)',
-                '& .MuiLinearProgress-bar': { backgroundColor: '#7C3AED' },
+                '& .MuiLinearProgress-bar': { backgroundColor: ACCENT },
               }}
             />
           )}

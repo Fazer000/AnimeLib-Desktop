@@ -16,10 +16,11 @@ import {
   COMMENTS_COLLAPSE_MAX_LEVEL,
   COMMENTS_COLLAPSE_MIN_LEVEL,
 } from '../../../constants';
+import { ACCENT, ACCENT_SOFT, SURFACE_DIALOG } from '../../theme/palette';
 
 const CHECKBOX_SX = {
   color: 'rgba(255, 255, 255, 0.4)',
-  '&.Mui-checked': { color: '#a78bfa' },
+  '&.Mui-checked': { color: ACCENT_SOFT },
   '&:hover': { backgroundColor: 'rgba(167, 139, 250, 0.08)' },
 };
 
@@ -46,7 +47,7 @@ function CommentsSettingsDialog({
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: '#1f1f24',
+            backgroundColor: SURFACE_DIALOG,
             backgroundImage: 'none',
             borderRadius: 2,
             minWidth: 460,
@@ -139,7 +140,7 @@ function CommentsSettingsDialog({
             onChange={(_, value) =>
               onChange({ collapseFromLevel: value as number })
             }
-            sx={{ color: '#7C3AED' }}
+            sx={{ color: ACCENT }}
           />
         </Box>
       </DialogContent>

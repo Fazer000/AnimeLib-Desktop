@@ -1,4 +1,9 @@
 import type { SxProps, Theme } from '@mui/material';
+import {
+  ACCENT_BRIGHT,
+  ACCENT_LIGHT,
+  TEXT_DISABLED,
+} from '../../../theme/palette';
 
 export const MENU_ICON_SIZE = 20;
 
@@ -30,7 +35,7 @@ export const OPTION_ITEM_SX = {
   '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.08)' },
   '&.Mui-selected': {
     backgroundColor: 'rgba(124, 58, 237, 0.25)',
-    color: '#BB86FC',
+    color: ACCENT_LIGHT,
   },
 };
 
@@ -54,7 +59,7 @@ export const CAPTION_BLOCK_SX = {
 
 export const CHEVRON_SX = { color: 'rgba(255, 255, 255, 0.7)' };
 
-export const CHECK_ICON_SX = { fontSize: 16, color: '#BB86FC' };
+export const CHECK_ICON_SX = { fontSize: 16, color: ACCENT_LIGHT };
 
 export const HEADER_SX = {
   display: 'flex',
@@ -90,7 +95,7 @@ export const SECTION_LABEL_SX = {
 
 const switchSx = (accent: string, trackColor: string) => ({
   '& .MuiSwitch-switchBase': {
-    color: '#BDBDBD',
+    color: TEXT_DISABLED,
     '&.Mui-checked': {
       color: accent,
       '& + .MuiSwitch-track': {
@@ -101,16 +106,19 @@ const switchSx = (accent: string, trackColor: string) => ({
   },
   '& .MuiSwitch-track': {
     backgroundColor: 'rgba(189, 189, 189, 0.3)',
-    border: '1px solid #BDBDBD',
+    border: `1px solid ${TEXT_DISABLED}`,
   },
   '& .MuiSwitch-thumb': {
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
   },
 });
 
-export const SWITCH_SX = switchSx('#BB86FC', 'rgba(187, 134, 252, 0.3)');
+export const SWITCH_SX = switchSx(ACCENT_LIGHT, 'rgba(187, 134, 252, 0.3)');
 
-export const SWITCH_SKIP_SX = switchSx('#C084FC', 'rgba(192, 132, 252, 0.3)');
+export const SWITCH_SKIP_SX = switchSx(
+  ACCENT_BRIGHT,
+  'rgba(192, 132, 252, 0.3)',
+);
 
 /** Квадратная плашка с иконкой или тегом качества слева от строки. */
 export const menuIconBoxSx = (color: string) => ({
@@ -157,8 +165,8 @@ const makeChipSx =
     backgroundColor: isSelected
       ? 'rgba(124, 58, 237, 0.3)'
       : 'rgba(255, 255, 255, 0.1)',
-    border: isSelected ? '1px solid #BB86FC' : '1px solid transparent',
-    color: isSelected ? '#BB86FC' : 'rgba(255, 255, 255, 0.7)',
+    border: isSelected ? `1px solid ${ACCENT_LIGHT}` : '1px solid transparent',
+    color: isSelected ? ACCENT_LIGHT : 'rgba(255, 255, 255, 0.7)',
     fontWeight: isSelected ? 600 : 400,
     fontSize,
     fontFamily: 'Roboto, sans-serif',

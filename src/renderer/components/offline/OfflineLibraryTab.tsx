@@ -33,6 +33,14 @@ import {
   progressStore,
 } from '../../services/offline';
 import { formatSize, sumSize } from '../../utils/offlineFormat';
+import {
+  ACCENT,
+  ACCENT_DEEP,
+  DANGER,
+  DANGER_STRONG,
+  SURFACE_RAISED,
+  WHITE,
+} from '../../theme/palette';
 
 interface OfflineLibraryTabProps {
   anime: OfflineAnime[];
@@ -131,7 +139,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
             px: 3,
             pt: 2,
             pb: 2,
-            backgroundColor: '#2b2b2e',
+            backgroundColor: SURFACE_RAISED,
           }}
         >
           <TextField
@@ -162,8 +170,8 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
             sx={{
               '& .MuiInputBase-root': {
                 fontSize: OFFLINE_FONT.body,
-                color: '#ffffff',
-                backgroundColor: '#2b2b2e',
+                color: WHITE,
+                backgroundColor: SURFACE_RAISED,
               },
               '& .MuiOutlinedInput-notchedOutline': {
                 borderColor: 'rgba(255,255,255,0.18)',
@@ -172,7 +180,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                 borderColor: 'rgba(255,255,255,0.3)',
               },
               '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#7C3AED',
+                borderColor: ACCENT,
               },
             }}
           />
@@ -228,7 +236,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                   transition: 'background-color 0.15s',
                   '&:hover': {
                     backgroundColor: 'rgba(255,255,255,0.07)',
-                    '& .library-chevron': { color: '#ffffff' },
+                    '& .library-chevron': { color: WHITE },
                   },
                 }}
               >
@@ -304,9 +312,9 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                     px: 2,
                     py: 0.75,
                     flexShrink: 0,
-                    backgroundColor: '#7C3AED',
-                    color: '#ffffff',
-                    '&:hover': { backgroundColor: '#6D28D9' },
+                    backgroundColor: ACCENT,
+                    color: WHITE,
+                    '&:hover': { backgroundColor: ACCENT_DEEP },
                   }}
                 >
                   {progress ? 'Продолжить' : 'Смотреть'}
@@ -320,7 +328,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                     width: 40,
                     height: 40,
                     borderRadius: 1.5,
-                    color: '#ef5350',
+                    color: DANGER,
                     border: '1px solid rgba(239, 83, 80, 0.3)',
                     backgroundColor: 'rgba(239, 83, 80, 0.08)',
                     transition: 'background-color 0.15s, border-color 0.15s',
@@ -365,7 +373,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                         backgroundColor: 'rgba(255,255,255,0.07)',
                         '& .episode-remove': {
                           opacity: 1,
-                          color: '#ef5350',
+                          color: DANGER,
                         },
                       },
                     }}
@@ -378,7 +386,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                         color:
                           episode.fileName === activeFile ||
                           progress?.episodeId === episode.episodeId
-                            ? '#7C3AED'
+                            ? ACCENT
                             : 'rgba(255,255,255,0.75)',
                       }}
                       noWrap
@@ -437,9 +445,9 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
         slotProps={{
           paper: {
             sx: {
-              backgroundColor: '#2b2b2e',
+              backgroundColor: SURFACE_RAISED,
               backgroundImage: 'none',
-              color: '#ffffff',
+              color: WHITE,
             },
           },
         }}
@@ -484,9 +492,9 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
               textTransform: 'none',
               fontSize: OFFLINE_FONT.button,
               px: 2,
-              backgroundColor: '#ef5350',
-              color: '#ffffff',
-              '&:hover': { backgroundColor: '#d32f2f' },
+              backgroundColor: DANGER,
+              color: WHITE,
+              '&:hover': { backgroundColor: DANGER_STRONG },
             }}
           >
             Удалить

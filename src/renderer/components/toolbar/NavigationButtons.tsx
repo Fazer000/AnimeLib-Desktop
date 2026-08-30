@@ -2,6 +2,7 @@
 import React from 'react';
 import { IconButton, Box } from '@mui/material';
 import { ArrowBack, Refresh, Home, Search } from '@mui/icons-material';
+import { WHITE } from '../../theme/palette';
 
 interface NavigationButtonsProps {
   onBack?: () => void;
@@ -27,7 +28,7 @@ function NavigationButtons({
   canGoBack = false,
 }: NavigationButtonsProps) {
   const buttonStyle = {
-    color: '#ffffff',
+    color: WHITE,
     WebkitAppRegion: 'no-drag' as const,
     appRegion: 'no-drag' as const,
     padding: 0.5,

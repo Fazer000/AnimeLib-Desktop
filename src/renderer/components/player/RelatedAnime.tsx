@@ -9,6 +9,7 @@ import {
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { RelatedAnime as RelatedAnimeType } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
+import { SURFACE_DARKER } from '../../theme/palette';
 
 interface RelatedAnimeProps {
   relatedAnime: RelatedAnimeType[];
@@ -71,7 +72,7 @@ function RelatedAnimeCard({
           height: '100%',
           flexShrink: 0,
           position: 'relative',
-          backgroundColor: '#1a1a1a',
+          backgroundColor: SURFACE_DARKER,
         }}
       >
         {imageUrl && (

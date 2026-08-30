@@ -1,6 +1,7 @@
 import React, { memo, useState } from 'react';
 import { Box } from '@mui/material';
 import { Comment } from '../../../services/player';
+import { ACCENT_SOFT, SURFACE_DIALOG } from '../../../theme/palette';
 
 /** Ширина полоски в разметке; зона клика шире за счёт ::after. */
 const RAIL_WIDTH = 6;
@@ -58,10 +59,10 @@ const RepliesThread = memo(
               left: -RAIL_HIT_PADDING,
               right: -RAIL_HIT_PADDING,
             },
-            '&:hover .thread-rail-line': { borderColor: '#a78bfa' },
+            '&:hover .thread-rail-line': { borderColor: ACCENT_SOFT },
             '&:hover .thread-rail-pill': {
-              backgroundColor: '#a78bfa',
-              color: '#1f1f24',
+              backgroundColor: ACCENT_SOFT,
+              color: SURFACE_DIALOG,
             },
           }}
         >

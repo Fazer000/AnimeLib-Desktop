@@ -11,6 +11,14 @@ import {
 } from '@mui/material';
 import { UpdateInfo } from '../../../constants';
 import { UpdateStatus } from '../../hooks/useUpdateChecker';
+import {
+  DANGER,
+  SUCCESS_DEEP,
+  SUCCESS_MID,
+  SUCCESS_STRONG,
+  SURFACE_RAISED,
+  WHITE,
+} from '../../theme/palette';
 
 interface UpdateDialogProps {
   open: boolean;
@@ -65,7 +73,7 @@ const renderNotes = (notes: string): React.ReactNode => {
           sx={{
             fontSize: '0.9rem',
             fontWeight: 600,
-            color: '#ffffff',
+            color: WHITE,
             mt: index === 0 ? 0 : 1.5,
             mb: 0.5,
           }}
@@ -125,9 +133,9 @@ function UpdateDialog({
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: '#2b2b2e',
+            backgroundColor: SURFACE_RAISED,
             backgroundImage: 'none',
-            color: '#ffffff',
+            color: WHITE,
             borderRadius: 2,
           },
         },
@@ -159,7 +167,7 @@ function UpdateDialog({
                 height: 6,
                 borderRadius: 3,
                 backgroundColor: 'rgba(255,255,255,0.12)',
-                '& .MuiLinearProgress-bar': { backgroundColor: '#66bb6a' },
+                '& .MuiLinearProgress-bar': { backgroundColor: SUCCESS_MID },
               }}
             />
             <Typography
@@ -175,7 +183,7 @@ function UpdateDialog({
         )}
 
         {status === 'error' && (
-          <Typography sx={{ fontSize: '0.8rem', color: '#ef5350', mt: 2 }}>
+          <Typography sx={{ fontSize: '0.8rem', color: DANGER, mt: 2 }}>
             Не удалось загрузить обновление. Страница релиза открыта в браузере.
           </Typography>
         )}
@@ -195,8 +203,8 @@ function UpdateDialog({
           variant="contained"
           sx={{
             textTransform: 'none',
-            backgroundColor: '#43a047',
-            '&:hover': { backgroundColor: '#4caf50' },
+            backgroundColor: SUCCESS_DEEP,
+            '&:hover': { backgroundColor: SUCCESS_STRONG },
           }}
         >
           Обновить сейчас

@@ -44,6 +44,12 @@ import {
 import { getSiteOrigin } from '../../utils/urlHelpers';
 
 import { createLogger } from '../../../shared/logger';
+import {
+  ACCENT,
+  ACCENT_DEEP,
+  SURFACE_RAISED,
+  WHITE,
+} from '../../theme/palette';
 
 const log = createLogger('DownloadManager');
 
@@ -85,8 +91,8 @@ const FOOTER_BUTTON_SX = {
   border: '1px solid rgba(255,255,255,0.18)',
   px: 2,
   '&:hover': {
-    color: '#ffffff',
-    borderColor: '#7C3AED',
+    color: WHITE,
+    borderColor: ACCENT,
     backgroundColor: 'rgba(124, 58, 237, 0.14)',
   },
 };
@@ -515,9 +521,9 @@ function DownloadManagerDialog({
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: '#2b2b2e',
+            backgroundColor: SURFACE_RAISED,
             backgroundImage: 'none',
-            color: '#ffffff',
+            color: WHITE,
             borderRadius: 2,
             height: OFFLINE_DIALOG_HEIGHT,
             display: 'flex',
@@ -660,7 +666,7 @@ function DownloadManagerDialog({
           <Typography
             sx={{
               fontSize: OFFLINE_FONT.hint,
-              color: migration ? '#7C3AED' : 'rgba(255,255,255,0.7)',
+              color: migration ? ACCENT : 'rgba(255,255,255,0.7)',
               flex: 1,
               minWidth: 0,
             }}
@@ -741,9 +747,9 @@ function DownloadManagerDialog({
                 textTransform: 'none',
                 fontSize: OFFLINE_FONT.body,
                 px: 2,
-                backgroundColor: '#7C3AED',
-                color: '#ffffff',
-                '&:hover': { backgroundColor: '#6D28D9' },
+                backgroundColor: ACCENT,
+                color: WHITE,
+                '&:hover': { backgroundColor: ACCENT_DEEP },
                 '&.Mui-disabled': {
                   backgroundColor: 'rgba(124, 58, 237, 0.25)',
                   color: 'rgba(255,255,255,0.4)',
@@ -763,7 +769,7 @@ function DownloadManagerDialog({
               textTransform: 'none',
               fontSize: OFFLINE_FONT.body,
               px: 2,
-              color: '#ffffff',
+              color: WHITE,
               backgroundColor: 'rgba(255,255,255,0.14)',
               boxShadow: 'none',
               '&:hover': {
@@ -783,9 +789,9 @@ function DownloadManagerDialog({
         slotProps={{
           paper: {
             sx: {
-              backgroundColor: '#2b2b2e',
+              backgroundColor: SURFACE_RAISED,
               backgroundImage: 'none',
-              color: '#ffffff',
+              color: WHITE,
             },
           },
         }}
@@ -829,9 +835,9 @@ function DownloadManagerDialog({
               textTransform: 'none',
               fontSize: OFFLINE_FONT.button,
               px: 2,
-              backgroundColor: '#7C3AED',
-              color: '#ffffff',
-              '&:hover': { backgroundColor: '#6D28D9' },
+              backgroundColor: ACCENT,
+              color: WHITE,
+              '&:hover': { backgroundColor: ACCENT_DEEP },
             }}
           >
             Всё равно скачать

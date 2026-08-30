@@ -7,6 +7,7 @@ import VolumeMuteRoundedIcon from '@mui/icons-material/VolumeMuteRounded';
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import ControlTooltip from './ControlTooltip';
 import { PLAYER_CONTROL_ICON_SIZE } from '../../../constants';
+import { ACCENT, ACCENT_LIGHT, WHITE_SHORT } from '../../theme/palette';
 
 const ICON_SX = { fontSize: `${PLAYER_CONTROL_ICON_SIZE}px` };
 
@@ -110,7 +111,7 @@ function VolumeControl({
             '&:hover': {
               backgroundColor: 'rgba(255, 255, 255, 0.1)',
               transform: 'scale(1.15)',
-              color: '#BB86FC',
+              color: ACCENT_LIGHT,
             },
             '&:active': {
               transform: 'scale(0.95)',
@@ -164,13 +165,13 @@ function VolumeControl({
           step={0.01}
           size="small"
           sx={{
-            color: '#7C3AED',
+            color: ACCENT,
             cursor: 'pointer',
             '& .MuiSlider-thumb': {
               width: 12,
               height: 12,
-              backgroundColor: '#fff',
-              border: '2px solid #BB86FC',
+              backgroundColor: WHITE_SHORT,
+              border: `2px solid ${ACCENT_LIGHT}`,
               borderRadius: '50%',
               transition: isDragging
                 ? 'none'
@@ -189,7 +190,7 @@ function VolumeControl({
             },
             '& .MuiSlider-track': {
               height: 4,
-              background: '#7C3AED',
+              background: ACCENT,
               borderRadius: 50,
               border: 'none',
               transition: isDragging ? 'none' : 'width 0.1s ease',

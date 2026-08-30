@@ -5,6 +5,13 @@ import { animeApi, AnimeInfo } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 
 import { createLogger } from '../../../shared/logger';
+import {
+  ACCENT,
+  DANGER_BRIGHT,
+  SUCCESS,
+  WARNING,
+  WHITE_SHORT,
+} from '../../theme/palette';
 
 const log = createLogger('AnimeInfoCard');
 
@@ -76,7 +83,7 @@ function AnimeInfoCard({
             alignItems: 'center',
           }}
         >
-          <CircularProgress size={30} sx={{ color: '#7C3AED' }} />
+          <CircularProgress size={30} sx={{ color: ACCENT }} />
         </Box>
       </Box>
     );
@@ -179,7 +186,7 @@ function AnimeInfoCard({
               <Typography
                 variant="h5"
                 sx={{
-                  color: '#fff',
+                  color: WHITE_SHORT,
                   fontWeight: 600,
                   fontSize: '1.5rem',
                   lineHeight: 1.2,
@@ -228,7 +235,7 @@ function AnimeInfoCard({
 
                 <Typography
                   sx={{
-                    color: animeInfo.status.id === 2 ? '#4ade80' : '#fbbf24',
+                    color: animeInfo.status.id === 2 ? SUCCESS : WARNING,
                     fontSize: '0.875rem',
                     fontWeight: 500,
                   }}
@@ -256,10 +263,10 @@ function AnimeInfoCard({
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Star sx={{ color: '#fbbf24', fontSize: 20 }} />
+                <Star sx={{ color: WARNING, fontSize: 20 }} />
                 <Typography
                   sx={{
-                    color: '#fff',
+                    color: WHITE_SHORT,
                     fontSize: '1.125rem',
                     fontWeight: 600,
                   }}
@@ -294,7 +301,7 @@ function AnimeInfoCard({
                     >
                       <Typography
                         sx={{
-                          color: '#ef4444',
+                          color: DANGER_BRIGHT,
                           fontSize: '0.75rem',
                           fontWeight: 600,
                         }}

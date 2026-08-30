@@ -8,6 +8,12 @@ import {
   Typography,
 } from '@mui/material';
 import { CloudOffRounded } from '@mui/icons-material';
+import {
+  ACCENT,
+  ACCENT_DEEP,
+  SURFACE_RAISED,
+  WHITE,
+} from '../../theme/palette';
 
 interface OfflineNoticeDialogProps {
   open: boolean;
@@ -32,9 +38,9 @@ function OfflineNoticeDialog({
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: '#2b2b2e',
+            backgroundColor: SURFACE_RAISED,
             backgroundImage: 'none',
-            color: '#ffffff',
+            color: WHITE,
             borderRadius: 2,
           },
         },
@@ -43,7 +49,7 @@ function OfflineNoticeDialog({
       <DialogTitle
         sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '1rem' }}
       >
-        <CloudOffRounded sx={{ fontSize: 20, color: '#7C3AED' }} />
+        <CloudOffRounded sx={{ fontSize: 20, color: ACCENT }} />
         Нет соединения с сайтом
       </DialogTitle>
 
@@ -65,9 +71,9 @@ function OfflineNoticeDialog({
           onClick={onOpenLibrary}
           sx={{
             textTransform: 'none',
-            backgroundColor: '#7C3AED',
-            color: '#ffffff',
-            '&:hover': { backgroundColor: '#6D28D9' },
+            backgroundColor: ACCENT,
+            color: WHITE,
+            '&:hover': { backgroundColor: ACCENT_DEEP },
           }}
         >
           Открыть библиотеку

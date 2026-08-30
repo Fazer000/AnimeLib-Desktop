@@ -2,6 +2,7 @@ import { Box, Typography } from '@mui/material';
 import { SkipManager } from '../../../services/player';
 import { ChipGroup, PageHeader } from './rows';
 import { CHIP_QUARTER_SX, CHIP_THIRD_SX } from './styles';
+import { ACCENT_LIGHT } from '../../../theme/palette';
 
 const MINUTES = [0, 1, 2, 3, 4, 5];
 const SECONDS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
@@ -72,7 +73,7 @@ function SkipPage({ skipManager, onSkipTimeChange, onBack }: SkipPageProps) {
         <Typography
           variant="body2"
           sx={{
-            color: '#BB86FC',
+            color: ACCENT_LIGHT,
             fontWeight: 600,
             fontFamily: 'Roboto, sans-serif',
           }}

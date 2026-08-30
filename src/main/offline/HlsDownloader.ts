@@ -2,6 +2,7 @@
  * Загрузка HLS: склейка сегментов и генерация локального плейлиста
  */
 import fs from 'fs';
+import fsp from 'fs/promises';
 import path from 'path';
 import {
   OFFLINE_HLS_SEGMENT_RETRIES,
@@ -168,6 +169,22 @@ const pickVariant = (text: string, baseUrl: string): string => {
   return best.url;
 };
 
+/** Пишет чанк, дожидаясь разгрузки буфера при обратном давлении. */
+const writeChunk = (stream: fs.WriteStream, chunk: Buffer): Promise<void> =>
+  new Promise((resolve) => {
+    if (stream.write(chunk)) {
+      resolve();
+      return;
+    }
+    stream.once('drain', resolve);
+  });
+
+/** Закрывает поток, дожидаясь сброса буфера на диск. */
+const closeStream = (stream: fs.WriteStream): Promise<void> =>
+  new Promise((resolve) => {
+    stream.end(() => resolve());
+  });
+
 class HlsDownloader {
   /**
    * Возвращает путь к файлу состояния докачки
@@ -208,13 +225,13 @@ class HlsDownloader {
   /**
    * Пишет состояние докачки
    */
-  private writeState(
+  private async writeState(
     mediaPath: string,
     url: string,
     segments: SegmentState[],
-  ): void {
+  ): Promise<void> {
     try {
-      fs.writeFileSync(
+      await fsp.writeFile(
         this.statePath(mediaPath),
         JSON.stringify({ url, segments }),
         'utf8',
@@ -412,6 +429,24 @@ class HlsDownloader {
     }
 
     const state = [...done];
+    const stream = fs.createWriteStream(mediaPath, { flags: 'a' });
+    let streamError: Error | null = null;
+    stream.on('error', (error) => {
+      streamError = error;
+    });
+
+    /** Закрывает поток и сохраняет состояние докачки в согласованном виде. */
+    const finish = async (
+      outcome: HlsDownloadResult['outcome'],
+      written: number,
+      keepState: boolean,
+    ): Promise<HlsDownloadResult> => {
+      await closeStream(stream);
+      if (keepState) {
+        await this.writeState(mediaPath, url, state);
+      }
+      return { outcome, bytes: written };
+    };
 
     if (info.initUrl && state.length === 0) {
       const initChunk = await HlsDownloader.fetchSegment(
@@ -422,10 +457,10 @@ class HlsDownloader {
 
       if (!initChunk) {
         log.error('Init segment failed');
-        return { outcome: 'failed', bytes: 0 };
+        return finish('failed', 0, false);
       }
 
-      fs.appendFileSync(mediaPath, initChunk);
+      await writeChunk(stream, initChunk);
       state.push({ bytes: initChunk.length, duration: 0, init: true });
       bytes += initChunk.length;
     }
@@ -438,8 +473,7 @@ class HlsDownloader {
     // eslint-disable-next-line no-plusplus
     for (let index = startIndex; index < segments.length; index++) {
       if (params.isCancelled()) {
-        this.writeState(mediaPath, url, state);
-        return { outcome: 'cancelled', bytes };
+        return finish('cancelled', bytes, true);
       }
 
       // eslint-disable-next-line no-await-in-loop
@@ -450,20 +484,24 @@ class HlsDownloader {
       );
 
       if (!chunk) {
-        this.writeState(mediaPath, url, state);
         log.error('Segment failed at:', index);
-        return { outcome: 'failed', bytes };
+        return finish('failed', bytes, true);
       }
 
       const remaining =
         (bytes / Math.max(index, 1)) * (segments.length - index) || 0;
 
       if (!HlsDownloader.hasFreeSpace(mediaPath, remaining)) {
-        this.writeState(mediaPath, url, state);
-        return { outcome: 'no-space', bytes };
+        return finish('no-space', bytes, true);
       }
 
-      fs.appendFileSync(mediaPath, chunk);
+      // eslint-disable-next-line no-await-in-loop
+      await writeChunk(stream, chunk);
+
+      if (streamError) {
+        log.error('Write failed:', streamError);
+        return finish('failed', bytes, true);
+      }
 
       state.push({
         bytes: chunk.length,
@@ -474,7 +512,8 @@ class HlsDownloader {
       bytes += chunk.length;
 
       if (index % 10 === 0) {
-        this.writeState(mediaPath, url, state);
+        // eslint-disable-next-line no-await-in-loop
+        await this.writeState(mediaPath, url, state);
       }
 
       params.onProgress(
@@ -483,13 +522,21 @@ class HlsDownloader {
       );
     }
 
-    fs.writeFileSync(
+    await closeStream(stream);
+
+    if (streamError) {
+      log.error('Write failed:', streamError);
+      await this.writeState(mediaPath, url, state);
+      return { outcome: 'failed', bytes };
+    }
+
+    await fsp.writeFile(
       playlistPath,
       HlsDownloader.buildPlaylist(mediaFileName, state),
       'utf8',
     );
 
-    fs.rmSync(this.statePath(mediaPath), { force: true });
+    await fsp.rm(this.statePath(mediaPath), { force: true });
 
     log.debug('Completed, bytes:', bytes);
 

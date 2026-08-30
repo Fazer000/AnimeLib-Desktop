@@ -10,6 +10,7 @@ import {
   buildOfflineUrl,
 } from '../../constants';
 import useImageWithReferer from '../hooks/useImageWithReferer';
+import { ACCENT, WHITE } from '../theme/palette';
 
 interface BookmarkMenuItemProps {
   bookmark: BookmarkItem;
@@ -106,7 +107,7 @@ function OfflineMenuItem({ item, onSelect }: OfflineMenuItemProps) {
         }}
         secondaryTypographyProps={{
           fontSize: '0.75rem',
-          sx: { color: '#7C3AED' },
+          sx: { color: ACCENT },
         }}
       />
     </MenuItem>
@@ -164,9 +165,9 @@ function ContinueWatchingButton({
             solid
             active={Boolean(anchorEl)}
             label="Закладки"
-            color="#ffffff"
+            color={WHITE}
             onClick={(event) => setAnchorEl(event.currentTarget)}
-            icon={<BookmarkRounded sx={{ fontSize: 24, color: '#7C3AED' }} />}
+            icon={<BookmarkRounded sx={{ fontSize: 24, color: ACCENT }} />}
           />
         </Box>
       </Zoom>

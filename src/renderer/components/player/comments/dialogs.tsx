@@ -12,9 +12,14 @@ import {
   Typography,
 } from '@mui/material';
 import { ExpandMore } from '@mui/icons-material';
+import {
+  DANGER_DEEP,
+  DANGER_SOFT,
+  SURFACE_DIALOG,
+} from '../../../theme/palette';
 
 const paperSx = (minWidth: number) => ({
-  backgroundColor: '#1f1f24',
+  backgroundColor: SURFACE_DIALOG,
   backgroundImage: 'none',
   borderRadius: 2,
   minWidth,
@@ -137,7 +142,7 @@ export function IgnoreUserDialog({
           onClick={onConfirm}
           disabled={isSubmitting}
           variant="contained"
-          sx={{ backgroundColor: '#b91c1c', fontWeight: 600 }}
+          sx={{ backgroundColor: DANGER_DEEP, fontWeight: 600 }}
         >
           {isSubmitting ? 'Добавление...' : 'Добавить в игнор'}
         </Button>
@@ -189,7 +194,7 @@ export function DeleteCommentDialog({
           onClick={onConfirm}
           disabled={isDeleting}
           sx={{
-            color: '#f87171',
+            color: DANGER_SOFT,
             fontWeight: 600,
             '&:hover': { backgroundColor: 'rgba(248, 113, 113, 0.12)' },
           }}

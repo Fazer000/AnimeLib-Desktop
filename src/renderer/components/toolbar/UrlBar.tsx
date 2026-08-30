@@ -11,6 +11,13 @@ import { Link, Close } from '@mui/icons-material';
 import { saveSiteUrl } from '../../utils/urlHelpers';
 
 import { createLogger } from '../../../shared/logger';
+import {
+  ACCENT,
+  BORDER,
+  SURFACE_DARKER,
+  TEXT_PRIMARY,
+  WHITE,
+} from '../../theme/palette';
 
 const log = createLogger('UrlBar');
 
@@ -98,22 +105,22 @@ function UrlBar({
                   WebkitAppRegion: 'no-drag',
                   appRegion: 'no-drag',
                   '& .MuiOutlinedInput-root': {
-                    backgroundColor: '#1a1a1a',
+                    backgroundColor: SURFACE_DARKER,
                     borderRadius: 1,
                     height: 24,
                     fontSize: '12px',
                     '& fieldset': {
-                      borderColor: '#464649',
+                      borderColor: BORDER,
                     },
                     '&:hover fieldset': {
-                      borderColor: '#7C3AED',
+                      borderColor: ACCENT,
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: '#7C3AED',
+                      borderColor: ACCENT,
                     },
                   },
                   '& .MuiInputBase-input': {
-                    color: '#bfbfbf',
+                    color: TEXT_PRIMARY,
                     padding: '4px 8px',
                     fontSize: '12px',
                   },
@@ -124,7 +131,7 @@ function UrlBar({
                       <IconButton
                         size="small"
                         onClick={onToggleUrlInput}
-                        sx={{ color: '#bfbfbf', padding: 0.5 }}
+                        sx={{ color: TEXT_PRIMARY, padding: 0.5 }}
                       >
                         <Close sx={{ fontSize: 14 }} />
                       </IconButton>
@@ -138,7 +145,7 @@ function UrlBar({
           <Typography
             variant="body2"
             sx={{
-              color: '#bfbfbf',
+              color: TEXT_PRIMARY,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -157,7 +164,7 @@ function UrlBar({
           size="small"
           onClick={onToggleUrlInput}
           sx={{
-            color: '#ffffff',
+            color: WHITE,
             WebkitAppRegion: 'no-drag',
             appRegion: 'no-drag',
             padding: 0.5,

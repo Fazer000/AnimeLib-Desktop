@@ -17,6 +17,13 @@ import {
 import { NavRow, ToggleRow } from './rows';
 import { MENU_ICON_SIZE, menuIconBoxSx } from './styles';
 import type { AutoSkipSettings, MenuPage } from './types';
+import {
+  ACCENT,
+  ACCENT_BRIGHT,
+  ACCENT_LIGHT,
+  ACCENT_MID,
+  ACCENT_ORCHID,
+} from '../../../theme/palette';
 
 interface MainPageProps {
   qualityOptions: Array<{ label: string; value: string }>;
@@ -60,7 +67,7 @@ function MainPage({
   onAmbientLightChange,
 }: MainPageProps) {
   const qualityTag = getQualityTagFromResolution(selectedQuality);
-  const qualityColor = qualityTag ? getQualityTagColor(qualityTag) : '#7C3AED';
+  const qualityColor = qualityTag ? getQualityTagColor(qualityTag) : ACCENT;
   const activeSkips = Object.values(autoSkipSettings).filter(Boolean).length;
 
   return (
@@ -77,7 +84,7 @@ function MainPage({
 
       <NavRow
         icon={
-          <Box sx={menuIconBoxSx('#A855F7')}>
+          <Box sx={menuIconBoxSx(ACCENT_MID)}>
             <SpeedOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
           </Box>
         }
@@ -88,7 +95,7 @@ function MainPage({
 
       <NavRow
         icon={
-          <Box sx={menuIconBoxSx('#BB86FC')}>
+          <Box sx={menuIconBoxSx(ACCENT_LIGHT)}>
             <FastForwardOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
           </Box>
         }
@@ -99,7 +106,7 @@ function MainPage({
 
       <NavRow
         icon={
-          <Box sx={menuIconBoxSx('#C084FC')}>
+          <Box sx={menuIconBoxSx(ACCENT_BRIGHT)}>
             <SkipNextOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
           </Box>
         }
@@ -110,7 +117,7 @@ function MainPage({
 
       <NavRow
         icon={
-          <Box sx={menuIconBoxSx('#9F7AEA')}>
+          <Box sx={menuIconBoxSx(ACCENT_ORCHID)}>
             <SubtitlesOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
           </Box>
         }

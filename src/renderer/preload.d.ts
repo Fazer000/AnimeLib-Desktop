@@ -1,5 +1,5 @@
 import { ElectronHandler } from '../main/preload';
-import type { NavigationRecord } from './services/webview/NavigationHistoryTracker';
+import type { NavigationRecord } from './services/webview';
 
 /** Отладочный API истории навигации, публикуемый в консоль. */
 export interface AnimeLibNavApi {

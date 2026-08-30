@@ -1,5 +1,6 @@
 import { Box, IconButton, Typography, useTheme } from '@mui/material';
 import { ArrowDownward, ArrowUpward } from '@mui/icons-material';
+import { DANGER_SOFT, SUCCESS } from '../../../theme/palette';
 
 interface VoteControlsProps {
   count: number;
@@ -59,7 +60,7 @@ function VoteControls({
         size="small"
         onClick={() => onVote(1)}
         disabled={disabled}
-        sx={buttonSx(userVote === 1, '#4ade80', 'rgba(74, 222, 128, 0.1)')}
+        sx={buttonSx(userVote === 1, SUCCESS, 'rgba(74, 222, 128, 0.1)')}
       >
         <ArrowUpward sx={{ fontSize: iconSize }} />
       </IconButton>
@@ -81,7 +82,7 @@ function VoteControls({
         size="small"
         onClick={() => onVote(0)}
         disabled={disabled}
-        sx={buttonSx(userVote === 0, '#f87171', 'rgba(248, 113, 113, 0.1)')}
+        sx={buttonSx(userVote === 0, DANGER_SOFT, 'rgba(248, 113, 113, 0.1)')}
       >
         <ArrowDownward sx={{ fontSize: iconSize }} />
       </IconButton>

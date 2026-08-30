@@ -4,6 +4,7 @@ import { IconButton, Box, Tooltip, Typography } from '@mui/material';
 import { Remove, Fullscreen, Close } from '@mui/icons-material';
 import UpdateButton from './UpdateButton';
 import { APP_NAME, APP_VERSION } from '../../../constants';
+import { WHITE } from '../../theme/palette';
 
 interface WindowControlsProps {
   onMinimize?: () => void;
@@ -25,7 +26,7 @@ function WindowControls({
   onClose,
 }: WindowControlsProps) {
   const buttonStyle = {
-    color: '#ffffff',
+    color: WHITE,
     WebkitAppRegion: 'no-drag' as const,
     appRegion: 'no-drag' as const,
     padding: 0.5,

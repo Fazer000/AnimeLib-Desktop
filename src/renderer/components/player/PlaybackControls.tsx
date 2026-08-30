@@ -6,6 +6,7 @@ import ControlTooltip from './ControlTooltip';
 import { formatTime } from '../../utils/videoHelpers';
 import { PlaybackTimeStore } from '../../services/player';
 import { PLAYER_CONTROL_ICON_SIZE } from '../../../constants';
+import { ACCENT, TEXT_PRIMARY } from '../../theme/palette';
 
 const ICON_SX = { fontSize: `${PLAYER_CONTROL_ICON_SIZE}px` };
 
@@ -16,7 +17,7 @@ const TIME_SX = {
 };
 
 const DURATION_SX = {
-  color: '#bfbfbf',
+  color: TEXT_PRIMARY,
   fontSize: '12px',
   fontFamily: 'Open Sans, sans-serif',
 };
@@ -76,7 +77,7 @@ function PlaybackControls({
           '&:hover': {
             backgroundColor: 'rgba(255, 255, 255, 0.1)',
             transform: 'scale(1.1)',
-            color: '#7C3AED',
+            color: ACCENT,
           },
           transition: 'all 0.2s ease',
         }}
@@ -105,7 +106,7 @@ function PlaybackControls({
               '&:hover': {
                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 transform: 'scale(1.1)',
-                color: '#7C3AED',
+                color: ACCENT,
               },
               transition: 'all 0.2s ease',
             }}

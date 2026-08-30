@@ -3,6 +3,7 @@ import { Button } from '@mui/material';
 import { SystemUpdateAlt } from '@mui/icons-material';
 import useUpdateChecker from '../../hooks/useUpdateChecker';
 import UpdateDialog from './UpdateDialog';
+import { SUCCESS_DEEP, SUCCESS_STRONG, WHITE } from '../../theme/palette';
 
 /**
  * Кнопка обновления в тулбаре, видна только при наличии новой версии
@@ -39,10 +40,10 @@ function UpdateButton() {
           textTransform: 'none',
           whiteSpace: 'nowrap',
           minWidth: 0,
-          backgroundColor: '#43a047',
-          color: '#ffffff',
+          backgroundColor: SUCCESS_DEEP,
+          color: WHITE,
           boxShadow: 'none',
-          '&:hover': { backgroundColor: '#4caf50', boxShadow: 'none' },
+          '&:hover': { backgroundColor: SUCCESS_STRONG, boxShadow: 'none' },
           '& .MuiButton-startIcon': { mr: 0.5, ml: 0 },
         }}
       >

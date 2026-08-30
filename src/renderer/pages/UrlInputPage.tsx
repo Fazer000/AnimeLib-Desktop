@@ -2,6 +2,13 @@ import React, { useState } from 'react';
 import { Box, Typography, TextField, Button, Fade } from '@mui/material';
 import iconSvg from '../../../assets/icon.svg';
 import { DEFAULT_SITE_URL } from '../utils/urlHelpers';
+import {
+  ACCENT,
+  ACCENT_DEEP,
+  GRADIENT_VIOLET,
+  SURFACE_DEEPEST,
+  WHITE,
+} from '../theme/palette';
 
 interface UrlInputProps {
   onSubmit: (url: string) => void;
@@ -26,8 +33,7 @@ function UrlInputPage({ onSubmit }: UrlInputProps) {
     <Box
       sx={{
         minHeight: '100vh',
-        background:
-          'linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%)',
+        background: `linear-gradient(135deg, ${SURFACE_DEEPEST} 0%, ${GRADIENT_VIOLET} 50%, ${SURFACE_DEEPEST} 100%)`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -103,7 +109,7 @@ function UrlInputPage({ onSubmit }: UrlInputProps) {
               sx={{
                 fontSize: '24px',
                 fontWeight: 700,
-                color: '#ffffff',
+                color: WHITE,
                 mb: 4,
               }}
             >
@@ -115,7 +121,7 @@ function UrlInputPage({ onSubmit }: UrlInputProps) {
                 sx={{
                   fontSize: '13px',
                   fontWeight: 600,
-                  color: '#7C3AED',
+                  color: ACCENT,
                   mb: 2,
                   textTransform: 'uppercase',
                   letterSpacing: '0.1em',
@@ -136,7 +142,7 @@ function UrlInputPage({ onSubmit }: UrlInputProps) {
                     backgroundColor: 'rgba(0, 0, 0, 0.4)',
                     borderRadius: '16px',
                     fontSize: '16px',
-                    color: '#ffffff',
+                    color: WHITE,
                     transition: 'all 0.3s ease',
                     '& fieldset': {
                       borderColor: 'rgba(124, 58, 237, 0.3)',
@@ -146,7 +152,7 @@ function UrlInputPage({ onSubmit }: UrlInputProps) {
                       borderColor: 'rgba(124, 58, 237, 0.6)',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: '#7C3AED',
+                      borderColor: ACCENT,
                       boxShadow: '0 0 0 4px rgba(124, 58, 237, 0.1)',
                     },
                     '& input': {
@@ -166,9 +172,8 @@ function UrlInputPage({ onSubmit }: UrlInputProps) {
                   fontWeight: 600,
                   textTransform: 'none',
                   borderRadius: '16px',
-                  background:
-                    'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)',
-                  color: '#ffffff',
+                  background: `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_DEEP} 100%)`,
+                  color: WHITE,
                   transition: 'all 0.3s ease',
                   '&:active': {
                     transform: 'translateY(0)',

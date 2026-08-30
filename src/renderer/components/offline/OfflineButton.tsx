@@ -5,6 +5,7 @@ import DownloadManagerDialog from './DownloadManagerDialog';
 import EdgeActionButton from '../EdgeActionButton';
 import useOfflineLibrary from '../../hooks/useOfflineLibrary';
 import { FLOATING_BUTTONS_TOP } from '../../../constants';
+import { ACCENT, WHITE } from '../../theme/palette';
 
 interface OfflineButtonProps {
   // eslint-disable-next-line react/require-default-props
@@ -59,7 +60,7 @@ function OfflineButton({
           solid
           active={open}
           label="Загрузки"
-          color="#ffffff"
+          color={WHITE}
           onClick={() => {
             setInitialTab(2);
             setOpen(true);
@@ -78,7 +79,7 @@ function OfflineButton({
                 },
               }}
             >
-              <DownloadRounded sx={{ fontSize: 24, color: '#7C3AED' }} />
+              <DownloadRounded sx={{ fontSize: 24, color: ACCENT }} />
             </Badge>
           }
         />

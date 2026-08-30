@@ -1,5 +1,6 @@
 import React, { useState, useLayoutEffect, useRef } from 'react';
 import { Box, Fade } from '@mui/material';
+import { WHITE_SHORT } from '../../theme/palette';
 
 const EDGE_MARGIN = 8;
 
@@ -86,7 +87,7 @@ function ControlTooltip({
             py: 0.5,
             borderRadius: 1,
             backgroundColor: 'rgba(40, 40, 40, 0.95)',
-            color: '#fff',
+            color: WHITE_SHORT,
             fontSize: '12px',
             lineHeight: 1.4,
             whiteSpace: 'nowrap',

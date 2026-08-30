@@ -7,6 +7,7 @@ import CommentAvatar from './CommentAvatar';
 import VoteControls from './VoteControls';
 import RepliesThread, { countReplies } from './RepliesThread';
 import type { ReplyControls } from './types';
+import { ACCENT } from '../../../theme/palette';
 
 interface ReplyItemProps {
   comment: Comment;
@@ -44,7 +45,7 @@ const ReplyItem = memo(
           ...(isNew
             ? {
                 backgroundColor: 'rgba(124, 58, 237, 0.08)',
-                boxShadow: 'inset 2px 0 0 #7C3AED',
+                boxShadow: `inset 2px 0 0 ${ACCENT}`,
               }
             : {}),
         }}

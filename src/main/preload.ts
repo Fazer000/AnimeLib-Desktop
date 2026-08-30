@@ -1,11 +1,12 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import type { UpdateInfo, UpdateResult } from '../constants/update';
 import type {
   DownloadRequest,
   DownloadTask,
   OfflineDirectoryResult,
   OfflineSnapshot,
-} from '../constants/offline';
+  UpdateInfo,
+  UpdateResult,
+} from '../constants';
 
 import { createLogger } from '../shared/logger';
 

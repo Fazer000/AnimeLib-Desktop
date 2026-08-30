@@ -15,6 +15,14 @@ import { animeApi } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 
 import { createLogger } from '../../../shared/logger';
+import {
+  ACCENT,
+  SURFACE_DARKER,
+  SURFACE_ELEVATED,
+  SURFACE_MUTED,
+  TEXT_MUTED,
+  WHITE,
+} from '../../theme/palette';
 
 const log = createLogger('SearchModal');
 
@@ -82,7 +90,7 @@ function SearchResultCard({
           textAlign: 'left',
           transition: 'background-color 0.2s',
           '&:hover': {
-            backgroundColor: '#2a2a2a',
+            backgroundColor: SURFACE_MUTED,
           },
         }}
       >
@@ -96,14 +104,14 @@ function SearchResultCard({
             borderRadius: 1,
             objectFit: 'cover',
             flexShrink: 0,
-            backgroundColor: '#2a2a2a',
+            backgroundColor: SURFACE_MUTED,
           }}
         />
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography
             variant="body2"
             sx={{
-              color: '#ffffff',
+              color: WHITE,
               fontWeight: 500,
               marginBottom: 0.5,
               overflow: 'hidden',
@@ -116,7 +124,7 @@ function SearchResultCard({
           <Typography
             variant="body1"
             sx={{
-              color: '#ffffff',
+              color: WHITE,
               marginBottom: 0.5,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -128,7 +136,7 @@ function SearchResultCard({
           <Typography
             variant="caption"
             sx={{
-              color: '#808080',
+              color: TEXT_MUTED,
               display: 'block',
             }}
           >
@@ -171,7 +179,7 @@ function SearchResultCard({
           >
             <PlayArrowRounded
               sx={{
-                color: '#ffffff',
+                color: WHITE,
                 fontSize: 24,
               }}
             />
@@ -256,7 +264,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
         sx={{
           width: '90%',
           maxWidth: 800,
-          backgroundColor: '#1e1e1e',
+          backgroundColor: SURFACE_ELEVATED,
           borderRadius: 2,
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
           outline: 'none',
@@ -268,13 +276,13 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
         <Box
           sx={{
             padding: 1,
-            borderBottom: '1px solid #2a2a2a',
+            borderBottom: `1px solid ${SURFACE_MUTED}`,
             display: 'flex',
             alignItems: 'center',
             gap: 1.5,
           }}
         >
-          <Search sx={{ color: '#808080', fontSize: 20 }} />
+          <Search sx={{ color: TEXT_MUTED, fontSize: 20 }} />
           <TextField
             autoFocus
             fullWidth
@@ -284,7 +292,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
             variant="standard"
             sx={{
               '& .MuiInput-root': {
-                color: '#ffffff',
+                color: WHITE,
                 fontSize: '16px',
                 '&:before': {
                   borderBottom: 'none',
@@ -299,7 +307,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
               '& .MuiInputBase-input': {
                 padding: 0,
                 '&::placeholder': {
-                  color: '#808080',
+                  color: TEXT_MUTED,
                   opacity: 1,
                 },
               },
@@ -308,10 +316,10 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
           <IconButton
             onClick={onClose}
             sx={{
-              color: '#808080',
+              color: TEXT_MUTED,
               padding: 0.5,
               '&:hover': {
-                color: '#ffffff',
+                color: WHITE,
               },
             }}
           >
@@ -321,8 +329,8 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
 
         <Box
           sx={{
-            borderBottom: '1px solid #2a2a2a',
-            backgroundColor: '#1a1a1a',
+            borderBottom: `1px solid ${SURFACE_MUTED}`,
+            backgroundColor: SURFACE_DARKER,
           }}
         >
           <Tabs
@@ -340,12 +348,12 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
             sx={{
               minHeight: 40,
               '& .MuiTabs-indicator': {
-                backgroundColor: '#7C3AED',
+                backgroundColor: ACCENT,
                 height: 3,
                 borderRadius: '3px 3px 0 0',
               },
               '& .MuiTab-root': {
-                color: '#808080',
+                color: TEXT_MUTED,
                 textTransform: 'none',
                 fontSize: '13px',
                 minHeight: 40,
@@ -354,15 +362,15 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
                 fontFamily: 'Open Sans, sans-serif',
                 transition: 'color 200ms',
                 '&.Mui-selected': {
-                  color: '#ffffff',
+                  color: WHITE,
                   fontWeight: 600,
                 },
                 '&:hover': {
-                  color: '#ffffff',
+                  color: WHITE,
                 },
               },
               '& .MuiTabs-scrollButtons': {
-                color: '#808080',
+                color: TEXT_MUTED,
               },
             }}
           >
@@ -388,7 +396,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
                 padding: 4,
               }}
             >
-              <CircularProgress size={32} sx={{ color: '#7C3AED' }} />
+              <CircularProgress size={32} sx={{ color: ACCENT }} />
             </Box>
           )}
 
@@ -397,7 +405,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
               sx={{
                 textAlign: 'center',
                 padding: 4,
-                color: '#808080',
+                color: TEXT_MUTED,
               }}
             >
               <Typography variant="body2">
@@ -413,7 +421,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
                 sx={{
                   textAlign: 'center',
                   padding: 4,
-                  color: '#808080',
+                  color: TEXT_MUTED,
                 }}
               >
                 <Typography variant="body2">Ничего не найдено</Typography>
@@ -438,10 +446,10 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
                   width: 24,
                   height: 24,
                   '& .site-logo__corner': {
-                    fill: '#7C3AED',
+                    fill: ACCENT,
                   },
                   '& .site-logo__words': {
-                    fill: '#ffffff',
+                    fill: WHITE,
                   },
                 }}
               >
@@ -456,7 +464,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
               </Box>
               <Typography
                 sx={{
-                  color: '#ffffff',
+                  color: WHITE,
                   fontSize: '14px',
                   fontWeight: 600,
                   fontFamily: 'Open Sans, sans-serif',
@@ -481,13 +489,13 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
           <Box
             sx={{
               padding: 2,
-              borderTop: '1px solid #2a2a2a',
+              borderTop: `1px solid ${SURFACE_MUTED}`,
               textAlign: 'center',
             }}
           >
             <Typography
               sx={{
-                color: '#7C3AED',
+                color: ACCENT,
                 cursor: 'pointer',
                 fontSize: '13px',
                 '&:hover': {

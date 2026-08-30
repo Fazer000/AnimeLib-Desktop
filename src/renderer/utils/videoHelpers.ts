@@ -1,4 +1,10 @@
 import { PLAYER_INSET_X, PLAYER_INSET_Y } from '../../constants';
+import {
+  ACCENT_VIOLET,
+  INFO_BRIGHT,
+  QUALITY_4K,
+  QUALITY_SD,
+} from '../theme/palette';
 
 /**
  * Возвращает CSS-ширину блока с заданным соотношением сторон,
@@ -62,17 +68,17 @@ export function getQualityTagFromResolution(quality: string): string {
  * Цвета меток качества для визуального различения
  */
 export const QUALITY_TAG_COLORS: Record<string, string> = {
-  '4K': '#F5A623',
-  FHD: '#8B5CF6',
-  HD: '#3B82F6',
-  SD: '#9CA3AF',
+  '4K': QUALITY_4K,
+  FHD: ACCENT_VIOLET,
+  HD: INFO_BRIGHT,
+  SD: QUALITY_SD,
 };
 
 /**
  * Возвращает цвет метки качества
  */
 export function getQualityTagColor(tag: string): string {
-  return QUALITY_TAG_COLORS[tag] || '#8B5CF6';
+  return QUALITY_TAG_COLORS[tag] || ACCENT_VIOLET;
 }
 
 /**

@@ -18,6 +18,13 @@ import {
   OFFLINE_FONT,
   OFFLINE_ICON,
 } from '../../../constants';
+import {
+  ACCENT,
+  DANGER,
+  SUCCESS_MID,
+  SURFACE_RAISED,
+  WHITE,
+} from '../../theme/palette';
 
 export type KodikQualityMap = Record<number, string[]>;
 
@@ -42,7 +49,7 @@ interface EpisodeSelectionListProps {
 
 const SELECT_SX = {
   fontSize: OFFLINE_FONT.episode,
-  color: '#ffffff',
+  color: WHITE,
   '& .MuiOutlinedInput-notchedOutline': {
     borderColor: 'rgba(255,255,255,0.18)',
   },
@@ -52,17 +59,17 @@ const SELECT_SX = {
 const LABEL_SX = {
   fontSize: OFFLINE_FONT.episode,
   color: 'rgba(255,255,255,0.55)',
-  '&.Mui-focused': { color: '#7C3AED' },
+  '&.Mui-focused': { color: ACCENT },
 };
 
 const CHECKBOX_SX = {
   color: 'rgba(255,255,255,0.45)',
-  '&.Mui-checked': { color: '#7C3AED' },
-  '&.MuiCheckbox-indeterminate': { color: '#7C3AED' },
+  '&.Mui-checked': { color: ACCENT },
+  '&.MuiCheckbox-indeterminate': { color: ACCENT },
 };
 
 const DOWNLOADED_CHECKBOX_SX = {
-  '&.Mui-disabled': { color: '#66bb6a' },
+  '&.Mui-disabled': { color: SUCCESS_MID },
 };
 
 /**
@@ -173,7 +180,7 @@ function EpisodeSelectionList({
           mx: -3,
           px: 3,
           pt: 2,
-          backgroundColor: '#2b2b2e',
+          backgroundColor: SURFACE_RAISED,
         }}
       >
         <Box sx={{ display: 'flex', gap: 1.5, mb: 2, mt: 0.5 }}>
@@ -334,13 +341,11 @@ function EpisodeSelectionList({
               </Box>
 
               {isSelected && isLoading && (
-                <CircularProgress size={17} sx={{ color: '#7C3AED', mr: 1 }} />
+                <CircularProgress size={17} sx={{ color: ACCENT, mr: 1 }} />
               )}
 
               {isSelected && !isLoading && qualities.length === 0 && (
-                <Typography
-                  sx={{ fontSize: OFFLINE_FONT.hint, color: '#ef5350' }}
-                >
+                <Typography sx={{ fontSize: OFFLINE_FONT.hint, color: DANGER }}>
                   нет озвучки
                 </Typography>
               )}

@@ -1,5 +1,12 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Box, Typography, Button } from '@mui/material';
+import {
+  ACCENT,
+  ACCENT_DEEP,
+  BLACK_SHORT,
+  TEXT_PRIMARY,
+  WHITE,
+} from '../../theme/palette';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -38,7 +45,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#000',
+            backgroundColor: BLACK_SHORT,
             padding: 4,
           }}
         >
@@ -48,7 +55,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               fontSize: '80px',
               fontWeight: 'bold',
               marginBottom: 2,
-              color: '#7C3AED',
+              color: ACCENT,
             }}
           >
             Ошибка
@@ -56,7 +63,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
           <Typography
             variant="h5"
             sx={{
-              color: '#ffffff',
+              color: WHITE,
               marginBottom: 1,
               fontWeight: 500,
             }}
@@ -66,7 +73,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
           <Typography
             variant="body1"
             sx={{
-              color: '#bfbfbf',
+              color: TEXT_PRIMARY,
               marginBottom: 4,
               textAlign: 'center',
               maxWidth: '500px',
@@ -78,15 +85,15 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             variant="contained"
             onClick={() => this.setState({ hasError: false, error: undefined })}
             sx={{
-              backgroundColor: '#7C3AED',
-              color: '#ffffff',
+              backgroundColor: ACCENT,
+              color: WHITE,
               padding: '10px 30px',
               fontSize: '14px',
               textTransform: 'none',
               borderRadius: 4,
               fontWeight: 500,
               '&:hover': {
-                backgroundColor: '#6D28D9',
+                backgroundColor: ACCENT_DEEP,
               },
             }}
           >

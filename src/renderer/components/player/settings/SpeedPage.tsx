@@ -2,6 +2,7 @@ import { Box } from '@mui/material';
 import { SpeedOutlined } from '@mui/icons-material';
 import { OptionRow, PageHeader } from './rows';
 import { MENU_ICON_SIZE } from './styles';
+import { ACCENT_LIGHT, ACCENT_MID } from '../../../theme/palette';
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
@@ -30,7 +31,7 @@ function SpeedPage({ playbackRate, onSelect, onBack }: SpeedPageProps) {
               <SpeedOutlined
                 sx={{
                   fontSize: MENU_ICON_SIZE,
-                  color: selected ? '#BB86FC' : '#A855F7',
+                  color: selected ? ACCENT_LIGHT : ACCENT_MID,
                   opacity: 0.7,
                 }}
               />
