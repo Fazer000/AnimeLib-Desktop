@@ -108,12 +108,13 @@ export class SegmentManager {
       return;
     }
 
-    const activeSegment = this.segments.find(
-      (segment) => currentTime >= segment.from && currentTime <= segment.to,
-    );
+    const activeSegment =
+      this.segments.find(
+        (segment) => currentTime >= segment.from && currentTime <= segment.to,
+      ) ?? null;
 
     if (activeSegment !== this.currentSegment) {
-      this.currentSegment = activeSegment || null;
+      this.currentSegment = activeSegment;
       this.onSegmentChange?.(this.currentSegment);
 
       if (this.currentSegment && this.shouldAutoSkip(this.currentSegment)) {

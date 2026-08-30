@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [release, main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Типы, линт, тесты
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Установка зависимостей
+        run: npm ci
+
+      - name: Проверка типов
+        run: npm run typecheck
+
+      - name: Линт
+        run: npm run lint
+
+      - name: Тесты
+        run: npm test
+
+  build:
+    name: Сборка
+    runs-on: windows-latest
+    needs: checks
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Установка зависимостей
+        run: npm ci
+
+      - name: Сборка main и renderer
+        run: npm run build

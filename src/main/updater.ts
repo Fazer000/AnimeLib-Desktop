@@ -20,6 +20,7 @@ import {
 } from '../constants';
 
 import { createLogger } from '../shared/logger';
+import { isNewerVersion } from '../shared/version';
 
 const log = createLogger('Updater');
 
@@ -29,33 +30,6 @@ const log = createLogger('Updater');
 const getPlatformSuffix = (): string => {
   const suffixes = UPDATE_ASSET_SUFFIX as Record<string, string>;
   return suffixes[process.platform] || UPDATE_ASSET_SUFFIX.win32;
-};
-
-/**
- * Приводит версию к массиву чисел
- */
-const parseVersion = (value: string): number[] =>
-  value
-    .replace(/^v/i, '')
-    .split('.')
-    .map((part) => parseInt(part, 10) || 0);
-
-/**
- * Проверяет, что latest новее current
- */
-const isNewerVersion = (latest: string, current: string): boolean => {
-  const left = parseVersion(latest);
-  const right = parseVersion(current);
-  const length = Math.max(left.length, right.length);
-
-  for (let i = 0; i < length; i += 1) {
-    const diff = (left[i] || 0) - (right[i] || 0);
-    if (diff !== 0) {
-      return diff > 0;
-    }
-  }
-
-  return false;
 };
 
 /**

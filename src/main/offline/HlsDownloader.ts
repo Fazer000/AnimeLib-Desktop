@@ -15,14 +15,14 @@ import { createLogger } from '../../shared/logger';
 
 const log = createLogger('HlsDownloader');
 
-interface Segment {
+export interface Segment {
   url: string;
   duration: number;
   discontinuity: boolean;
   rangeHeader: string;
 }
 
-interface PlaylistInfo {
+export interface PlaylistInfo {
   segments: Segment[];
   initUrl: string;
   initRangeHeader: string;
@@ -81,7 +81,7 @@ const toRange = (
 /**
  * Разбирает плейлист на сегменты, инициализацию и признак шифрования
  */
-const parsePlaylist = (text: string, baseUrl: string): PlaylistInfo => {
+export const parsePlaylist = (text: string, baseUrl: string): PlaylistInfo => {
   const lines = text.split('\n').map((line) => line.trim());
   const segments: Segment[] = [];
 

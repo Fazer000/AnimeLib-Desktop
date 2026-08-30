@@ -48,6 +48,7 @@
     "start:main": "concurrently -k -P \"cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --watch --config ./.erb/configs/webpack.config.main.dev.ts\" \"electronmon . -- {@}\" --",
     "start:preload": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true NODE_OPTIONS=\"-r ts-node/register --no-warnings\" webpack --config ./.erb/configs/webpack.config.preload.dev.ts",
     "start:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true NODE_OPTIONS=\"-r ts-node/register --no-warnings\" webpack serve --config ./.erb/configs/webpack.config.renderer.dev.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "jest"
   },
   "browserslist": [
@@ -85,7 +86,7 @@
       "\\.(css|less|sass|scss)$": "identity-obj-proxy"
     },
     "setupFiles": [
-      "./.erb/scripts/check-build-exists.ts"
+      "./.erb/scripts/jest-setup.ts"
     ],
     "testEnvironment": "jsdom",
     "testEnvironmentOptions": {
