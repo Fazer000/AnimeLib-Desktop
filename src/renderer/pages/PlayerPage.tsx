@@ -3,8 +3,6 @@ import { Box, Typography } from '@mui/material';
 import {
   animeApi,
   Episode,
-  Player,
-  KodikVideoLinks,
   RelatedAnime as RelatedAnimeType,
 } from '../api/animeApi';
 import CustomToolbar from '../components/Toolbar';
@@ -18,7 +16,7 @@ import RelatedAnime from '../components/player/RelatedAnime';
 import AmbientLight from '../components/player/AmbientLight';
 import DownloadManagerDialog from '../components/offline/DownloadManagerDialog';
 import { PlayerSelectionManager, BookmarkManager } from '../services/player';
-import { offlineCatalog, progressStore } from '../services/offline';
+import { progressStore } from '../services/offline';
 import {
   DEFAULT_VIDEO_ASPECT_RATIO,
   MIN_VIDEO_AREA_HEIGHT,
@@ -30,6 +28,8 @@ import { getFittedWidth, getFittedHeight } from '../utils/videoHelpers';
 import { buildAnimePageUrl } from '../utils/urlHelpers';
 import { usePersistedFlag } from '../hooks/usePersistedFlag';
 import { useFullscreenState } from '../hooks/useFullscreenState';
+import { useEpisodeCatalog } from './player/useEpisodeCatalog';
+import { useEpisodePlayers } from './player/useEpisodePlayers';
 
 import { createLogger } from '../../shared/logger';
 import {
@@ -78,30 +78,12 @@ function PlayerPageRefactored({
   onPlayOffline,
 }: PlayerPageProps) {
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
-  const shouldAutoplayNextEpisodeRef = useRef<boolean>(false);
-  const episodeRequestIdRef = useRef<number>(0);
 
   const [currentAnimeId] = useState<string>(animeId);
 
-  const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
-  const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState<number>(0);
 
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-
-  const [loading, setLoading] = useState<boolean>(false);
-  const [selectedPlayerType, setSelectedPlayerType] = useState<string>('');
   const [showUrlInput, setShowUrlInput] = useState<boolean>(false);
-  const [show404, setShow404] = useState<boolean>(false);
-  const [kodikError, setKodikError] = useState<boolean>(false);
-
-  const [initialTimecode, setInitialTimecode] = useState<number | null>(null);
-  const [hasBookmark, setHasBookmark] = useState<boolean>(false);
-  const [bookmarkChecked, setBookmarkChecked] = useState<boolean>(false);
-  const [bookmarkedEpisodeId, setBookmarkedEpisodeId] = useState<number | null>(
-    null,
-  );
 
   const [autoplayEnabled, handleAutoplayChange] = usePersistedFlag(
     'playerAutoplayEnabled',
@@ -127,8 +109,6 @@ function PlayerPageRefactored({
 
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
 
-  const playerLoadedRef = useRef<boolean>(false);
-
   const isPlayerFullscreen = useFullscreenState();
 
   const [playerSelectionManager] = useState(() => new PlayerSelectionManager());
@@ -144,207 +124,55 @@ function PlayerPageRefactored({
       }),
   );
 
-  /**
-   * Load all episodes for current anime
-   */
-  const loadEpisodes = useCallback(async (): Promise<void> => {
-    if (!currentAnimeId) return;
+  const {
+    episodes,
+    currentEpisodeIndex,
+    loading: episodesLoading,
+    initialTimecode,
+    setInitialTimecode,
+    hasBookmark,
+    setHasBookmark,
+    bookmarkChecked,
+    bookmarkedEpisodeId,
+    setBookmarkedEpisodeId,
+    selectEpisode,
+    consumeAutoplayFlag,
+  } = useEpisodeCatalog({
+    animeId: currentAnimeId,
+    offlineMode,
+    initialEpisodeId,
+    bookmarkManager,
+  });
 
-    if (offlineMode) {
-      const offlineEpisodes = offlineCatalog.getEpisodes(currentAnimeId);
-      setEpisodes(offlineEpisodes);
-      log.debug('Offline episodes:', offlineEpisodes.length);
-      return;
-    }
+  const {
+    players,
+    selectedPlayer,
+    selectedPlayerType,
+    setSelectedPlayerType,
+    loading: playersLoading,
+    kodikError,
+    show404,
+    selectPlayer,
+    refreshPlayer,
+    handleVideoError,
+  } = useEpisodePlayers({
+    animeId: currentAnimeId,
+    offlineMode,
+    episode: episodes[currentEpisodeIndex] ?? null,
+    ready: bookmarkChecked,
+    videoPlayerRef,
+    playerSelectionManager,
+    consumeAutoplayFlag,
+    onEpisodeApplied: useCallback(
+      (episode: Episode) => {
+        setSelectedEpisode(episode);
 
-    setLoading(true);
-    try {
-      const data = await animeApi.getEpisodes(currentAnimeId);
-      setEpisodes(data.data);
-      log.debug('Loaded episodes:', data.data.length);
-    } catch (err) {
-      log.error('Error loading episodes:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentAnimeId, offlineMode]);
-
-  /**
-   * Load and process bookmark for current anime
-   */
-  const loadBookmark = useCallback(
-    async (loadedEpisodes: Episode[]): Promise<void> => {
-      if (!currentAnimeId || bookmarkManager.isProcessed()) {
-        return;
-      }
-
-      if (offlineMode) {
-        const latest = progressStore.getLatestForAnime(currentAnimeId);
-        const progress = initialEpisodeId
-          ? progressStore.get(currentAnimeId, initialEpisodeId)
-          : latest;
-
-        const targetId = initialEpisodeId ?? latest?.episodeId ?? null;
-        const index = targetId
-          ? loadedEpisodes.findIndex((item) => item.id === targetId)
-          : -1;
-
-        if (index >= 0) {
-          setCurrentEpisodeIndex(index);
-        }
-
-        if (latest && latest.seconds > 0) {
-          setBookmarkedEpisodeId(latest.episodeId);
-        }
-
-        if (
-          progress &&
-          progress.episodeId === targetId &&
-          progress.seconds > 0
-        ) {
-          setInitialTimecode(progress.seconds);
-          setHasBookmark(true);
-          log.debug('Offline progress:', progress.seconds);
-        }
-
-        setBookmarkChecked(true);
-        return;
-      }
-
-      try {
-        const result = await bookmarkManager.loadBookmark(
-          currentAnimeId,
-          loadedEpisodes,
-        );
-
-        const targetIndex = initialEpisodeId
-          ? loadedEpisodes.findIndex((item) => item.id === initialEpisodeId)
-          : -1;
-
-        if (targetIndex >= 0 && initialEpisodeId) {
-          const local = progressStore.get(currentAnimeId, initialEpisodeId);
-          const isSameEpisode =
-            bookmarkManager.getBookmarkedEpisodeId() === initialEpisodeId;
-          const remote = isSameEpisode ? result.timecodeSeconds : null;
-          const useLocal =
-            Boolean(local) && (!local?.synced || local.seconds > (remote ?? 0));
-          const seconds = useLocal ? (local?.seconds ?? 0) : (remote ?? 0);
-
-          if (seconds > 0) {
-            setInitialTimecode(seconds);
-            setHasBookmark(true);
-          }
-
-          setBookmarkedEpisodeId(bookmarkManager.getBookmarkedEpisodeId());
-          setCurrentEpisodeIndex(targetIndex);
-          setBookmarkChecked(true);
-          log.debug(
-            'Requested episode:',
-            targetIndex,
-            useLocal ? 'local progress' : 'site bookmark',
-            seconds,
-          );
-          return;
-        }
-
-        if (result.episodeIndex !== null) {
-          log.debug(
-            'Bookmark found - episode:',
-            result.episodeIndex,
-            'timecode:',
-            result.timecodeSeconds,
-          );
-
-          if (result.timecodeSeconds !== null) {
-            setInitialTimecode(result.timecodeSeconds);
-            log.debug(
-              `Bookmark timecode set BEFORE episode change: ${result.timecodeSeconds}s`,
-            );
-          }
-
-          setHasBookmark(true);
-
-          const bookmarkedEpId = bookmarkManager.getBookmarkedEpisodeId();
-          setBookmarkedEpisodeId(bookmarkedEpId);
-          log.debug('Bookmarked episode ID:', bookmarkedEpId);
-
-          setCurrentEpisodeIndex(result.episodeIndex);
-          log.debug('Switching to bookmarked episode:', result.episodeIndex);
-        } else {
-          log.debug('No bookmark found, using first episode');
-        }
-
-        setBookmarkChecked(true);
-      } catch (err) {
-        log.error('Error loading bookmark:', err);
-        setBookmarkChecked(true);
-      }
-    },
-    [currentAnimeId, bookmarkManager, offlineMode, initialEpisodeId],
-  );
-
-  /**
-   * Load players for specific episode
-   */
-  const loadEpisodePlayers = useCallback(
-    async (episodeId: number, requestId: number): Promise<void> => {
-      if (offlineMode) {
-        const offlinePlayers = offlineCatalog.getPlayers(
-          currentAnimeId,
-          episodeId,
-        );
-        setPlayers(offlinePlayers);
-        log.debug('Offline players:', offlinePlayers.length);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const data = await animeApi.getEpisodePlayers(episodeId);
-        if (requestId !== episodeRequestIdRef.current) {
-          log.debug('Stale players response ignored:', episodeId);
-          return;
-        }
-        setPlayers(data.data.players);
-        log.debug('Loaded players:', data.data.players.length);
-      } catch (err) {
-        log.error('Error loading players:', err);
-        if (requestId === episodeRequestIdRef.current) {
-          setPlayers([]);
-        }
-      } finally {
-        if (requestId === episodeRequestIdRef.current) {
-          setLoading(false);
-        }
-      }
-    },
-    [offlineMode, currentAnimeId],
-  );
-  /**
-   * Load Kodik video links
-   */
-  const loadKodikLinks = useCallback(
-    async (kodikSrc: string): Promise<KodikVideoLinks | null> => {
-      setLoading(true);
-      setKodikError(false);
-      try {
-        const data = await animeApi.getKodikVideoLinks(kodikSrc);
-        log.debug('Loaded Kodik links:', data.success);
-        if (!data.success) {
-          setKodikError(true);
-          return null;
-        }
-        return data;
-      } catch (err) {
-        log.error('Error loading Kodik links:', err);
-        setKodikError(true);
-        return null;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [],
-  );
+        const bookmark = bookmarkManager.getCurrentBookmark();
+        setHasBookmark(Boolean(bookmark && bookmark.item_id === episode.id));
+      },
+      [bookmarkManager, setHasBookmark],
+    ),
+  });
 
   /**
    * Load related anime
@@ -366,287 +194,27 @@ function PlayerPageRefactored({
    * Initialize episodes on mount
    */
   useEffect(() => {
-    loadEpisodes();
     loadRelatedAnime();
-  }, [loadEpisodes, loadRelatedAnime]);
+  }, [loadRelatedAnime]);
 
   /**
    * Check and load bookmark after episodes are loaded
    */
-  useEffect(() => {
-    if (episodes.length > 0 && !bookmarkManager.isProcessed()) {
-      loadBookmark(episodes);
-    }
-  }, [episodes, bookmarkManager, loadBookmark]);
-
-  /**
-   * Handle episode change - complete reinitialization
-   */
-  useEffect(() => {
-    if (!bookmarkChecked) {
-      log.debug('Waiting for bookmark check before loading episode...');
-      return;
-    }
-
-    if (episodes.length > 0 && currentEpisodeIndex < episodes.length) {
-      const episode = episodes[currentEpisodeIndex];
-      episodeRequestIdRef.current += 1;
-      const requestId = episodeRequestIdRef.current;
-      log.debug('Episode change started:', episode.number);
-      log.debug(
-        'Current initialTimecode:',
-        initialTimecode,
-        '(will be preserved)',
-      );
-
-      if (videoPlayerRef.current) {
-        log.debug('Clearing current player');
-        videoPlayerRef.current.destroyPlayer();
-      }
-
-      setSelectedPlayer(null);
-      setSelectedPlayerType('');
-      playerLoadedRef.current = false;
-
-      setSelectedEpisode(episode);
-
-      const currentBookmark = bookmarkManager.getCurrentBookmark();
-      if (currentBookmark && currentBookmark.item_id === episode.id) {
-        setHasBookmark(true);
-        log.debug('This episode has a bookmark');
-      } else {
-        setHasBookmark(false);
-      }
-
-      log.debug('Loading players for episode:', episode.number);
-      loadEpisodePlayers(episode.id, requestId);
-
-      log.debug('Episode change completed:', episode.number);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    currentEpisodeIndex,
-    episodes,
-    loadEpisodePlayers,
-    bookmarkManager,
-    bookmarkChecked,
-  ]);
-
-  /**
-   * Auto-select player based on saved preferences or fallback to AnimeLib/Kodik
-   */
-  useEffect(() => {
-    if (players.length === 0) {
-      return;
-    }
-
-    if (playerLoadedRef.current) {
-      log.debug(
-        'Player already loaded for this episode, skipping auto-selection',
-      );
-      return;
-    }
-
-    const requestId = episodeRequestIdRef.current;
-
-    const selectAndLoadPlayer = async () => {
-      const autoSelected =
-        playerSelectionManager.autoSelectPlayerOrFallback(players);
-
-      if (!autoSelected) {
-        return;
-      }
-
-      log.debug(
-        'Auto-selecting player:',
-        autoSelected.team.name,
-        autoSelected.player,
-      );
-
-      if (initialTimecode !== null) {
-        log.debug(
-          'Bookmark timecode exists, will be applied after player loads:',
-          initialTimecode,
-        );
-      }
-
-      setSelectedPlayer(autoSelected);
-
-      playerLoadedRef.current = true;
-
-      if (videoPlayerRef.current) {
-        const shouldAutoplay = shouldAutoplayNextEpisodeRef.current;
-        shouldAutoplayNextEpisodeRef.current = false;
-
-        if (autoSelected.player === 'Kodik' && autoSelected.src) {
-          log.debug('Loading Kodik player');
-          const kodikData = await loadKodikLinks(autoSelected.src);
-
-          if (requestId !== episodeRequestIdRef.current) {
-            log.debug('Stale Kodik links ignored');
-            return;
-          }
-
-          if (kodikData) {
-            videoPlayerRef.current.loadPlayer(
-              autoSelected,
-              kodikData,
-              shouldAutoplay,
-            );
-          }
-        } else {
-          log.debug('Loading non-Kodik player:', autoSelected.team.name);
-          videoPlayerRef.current.loadPlayer(autoSelected, null, shouldAutoplay);
-        }
-      }
-    };
-
-    selectAndLoadPlayer();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [players, loadKodikLinks, playerSelectionManager]);
-
-  /**
-   * Синхронизирует активную вкладку сайдбара с типом активного плеера
-   */
-  useEffect(() => {
-    if (selectedPlayer && players.some((p) => p.id === selectedPlayer.id)) {
-      setSelectedPlayerType(selectedPlayer.player);
-      return;
-    }
-
-    const groupedPlayers = PlayerSelectionManager.groupPlayersByType(players);
-    if (Object.keys(groupedPlayers).length === 0) {
-      return;
-    }
-
-    const autoType = playerSelectionManager.autoSelectPlayerType(
-      groupedPlayers,
-      selectedPlayerType,
-    );
-    if (autoType && autoType !== selectedPlayerType) {
-      setSelectedPlayerType(autoType);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPlayer, players, playerSelectionManager]);
-
-  /**
-   * Handle video error
-   */
-  const handleVideoError = useCallback((err: string) => {
-    log.error('VideoPlayer error:', err);
-    if (
-      err.includes('Ошибка загрузки видео') ||
-      err.includes('Failed to load')
-    ) {
-      setShow404(true);
-    }
-  }, []);
-
-  /**
-   * Handle player selection
-   */
-  const handlePlayerSelect = useCallback(
-    async (player: Player) => {
-      log.debug('Player selected:', player.team.name, player.player);
-
-      const requestId = episodeRequestIdRef.current;
-
-      setShow404(false);
-      setKodikError(false);
-      setSelectedPlayer(player);
-
-      playerSelectionManager.savePreference(player.team.name, player.player);
-
-      if (videoPlayerRef.current) {
-        if (player.player === 'Kodik' && player.src) {
-          log.debug('Loading Kodik player');
-          const kodikData = await loadKodikLinks(player.src);
-          if (requestId !== episodeRequestIdRef.current) {
-            log.debug('Stale Kodik links ignored');
-            return;
-          }
-          if (kodikData) {
-            videoPlayerRef.current.loadPlayer(player, kodikData);
-          }
-        } else {
-          log.debug('Loading non-Kodik player:', player.team.name);
-          videoPlayerRef.current.loadPlayer(player, null);
-        }
-      }
-    },
-    [loadKodikLinks, playerSelectionManager],
-  );
-
-  /**
-   * Handle player refresh
-   */
-  const handleRefresh = useCallback(async () => {
-    log.debug('Refreshing player');
-
-    if (!selectedPlayer || !videoPlayerRef.current) {
-      log.warn('Cannot refresh: no player selected');
-      return;
-    }
-
-    const requestId = episodeRequestIdRef.current;
-
-    setShow404(false);
-    setKodikError(false);
-
-    if (selectedPlayer.player === 'Kodik' && selectedPlayer.src) {
-      log.debug('Refreshing Kodik player');
-      const kodikData = await loadKodikLinks(selectedPlayer.src);
-      if (requestId !== episodeRequestIdRef.current) {
-        log.debug('Stale Kodik links ignored');
-        return;
-      }
-      if (kodikData) {
-        videoPlayerRef.current.loadPlayer(selectedPlayer, kodikData);
-      }
-    } else {
-      log.debug('Refreshing non-Kodik player');
-      videoPlayerRef.current.loadPlayer(selectedPlayer, null);
-    }
-  }, [selectedPlayer, loadKodikLinks]);
-
-  /**
-   * Handle player type selection
-   */
-  const handlePlayerTypeSelect = useCallback((playerType: string) => {
-    log.debug('Switching to player type tab:', playerType);
-    setSelectedPlayerType(playerType);
-  }, []);
 
   /**
    * Handle episode selection (manual, without autoplay)
    */
   const handleEpisodeClick = useCallback(
-    (episodeIndex: number) => {
-      if (episodeIndex !== currentEpisodeIndex) {
-        log.debug('Switching to episode (manual):', episodeIndex + 1);
-        setCurrentEpisodeIndex(episodeIndex);
-        setHasBookmark(false);
-        setInitialTimecode(null);
-      }
-    },
-    [currentEpisodeIndex],
+    (episodeIndex: number) => selectEpisode(episodeIndex),
+    [selectEpisode],
   );
 
   /**
    * Handle episode selection with autoplay (from navigation hints)
    */
   const handleEpisodeClickWithAutoplay = useCallback(
-    (episodeIndex: number) => {
-      if (episodeIndex !== currentEpisodeIndex) {
-        log.debug('Switching to episode (from hint):', episodeIndex + 1);
-        setCurrentEpisodeIndex(episodeIndex);
-        setHasBookmark(false);
-        setInitialTimecode(null);
-
-        shouldAutoplayNextEpisodeRef.current = true;
-      }
-    },
-    [currentEpisodeIndex],
+    (episodeIndex: number) => selectEpisode(episodeIndex, true),
+    [selectEpisode],
   );
 
   /**
@@ -870,7 +438,14 @@ function PlayerPageRefactored({
         log.warn('Bookmark kept locally, will sync later');
       }
     },
-    [currentAnimeId, bookmarkManager, selectedPlayer, episodes],
+    [
+      currentAnimeId,
+      bookmarkManager,
+      selectedPlayer,
+      episodes,
+      setHasBookmark,
+      setBookmarkedEpisodeId,
+    ],
   );
 
   /**
@@ -900,7 +475,7 @@ function PlayerPageRefactored({
     >
       <CustomToolbar
         onBack={handleBack}
-        onRefresh={handleRefresh}
+        onRefresh={refreshPlayer}
         onHome={() => {
           log.debug('Home button clicked');
           if (onHome) {
@@ -1098,7 +673,7 @@ function PlayerPageRefactored({
                       </Typography>
                       <Box
                         component="button"
-                        onClick={handleRefresh}
+                        onClick={refreshPlayer}
                         sx={{
                           mt: 1,
                           px: 3,
@@ -1177,9 +752,9 @@ function PlayerPageRefactored({
                 players={players}
                 selectedPlayer={selectedPlayer}
                 selectedPlayerType={selectedPlayerType}
-                loading={loading}
-                onPlayerSelect={handlePlayerSelect}
-                onPlayerTypeSelect={handlePlayerTypeSelect}
+                loading={episodesLoading || playersLoading}
+                onPlayerSelect={selectPlayer}
+                onPlayerTypeSelect={setSelectedPlayerType}
                 isCollapsed={sidebarCollapsed}
               />
             </Box>

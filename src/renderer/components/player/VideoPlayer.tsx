@@ -52,6 +52,9 @@ import {
 import { getSiteOrigin } from '../../utils/urlHelpers';
 import { useMediaSession } from './hooks/useMediaSession';
 import { useVideoAspectRatio } from './hooks/useVideoAspectRatio';
+import { useFullscreenPhase } from './hooks/useFullscreenPhase';
+import { usePlayerSegments } from './hooks/usePlayerSegments';
+import { useNextEpisodeFlow } from './hooks/useNextEpisodeFlow';
 import { offlineCatalog } from '../../services/offline';
 import {
   SubtitleCue,
@@ -62,8 +65,6 @@ import { createLogger } from '../../../shared/logger';
 import { BLACK_SHORT, SURFACE, SURFACE_DEEPEST } from '../../theme/palette';
 
 const log = createLogger('VideoPlayer');
-
-type FullscreenPhase = 'enter' | 'exit' | null;
 
 interface TimeCode {
   type: 'opening' | 'ending' | 'compilation' | 'splashScreen';
@@ -234,10 +235,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         }),
     );
 
-    const [fullscreenPhase, setFullscreenPhase] =
-      useState<FullscreenPhase>(null);
-    const prevFullscreenRef = useRef<boolean>(false);
-
     const [autoplayManager] = useState(
       () =>
         new AutoplayManager({
@@ -264,11 +261,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       text: string;
       severity: 'info' | 'warning';
     } | null>(null);
-
-    const [showNextEpisodeNotification, setShowNextEpisodeNotification] =
-      useState(false);
-    const nextEpisodeNotificationShownRef = useRef(false);
-    const nextEpisodeCancelledRef = useRef(false);
 
     useEffect(() => {
       const initController = async () => {
@@ -429,115 +421,35 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     useVideoAspectRatio(videoRef, currentPlayerData, onAspectRatioChange);
 
-    useEffect(() => {
-      const video = videoRef.current;
-
-      if (!video || !currentPlayerData) {
-        return;
-      }
-
-      autoplayManager.attachVideo(video);
-      autoplayManager.setBookmarkPending(
-        initialTimecode !== null && !timecodeAppliedRef.current,
-      );
-      autoplayManager.setupAutoplayOnLoad();
-    }, [currentPlayerData, initialTimecode, autoplayManager]);
-
-    useEffect(() => {
-      const video = videoRef.current;
-
-      if (!video) {
-        return;
-      }
-
-      autoplayManager.updateConfig({ enabled: false });
-      autoplayManager.setupAutoAdvance(currentEpisodeIndex, episodes.length);
-    }, [
+    const {
+      showNotification: showNextEpisodeNotification,
+      cancel: handleNextEpisodeCancel,
+      playNow: handleNextEpisodePlayNow,
+    } = useNextEpisodeFlow({
+      videoRef,
+      autoplayManager,
       autoplayEnabled,
       currentEpisodeIndex,
-      episodes.length,
-      autoplayManager,
-    ]);
+      episodeCount: episodes.length,
+      currentPlayerData,
+      initialTimecode,
+      timecodeAppliedRef,
+      onEpisodeSelect,
+      onEpisodeSelectWithAutoplay,
+    });
 
-    useEffect(() => {
-      const video = videoRef.current;
+    const fullscreenAnimation = useFullscreenPhase(
+      uiStateManager,
+      uiState.isFullscreen,
+      isPlayingRef,
+    );
 
-      if (!video || !autoplayEnabled) {
-        return undefined;
-      }
-
-      const hasNextEpisode = currentEpisodeIndex < episodes.length - 1;
-      if (!hasNextEpisode) {
-        return undefined;
-      }
-
-      const handleVideoEnded = () => {
-        if (!nextEpisodeNotificationShownRef.current) {
-          log.debug(
-            'Video ended with autoplay disabled, showing next episode notification',
-          );
-          setShowNextEpisodeNotification(true);
-          nextEpisodeNotificationShownRef.current = true;
-        }
-      };
-
-      video.addEventListener('ended', handleVideoEnded);
-
-      return () => {
-        video.removeEventListener('ended', handleVideoEnded);
-      };
-    }, [autoplayEnabled, currentEpisodeIndex, episodes.length]);
-
-    useEffect(() => {
-      nextEpisodeNotificationShownRef.current = false;
-      nextEpisodeCancelledRef.current = false;
-      setShowNextEpisodeNotification(false);
-    }, [currentEpisodeIndex]);
-
-    useEffect(() => {
-      const handleFullscreenChange = () => {
-        const isFullscreen = !!document.fullscreenElement;
-        uiStateManager.setFullscreen(isFullscreen);
-        uiStateManager.showPlayerControls();
-        uiStateManager.startAutoHide(isPlayingRef.current);
-        log.debug('Player fullscreen changed:', isFullscreen);
-      };
-
-      document.addEventListener('fullscreenchange', handleFullscreenChange);
-      return () =>
-        document.removeEventListener(
-          'fullscreenchange',
-          handleFullscreenChange,
-        );
-    }, [uiStateManager]);
-
-    useEffect(() => {
-      if (prevFullscreenRef.current === uiState.isFullscreen) return undefined;
-
-      prevFullscreenRef.current = uiState.isFullscreen;
-      setFullscreenPhase(uiState.isFullscreen ? 'enter' : 'exit');
-
-      const timer = setTimeout(
-        () => setFullscreenPhase(null),
-        PLAYER_FULLSCREEN_TRANSITION,
-      );
-      return () => clearTimeout(timer);
-    }, [uiState.isFullscreen]);
-
-    useEffect(() => {
-      segmentManager.setSegments(timecode as TimeCodeSegment[]);
-    }, [timecode, segmentManager]);
-
-    useEffect(() => {
-      segmentManager.setDuration(videoState.duration);
-    }, [videoState.duration, segmentManager]);
-
-    useEffect(() => {
-      segmentManager.updateCurrentTime(timeStore.getCurrentTime());
-      return timeStore.subscribe((currentTime) =>
-        segmentManager.updateCurrentTime(currentTime),
-      );
-    }, [segmentManager, timeStore]);
+    usePlayerSegments(
+      segmentManager,
+      timecode as TimeCodeSegment[],
+      videoState.duration,
+      timeStore,
+    );
 
     useEffect(() => {
       isPlayingRef.current = videoState.isPlaying;
@@ -841,37 +753,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     const handleControlsMouseLeave = useCallback(() => {}, []);
 
-    const handleNextEpisodeCancel = useCallback(() => {
-      log.debug('Next episode cancelled by user');
-      nextEpisodeCancelledRef.current = true;
-      setShowNextEpisodeNotification(false);
-      const video = videoRef.current;
-      if (video) {
-        video.pause();
-        log.debug('Next episode cancelled: video paused at end');
-      }
-    }, []);
-
-    const handleNextEpisodePlayNow = useCallback(() => {
-      if (nextEpisodeCancelledRef.current) {
-        return;
-      }
-
-      setShowNextEpisodeNotification(false);
-
-      const hasNextEpisode = currentEpisodeIndex < episodes.length - 1;
-      if (hasNextEpisode) {
-        const selectWithAutoplay =
-          onEpisodeSelectWithAutoplay ?? onEpisodeSelect;
-        selectWithAutoplay(currentEpisodeIndex + 1);
-      }
-    }, [
-      currentEpisodeIndex,
-      episodes.length,
-      onEpisodeSelect,
-      onEpisodeSelectWithAutoplay,
-    ]);
-
     useMediaSession({
       isPlaying: videoState.isPlaying,
       currentEpisodeIndex,
@@ -880,14 +761,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       onEpisodeSelect,
       onEpisodeSelectWithAutoplay,
     });
-
-    const fullscreenAnimationName =
-      fullscreenPhase === 'enter'
-        ? 'playerFullscreenEnter'
-        : 'playerFullscreenExit';
-    const fullscreenAnimation = fullscreenPhase
-      ? `${fullscreenAnimationName} ${PLAYER_FULLSCREEN_TRANSITION}ms ${PLAYER_FULLSCREEN_EASING}`
-      : 'none';
 
     const showInitialPlayButton =
       !!currentPlayerData &&
@@ -959,8 +832,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             cursor: 'inherit',
             objectFit: 'contain',
           }}
-          onClick={handlePlayerClick}
-          onDoubleClick={handlePlayerDoubleClick}
         >
           <track kind="captions" />
         </video>
