@@ -66,6 +66,8 @@ export class WebViewManager {
 
   private historyResetArmed: boolean = false;
 
+  private domReadyListener: (() => void) | null = null;
+
   constructor(webview?: any) {
     if (webview) {
       this.attachWebView(webview);
@@ -81,13 +83,24 @@ export class WebViewManager {
       return;
     }
 
+    this.detachDomReadyListener();
+
     this.webview = webview;
     this.isInitialized = true;
     log.debug('WebView attached');
 
-    webview.addEventListener('dom-ready', () => {
-      this.injectRenderingImprovements();
-    });
+    this.domReadyListener = () => this.injectRenderingImprovements();
+    webview.addEventListener('dom-ready', this.domReadyListener);
+  }
+
+  /**
+   * Снимает подписку на dom-ready текущего webview
+   */
+  private detachDomReadyListener(): void {
+    if (this.webview && this.domReadyListener) {
+      this.webview.removeEventListener('dom-ready', this.domReadyListener);
+    }
+    this.domReadyListener = null;
   }
 
   /**
@@ -114,6 +127,7 @@ export class WebViewManager {
    * Detach webview and cleanup
    */
   public detach(): void {
+    this.detachDomReadyListener();
     this.webview = null;
     this.isInitialized = false;
     this.pendingHistoryResetUrl = null;

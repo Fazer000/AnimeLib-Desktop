@@ -7,4 +7,7 @@ export {
   clickInterceptorScript,
   injectClickInterceptor,
 } from './clickInterceptor';
-export { default as injectCustomSelect } from './customSelectInjector';
+export {
+  customSelectInjectorMain,
+  getCustomSelectScript,
+} from './customSelectInjector';
