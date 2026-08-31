@@ -33,14 +33,14 @@ const describe = (error: unknown): string => {
   }
 };
 
-/** Обрезает журнал, когда он перерос лимит, чтобы не расти бесконечно. */
+/**
+ * Обрезает журнал, когда он перерос лимит. Отсутствующий файл — не ошибка.
+ */
 const rotate = (file: string): void => {
-  try {
-    if (fs.statSync(file).size > MAX_LOG_BYTES) {
-      fs.renameSync(file, `${file}.1`);
-    }
-  } catch {
-    // журнала ещё нет
+  const size = fs.existsSync(file) ? fs.statSync(file).size : 0;
+
+  if (size > MAX_LOG_BYTES) {
+    fs.renameSync(file, `${file}.1`);
   }
 };
 
@@ -59,8 +59,9 @@ export const logCrash = (scope: string, error: unknown): void => {
     ].join('\n');
 
     fs.appendFileSync(file, entry, 'utf8');
-  } catch {
-    // писать некуда — молча продолжаем, падать здесь нельзя
+  } catch (writeError) {
+    process.stderr.write(`Failed to write crash log: ${writeError}
+`);
   }
 };
 
@@ -142,7 +143,6 @@ export const registerCrashHandlers = (
     logCrash('renderer', payload);
   });
 
-  // Ручная проверка перехвата, только в dev-сборке
   if (isDev) {
     onIpc('debug-crash-main', () => {
       setTimeout(() => {

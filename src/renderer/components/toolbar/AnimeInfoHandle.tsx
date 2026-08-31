@@ -38,11 +38,6 @@ function AnimeInfoHandle({ hidden }: AnimeInfoHandleProps) {
           fontSize: 16,
           color: WHITE,
           mt: -0.25,
-          animation: 'handleHint 1.8s ease-in-out infinite',
-          '@keyframes handleHint': {
-            '0%, 100%': { transform: 'translateY(-1px)' },
-            '50%': { transform: 'translateY(2px)' },
-          },
         }}
       />
     </Box>

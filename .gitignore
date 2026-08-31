@@ -10,7 +10,6 @@ pids
 # Testing
 coverage
 .eslintcache
-scripts
 
 # Dependencies
 node_modules
@@ -19,10 +18,15 @@ node_modules
 release/app/dist
 release/build
 .erb/dll
-develop
 dist
 build
 out
+
+# Вспомогательные скрипты
+/scripts/
+
+# Рабочие материалы: планы, выгрузки кода, черновики
+/develop/
 
 # TypeScript
 *.tsbuildinfo
@@ -33,6 +37,9 @@ out
 *.swp
 *.swo
 *~
+
+# Временные файлы офисных пакетов
+~$*
 
 # OS
 .DS_Store

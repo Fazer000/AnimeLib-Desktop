@@ -52,7 +52,6 @@ describe('ProgressStore', () => {
   });
 
   it('приводит отметку времени с сайта к ISO', () => {
-    // Разделитель-пробел заменяется на T; момент трактуется как локальный
     progressStore.saveAt(entry(), '2026-01-02 03:04:05');
 
     expect(progressStore.get('one-piece', 1)?.updatedAt).toBe(

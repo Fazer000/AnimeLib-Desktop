@@ -41,8 +41,6 @@ const removeHeader = (
 
 /**
  * Заменяет CORS-заголовки ответа на разрешающие.
- * Учётные данные не выдаются: со звёздочкой в Origin они всё равно запрещены,
- * а запросы приложения авторизуются заголовком Bearer.
  */
 export const addCorsHeaders = (
   responseHeaders: Record<string, string[]>,
@@ -53,7 +51,6 @@ export const addCorsHeaders = (
     'Access-Control-Allow-Methods',
     'GET, POST, PUT, PATCH, DELETE, OPTIONS',
   );
-  // Authorization под звёздочку не подпадает: Chromium требует его явно
   setHeader(
     responseHeaders,
     'Access-Control-Allow-Headers',

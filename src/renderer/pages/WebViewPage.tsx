@@ -98,9 +98,7 @@ function WebViewRefactored({
       scriptManager.registerCallback(() => {
         log.debug('Injecting click interceptor...');
         try {
-          injectClickInterceptor(webview).catch(() => {
-            // Тихо игнорируем ошибку - она уже залогирована внутри функции
-          });
+          injectClickInterceptor(webview).catch(() => {});
         } catch (error) {
           log.error('Error injecting click interceptor:', error);
         }
@@ -109,9 +107,7 @@ function WebViewRefactored({
       scriptManager.registerCallback(() => {
         log.debug('Extracting auth token...');
         try {
-          extractAuthToken(webview).catch(() => {
-            // Тихо игнорируем ошибку - она уже залогирована внутри функции
-          });
+          extractAuthToken(webview).catch(() => {});
         } catch (error) {
           log.error('Error extracting auth token:', error);
         }
@@ -120,9 +116,7 @@ function WebViewRefactored({
       scriptManager.registerCallback(() => {
         log.debug('Injecting custom selects...');
         try {
-          scriptManager.injectCustomSelects().catch(() => {
-            // Тихо игнорируем ошибку - она уже залогирована внутри функции
-          });
+          scriptManager.injectCustomSelects().catch(() => {});
         } catch (error) {
           log.error('Error injecting custom selects:', error);
         }
