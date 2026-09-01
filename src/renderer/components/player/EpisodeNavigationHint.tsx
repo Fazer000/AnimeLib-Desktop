@@ -52,11 +52,12 @@ function EpisodeNavigationHint({
     display: 'flex',
     alignItems: 'center',
     zIndex: 800,
-    cursor: 'pointer',
+    cursor: showControls ? 'pointer' : 'none',
     transition: 'background-color 0.3s ease',
   };
 
   const buttonStyle = {
+    cursor: showControls ? 'pointer' : 'none',
     backgroundColor: 'rgba(20, 20, 20, 0.45)',
     border: '1px solid rgba(116, 116, 128, 0.33)',
     color: theme.palette.customColors.dtPrimaryTextColor,

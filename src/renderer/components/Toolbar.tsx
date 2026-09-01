@@ -42,6 +42,7 @@ interface ToolbarProps {
   onPlayerButtonClick?: (url: string, animeId?: string) => void;
 
   onOpenAnimePage?: () => void;
+  hideAnimeHandle?: boolean;
 }
 
 function ToolbarRefactored({
@@ -69,6 +70,7 @@ function ToolbarRefactored({
   onPlayerButtonClick,
 
   onOpenAnimePage,
+  hideAnimeHandle = false,
 }: ToolbarProps) {
   const [showAnimeInfo, setShowAnimeInfo] = useState<boolean>(false);
   const [showSearchModal, setShowSearchModal] = useState<boolean>(false);
@@ -227,7 +229,7 @@ function ToolbarRefactored({
             pointerEvents: 'auto',
           }}
         >
-          <AnimeInfoHandle hidden={showAnimeInfo} />
+          <AnimeInfoHandle hidden={showAnimeInfo || hideAnimeHandle} />
         </Box>
       )}
 

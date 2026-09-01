@@ -108,6 +108,7 @@ function PlayerPageRefactored({
     useState<boolean>(false);
 
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
+  const [controlsVisible, setControlsVisible] = useState<boolean>(true);
 
   const isPlayerFullscreen = useFullscreenState();
 
@@ -493,6 +494,7 @@ function PlayerPageRefactored({
         currentUrl={playerUrl}
         animeId={offlineMode ? undefined : currentAnimeId}
         onOpenAnimePage={handleOpenAnimePage}
+        hideAnimeHandle={!controlsVisible}
         onUrlChange={handleUrlChange}
         onToggleUrlInput={() => setShowUrlInput(!showUrlInput)}
         onPlayerButtonClick={onPlayerButtonClick}
@@ -712,6 +714,7 @@ function PlayerPageRefactored({
                       }
                       onAspectRatioChange={setVideoAspectRatio}
                       onPlayingChange={setIsVideoPlaying}
+                      onControlsVisibilityChange={setControlsVisible}
                       initialTimecode={initialTimecode}
                       onTimecodeApplied={() => {
                         log.debug('Timecode applied successfully, clearing...');

@@ -119,3 +119,9 @@ export const OFFLINE_ICON = {
  * Размер обложки в библиотеке, px
  */
 export const OFFLINE_COVER = { width: 72, height: 100 } as const;
+
+/**
+ * Ширина кнопки действия в библиотеке. Задана явно, чтобы «Смотреть»
+ * и «Продолжить» занимали одинаковое место и не сдвигали шеврон
+ */
+export const OFFLINE_LIBRARY_ACTION_WIDTH = 160;

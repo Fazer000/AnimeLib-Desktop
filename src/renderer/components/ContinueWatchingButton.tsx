@@ -139,13 +139,22 @@ function ContinueWatchingButton({
 
   const showOffline = useOffline && offlineItems.length > 0;
 
-  const handleSelect = (bookmark: BookmarkItem) => {
+  /**
+   * Закрывает меню, уводя фокус наружу: иначе он останется на пункте
+   * внутри поддерева, которое MUI помечает aria-hidden на время анимации
+   */
+  const closeMenu = () => {
+    (document.activeElement as HTMLElement | null)?.blur();
     setAnchorEl(null);
+  };
+
+  const handleSelect = (bookmark: BookmarkItem) => {
+    closeMenu();
     onSelect(bookmark);
   };
 
   const handleSelectOffline = (item: OfflineContinueItem) => {
-    setAnchorEl(null);
+    closeMenu();
     onSelectOffline?.(item);
   };
 
@@ -175,7 +184,7 @@ function ContinueWatchingButton({
       <Menu
         anchorEl={anchorEl}
         open={!!anchorEl}
-        onClose={() => setAnchorEl(null)}
+        onClose={closeMenu}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         marginThreshold={8}

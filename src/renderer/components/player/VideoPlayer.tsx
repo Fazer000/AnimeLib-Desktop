@@ -125,6 +125,8 @@ interface VideoPlayerProps {
   offlineMode?: boolean;
   // eslint-disable-next-line react/require-default-props
   onPlayingChange?: (isPlaying: boolean) => void;
+  // eslint-disable-next-line react/require-default-props
+  onControlsVisibilityChange?: (visible: boolean) => void;
 }
 
 interface VideoPlayerRef {
@@ -171,6 +173,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       onAmbientLightChange,
       offlineMode = false,
       onPlayingChange,
+      onControlsVisibilityChange,
     },
     ref,
   ) => {
@@ -460,6 +463,10 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         uiStateManager.stopAutoHide();
       };
     }, [videoState.isPlaying, uiStateManager, onPlayingChange]);
+
+    useEffect(() => {
+      onControlsVisibilityChange?.(uiState.showControls);
+    }, [uiState.showControls, onControlsVisibilityChange]);
 
     useEffect(() => {
       if (videoState.isPlaying) {

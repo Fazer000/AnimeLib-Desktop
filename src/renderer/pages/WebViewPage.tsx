@@ -8,7 +8,12 @@ import React, {
 import { Box } from '@mui/material';
 import CustomToolbar from '../components/Toolbar';
 import useStableSize from '../hooks/useStableSize';
-import { extractAuthToken, injectClickInterceptor } from '../scripts';
+import {
+  extractAuthToken,
+  injectClickInterceptor,
+  type AuthExtractionOutcome,
+} from '../scripts';
+import { bookmarksStore } from '../services/bookmarks';
 import {
   WebViewManager,
   ScriptInjectionManager,
@@ -62,6 +67,7 @@ function WebViewRefactored({
   const scriptManagerRef = useRef<ScriptInjectionManager | null>(null);
   const hostRef = useRef<HTMLDivElement | null>(null);
   const hostSize = useStableSize(hostRef);
+  const authOutcomeRef = useRef<AuthExtractionOutcome>('unknown');
 
   /**
    * Initialize managers when webview is ready
@@ -107,7 +113,20 @@ function WebViewRefactored({
       scriptManager.registerCallback(() => {
         log.debug('Extracting auth token...');
         try {
-          extractAuthToken(webview).catch(() => {});
+          extractAuthToken(webview)
+            .then((outcome) => {
+              const changed =
+                outcome !== 'unknown' && outcome !== authOutcomeRef.current;
+
+              if (changed) {
+                authOutcomeRef.current = outcome;
+                log.debug('Auth state changed:', outcome);
+                bookmarksStore.refresh();
+              }
+
+              return outcome;
+            })
+            .catch(() => {});
         } catch (error) {
           log.error('Error extracting auth token:', error);
         }

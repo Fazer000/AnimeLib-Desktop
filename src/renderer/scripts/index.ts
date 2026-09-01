@@ -3,6 +3,7 @@
  */
 
 export { authExtractorScript, extractAuthToken } from './authExtractor';
+export type { AuthExtractionOutcome } from './authExtractor';
 export {
   clickInterceptorScript,
   injectClickInterceptor,

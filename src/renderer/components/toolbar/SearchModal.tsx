@@ -86,6 +86,7 @@ function SearchResultCard({
           gap: 2,
           padding: 1,
           flex: 1,
+          minWidth: 0,
           justifyContent: 'flex-start',
           textAlign: 'left',
           transition: 'background-color 0.2s',
@@ -151,6 +152,7 @@ function SearchResultCard({
           position: 'relative',
           display: 'flex',
           alignItems: 'center',
+          flexShrink: 0,
           borderLeft: '1px solid rgb(49, 49, 49)',
         }}
       >
@@ -484,29 +486,6 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
             />
           ))}
         </Box>
-
-        {searchResults.length > 0 && (
-          <Box
-            sx={{
-              padding: 2,
-              borderTop: `1px solid ${SURFACE_MUTED}`,
-              textAlign: 'center',
-            }}
-          >
-            <Typography
-              sx={{
-                color: ACCENT,
-                cursor: 'pointer',
-                fontSize: '13px',
-                '&:hover': {
-                  textDecoration: 'underline',
-                },
-              }}
-            >
-              + показать ещё {searchResults.length}
-            </Typography>
-          </Box>
-        )}
       </Box>
     </Modal>
   );

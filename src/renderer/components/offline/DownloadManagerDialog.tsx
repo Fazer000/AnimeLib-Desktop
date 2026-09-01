@@ -581,6 +581,7 @@ function DownloadManagerDialog({
           flex: 1,
           minHeight: 0,
           overflowY: 'auto',
+          scrollbarGutter: 'stable',
           pt: 0,
         }}
       >

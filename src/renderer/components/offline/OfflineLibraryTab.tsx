@@ -24,6 +24,7 @@ import {
   OFFLINE_COVER,
   OFFLINE_FONT,
   OFFLINE_ICON,
+  OFFLINE_LIBRARY_ACTION_WIDTH,
   OfflineAnime,
   OfflineEpisode,
 } from '../../../constants';
@@ -312,6 +313,8 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                     px: 2,
                     py: 0.75,
                     flexShrink: 0,
+                    minWidth: OFFLINE_LIBRARY_ACTION_WIDTH,
+                    whiteSpace: 'nowrap',
                     backgroundColor: ACCENT,
                     color: WHITE,
                     '&:hover': { backgroundColor: ACCENT_DEEP },

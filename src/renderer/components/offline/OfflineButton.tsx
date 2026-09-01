@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Badge, Box } from '@mui/material';
+import { Box } from '@mui/material';
 import { DownloadRounded } from '@mui/icons-material';
 import DownloadManagerDialog from './DownloadManagerDialog';
 import EdgeActionButton from '../EdgeActionButton';
@@ -15,6 +15,29 @@ interface OfflineButtonProps {
   // eslint-disable-next-line react/require-default-props
   onOpenHandled?: () => void;
 }
+
+const COUNTER_SX = {
+  position: 'absolute',
+  top: 1,
+  left: 26,
+  minWidth: 16,
+  height: 16,
+  px: '4px',
+  boxSizing: 'border-box',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: '8px',
+  backgroundColor: ACCENT,
+  color: WHITE,
+  fontSize: '0.62rem',
+  fontWeight: 700,
+  lineHeight: 1,
+  border: '2px solid rgba(20, 20, 20, 0.9)',
+  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.5)',
+  pointerEvents: 'none',
+  zIndex: 1,
+};
 
 /**
  * Плавающая кнопка менеджера загрузок вне плеера
@@ -65,24 +88,12 @@ function OfflineButton({
             setInitialTab(2);
             setOpen(true);
           }}
-          icon={
-            <Badge
-              badgeContent={activeCount}
-              color="secondary"
-              overlap="circular"
-              invisible={activeCount === 0}
-              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-              sx={{
-                '& .MuiBadge-badge': {
-                  border: '2px solid rgba(20, 20, 20, 0.9)',
-                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.5)',
-                },
-              }}
-            >
-              <DownloadRounded sx={{ fontSize: 24, color: ACCENT }} />
-            </Badge>
-          }
+          icon={<DownloadRounded sx={{ fontSize: 24, color: ACCENT }} />}
         />
+
+        {activeCount > 0 && (
+          <Box sx={COUNTER_SX}>{activeCount > 99 ? '99+' : activeCount}</Box>
+        )}
       </Box>
 
       <DownloadManagerDialog
