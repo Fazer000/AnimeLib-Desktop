@@ -1,6 +1,6 @@
 {
   "name": "animelib-desktop",
-  "version": "1.0.0",
+  "version": "1.7.1",
   "description": "AnimeLib Desktop - Desktop anime player",
   "keywords": [
     "electron",

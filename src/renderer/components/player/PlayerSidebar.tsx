@@ -1,17 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
   CircularProgress,
+  IconButton,
   Typography,
   useTheme,
   Tabs,
   Tab,
 } from '@mui/material';
+import { KeyboardRounded } from '@mui/icons-material';
 import { Player } from '../../api/animeApi';
 import { PlayerSelectionManager } from '../../services/player/PlayerSelectionManager';
 import { SIDEBAR_WIDTH_CSS, PLAYER_TYPE_KODIK } from '../../../constants';
 import { getQualityTagColor } from '../../utils/videoHelpers';
+import ControlTooltip from './ControlTooltip';
+import HotkeysDialog from './HotkeysDialog';
 
 interface PlayerSidebarProps {
   players: Player[];
@@ -36,6 +40,7 @@ function PlayerSidebarRefactored({
   isCollapsed = false,
 }: PlayerSidebarProps) {
   const theme = useTheme();
+  const [hotkeysOpen, setHotkeysOpen] = useState<boolean>(false);
 
   const groupedPlayers = PlayerSelectionManager.groupPlayersByType(players);
   const sortedPlayerTypes =
@@ -82,6 +87,7 @@ function PlayerSidebarRefactored({
             p: 1.5,
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'space-between',
           }}
         >
           <Typography
@@ -93,6 +99,22 @@ function PlayerSidebarRefactored({
           >
             Плеер
           </Typography>
+
+          <ControlTooltip title="Горячие клавиши" placement="left">
+            <IconButton
+              size="small"
+              aria-label="Горячие клавиши"
+              onClick={() => setHotkeysOpen(true)}
+              sx={{
+                p: 0.5,
+                color: theme.palette.customColors.dtPrimaryTextColor,
+                opacity: 0.65,
+                '&:hover': { opacity: 1 },
+              }}
+            >
+              <KeyboardRounded sx={{ fontSize: 20 }} />
+            </IconButton>
+          </ControlTooltip>
         </Box>
 
         <Box
@@ -398,6 +420,8 @@ function PlayerSidebarRefactored({
           </Box>
         )}
       </Box>
+
+      <HotkeysDialog open={hotkeysOpen} onClose={() => setHotkeysOpen(false)} />
     </Box>
   );
 }
