@@ -24,6 +24,7 @@ import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { registerUpdateHandlers } from './updater';
 import { registerCrashHandlers } from './crashReporter';
+import { registerReportHandlers } from './report';
 import { addCorsHeaders } from './corsHeaders';
 import {
   registerOfflineHandlers,
@@ -781,6 +782,7 @@ app
     registerApiInterceptor();
     registerBookmarksWatcher();
     registerUpdateHandlers(() => mainWindow);
+    registerReportHandlers();
     registerOfflineProtocol(() => mainWindow);
     registerOfflineHandlers(() => mainWindow);
     createWindow();

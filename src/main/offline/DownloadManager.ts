@@ -19,6 +19,7 @@ import {
   OFFLINE_RETRY_DELAY_MS,
   OFFLINE_PARALLEL_CONNECTIONS,
   OfflineEpisode,
+  isActiveDownload,
 } from '../../constants';
 import { offlineLibrary } from './OfflineLibrary';
 import { hlsDownloader } from './HlsDownloader';
@@ -40,7 +41,13 @@ type DownloadOutcome = 'completed' | 'failed' | 'no-space';
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36';
 
-const ACTIVE_STATUSES: DownloadStatus[] = ['queued', 'downloading', 'paused'];
+const PARTIAL_SUFFIXES = [
+  '.bin',
+  '.ts',
+  '.m3u8',
+  '.ts.part.json',
+  '.bin.parts.json',
+];
 
 class DownloadManager {
   private queue: QueueItem[] = [];
@@ -69,7 +76,7 @@ class DownloadManager {
    */
   public getReservedFiles(): string[] {
     return this.queue
-      .filter((item) => ACTIVE_STATUSES.includes(item.task.status))
+      .filter((item) => isActiveDownload(item.task.status))
       .flatMap((item) => [
         `${item.task.id}.bin`,
         `${item.task.id}.ts`,
@@ -97,7 +104,7 @@ class DownloadManager {
    */
   private persist(): void {
     const pending = this.queue
-      .filter((item) => ACTIVE_STATUSES.includes(item.task.status))
+      .filter((item) => isActiveDownload(item.task.status))
       .map((item) => ({
         task: { ...item.task, status: 'paused' as DownloadStatus },
         request: { ...item.request, authToken: '' },
@@ -220,6 +227,28 @@ class DownloadManager {
   }
 
   /**
+   * Останавливает задачу и удаляет её частичные файлы
+   */
+  // eslint-disable-next-line class-methods-use-this
+  private cancelItem(item: QueueItem): void {
+    if (item.task.status === 'downloading') {
+      item.abort?.();
+    }
+
+    item.task.status = 'cancelled';
+
+    PARTIAL_SUFFIXES.forEach((suffix) => {
+      try {
+        fs.rmSync(offlineLibrary.resolveFile(`${item.task.id}${suffix}`), {
+          force: true,
+        });
+      } catch (error) {
+        log.error('Failed to remove partial:', error);
+      }
+    });
+  }
+
+  /**
    * Отменяет задачу
    */
   public cancel(taskId: string): void {
@@ -229,23 +258,7 @@ class DownloadManager {
       return;
     }
 
-    if (item.task.status === 'downloading') {
-      item.abort?.();
-    }
-
-    item.task.status = 'cancelled';
-
-    ['.bin', '.ts', '.m3u8', '.ts.part.json', '.bin.parts.json'].forEach(
-      (suffix) => {
-        try {
-          fs.rmSync(offlineLibrary.resolveFile(`${taskId}${suffix}`), {
-            force: true,
-          });
-        } catch (error) {
-          log.error('Failed to remove partial:', error);
-        }
-      },
-    );
+    this.cancelItem(item);
 
     this.notify('offline-tasks-changed');
     this.persist();
@@ -253,11 +266,34 @@ class DownloadManager {
   }
 
   /**
+   * Отменяет все незавершённые задачи, возвращает их количество
+   */
+  public cancelAll(): number {
+    const items = this.queue.filter((entry) =>
+      isActiveDownload(entry.task.status),
+    );
+
+    if (items.length === 0) {
+      return 0;
+    }
+
+    items.forEach((item) => this.cancelItem(item));
+
+    log.debug('Cancelled all:', items.length);
+
+    this.notify('offline-tasks-changed');
+    this.persist();
+    this.pump();
+
+    return items.length;
+  }
+
+  /**
    * Убирает завершенные и отмененные задачи из списка
    */
   public clearFinished(): void {
     this.queue = this.queue.filter((item) =>
-      ACTIVE_STATUSES.includes(item.task.status),
+      isActiveDownload(item.task.status),
     );
     this.notify('offline-tasks-changed');
     this.persist();

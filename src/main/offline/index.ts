@@ -89,6 +89,8 @@ export const registerOfflineHandlers = (
     return true;
   });
 
+  handleIpc('offline-cancel-all', async () => downloadManager.cancelAll());
+
   handleIpc('offline-clear-finished', async () => {
     downloadManager.clearFinished();
     return true;

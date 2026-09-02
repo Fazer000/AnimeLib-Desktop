@@ -4,6 +4,7 @@ import type {
   DownloadTask,
   OfflineDirectoryResult,
   OfflineSnapshot,
+  ReportPayload,
   UpdateInfo,
   UpdateResult,
 } from '../constants';
@@ -109,6 +110,10 @@ const electronHandler = {
       log.debug('Preload: Opening release page');
       ipcRenderer.send('open-release-page');
     },
+    openIssuePage: (payload: ReportPayload) => {
+      log.debug('Preload: Opening issue form');
+      ipcRenderer.send('open-issue-page', payload);
+    },
     offlineGetSnapshot: async (): Promise<OfflineSnapshot> =>
       ipcRenderer.invoke('offline-get-snapshot'),
     offlineEnqueue: async (
@@ -117,6 +122,8 @@ const electronHandler = {
       ipcRenderer.invoke('offline-enqueue', requests),
     offlineCancelTask: async (taskId: string): Promise<boolean> =>
       ipcRenderer.invoke('offline-cancel-task', taskId),
+    offlineCancelAll: async (): Promise<number> =>
+      ipcRenderer.invoke('offline-cancel-all'),
     offlineClearFinished: async (): Promise<boolean> =>
       ipcRenderer.invoke('offline-clear-finished'),
     offlineRemoveEpisode: async (

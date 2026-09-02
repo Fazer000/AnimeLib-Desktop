@@ -15,6 +15,7 @@ import PlayerPage from './pages/PlayerPage';
 import { buildAnimePageUrl, saveSiteUrl } from './utils/urlHelpers';
 import ContinueWatchingButton from './components/ContinueWatchingButton';
 import OfflineButton from './components/offline/OfflineButton';
+import ReportButton from './components/report/ReportButton';
 import {
   NavigationHistoryTracker,
   playerHistoryManager,
@@ -451,6 +452,7 @@ function App() {
                 openTab={libraryTab}
                 onOpenHandled={() => setLibraryTab(null)}
               />
+              <ReportButton />
             </>
           )}
         </Box>

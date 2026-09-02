@@ -223,6 +223,19 @@ class OfflineStore {
   }
 
   /**
+   * Отменяет все незавершённые задачи
+   */
+  public async cancelAll(): Promise<void> {
+    const cancelled = await this.api?.offlineCancelAll?.().catch(() => 0);
+
+    if (cancelled) {
+      log.debug('Cancelled all downloads:', cancelled);
+    }
+
+    await this.refresh();
+  }
+
+  /**
    * Очищает завершенные задачи
    */
   public async clearFinished(): Promise<void> {

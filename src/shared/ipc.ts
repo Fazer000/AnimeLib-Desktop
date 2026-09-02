@@ -12,6 +12,7 @@ import type {
   OfflineSnapshot,
 } from '../constants/offline';
 import type { UpdateInfo, UpdateResult } from '../constants/update';
+import type { ReportPayload } from '../constants/report';
 
 /** Картинка, загруженная главным процессом с нужным Referer. */
 export interface FetchImageResult {
@@ -79,6 +80,7 @@ export interface IpcInvokeMap {
   'offline-get-snapshot': { request: void; response: OfflineSnapshot };
   'offline-enqueue': { request: DownloadRequest[]; response: DownloadTask[] };
   'offline-cancel-task': { request: string; response: boolean };
+  'offline-cancel-all': { request: void; response: number };
   'offline-clear-finished': { request: void; response: boolean };
   'offline-remove-episode': {
     request: RemoveEpisodePayload;
@@ -104,6 +106,7 @@ export interface IpcSendMap {
   'player-button-clicked': string;
   'webview-log': string;
   'open-release-page': void;
+  'open-issue-page': ReportPayload;
   'offline-open-directory': void;
   'report-renderer-error': RendererErrorReport;
   'debug-crash-main': void;

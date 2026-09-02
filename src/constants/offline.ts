@@ -69,6 +69,21 @@ export type DownloadStatus =
   | 'cancelled';
 
 /**
+ * Статусы незавершённых задач очереди
+ */
+export const ACTIVE_DOWNLOAD_STATUSES: DownloadStatus[] = [
+  'queued',
+  'downloading',
+  'paused',
+];
+
+/**
+ * Проверяет, что задача ещё не завершена
+ */
+export const isActiveDownload = (status: DownloadStatus): boolean =>
+  ACTIVE_DOWNLOAD_STATUSES.includes(status);
+
+/**
  * Запрос на загрузку одной серии
  */
 export interface DownloadRequest {

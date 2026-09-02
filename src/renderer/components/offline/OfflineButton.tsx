@@ -4,7 +4,7 @@ import { DownloadRounded } from '@mui/icons-material';
 import DownloadManagerDialog from './DownloadManagerDialog';
 import EdgeActionButton from '../EdgeActionButton';
 import useOfflineLibrary from '../../hooks/useOfflineLibrary';
-import { FLOATING_BUTTONS_TOP } from '../../../constants';
+import { FLOATING_BUTTONS_TOP, isActiveDownload } from '../../../constants';
 import { ACCENT, WHITE } from '../../theme/palette';
 
 interface OfflineButtonProps {
@@ -61,11 +61,8 @@ function OfflineButton({
     onOpenHandled?.();
   }, [openTab, onOpenHandled]);
 
-  const activeCount = snapshot.tasks.filter(
-    (task) =>
-      task.status === 'queued' ||
-      task.status === 'downloading' ||
-      task.status === 'paused',
+  const activeCount = snapshot.tasks.filter((task) =>
+    isActiveDownload(task.status),
   ).length;
 
   return (

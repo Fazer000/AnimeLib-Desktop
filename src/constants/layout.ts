@@ -17,6 +17,7 @@ export const FLOATING_BUTTONS_LEFT = 24;
 export const FLOATING_BUTTONS_TOP =
   TOOLBAR_HEIGHT + SITE_HEADER_HEIGHT + FLOATING_BUTTONS_LEFT;
 export const FLOATING_BUTTONS_GAP = 64;
+export const FLOATING_BUTTONS_BOTTOM = FLOATING_BUTTONS_LEFT;
 
 /**
  * Границы резиновой ширины сайдбара озвучек, px

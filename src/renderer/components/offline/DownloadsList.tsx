@@ -1,13 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   LinearProgress,
   Typography,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { CloseRounded, PlayArrowRounded } from '@mui/icons-material';
-import { DownloadTask, OFFLINE_FONT, OFFLINE_ICON } from '../../../constants';
+import {
+  DownloadTask,
+  OFFLINE_FONT,
+  OFFLINE_ICON,
+  isActiveDownload,
+} from '../../../constants';
 import { offlineStore } from '../../services/offline';
 import useDownloadSpeed from '../../hooks/useDownloadSpeed';
 import {
@@ -15,11 +25,32 @@ import {
   formatProgress,
   formatSpeed,
 } from '../../utils/offlineFormat';
-import { ACCENT, DANGER } from '../../theme/palette';
+import {
+  ACCENT,
+  ACCENT_LIGHT,
+  DANGER,
+  DANGER_STRONG,
+  SURFACE_RAISED,
+  WHITE,
+} from '../../theme/palette';
 
 interface DownloadsListProps {
   tasks: DownloadTask[];
 }
+
+const CANCEL_SX = {
+  textTransform: 'none',
+  fontSize: OFFLINE_FONT.button,
+  color: DANGER,
+  '&:hover': { backgroundColor: alpha(DANGER, 0.12) },
+};
+
+const CLEAR_SX = {
+  textTransform: 'none',
+  fontSize: OFFLINE_FONT.button,
+  color: ACCENT_LIGHT,
+  '&:hover': { backgroundColor: alpha(ACCENT_LIGHT, 0.12) },
+};
 
 const STATUS_LABELS: Record<string, string> = {
   queued: 'В очереди',
@@ -51,12 +82,10 @@ const buildDetails = (task: DownloadTask, speed: number): string => {
  */
 function DownloadsList({ tasks }: DownloadsListProps) {
   const speeds = useDownloadSpeed(tasks);
+  const [confirmOpen, setConfirmOpen] = useState<boolean>(false);
 
-  const isActive = (status: string) =>
-    status === 'queued' || status === 'downloading' || status === 'paused';
-
-  const activeTasks = tasks.filter((task) => isActive(task.status));
-  const finishedTasks = tasks.filter((task) => !isActive(task.status));
+  const activeTasks = tasks.filter((task) => isActiveDownload(task.status));
+  const finishedTasks = tasks.filter((task) => !isActiveDownload(task.status));
 
   if (tasks.length === 0) {
     return (
@@ -81,16 +110,22 @@ function DownloadsList({ tasks }: DownloadsListProps) {
         <Typography sx={{ fontSize: OFFLINE_FONT.section, fontWeight: 600 }}>
           {`Очередь · ${activeTasks.length}`}
         </Typography>
-        {finishedTasks.length > 0 && (
+
+        {activeTasks.length > 0 && (
+          <Button
+            size="small"
+            onClick={() => setConfirmOpen(true)}
+            sx={CANCEL_SX}
+          >
+            Отменить все
+          </Button>
+        )}
+
+        {activeTasks.length === 0 && finishedTasks.length > 0 && (
           <Button
             size="small"
             onClick={() => offlineStore.clearFinished()}
-            sx={{
-              textTransform: 'none',
-              fontSize: OFFLINE_FONT.button,
-              color: DANGER,
-              '&:hover': { backgroundColor: 'rgba(239, 83, 80, 0.12)' },
-            }}
+            sx={CLEAR_SX}
           >
             Очистить список
           </Button>
@@ -176,6 +211,58 @@ function DownloadsList({ tasks }: DownloadsListProps) {
           )}
         </Box>
       ))}
+
+      <Dialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        slotProps={{
+          paper: {
+            sx: {
+              backgroundColor: SURFACE_RAISED,
+              backgroundImage: 'none',
+              color: WHITE,
+            },
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontSize: OFFLINE_FONT.section, fontWeight: 600 }}>
+          Отменить все загрузки?
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: OFFLINE_FONT.body }}>
+            {`Будет отменено задач: ${activeTasks.length}. Скачанные части удалятся, начатые серии придётся загружать заново.`}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setConfirmOpen(false)}
+            sx={{
+              textTransform: 'none',
+              fontSize: OFFLINE_FONT.button,
+              color: alpha(WHITE, 0.6),
+            }}
+          >
+            Оставить
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setConfirmOpen(false);
+              offlineStore.cancelAll();
+            }}
+            sx={{
+              textTransform: 'none',
+              fontSize: OFFLINE_FONT.button,
+              px: 2,
+              backgroundColor: DANGER,
+              color: WHITE,
+              '&:hover': { backgroundColor: DANGER_STRONG },
+            }}
+          >
+            Отменить все
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
