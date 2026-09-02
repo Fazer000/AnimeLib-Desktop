@@ -8,6 +8,7 @@ interface UpdateChecker {
   status: UpdateStatus;
   progress: number;
   startUpdate: () => Promise<void>;
+  openRelease: () => void;
 }
 
 /**
@@ -85,7 +86,11 @@ function useUpdateChecker(): UpdateChecker {
     }
   }, []);
 
-  return { updateInfo, status, progress, startUpdate };
+  const openRelease = useCallback(() => {
+    window.electron?.electronAPI?.openReleasePage();
+  }, []);
+
+  return { updateInfo, status, progress, startUpdate, openRelease };
 }
 
 export default useUpdateChecker;

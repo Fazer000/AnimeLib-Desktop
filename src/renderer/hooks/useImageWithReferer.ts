@@ -31,15 +31,12 @@ function useImageWithReferer(imageUrl: string | undefined): string {
           if (isCancelled) return;
 
           if (response.success && response.data) {
-            const byteCharacters = atob(response.data);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i += 1) {
-              byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const blob = new Blob([byteArray], {
-              type: response.contentType || 'image/jpeg',
-            });
+            const type = response.contentType || 'image/jpeg';
+            const blob = await fetch(
+              `data:${type};base64,${response.data}`,
+            ).then((result) => result.blob());
+
+            if (isCancelled) return;
 
             objectUrl = URL.createObjectURL(blob);
             setBlobUrl(objectUrl);

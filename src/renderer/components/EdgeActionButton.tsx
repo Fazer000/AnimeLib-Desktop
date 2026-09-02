@@ -1,6 +1,8 @@
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import {
+  BOOKMARKS_PANEL_DURATION_MS,
+  BOOKMARKS_PANEL_EASING,
   PLAYER_EDGE_BUTTON_RADIUS,
   PLAYER_EDGE_BUTTON_SIZE,
 } from '../../constants';
@@ -16,6 +18,8 @@ interface EdgeActionButtonProps {
   active?: boolean;
   // eslint-disable-next-line react/require-default-props
   solid?: boolean;
+  // eslint-disable-next-line react/require-default-props
+  docked?: boolean;
 }
 
 const LABEL_SX = {
@@ -35,6 +39,7 @@ function EdgeActionButton({
   color,
   active = false,
   solid = false,
+  docked = false,
 }: EdgeActionButtonProps) {
   const ghostRef = useRef<HTMLSpanElement | null>(null);
   const [labelWidth, setLabelWidth] = useState<number>(0);
@@ -45,6 +50,12 @@ function EdgeActionButton({
   const isLeft = side === 'left';
   const radius = `${PLAYER_EDGE_BUTTON_RADIUS}px`;
   const gap = 14;
+
+  const dockedSide = docked ? 'none' : undefined;
+  const openRadius = isLeft
+    ? `0 ${radius} ${radius} 0`
+    : `${radius} 0 0 ${radius}`;
+  const dockedRadius = docked ? 0 : openRadius;
 
   useEffect(() => {
     const node = ghostRef.current;
@@ -115,19 +126,20 @@ function EdgeActionButton({
           : `rgba(20, 20, 20, ${solid ? 0.9 : 0.45})`,
         backdropFilter: solid ? 'blur(10px)' : 'none',
         border: `1px solid ${active ? 'rgba(124, 58, 237, 0.6)' : 'rgba(116, 116, 128, 0.33)'}`,
-        borderLeft: isLeft ? 'none' : undefined,
-        borderRight: isLeft ? undefined : 'none',
-        borderRadius: isLeft
-          ? `0 ${radius} ${radius} 0`
-          : `${radius} 0 0 ${radius}`,
+        borderLeft: isLeft ? 'none' : dockedSide,
+        borderRight: isLeft ? dockedSide : 'none',
+        borderRadius: dockedRadius,
         boxSizing: 'content-box',
         outline: 'none',
         '&:focus-visible': {
           outline: '2px solid rgba(124, 58, 237, 0.8)',
           outlineOffset: '-2px',
         },
-        transition:
-          'width 0.3s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.25s ease',
+        transition: [
+          `width ${BOOKMARKS_PANEL_DURATION_MS}ms ${BOOKMARKS_PANEL_EASING}`,
+          'background-color 0.25s ease',
+          `border-radius ${BOOKMARKS_PANEL_DURATION_MS}ms ${BOOKMARKS_PANEL_EASING}`,
+        ].join(', '),
         '&:hover': { backgroundColor: 'rgba(55, 55, 55, 0.52)' },
         '&:active': { backgroundColor: 'rgba(55, 55, 55, 0.72)' },
       }}

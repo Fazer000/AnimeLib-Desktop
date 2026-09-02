@@ -9,9 +9,12 @@ import {
   LinearProgress,
   Typography,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import { OpenInNewRounded } from '@mui/icons-material';
 import { UpdateInfo } from '../../../constants';
 import { UpdateStatus } from '../../hooks/useUpdateChecker';
 import {
+  ACCENT_LIGHT,
   DANGER,
   SUCCESS_DEEP,
   SUCCESS_MID,
@@ -26,6 +29,7 @@ interface UpdateDialogProps {
   status: UpdateStatus;
   progress: number;
   onConfirm: () => void;
+  onOpenRelease: () => void;
   onClose: () => void;
 }
 
@@ -119,6 +123,7 @@ function UpdateDialog({
   status,
   progress,
   onConfirm,
+  onOpenRelease,
   onClose,
 }: UpdateDialogProps) {
   const isDownloading = status === 'downloading';
@@ -190,6 +195,20 @@ function UpdateDialog({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2 }}>
+        <Button
+          onClick={onOpenRelease}
+          startIcon={<OpenInNewRounded sx={{ fontSize: 16 }} />}
+          sx={{
+            mr: 'auto',
+            textTransform: 'none',
+            fontSize: '0.85rem',
+            color: ACCENT_LIGHT,
+            '&:hover': { backgroundColor: alpha(ACCENT_LIGHT, 0.12) },
+          }}
+        >
+          Страница релиза
+        </Button>
+
         <Button
           onClick={onClose}
           disabled={isDownloading}

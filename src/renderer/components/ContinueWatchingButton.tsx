@@ -1,40 +1,92 @@
-import React, { useState } from 'react';
-import { Box, Zoom, Menu, MenuItem, ListItemText } from '@mui/material';
+import React, { useRef, useState } from 'react';
+import { Box, Menu, MenuItem, ListItemText, Zoom } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { BookmarkRounded } from '@mui/icons-material';
 import { BookmarkItem } from '../api/animeApi';
 import EdgeActionButton from './EdgeActionButton';
 import {
+  BOOKMARKS_COVER,
+  BOOKMARKS_PANEL_DURATION_MS,
+  BOOKMARKS_PANEL_MAX_HEIGHT,
+  BOOKMARKS_PANEL_RADIUS,
+  BOOKMARKS_PANEL_WIDTH,
   FLOATING_BUTTONS_GAP,
   FLOATING_BUTTONS_TOP,
   OfflineContinueItem,
   buildOfflineUrl,
 } from '../../constants';
 import useImageWithReferer from '../hooks/useImageWithReferer';
-import { ACCENT, WHITE } from '../theme/palette';
+import {
+  formatContinueLabel,
+  formatOfflineLabel,
+} from '../utils/bookmarkFormat';
+import {
+  ACCENT,
+  ACCENT_LIGHT,
+  BORDER,
+  SURFACE_DIALOG,
+  WHITE,
+} from '../theme/palette';
 
-interface BookmarkMenuItemProps {
+const PAPER_SX = {
+  width: BOOKMARKS_PANEL_WIDTH,
+  maxHeight: BOOKMARKS_PANEL_MAX_HEIGHT,
+  overflowY: 'auto',
+  backgroundColor: SURFACE_DIALOG,
+  backgroundImage: 'none',
+  border: `1px solid ${alpha(ACCENT, 0.45)}`,
+  borderLeft: 'none',
+  borderRadius: `0 ${BOOKMARKS_PANEL_RADIUS}px ${BOOKMARKS_PANEL_RADIUS}px ${BOOKMARKS_PANEL_RADIUS}px`,
+  boxShadow: 'none',
+  '&::-webkit-scrollbar': { width: 6 },
+  '&::-webkit-scrollbar-thumb': {
+    backgroundColor: alpha(BORDER, 0.8),
+    borderRadius: 3,
+  },
+};
+
+const ROW_SX = {
+  gap: 1.25,
+  px: 1.5,
+  py: 0.75,
+  '&:hover': { backgroundColor: alpha(ACCENT, 0.14) },
+};
+
+const COVER_SX = {
+  width: BOOKMARKS_COVER.width,
+  height: BOOKMARKS_COVER.height,
+  flexShrink: 0,
+  borderRadius: 1,
+  overflow: 'hidden',
+  backgroundColor: alpha(BORDER, 0.35),
+};
+
+const TITLE_PROPS = {
+  fontSize: '0.875rem',
+  fontWeight: 600,
+  color: WHITE,
+  noWrap: true,
+};
+
+const CAPTION_PROPS = {
+  fontSize: '0.75rem',
+  sx: { color: ACCENT_LIGHT },
+};
+
+interface BookmarkRowProps {
   bookmark: BookmarkItem;
   onSelect: (bookmark: BookmarkItem) => void;
 }
 
 /**
- * Строка списка закладок с миниатюрой
+ * Строка закладки с миниатюрой
  */
-function BookmarkMenuItem({ bookmark, onSelect }: BookmarkMenuItemProps) {
+function BookmarkRow({ bookmark, onSelect }: BookmarkRowProps) {
   const coverUrl = useImageWithReferer(bookmark.coverUrl || undefined);
 
   return (
-    <MenuItem onClick={() => onSelect(bookmark)} sx={{ gap: 1.5, py: 1 }}>
-      <Box
-        sx={{
-          width: 34,
-          height: 48,
-          flexShrink: 0,
-          borderRadius: 1,
-          overflow: 'hidden',
-          backgroundColor: 'rgba(116, 116, 128, 0.2)',
-        }}
-      >
+    <MenuItem sx={ROW_SX} onClick={() => onSelect(bookmark)}>
+      <Box sx={COVER_SX}>
         {coverUrl && (
           <Box
             component="img"
@@ -47,46 +99,30 @@ function BookmarkMenuItem({ bookmark, onSelect }: BookmarkMenuItemProps) {
 
       <ListItemText
         primary={bookmark.title}
-        secondary={`Продолжить · ${bookmark.episodeNumber} эпизод`}
-        primaryTypographyProps={{
-          fontSize: '0.875rem',
-          fontWeight: 600,
-          noWrap: true,
-        }}
-        secondaryTypographyProps={{
-          fontSize: '0.75rem',
-          sx: { color: 'rgba(255, 255, 255, 0.65)' },
-        }}
+        secondary={formatContinueLabel(bookmark.episodeNumber)}
+        primaryTypographyProps={TITLE_PROPS}
+        secondaryTypographyProps={CAPTION_PROPS}
       />
     </MenuItem>
   );
 }
 
-interface OfflineMenuItemProps {
+interface OfflineRowProps {
   item: OfflineContinueItem;
   onSelect: (item: OfflineContinueItem) => void;
 }
 
 /**
- * Строка списка скачанного с локальной обложкой
+ * Строка скачанного с локальной обложкой
  */
-function OfflineMenuItem({ item, onSelect }: OfflineMenuItemProps) {
+function OfflineRow({ item, onSelect }: OfflineRowProps) {
   const coverUrl = item.coverFileName
     ? buildOfflineUrl(item.coverFileName)
     : '';
 
   return (
-    <MenuItem onClick={() => onSelect(item)} sx={{ gap: 1.5, py: 1 }}>
-      <Box
-        sx={{
-          width: 34,
-          height: 48,
-          flexShrink: 0,
-          borderRadius: 1,
-          overflow: 'hidden',
-          backgroundColor: 'rgba(116, 116, 128, 0.2)',
-        }}
-      >
+    <MenuItem sx={ROW_SX} onClick={() => onSelect(item)}>
+      <Box sx={COVER_SX}>
         {coverUrl && (
           <Box
             component="img"
@@ -99,16 +135,9 @@ function OfflineMenuItem({ item, onSelect }: OfflineMenuItemProps) {
 
       <ListItemText
         primary={item.title}
-        secondary={`Скачано · ${item.episodeNumber} эпизод`}
-        primaryTypographyProps={{
-          fontSize: '0.875rem',
-          fontWeight: 600,
-          noWrap: true,
-        }}
-        secondaryTypographyProps={{
-          fontSize: '0.75rem',
-          sx: { color: ACCENT },
-        }}
+        secondary={formatOfflineLabel(item.episodeNumber)}
+        primaryTypographyProps={TITLE_PROPS}
+        secondaryTypographyProps={CAPTION_PROPS}
       />
     </MenuItem>
   );
@@ -135,7 +164,9 @@ function ContinueWatchingButton({
   onSelectOffline,
   useOffline = false,
 }: ContinueWatchingButtonProps) {
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const anchorRef = useRef<HTMLDivElement | null>(null);
+  const [open, setOpen] = useState<boolean>(false);
+  const [attached, setAttached] = useState<boolean>(false);
 
   const showOffline = useOffline && offlineItems.length > 0;
 
@@ -145,7 +176,7 @@ function ContinueWatchingButton({
    */
   const closeMenu = () => {
     (document.activeElement as HTMLElement | null)?.blur();
-    setAnchorEl(null);
+    setOpen(false);
   };
 
   const handleSelect = (bookmark: BookmarkItem) => {
@@ -159,75 +190,60 @@ function ContinueWatchingButton({
   };
 
   return (
-    <>
-      <Zoom in={showOffline || bookmarks.length > 0}>
-        <Box
-          sx={{
-            position: 'fixed',
-            top: FLOATING_BUTTONS_TOP + FLOATING_BUTTONS_GAP,
-            left: 0,
-            zIndex: 1200,
-          }}
-        >
-          <EdgeActionButton
-            side="left"
-            solid
-            active={Boolean(anchorEl)}
-            label="Закладки"
-            color={WHITE}
-            onClick={(event) => setAnchorEl(event.currentTarget)}
-            icon={<BookmarkRounded sx={{ fontSize: 24, color: ACCENT }} />}
-          />
-        </Box>
-      </Zoom>
-
-      <Menu
-        anchorEl={anchorEl}
-        open={!!anchorEl}
-        onClose={closeMenu}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-        marginThreshold={8}
-        TransitionProps={{ timeout: 260 }}
-        slotProps={{
-          paper: {
-            sx: {
-              ml: 1.5,
-              minWidth: 280,
-              maxWidth: 360,
-              maxHeight: 400,
-              overflowY: 'auto',
-              transformOrigin: 'left top !important',
-              backgroundColor: 'rgba(20, 20, 20, 0.96)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(124, 58, 237, 0.35)',
-              boxShadow: '0 8px 28px rgba(0, 0, 0, 0.55)',
-              '&::-webkit-scrollbar': { width: 6 },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: 'rgba(116, 116, 128, 0.5)',
-                borderRadius: 3,
-              },
-            },
-          },
+    <Zoom in={showOffline || bookmarks.length > 0}>
+      <Box
+        ref={anchorRef}
+        sx={{
+          position: 'fixed',
+          top: FLOATING_BUTTONS_TOP + FLOATING_BUTTONS_GAP,
+          left: 0,
+          zIndex: 1200,
+          display: 'flex',
         }}
       >
-        {showOffline
-          ? offlineItems.map((item) => (
-              <OfflineMenuItem
-                key={`${item.animeId}-${item.episodeId}`}
-                item={item}
-                onSelect={handleSelectOffline}
-              />
-            ))
-          : bookmarks.map((bookmark) => (
-              <BookmarkMenuItem
-                key={bookmark.animeSlugUrl}
-                bookmark={bookmark}
-                onSelect={handleSelect}
-              />
-            ))}
-      </Menu>
-    </>
+        <EdgeActionButton
+          side="left"
+          solid
+          docked={attached}
+          active={attached}
+          label="Закладки"
+          color={WHITE}
+          onClick={() => {
+            setAttached(true);
+            setOpen(true);
+          }}
+          icon={<BookmarkRounded sx={{ fontSize: 24, color: ACCENT }} />}
+        />
+
+        <Menu
+          anchorEl={anchorRef.current}
+          open={open}
+          onClose={closeMenu}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+          marginThreshold={0}
+          transitionDuration={BOOKMARKS_PANEL_DURATION_MS}
+          TransitionProps={{ onExited: () => setAttached(false) }}
+          slotProps={{ paper: { sx: PAPER_SX }, list: { sx: { py: 0.75 } } }}
+        >
+          {showOffline
+            ? offlineItems.map((item) => (
+                <OfflineRow
+                  key={`${item.animeId}-${item.episodeId}`}
+                  item={item}
+                  onSelect={handleSelectOffline}
+                />
+              ))
+            : bookmarks.map((bookmark) => (
+                <BookmarkRow
+                  key={bookmark.animeSlugUrl}
+                  bookmark={bookmark}
+                  onSelect={handleSelect}
+                />
+              ))}
+        </Menu>
+      </Box>
+    </Zoom>
   );
 }
 

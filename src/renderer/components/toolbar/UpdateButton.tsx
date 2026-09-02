@@ -9,7 +9,8 @@ import { SUCCESS_DEEP, SUCCESS_STRONG, WHITE } from '../../theme/palette';
  * Кнопка обновления в тулбаре, видна только при наличии новой версии
  */
 function UpdateButton() {
-  const { updateInfo, status, progress, startUpdate } = useUpdateChecker();
+  const { updateInfo, status, progress, startUpdate, openRelease } =
+    useUpdateChecker();
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
 
   if (!updateInfo?.available) {
@@ -56,6 +57,7 @@ function UpdateButton() {
         status={status}
         progress={progress}
         onConfirm={handleConfirm}
+        onOpenRelease={openRelease}
         onClose={() => setDialogOpen(false)}
       />
     </>

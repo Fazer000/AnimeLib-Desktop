@@ -20,6 +20,16 @@ export const FLOATING_BUTTONS_GAP = 64;
 export const FLOATING_BUTTONS_BOTTOM = FLOATING_BUTTONS_LEFT;
 
 /**
+ * Панель быстрых закладок, примыкающая к кнопке
+ */
+export const BOOKMARKS_PANEL_WIDTH = 320;
+export const BOOKMARKS_PANEL_MAX_HEIGHT = 420;
+export const BOOKMARKS_PANEL_RADIUS = 10;
+export const BOOKMARKS_PANEL_DURATION_MS = 300;
+export const BOOKMARKS_PANEL_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
+export const BOOKMARKS_COVER = { width: 44, height: 62 } as const;
+
+/**
  * Границы резиновой ширины сайдбара озвучек, px
  */
 export const SIDEBAR_MIN_WIDTH = 300;
