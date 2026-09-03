@@ -1,6 +1,14 @@
 import React, { useRef, useState } from 'react';
-import { Box, Menu, MenuItem, ListItemText, Zoom } from '@mui/material';
+import {
+  Box,
+  Menu,
+  MenuItem,
+  ListItemText,
+  Zoom,
+  useTheme,
+} from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import type { CustomColors } from '@mui/material/styles';
 import { BookmarkRounded } from '@mui/icons-material';
 import { BookmarkItem } from '../api/animeApi';
 import EdgeActionButton from './EdgeActionButton';
@@ -20,58 +28,52 @@ import {
   formatContinueLabel,
   formatOfflineLabel,
 } from '../utils/bookmarkFormat';
-import {
-  ACCENT,
-  ACCENT_LIGHT,
-  BORDER,
-  SURFACE_DIALOG,
-  WHITE,
-} from '../theme/palette';
+import { ACCENT } from '../theme/palette';
 
-const PAPER_SX = {
+const paperSx = (colors: CustomColors) => ({
   width: BOOKMARKS_PANEL_WIDTH,
   maxHeight: BOOKMARKS_PANEL_MAX_HEIGHT,
   overflowY: 'auto',
-  backgroundColor: SURFACE_DIALOG,
+  backgroundColor: colors.dialogColor,
   backgroundImage: 'none',
-  border: `1px solid ${alpha(ACCENT, 0.45)}`,
+  border: `1px solid ${alpha(colors.secondaryColor, 0.45)}`,
   borderLeft: 'none',
   borderRadius: `0 ${BOOKMARKS_PANEL_RADIUS}px ${BOOKMARKS_PANEL_RADIUS}px ${BOOKMARKS_PANEL_RADIUS}px`,
   boxShadow: 'none',
   '&::-webkit-scrollbar': { width: 6 },
   '&::-webkit-scrollbar-thumb': {
-    backgroundColor: alpha(BORDER, 0.8),
+    backgroundColor: alpha(colors.borderColor, 0.8),
     borderRadius: 3,
   },
-};
+});
 
-const ROW_SX = {
+const rowSx = (colors: CustomColors) => ({
   gap: 1.25,
   px: 1.5,
   py: 0.75,
-  '&:hover': { backgroundColor: alpha(ACCENT, 0.14) },
-};
+  '&:hover': { backgroundColor: alpha(colors.secondaryColor, 0.14) },
+});
 
-const COVER_SX = {
+const coverSx = (colors: CustomColors) => ({
   width: BOOKMARKS_COVER.width,
   height: BOOKMARKS_COVER.height,
   flexShrink: 0,
   borderRadius: 1,
   overflow: 'hidden',
-  backgroundColor: alpha(BORDER, 0.35),
-};
+  backgroundColor: alpha(colors.borderColor, 0.35),
+});
 
-const TITLE_PROPS = {
+const titleProps = (colors: CustomColors) => ({
   fontSize: '0.875rem',
   fontWeight: 600,
-  color: WHITE,
+  color: colors.dialogTextColor,
   noWrap: true,
-};
+});
 
-const CAPTION_PROPS = {
+const captionProps = (colors: CustomColors) => ({
   fontSize: '0.75rem',
-  sx: { color: ACCENT_LIGHT },
-};
+  sx: { color: colors.accentSoftColor },
+});
 
 interface BookmarkRowProps {
   bookmark: BookmarkItem;
@@ -82,11 +84,12 @@ interface BookmarkRowProps {
  * Строка закладки с миниатюрой
  */
 function BookmarkRow({ bookmark, onSelect }: BookmarkRowProps) {
+  const { customColors } = useTheme().palette;
   const coverUrl = useImageWithReferer(bookmark.coverUrl || undefined);
 
   return (
-    <MenuItem sx={ROW_SX} onClick={() => onSelect(bookmark)}>
-      <Box sx={COVER_SX}>
+    <MenuItem sx={rowSx(customColors)} onClick={() => onSelect(bookmark)}>
+      <Box sx={coverSx(customColors)}>
         {coverUrl && (
           <Box
             component="img"
@@ -100,8 +103,8 @@ function BookmarkRow({ bookmark, onSelect }: BookmarkRowProps) {
       <ListItemText
         primary={bookmark.title}
         secondary={formatContinueLabel(bookmark.episodeNumber)}
-        primaryTypographyProps={TITLE_PROPS}
-        secondaryTypographyProps={CAPTION_PROPS}
+        primaryTypographyProps={titleProps(customColors)}
+        secondaryTypographyProps={captionProps(customColors)}
       />
     </MenuItem>
   );
@@ -116,13 +119,14 @@ interface OfflineRowProps {
  * Строка скачанного с локальной обложкой
  */
 function OfflineRow({ item, onSelect }: OfflineRowProps) {
+  const { customColors } = useTheme().palette;
   const coverUrl = item.coverFileName
     ? buildOfflineUrl(item.coverFileName)
     : '';
 
   return (
-    <MenuItem sx={ROW_SX} onClick={() => onSelect(item)}>
-      <Box sx={COVER_SX}>
+    <MenuItem sx={rowSx(customColors)} onClick={() => onSelect(item)}>
+      <Box sx={coverSx(customColors)}>
         {coverUrl && (
           <Box
             component="img"
@@ -136,8 +140,8 @@ function OfflineRow({ item, onSelect }: OfflineRowProps) {
       <ListItemText
         primary={item.title}
         secondary={formatOfflineLabel(item.episodeNumber)}
-        primaryTypographyProps={TITLE_PROPS}
-        secondaryTypographyProps={CAPTION_PROPS}
+        primaryTypographyProps={titleProps(customColors)}
+        secondaryTypographyProps={captionProps(customColors)}
       />
     </MenuItem>
   );
@@ -164,6 +168,7 @@ function ContinueWatchingButton({
   onSelectOffline,
   useOffline = false,
 }: ContinueWatchingButtonProps) {
+  const { customColors } = useTheme().palette;
   const anchorRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState<boolean>(false);
   const [attached, setAttached] = useState<boolean>(false);
@@ -207,7 +212,7 @@ function ContinueWatchingButton({
           docked={attached}
           active={attached}
           label="Закладки"
-          color={WHITE}
+          color={customColors.dialogTextColor}
           onClick={() => {
             setAttached(true);
             setOpen(true);
@@ -224,7 +229,10 @@ function ContinueWatchingButton({
           marginThreshold={0}
           transitionDuration={BOOKMARKS_PANEL_DURATION_MS}
           TransitionProps={{ onExited: () => setAttached(false) }}
-          slotProps={{ paper: { sx: PAPER_SX }, list: { sx: { py: 0.75 } } }}
+          slotProps={{
+            paper: { sx: paperSx(customColors) },
+            list: { sx: { py: 0.75 } },
+          }}
         >
           {showOffline
             ? offlineItems.map((item) => (

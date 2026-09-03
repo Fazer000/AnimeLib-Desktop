@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogTitle,
   Typography,
+  useTheme,
 } from '@mui/material';
 import { CloudOffRounded } from '@mui/icons-material';
 import {
@@ -29,6 +30,7 @@ function OfflineNoticeDialog({
   onOpenLibrary,
   onClose,
 }: OfflineNoticeDialogProps) {
+  const { customColors } = useTheme().palette;
   return (
     <Dialog
       open={open}
@@ -62,7 +64,10 @@ function OfflineNoticeDialog({
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button
           onClick={onClose}
-          sx={{ textTransform: 'none', color: 'rgba(255,255,255,0.6)' }}
+          sx={{
+            textTransform: 'none',
+            color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
+          }}
         >
           Остаться
         </Button>

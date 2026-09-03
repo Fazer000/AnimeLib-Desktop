@@ -139,3 +139,17 @@ export const DARK_TEXT_DISABLED = 'rgba(191, 191, 191, 0.5)';
 export const LIGHT_ALPHA_SURFACE = 'rgba(255, 255, 255, 0.10)';
 export const LIGHT_ALPHA_BORDER = 'rgba(224, 224, 224, 0.2)';
 export const LIGHT_TEXT_DISABLED = 'rgba(33, 33, 33, 0.38)';
+
+/**
+ * Базовые триплеты для полупрозрачных наложений: цвет берётся от схемы,
+ * а прозрачность задаётся на месте применения.
+ */
+export const DARK_ON_SURFACE_RGB = '255, 255, 255';
+export const LIGHT_ON_SURFACE_RGB = '26, 26, 26';
+export const DARK_OVERLAY_RGB = '20, 20, 20';
+export const LIGHT_OVERLAY_RGB = '255, 255, 255';
+export const DARK_ELEVATED_RGB = '55, 55, 55';
+export const LIGHT_ELEVATED_RGB = '224, 224, 224';
+export const ACCENT_RGB = '124, 58, 237';
+export const DANGER_RGB = '239, 83, 80';
+export const NEUTRAL_RGB = '116, 116, 128';

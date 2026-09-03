@@ -2,26 +2,39 @@ import { Theme, createTheme } from '@mui/material';
 import {
   ACCENT,
   ACCENT_DEEPEST,
+  ACCENT_LIGHT,
+  ACCENT_RGB,
   ACCENT_LIGHT_ALT,
   BLACK,
   BORDER,
   BORDER_LIGHT,
+  DANGER_RGB,
   DARK_ALPHA_BORDER,
   DARK_ALPHA_SURFACE,
+  DARK_ELEVATED_RGB,
+  DARK_ON_SURFACE_RGB,
+  DARK_OVERLAY_RGB,
   DARK_TEXT_ACCENT,
   DARK_TEXT_DISABLED,
   INFO,
   INFO_DEEP,
   LIGHT_ALPHA_BORDER,
   LIGHT_ALPHA_SURFACE,
+  LIGHT_ELEVATED_RGB,
+  LIGHT_ON_SURFACE_RGB,
+  LIGHT_OVERLAY_RGB,
   LIGHT_SURFACE,
   LIGHT_TEXT_DISABLED,
   LILAC_TINT,
   OFF_WHITE,
+  NEUTRAL_RGB,
   SURFACE,
+  LIGHT_SURFACE_CONTAINER_HIGH,
   SURFACE_DEEPEST,
+  SURFACE_DIALOG,
   SURFACE_HEADER,
   SURFACE_HOVER,
+  SURFACE_RAISED,
   TEXT_DIM,
   TEXT_ON_LIGHT,
   TEXT_ON_LIGHT_MUTED,
@@ -44,6 +57,17 @@ declare module '@mui/material/styles' {
     primaryTextColor: string;
     secondaryTextColor: string;
     accentTextColor: string;
+    dialogColor: string;
+    raisedColor: string;
+    dialogTextColor: string;
+    accentSoftColor: string;
+
+    onSurfaceRgb: string;
+    overlayRgb: string;
+    elevatedRgb: string;
+    accentRgb: string;
+    dangerRgb: string;
+    neutralRgb: string;
 
     whiteColor: string;
     grayColor: string;
@@ -61,6 +85,9 @@ declare module '@mui/material/styles' {
 }
 
 const SHARED = {
+  accentRgb: ACCENT_RGB,
+  dangerRgb: DANGER_RGB,
+  neutralRgb: NEUTRAL_RGB,
   whiteColor: WHITE,
   grayColor: OFF_WHITE,
   blackColor: BLACK,
@@ -79,6 +106,13 @@ const DARK_COLORS = {
   primaryTextColor: TEXT_PRIMARY,
   secondaryTextColor: ACCENT,
   accentTextColor: DARK_TEXT_ACCENT,
+  dialogColor: SURFACE_DIALOG,
+  raisedColor: SURFACE_RAISED,
+  dialogTextColor: WHITE,
+  accentSoftColor: ACCENT_LIGHT,
+  onSurfaceRgb: DARK_ON_SURFACE_RGB,
+  overlayRgb: DARK_OVERLAY_RGB,
+  elevatedRgb: DARK_ELEVATED_RGB,
   ...SHARED,
 };
 
@@ -94,6 +128,13 @@ const LIGHT_COLORS = {
   primaryTextColor: TEXT_ON_LIGHT,
   secondaryTextColor: ACCENT,
   accentTextColor: TEXT_ON_LIGHT_MUTED,
+  dialogColor: WHITE,
+  raisedColor: LIGHT_SURFACE_CONTAINER_HIGH,
+  dialogTextColor: TEXT_ON_LIGHT,
+  accentSoftColor: ACCENT,
+  onSurfaceRgb: LIGHT_ON_SURFACE_RGB,
+  overlayRgb: LIGHT_OVERLAY_RGB,
+  elevatedRgb: LIGHT_ELEVATED_RGB,
   ...SHARED,
 };
 

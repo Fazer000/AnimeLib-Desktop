@@ -9,6 +9,7 @@ import {
   IconButton,
   LinearProgress,
   Typography,
+  useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { CloseRounded, PlayArrowRounded } from '@mui/icons-material';
@@ -81,6 +82,7 @@ const buildDetails = (task: DownloadTask, speed: number): string => {
  * Список активных и завершённых загрузок
  */
 function DownloadsList({ tasks }: DownloadsListProps) {
+  const { customColors } = useTheme().palette;
   const speeds = useDownloadSpeed(tasks);
   const [confirmOpen, setConfirmOpen] = useState<boolean>(false);
 
@@ -90,7 +92,10 @@ function DownloadsList({ tasks }: DownloadsListProps) {
   if (tasks.length === 0) {
     return (
       <Typography
-        sx={{ fontSize: OFFLINE_FONT.body, color: 'rgba(255,255,255,0.5)' }}
+        sx={{
+          fontSize: OFFLINE_FONT.body,
+          color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
+        }}
       >
         Очередь пуста. Загруженные серии доступны на вкладке «Библиотека».
       </Typography>
@@ -135,7 +140,10 @@ function DownloadsList({ tasks }: DownloadsListProps) {
       {tasks.map((task) => (
         <Box
           key={task.id}
-          sx={{ py: 1.25, borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+          sx={{
+            py: 1.25,
+            borderBottom: `1px solid rgba(${customColors.onSurfaceRgb}, 0.06)`,
+          }}
         >
           <Box
             sx={{
@@ -154,7 +162,9 @@ function DownloadsList({ tasks }: DownloadsListProps) {
                 sx={{
                   fontSize: OFFLINE_FONT.hint,
                   color:
-                    task.status === 'error' ? DANGER : 'rgba(255,255,255,0.55)',
+                    task.status === 'error'
+                      ? DANGER
+                      : `rgba(${customColors.onSurfaceRgb}, 0.55)`,
                 }}
               >
                 {task.status === 'downloading'
@@ -192,7 +202,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
                 mt: 1,
                 height: 5,
                 borderRadius: 2.5,
-                backgroundColor: 'rgba(255,255,255,0.12)',
+                backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.12)`,
                 '& .MuiLinearProgress-bar': { backgroundColor: ACCENT },
               }}
             />
@@ -202,7 +212,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
             <Typography
               sx={{
                 fontSize: OFFLINE_FONT.hint,
-                color: 'rgba(255,255,255,0.45)',
+                color: `rgba(${customColors.onSurfaceRgb}, 0.45)`,
                 mt: 0.5,
               }}
             >

@@ -9,7 +9,9 @@ import {
   Select,
   Tooltip,
   Typography,
+  useTheme,
 } from '@mui/material';
+import type { CustomColors } from '@mui/material/styles';
 import { DownloadDoneRounded } from '@mui/icons-material';
 import { Episode, Player } from '../../api/animeApi';
 import {
@@ -23,7 +25,6 @@ import {
   DANGER,
   SUCCESS_MID,
   SURFACE_RAISED,
-  WHITE,
 } from '../../theme/palette';
 
 export type KodikQualityMap = Record<number, string[]>;
@@ -47,26 +48,28 @@ interface EpisodeSelectionListProps {
   onEpisodeQualityChange: (episodeId: number, quality: string) => void;
 }
 
-const SELECT_SX = {
+const selectSx = (customColors: CustomColors) => ({
   fontSize: OFFLINE_FONT.episode,
-  color: WHITE,
+  color: customColors.dialogTextColor,
   '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: 'rgba(255,255,255,0.18)',
+    borderColor: `rgba(${customColors.onSurfaceRgb}, 0.18)`,
   },
-  '& .MuiSvgIcon-root': { color: 'rgba(255,255,255,0.6)' },
-};
+  '& .MuiSvgIcon-root': {
+    color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
+  },
+});
 
-const LABEL_SX = {
+const labelSx = (customColors: CustomColors) => ({
   fontSize: OFFLINE_FONT.episode,
-  color: 'rgba(255,255,255,0.55)',
+  color: `rgba(${customColors.onSurfaceRgb}, 0.55)`,
   '&.Mui-focused': { color: ACCENT },
-};
+});
 
-const CHECKBOX_SX = {
-  color: 'rgba(255,255,255,0.45)',
+const checkboxSx = (customColors: CustomColors) => ({
+  color: `rgba(${customColors.onSurfaceRgb}, 0.45)`,
   '&.Mui-checked': { color: ACCENT },
   '&.MuiCheckbox-indeterminate': { color: ACCENT },
-};
+});
 
 const DOWNLOADED_CHECKBOX_SX = {
   '&.Mui-disabled': { color: SUCCESS_MID },
@@ -164,6 +167,7 @@ function EpisodeSelectionList({
   onDefaultQualityChange,
   onEpisodeQualityChange,
 }: EpisodeSelectionListProps) {
+  const { customColors } = useTheme().palette;
   const selectableCount = episodes.filter(
     (item) => !downloadedIds.includes(item.id),
   ).length;
@@ -185,7 +189,7 @@ function EpisodeSelectionList({
       >
         <Box sx={{ display: 'flex', gap: 1.5, mb: 2, mt: 0.5 }}>
           <FormControl size="small" sx={{ flex: 1 }}>
-            <InputLabel id="offline-team-label" sx={LABEL_SX}>
+            <InputLabel id="offline-team-label" sx={labelSx(customColors)}>
               Озвучка
             </InputLabel>
             <Select
@@ -194,7 +198,7 @@ function EpisodeSelectionList({
               value={teams.includes(teamName) ? teamName : ''}
               onChange={(event) => onTeamChange(event.target.value)}
               displayEmpty
-              sx={SELECT_SX}
+              sx={selectSx(customColors)}
             >
               {teams.length === 0 && (
                 <MenuItem value="">Озвучки не найдены</MenuItem>
@@ -208,7 +212,11 @@ function EpisodeSelectionList({
           </FormControl>
 
           <FormControl size="small" sx={{ width: 200 }}>
-            <InputLabel id="offline-quality-label" shrink sx={LABEL_SX}>
+            <InputLabel
+              id="offline-quality-label"
+              shrink
+              sx={labelSx(customColors)}
+            >
               Общее качество
             </InputLabel>
             <Select
@@ -220,7 +228,7 @@ function EpisodeSelectionList({
               onChange={(event) => onDefaultQualityChange(event.target.value)}
               displayEmpty
               notched
-              sx={SELECT_SX}
+              sx={selectSx(customColors)}
             >
               {defaultQualities.length === 0 && <MenuItem value="">—</MenuItem>}
               {defaultQualities.map((item) => (
@@ -236,7 +244,7 @@ function EpisodeSelectionList({
           sx={{
             display: 'flex',
             alignItems: 'center',
-            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            borderBottom: `1px solid rgba(${customColors.onSurfaceRgb}, 0.1)`,
             pb: 0.5,
           }}
         >
@@ -246,7 +254,7 @@ function EpisodeSelectionList({
             disabled={selectableCount === 0}
             indeterminate={selectedIds.length > 0 && !allSelected}
             onChange={onToggleAll}
-            sx={CHECKBOX_SX}
+            sx={checkboxSx(customColors)}
           />
           <Typography sx={{ fontSize: OFFLINE_FONT.body }}>
             {`Выбрать все · выбрано ${selectedIds.length}`}
@@ -315,13 +323,15 @@ function EpisodeSelectionList({
                         Boolean((event.nativeEvent as MouseEvent).shiftKey),
                       )
                     }
-                    sx={CHECKBOX_SX}
+                    sx={checkboxSx(customColors)}
                   />
                 )}
                 <Typography
                   sx={{
                     fontSize: OFFLINE_FONT.body,
-                    color: isDownloaded ? 'rgba(255,255,255,0.55)' : 'inherit',
+                    color: isDownloaded
+                      ? `rgba(${customColors.onSurfaceRgb}, 0.55)`
+                      : 'inherit',
                   }}
                   noWrap
                 >
@@ -331,7 +341,7 @@ function EpisodeSelectionList({
                   <Typography
                     sx={{
                       fontSize: OFFLINE_FONT.hint,
-                      color: 'rgba(255,255,255,0.45)',
+                      color: `rgba(${customColors.onSurfaceRgb}, 0.45)`,
                       ml: 1.25,
                     }}
                   >
@@ -361,7 +371,7 @@ function EpisodeSelectionList({
                     onChange={(event) =>
                       onEpisodeQualityChange(episode.id, event.target.value)
                     }
-                    sx={{ ...SELECT_SX, height: 34 }}
+                    sx={{ ...selectSx(customColors), height: 34 }}
                   >
                     {qualities.map((item) => (
                       <MenuItem key={item} value={item}>

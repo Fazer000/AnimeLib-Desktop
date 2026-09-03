@@ -12,7 +12,10 @@ import {
   Tabs,
   Tooltip,
   Typography,
+  useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import type { CustomColors } from '@mui/material/styles';
 import { FolderOpenRounded } from '@mui/icons-material';
 import { animeApi, AnimeInfo, Episode, Player } from '../../api/animeApi';
 import { offlineStore, sizeEstimator } from '../../services/offline';
@@ -44,12 +47,7 @@ import {
 import { getSiteOrigin } from '../../utils/urlHelpers';
 
 import { createLogger } from '../../../shared/logger';
-import {
-  ACCENT,
-  ACCENT_DEEP,
-  SURFACE_RAISED,
-  WHITE,
-} from '../../theme/palette';
+import { ACCENT, ACCENT_DEEP } from '../../theme/palette';
 
 const log = createLogger('DownloadManager');
 
@@ -84,18 +82,18 @@ const getAuthToken = (): string => {
   }
 };
 
-const FOOTER_BUTTON_SX = {
+const footerButtonSx = (customColors: CustomColors) => ({
   textTransform: 'none',
   fontSize: OFFLINE_FONT.button,
-  color: 'rgba(255,255,255,0.85)',
-  border: '1px solid rgba(255,255,255,0.18)',
+  color: `rgba(${customColors.onSurfaceRgb}, 0.85)`,
+  border: `1px solid rgba(${customColors.onSurfaceRgb}, 0.18)`,
   px: 2,
   '&:hover': {
-    color: WHITE,
+    color: customColors.dialogTextColor,
     borderColor: ACCENT,
-    backgroundColor: 'rgba(124, 58, 237, 0.14)',
+    backgroundColor: alpha(ACCENT, 0.14),
   },
-};
+});
 
 /**
  * Менеджер загрузки серий для оффлайн-просмотра
@@ -111,6 +109,7 @@ function DownloadManagerDialog({
   initialTab,
   onPlayOffline,
 }: DownloadManagerDialogProps) {
+  const { customColors } = useTheme().palette;
   const snapshot = useOfflineLibrary();
   const hasContext = Boolean(animeId) && episodes.length > 0;
 
@@ -521,9 +520,9 @@ function DownloadManagerDialog({
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: SURFACE_RAISED,
+            backgroundColor: customColors.raisedColor,
             backgroundImage: 'none',
-            color: WHITE,
+            color: customColors.dialogTextColor,
             borderRadius: 2,
             height: OFFLINE_DIALOG_HEIGHT,
             display: 'flex',
@@ -577,7 +576,7 @@ function DownloadManagerDialog({
       <DialogContent
         dividers
         sx={{
-          borderColor: 'rgba(255,255,255,0.1)',
+          borderColor: `rgba(${customColors.onSurfaceRgb}, 0.1)`,
           flex: 1,
           minHeight: 0,
           overflowY: 'auto',
@@ -659,7 +658,10 @@ function DownloadManagerDialog({
         }}
       >
         <Typography
-          sx={{ fontSize: OFFLINE_FONT.hint, color: 'rgba(255,255,255,0.45)' }}
+          sx={{
+            fontSize: OFFLINE_FONT.hint,
+            color: `rgba(${customColors.onSurfaceRgb}, 0.45)`,
+          }}
         >
           Папка:
         </Typography>
@@ -667,7 +669,9 @@ function DownloadManagerDialog({
           <Typography
             sx={{
               fontSize: OFFLINE_FONT.hint,
-              color: migration ? ACCENT : 'rgba(255,255,255,0.7)',
+              color: migration
+                ? ACCENT
+                : `rgba(${customColors.onSurfaceRgb}, 0.7)`,
               flex: 1,
               minWidth: 0,
             }}
@@ -681,7 +685,7 @@ function DownloadManagerDialog({
           <Typography
             sx={{
               fontSize: OFFLINE_FONT.hint,
-              color: 'rgba(255,255,255,0.45)',
+              color: `rgba(${customColors.onSurfaceRgb}, 0.45)`,
               flexShrink: 0,
             }}
           >
@@ -695,7 +699,7 @@ function DownloadManagerDialog({
           disabled={Boolean(migration)}
           startIcon={<FolderOpenRounded sx={{ fontSize: OFFLINE_ICON.md }} />}
           onClick={handleChooseDirectory}
-          sx={{ ...FOOTER_BUTTON_SX, flexShrink: 0 }}
+          sx={{ ...footerButtonSx(customColors), flexShrink: 0 }}
         >
           Сменить папку
         </Button>
@@ -705,7 +709,7 @@ function DownloadManagerDialog({
           variant="outlined"
           disabled={Boolean(migration)}
           onClick={() => offlineStore.openDirectory()}
-          sx={{ ...FOOTER_BUTTON_SX, flexShrink: 0 }}
+          sx={{ ...footerButtonSx(customColors), flexShrink: 0 }}
         >
           Открыть
         </Button>
@@ -735,7 +739,7 @@ function DownloadManagerDialog({
           flexShrink: 0,
           boxSizing: 'border-box',
           justifyContent: 'flex-end',
-          borderTop: '1px solid rgba(255,255,255,0.1)',
+          borderTop: `1px solid rgba(${customColors.onSurfaceRgb}, 0.1)`,
         }}
       >
         <Box sx={{ display: 'flex', gap: 1.25 }}>
@@ -749,11 +753,11 @@ function DownloadManagerDialog({
                 fontSize: OFFLINE_FONT.body,
                 px: 2,
                 backgroundColor: ACCENT,
-                color: WHITE,
+                color: customColors.dialogTextColor,
                 '&:hover': { backgroundColor: ACCENT_DEEP },
                 '&.Mui-disabled': {
-                  backgroundColor: 'rgba(124, 58, 237, 0.25)',
-                  color: 'rgba(255,255,255,0.4)',
+                  backgroundColor: alpha(ACCENT, 0.25),
+                  color: `rgba(${customColors.onSurfaceRgb}, 0.4)`,
                 },
               }}
             >
@@ -770,11 +774,11 @@ function DownloadManagerDialog({
               textTransform: 'none',
               fontSize: OFFLINE_FONT.body,
               px: 2,
-              color: WHITE,
-              backgroundColor: 'rgba(255,255,255,0.14)',
+              color: customColors.dialogTextColor,
+              backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.14)`,
               boxShadow: 'none',
               '&:hover': {
-                backgroundColor: 'rgba(255,255,255,0.22)',
+                backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.22)`,
                 boxShadow: 'none',
               },
             }}
@@ -790,9 +794,9 @@ function DownloadManagerDialog({
         slotProps={{
           paper: {
             sx: {
-              backgroundColor: SURFACE_RAISED,
+              backgroundColor: customColors.raisedColor,
               backgroundImage: 'none',
-              color: WHITE,
+              color: customColors.dialogTextColor,
             },
           },
         }}
@@ -807,7 +811,7 @@ function DownloadManagerDialog({
           <Typography
             sx={{
               fontSize: OFFLINE_FONT.caption,
-              color: 'rgba(255,255,255,0.5)',
+              color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
               mt: 1.25,
             }}
           >
@@ -820,7 +824,7 @@ function DownloadManagerDialog({
             sx={{
               textTransform: 'none',
               fontSize: OFFLINE_FONT.button,
-              color: 'rgba(255,255,255,0.6)',
+              color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
             }}
           >
             Отмена
@@ -837,7 +841,7 @@ function DownloadManagerDialog({
               fontSize: OFFLINE_FONT.button,
               px: 2,
               backgroundColor: ACCENT,
-              color: WHITE,
+              color: customColors.dialogTextColor,
               '&:hover': { backgroundColor: ACCENT_DEEP },
             }}
           >

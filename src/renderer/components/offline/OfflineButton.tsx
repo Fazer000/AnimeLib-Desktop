@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import type { CustomColors } from '@mui/material/styles';
 import { DownloadRounded } from '@mui/icons-material';
 import DownloadManagerDialog from './DownloadManagerDialog';
 import EdgeActionButton from '../EdgeActionButton';
 import useOfflineLibrary from '../../hooks/useOfflineLibrary';
 import { FLOATING_BUTTONS_TOP, isActiveDownload } from '../../../constants';
-import { ACCENT, WHITE } from '../../theme/palette';
 
 interface OfflineButtonProps {
   // eslint-disable-next-line react/require-default-props
@@ -16,7 +17,7 @@ interface OfflineButtonProps {
   onOpenHandled?: () => void;
 }
 
-const COUNTER_SX = {
+const counterSx = (colors: CustomColors) => ({
   position: 'absolute',
   top: 1,
   left: 26,
@@ -28,16 +29,16 @@ const COUNTER_SX = {
   alignItems: 'center',
   justifyContent: 'center',
   borderRadius: '8px',
-  backgroundColor: ACCENT,
-  color: WHITE,
+  backgroundColor: colors.secondaryColor,
+  color: colors.whiteColor,
   fontSize: '0.62rem',
   fontWeight: 700,
   lineHeight: 1,
-  border: '2px solid rgba(20, 20, 20, 0.9)',
-  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.5)',
+  border: `2px solid rgba(${colors.overlayRgb}, 0.9)`,
+  boxShadow: `0 2px 6px ${alpha(colors.blackColor, 0.5)}`,
   pointerEvents: 'none',
   zIndex: 1,
-};
+});
 
 /**
  * Плавающая кнопка менеджера загрузок вне плеера
@@ -47,6 +48,7 @@ function OfflineButton({
   openTab = null,
   onOpenHandled,
 }: OfflineButtonProps) {
+  const { customColors } = useTheme().palette;
   const snapshot = useOfflineLibrary();
   const [open, setOpen] = useState<boolean>(false);
   const [initialTab, setInitialTab] = useState<number | undefined>(undefined);
@@ -80,16 +82,22 @@ function OfflineButton({
           solid
           active={open}
           label="Загрузки"
-          color={WHITE}
+          color={customColors.dialogTextColor}
           onClick={() => {
             setInitialTab(2);
             setOpen(true);
           }}
-          icon={<DownloadRounded sx={{ fontSize: 24, color: ACCENT }} />}
+          icon={
+            <DownloadRounded
+              sx={{ fontSize: 24, color: customColors.secondaryColor }}
+            />
+          }
         />
 
         {activeCount > 0 && (
-          <Box sx={COUNTER_SX}>{activeCount > 99 ? '99+' : activeCount}</Box>
+          <Box sx={counterSx(customColors)}>
+            {activeCount > 99 ? '99+' : activeCount}
+          </Box>
         )}
       </Box>
 

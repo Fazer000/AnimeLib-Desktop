@@ -1,5 +1,5 @@
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import {
   BOOKMARKS_PANEL_DURATION_MS,
   BOOKMARKS_PANEL_EASING,
@@ -41,6 +41,7 @@ function EdgeActionButton({
   solid = false,
   docked = false,
 }: EdgeActionButtonProps) {
+  const { customColors } = useTheme().palette;
   const ghostRef = useRef<HTMLSpanElement | null>(null);
   const [labelWidth, setLabelWidth] = useState<number>(0);
   const [hovered, setHovered] = useState<boolean>(false);
@@ -122,17 +123,21 @@ function EdgeActionButton({
         overflow: 'hidden',
         userSelect: 'none',
         backgroundColor: active
-          ? 'rgba(124, 58, 237, 0.28)'
-          : `rgba(20, 20, 20, ${solid ? 0.9 : 0.45})`,
+          ? `rgba(${customColors.accentRgb}, 0.28)`
+          : `rgba(${customColors.overlayRgb}, ${solid ? 0.9 : 0.45})`,
         backdropFilter: solid ? 'blur(10px)' : 'none',
-        border: `1px solid ${active ? 'rgba(124, 58, 237, 0.6)' : 'rgba(116, 116, 128, 0.33)'}`,
+        border: `1px solid ${
+          active
+            ? `rgba(${customColors.accentRgb}, 0.6)`
+            : `rgba(${customColors.neutralRgb}, 0.33)`
+        }`,
         borderLeft: isLeft ? 'none' : dockedSide,
         borderRight: isLeft ? dockedSide : 'none',
         borderRadius: dockedRadius,
         boxSizing: 'content-box',
         outline: 'none',
         '&:focus-visible': {
-          outline: '2px solid rgba(124, 58, 237, 0.8)',
+          outline: `2px solid rgba(${customColors.accentRgb}, 0.8)`,
           outlineOffset: '-2px',
         },
         transition: [
@@ -140,8 +145,12 @@ function EdgeActionButton({
           'background-color 0.25s ease',
           `border-radius ${BOOKMARKS_PANEL_DURATION_MS}ms ${BOOKMARKS_PANEL_EASING}`,
         ].join(', '),
-        '&:hover': { backgroundColor: 'rgba(55, 55, 55, 0.52)' },
-        '&:active': { backgroundColor: 'rgba(55, 55, 55, 0.72)' },
+        '&:hover': {
+          backgroundColor: `rgba(${customColors.elevatedRgb}, 0.52)`,
+        },
+        '&:active': {
+          backgroundColor: `rgba(${customColors.elevatedRgb}, 0.72)`,
+        },
       }}
     >
       <Typography

@@ -12,6 +12,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  useTheme,
 } from '@mui/material';
 import {
   CloseRounded,
@@ -99,6 +100,7 @@ const buildEpisodeLabel = (episode: OfflineEpisode): string =>
  * Библиотека скачанного с поиском, запуском просмотра и удалением серий
  */
 function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
+  const { customColors } = useTheme().palette;
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [pending, setPending] = useState<PendingRemoval | null>(null);
   const [query, setQuery] = useState<string>('');
@@ -118,7 +120,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
       <Typography
         sx={{
           fontSize: OFFLINE_FONT.body,
-          color: 'rgba(255,255,255,0.5)',
+          color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
           pt: 2,
         }}
       >
@@ -155,7 +157,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                   <SearchRounded
                     sx={{
                       fontSize: OFFLINE_ICON.md,
-                      color: 'rgba(255,255,255,0.45)',
+                      color: `rgba(${customColors.onSurfaceRgb}, 0.45)`,
                     }}
                   />
                 </InputAdornment>
@@ -175,10 +177,10 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                 backgroundColor: SURFACE_RAISED,
               },
               '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: 'rgba(255,255,255,0.18)',
+                borderColor: `rgba(${customColors.onSurfaceRgb}, 0.18)`,
               },
               '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: 'rgba(255,255,255,0.3)',
+                borderColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
               },
               '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
                 borderColor: ACCENT,
@@ -190,7 +192,10 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
 
       {filtered.length === 0 && (
         <Typography
-          sx={{ fontSize: OFFLINE_FONT.body, color: 'rgba(255,255,255,0.5)' }}
+          sx={{
+            fontSize: OFFLINE_FONT.body,
+            color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
+          }}
         >
           Ничего не найдено
         </Typography>
@@ -219,7 +224,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
             sx={{
               mb: 2,
               pb: 2,
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              borderBottom: `1px solid rgba(${customColors.onSurfaceRgb}, 0.06)`,
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
@@ -236,7 +241,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                   cursor: 'pointer',
                   transition: 'background-color 0.15s',
                   '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.07)',
+                    backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.07)`,
                     '& .library-chevron': { color: WHITE },
                   },
                 }}
@@ -248,7 +253,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                     flexShrink: 0,
                     borderRadius: 1,
                     overflow: 'hidden',
-                    backgroundColor: 'rgba(255,255,255,0.08)',
+                    backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.08)`,
                   }}
                 >
                   {coverUrl && (
@@ -271,7 +276,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                   <Typography
                     sx={{
                       fontSize: OFFLINE_FONT.caption,
-                      color: 'rgba(255,255,255,0.5)',
+                      color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
                       mt: 0.25,
                     }}
                   >
@@ -292,7 +297,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                   sx={{
                     fontSize: OFFLINE_ICON.lg,
                     flexShrink: 0,
-                    color: 'rgba(255,255,255,0.4)',
+                    color: `rgba(${customColors.onSurfaceRgb}, 0.4)`,
                     transition: 'transform 0.2s, color 0.15s',
                     transform: isExpanded ? 'rotate(180deg)' : 'none',
                   }}
@@ -332,12 +337,12 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                     height: 40,
                     borderRadius: 1.5,
                     color: DANGER,
-                    border: '1px solid rgba(239, 83, 80, 0.3)',
-                    backgroundColor: 'rgba(239, 83, 80, 0.08)',
+                    border: `1px solid rgba(${customColors.dangerRgb}, 0.3)`,
+                    backgroundColor: `rgba(${customColors.dangerRgb}, 0.08)`,
                     transition: 'background-color 0.15s, border-color 0.15s',
                     '&:hover': {
-                      backgroundColor: 'rgba(239, 83, 80, 0.2)',
-                      borderColor: 'rgba(239, 83, 80, 0.6)',
+                      backgroundColor: `rgba(${customColors.dangerRgb}, 0.2)`,
+                      borderColor: `rgba(${customColors.dangerRgb}, 0.6)`,
                     },
                   }}
                   onClick={() =>
@@ -373,7 +378,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                       cursor: onPlay ? 'pointer' : 'default',
                       transition: 'background-color 0.12s',
                       '&:hover': {
-                        backgroundColor: 'rgba(255,255,255,0.07)',
+                        backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.07)`,
                         '& .episode-remove': {
                           opacity: 1,
                           color: DANGER,
@@ -390,7 +395,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                           episode.fileName === activeFile ||
                           progress?.episodeId === episode.episodeId
                             ? ACCENT
-                            : 'rgba(255,255,255,0.75)',
+                            : `rgba(${customColors.onSurfaceRgb}, 0.75)`,
                       }}
                       noWrap
                     >
@@ -403,10 +408,10 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                       sx={{
                         flexShrink: 0,
                         opacity: 0.35,
-                        color: 'rgba(255,255,255,0.75)',
+                        color: `rgba(${customColors.onSurfaceRgb}, 0.75)`,
                         transition: 'opacity 0.12s, color 0.12s',
                         '&:hover': {
-                          backgroundColor: 'rgba(239, 83, 80, 0.14)',
+                          backgroundColor: `rgba(${customColors.dangerRgb}, 0.14)`,
                         },
                       }}
                       onClick={(event) => {
@@ -466,7 +471,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
             <Typography
               sx={{
                 fontSize: OFFLINE_FONT.caption,
-                color: 'rgba(255,255,255,0.5)',
+                color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
                 mt: 1.25,
               }}
             >
@@ -480,7 +485,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
             sx={{
               textTransform: 'none',
               fontSize: OFFLINE_FONT.button,
-              color: 'rgba(255,255,255,0.6)',
+              color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
             }}
           >
             Отмена
