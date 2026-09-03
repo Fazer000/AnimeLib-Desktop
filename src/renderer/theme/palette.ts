@@ -68,3 +68,65 @@ export const INFO_BRIGHT = '#3B82F6';
 /** Метки качества видео. */
 export const QUALITY_4K = '#F5A623';
 export const QUALITY_SD = '#9CA3AF';
+
+/** Поверхности тёмной схемы, от кадра к самой светлой ступени. */
+export const DARK_SURFACE_VIDEO = '#000000';
+export const DARK_SURFACE = '#0E0E10';
+export const DARK_SURFACE_CONTAINER = '#16161A';
+export const DARK_SURFACE_CONTAINER_HIGH = '#1C1C20';
+export const DARK_SURFACE_CONTAINER_HIGHEST = '#26262A';
+
+/** Текст тёмной схемы. */
+export const DARK_ON_SURFACE = '#E6E6E8';
+export const DARK_ON_SURFACE_VARIANT = '#8A8A92';
+export const DARK_ON_SURFACE_MUTED = '#64646C';
+export const DARK_ON_SURFACE_DISABLED = '#3E3E45';
+
+/** Границы тёмной схемы: альфа работает на любой поверхности. */
+export const DARK_OUTLINE_VARIANT = 'rgba(255, 255, 255, 0.08)';
+export const DARK_OUTLINE = 'rgba(255, 255, 255, 0.16)';
+
+/** Акцент тёмной схемы: заливка кнопок и светлый тон для текста выделения. */
+export const DARK_PRIMARY = '#5E35B1';
+export const DARK_PRIMARY_ACCENT = '#B39DDB';
+export const DARK_PRIMARY_CONTAINER = 'rgba(94, 53, 177, 0.26)';
+export const DARK_PRIMARY_QUIET = 'rgba(94, 53, 177, 0.16)';
+
+/** Поверхности светлой схемы. Кадр остаётся чёрным в обеих. */
+export const LIGHT_SURFACE_VIDEO = '#000000';
+export const LIGHT_SURFACE = '#F2F2F4';
+export const LIGHT_SURFACE_CONTAINER = '#FFFFFF';
+export const LIGHT_SURFACE_CONTAINER_HIGH = '#E8E8EC';
+export const LIGHT_SURFACE_CONTAINER_HIGHEST = '#DBDBE0';
+
+/** Текст светлой схемы. */
+export const LIGHT_ON_SURFACE = '#17171A';
+export const LIGHT_ON_SURFACE_VARIANT = '#56565E';
+export const LIGHT_ON_SURFACE_MUTED = '#83838C';
+export const LIGHT_ON_SURFACE_DISABLED = '#B2B2B9';
+
+/** Границы светлой схемы. */
+export const LIGHT_OUTLINE_VARIANT = 'rgba(20, 18, 30, 0.10)';
+export const LIGHT_OUTLINE = 'rgba(20, 18, 30, 0.20)';
+
+/** Акцент светлой схемы: на светлом фоне он же служит цветом выделения. */
+export const LIGHT_PRIMARY = '#5E35B1';
+export const LIGHT_PRIMARY_ACCENT = '#5E35B1';
+export const LIGHT_PRIMARY_CONTAINER = 'rgba(94, 53, 177, 0.12)';
+export const LIGHT_PRIMARY_QUIET = 'rgba(94, 53, 177, 0.07)';
+
+/** Разрушительное действие и подложка его иконки. */
+export const DARK_ERROR = DANGER_BRIGHT;
+export const DARK_ERROR_CONTAINER = 'rgba(239, 68, 68, 0.16)';
+export const LIGHT_ERROR = '#DC2626';
+export const LIGHT_ERROR_CONTAINER = 'rgba(220, 38, 38, 0.10)';
+
+/** Успех: серия скачана, задача завершена. */
+export const DARK_SUCCESS = SUCCESS;
+export const LIGHT_SUCCESS = '#16A34A';
+
+/** Метки качества светлой схемы: те же хюи, затемнённые под белый фон. */
+export const LIGHT_QUALITY_4K = '#8A5406';
+export const LIGHT_QUALITY_FHD = ACCENT_DEEPEST;
+export const LIGHT_QUALITY_HD = '#1D4ED8';
+export const LIGHT_QUALITY_SD = '#4E5561';

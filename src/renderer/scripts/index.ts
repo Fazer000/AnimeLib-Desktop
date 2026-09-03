@@ -12,3 +12,9 @@ export {
   customSelectInjectorMain,
   getCustomSelectScript,
 } from './customSelectInjector';
+export {
+  SITE_THEME_MARKER,
+  installSiteThemeWatcher,
+  parseSiteThemeMessage,
+  readSiteTheme,
+} from './siteThemeExtractor';

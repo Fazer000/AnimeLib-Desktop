@@ -11,9 +11,13 @@ import useStableSize from '../hooks/useStableSize';
 import {
   extractAuthToken,
   injectClickInterceptor,
+  installSiteThemeWatcher,
+  parseSiteThemeMessage,
+  readSiteTheme,
   type AuthExtractionOutcome,
 } from '../scripts';
 import { bookmarksStore } from '../services/bookmarks';
+import { themeModeStore } from '../services/theme';
 import {
   WebViewManager,
   ScriptInjectionManager,
@@ -133,6 +137,22 @@ function WebViewRefactored({
       });
 
       scriptManager.registerCallback(() => {
+        log.debug('Syncing site theme...');
+        try {
+          installSiteThemeWatcher(webview).catch(() => {});
+          readSiteTheme(webview)
+            .then((mode) => {
+              themeModeStore.setMode(mode);
+
+              return mode;
+            })
+            .catch(() => {});
+        } catch (error) {
+          log.error('Error syncing site theme:', error);
+        }
+      });
+
+      scriptManager.registerCallback(() => {
         log.debug('Injecting custom selects...');
         try {
           scriptManager.injectCustomSelects().catch(() => {});
@@ -210,6 +230,12 @@ function WebViewRefactored({
       scriptManager.inject();
     };
 
+    const handleConsoleMessage = (e: any) => {
+      const mode = parseSiteThemeMessage(e?.message);
+      if (mode) themeModeStore.setMode(mode);
+    };
+
+    webview.addEventListener('console-message', handleConsoleMessage);
     webview.addEventListener('dom-ready', handleDomReady);
     webview.addEventListener('did-finish-load', handleLoadStop);
     webview.addEventListener('did-fail-load', handleError);
@@ -220,6 +246,7 @@ function WebViewRefactored({
     return () => {
       log.debug('Cleaning up event listeners and managers...');
 
+      webview.removeEventListener('console-message', handleConsoleMessage);
       webview.removeEventListener('dom-ready', handleDomReady);
       webview.removeEventListener('did-finish-load', handleLoadStop);
       webview.removeEventListener('did-fail-load', handleError);
