@@ -27,7 +27,7 @@ function CommentAvatar({
         height: size,
         flexShrink: 0,
         borderRadius: '50%',
-        backgroundColor: theme.palette.customColors.dtSecondaryColor,
+        backgroundColor: theme.palette.customColors.secondaryColor,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -57,7 +57,7 @@ function CommentAvatar({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: theme.palette.customColors.dtPrimaryTextColor,
+          color: theme.palette.customColors.primaryTextColor,
           zIndex: resolvedUrl ? -1 : 1,
         }}
       >

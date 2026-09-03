@@ -53,7 +53,7 @@ function CommentText({ html }: CommentTextProps) {
                 <Box
                   key={currentKey}
                   sx={{
-                    borderLeft: `3px solid ${theme.palette.customColors.dtAlphaBorderColor}`,
+                    borderLeft: `3px solid ${theme.palette.customColors.alphaBorderColor}`,
                     backgroundColor: 'rgba(59, 59, 59, 0.43)',
                     padding: '8px 12px',
                     margin: '8px 0',
@@ -162,7 +162,7 @@ function CommentText({ html }: CommentTextProps) {
                         component="span"
                         sx={{
                           fontSize: '0.875rem',
-                          color: theme.palette.customColors.dtPrimaryTextColor,
+                          color: theme.palette.customColors.primaryTextColor,
                         }}
                       >
                         {element.textContent}
@@ -232,7 +232,7 @@ function CommentText({ html }: CommentTextProps) {
                         component="span"
                         sx={{
                           fontSize: '0.875rem',
-                          color: theme.palette.customColors.dtPrimaryTextColor,
+                          color: theme.palette.customColors.primaryTextColor,
                         }}
                       >
                         {parseHTML(spoilerHTML)}
@@ -294,14 +294,14 @@ function CommentText({ html }: CommentTextProps) {
                         <ExpandLess
                           sx={{
                             fontSize: '1.25rem',
-                            color: theme.palette.customColors.dtSecondaryColor,
+                            color: theme.palette.customColors.secondaryColor,
                           }}
                         />
                       ) : (
                         <ExpandMore
                           sx={{
                             fontSize: '1.25rem',
-                            color: theme.palette.customColors.dtSecondaryColor,
+                            color: theme.palette.customColors.secondaryColor,
                           }}
                         />
                       )}
@@ -309,7 +309,7 @@ function CommentText({ html }: CommentTextProps) {
                         sx={{
                           fontSize: '0.875rem',
                           fontWeight: 500,
-                          color: theme.palette.customColors.dtSecondaryColor,
+                          color: theme.palette.customColors.secondaryColor,
                           ml: 0.5,
                         }}
                       >
@@ -322,7 +322,7 @@ function CommentText({ html }: CommentTextProps) {
                         sx={{
                           backgroundColor: 'rgba(0, 0, 0, 0.2)',
                           padding: '8px 12px',
-                          borderTop: `1px solid ${theme.palette.customColors.dtBorderColor}`,
+                          borderTop: `1px solid ${theme.palette.customColors.borderColor}`,
                         }}
                       >
                         {parseHTML(spoilerHTML)}

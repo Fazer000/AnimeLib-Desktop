@@ -22,7 +22,7 @@ function VoteControls({
 }: VoteControlsProps) {
   const theme = useTheme();
   const isFull = variant === 'full';
-  const accent = theme.palette.customColors.dtAccentTextColor;
+  const accent = theme.palette.customColors.accentTextColor;
   const iconSize = isFull ? 18 : 14;
 
   const buttonSx = (active: boolean, activeColor: string, tint: string) =>

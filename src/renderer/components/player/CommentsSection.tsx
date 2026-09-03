@@ -108,7 +108,7 @@ const CommentsSection = memo(
         >
           <Box
             sx={{
-              backgroundColor: theme.palette.customColors.dtPrimaryColor,
+              backgroundColor: theme.palette.customColors.primaryColor,
               boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
               margin: 1,
               padding: 2,
@@ -122,7 +122,7 @@ const CommentsSection = memo(
             <Typography
               variant="h6"
               sx={{
-                color: theme.palette.customColors.dtPrimaryTextColor,
+                color: theme.palette.customColors.primaryTextColor,
                 fontWeight: 600,
                 fontSize: '1.125rem',
               }}
@@ -141,7 +141,7 @@ const CommentsSection = memo(
                 onClick={() => setSettingsOpen(true)}
                 startIcon={<TuneRounded sx={{ fontSize: 18 }} />}
                 sx={{
-                  color: theme.palette.customColors.dtAccentTextColor,
+                  color: theme.palette.customColors.accentTextColor,
                   backgroundColor: 'rgba(0, 0, 0, 0.2)',
                   borderRadius: 2,
                   textTransform: 'none',
@@ -165,40 +165,40 @@ const CommentsSection = memo(
                   onChange={(e) => setCommentsSortOption(e.target.value)}
                   sx={{
                     minWidth: 150,
-                    color: theme.palette.customColors.dtPrimaryTextColor,
+                    color: theme.palette.customColors.primaryTextColor,
                     fontSize: '0.875rem',
                     backgroundColor: 'rgba(0, 0, 0, 0.2)',
                     borderRadius: 2,
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: `${theme.palette.customColors.dtBorderColor}30`,
+                      borderColor: `${theme.palette.customColors.borderColor}30`,
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: `${theme.palette.customColors.dtSecondaryColor}50`,
+                      borderColor: `${theme.palette.customColors.secondaryColor}50`,
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: theme.palette.customColors.dtSecondaryColor,
+                      borderColor: theme.palette.customColors.secondaryColor,
                     },
                     '& .MuiSelect-icon': {
-                      color: theme.palette.customColors.dtAccentTextColor,
+                      color: theme.palette.customColors.accentTextColor,
                     },
                   }}
                   MenuProps={{
                     PaperProps: {
                       sx: {
                         backgroundColor:
-                          theme.palette.customColors.dtPrimaryColor,
+                          theme.palette.customColors.primaryColor,
                         borderRadius: 2,
                         marginTop: 1,
                         '& .MuiMenuItem-root': {
-                          color: theme.palette.customColors.dtPrimaryTextColor,
+                          color: theme.palette.customColors.primaryTextColor,
                           fontSize: '0.875rem',
                           '&:hover': {
-                            backgroundColor: `${theme.palette.customColors.dtSecondaryColor}20`,
+                            backgroundColor: `${theme.palette.customColors.secondaryColor}20`,
                           },
                           '&.Mui-selected': {
-                            backgroundColor: `${theme.palette.customColors.dtSecondaryColor}30`,
+                            backgroundColor: `${theme.palette.customColors.secondaryColor}30`,
                             '&:hover': {
-                              backgroundColor: `${theme.palette.customColors.dtSecondaryColor}40`,
+                              backgroundColor: `${theme.palette.customColors.secondaryColor}40`,
                             },
                           },
                         },
@@ -227,7 +227,7 @@ const CommentsSection = memo(
               <Typography
                 variant="body2"
                 sx={{
-                  color: theme.palette.customColors.dtAccentTextColor,
+                  color: theme.palette.customColors.accentTextColor,
                   fontSize: '0.9375rem',
                 }}
               >

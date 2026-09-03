@@ -62,7 +62,7 @@ function Comments({
     collapseFromLevel,
   });
 
-  const accentColor = theme.palette.customColors.dtAccentTextColor;
+  const accentColor = theme.palette.customColors.accentTextColor;
 
   if (!shouldLoad) {
     return (
@@ -133,7 +133,7 @@ function Comments({
           {loading && (
             <CircularProgress
               size={24}
-              sx={{ color: theme.palette.customColors.dtSecondaryColor }}
+              sx={{ color: theme.palette.customColors.secondaryColor }}
             />
           )}
         </Box>

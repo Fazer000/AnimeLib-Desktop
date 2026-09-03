@@ -215,7 +215,7 @@ function EpisodeSliderRefactored({
               left: 10,
               zIndex: 2,
               backgroundColor: 'rgba(0, 0, 0, 0.7)',
-              color: theme.palette.customColors.dtSecondaryColor,
+              color: theme.palette.customColors.secondaryColor,
               width: 32,
               height: 32,
               mb: 0.85,
@@ -281,7 +281,7 @@ function EpisodeSliderRefactored({
                 disableRipple={dragMoved}
                 TouchRippleProps={{
                   style: {
-                    color: theme.palette.customColors.dtSecondaryColor,
+                    color: theme.palette.customColors.secondaryColor,
                   },
                 }}
                 sx={{
@@ -290,7 +290,7 @@ function EpisodeSliderRefactored({
                   borderRadius: 10,
                   backgroundColor: theme.palette.primary.main,
                   border: isSelected
-                    ? `1px solid ${theme.palette.customColors.dtSecondaryColor}`
+                    ? `1px solid ${theme.palette.customColors.secondaryColor}`
                     : '1px solid transparent',
                   cursor: 'pointer',
                   position: 'relative',
@@ -316,7 +316,7 @@ function EpisodeSliderRefactored({
                     right: 0,
                     bottom: 0,
                     background: isSelected
-                      ? `linear-gradient(135deg, ${theme.palette.customColors.dtSecondaryColor}20, transparent)`
+                      ? `linear-gradient(135deg, ${theme.palette.customColors.secondaryColor}20, transparent)`
                       : 'transparent',
                     borderRadius: 10,
                     opacity: isSelected ? 1 : 0,
@@ -341,7 +341,7 @@ function EpisodeSliderRefactored({
                     <BookmarkRounded
                       sx={{
                         fontSize: '0.9rem',
-                        color: theme.palette.customColors.dtSecondaryColor,
+                        color: theme.palette.customColors.secondaryColor,
                       }}
                     />
                   )}
@@ -350,8 +350,8 @@ function EpisodeSliderRefactored({
                     sx={{
                       fontWeight: 'bold',
                       color: isSelected
-                        ? theme.palette.customColors.dtSecondaryColor
-                        : theme.palette.customColors.dtPrimaryTextColor,
+                        ? theme.palette.customColors.secondaryColor
+                        : theme.palette.customColors.primaryTextColor,
                       textTransform: 'none',
                       fontSize: '0.84rem',
                       textWrap: 'nowrap',
@@ -391,7 +391,7 @@ function EpisodeSliderRefactored({
               zIndex: 2,
               mb: 0.85,
               backgroundColor: 'rgba(0, 0, 0, 0.7)',
-              color: theme.palette.customColors.dtSecondaryColor,
+              color: theme.palette.customColors.secondaryColor,
               width: 32,
               height: 32,
               '&:hover': {

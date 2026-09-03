@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { ThemeProvider, createTheme, CssBaseline, Box } from '@mui/material';
+import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import ErrorBoundary from './components/ErrorBoundary';
 import { installDebugApi } from './utils/debugApi';
 import UrlInputPage from './pages/UrlInputPage';
@@ -29,223 +29,17 @@ import { offlineCatalog } from './services/offline';
 import { checkConnection } from './utils/connectivity';
 
 import { createLogger } from '../shared/logger';
-import {
-  ACCENT,
-  ACCENT_DEEPEST,
-  ACCENT_LIGHT_ALT,
-  BLACK,
-  BORDER,
-  BORDER_LIGHT,
-  INFO,
-  INFO_DEEP,
-  LILAC_TINT,
-  OFF_WHITE,
-  SURFACE,
-  SURFACE_DEEPEST,
-  SURFACE_HEADER,
-  SURFACE_HOVER,
-  TEXT_DIM,
-  TEXT_ON_LIGHT,
-  TEXT_ON_LIGHT_MUTED,
-  TEXT_PRIMARY,
-  WARNING_ORANGE,
-  WHITE,
-} from './theme/palette';
+import { createAppTheme } from './theme/appTheme';
+import useColorScheme from './hooks/useColorScheme';
 
 const log = createLogger('App');
-
-declare module '@mui/material/styles' {
-  interface CustomColors {
-    dtPrimaryColor: string;
-    dtSecondaryColor: string;
-    dtBlueColor: string;
-    dtAlphaPrimaryColor: string;
-    dtBorderColor: string;
-    dtAlphaBorderColor: string;
-    dtLineColor: string;
-    dtHeaderColor: string;
-    dtPrimaryTextColor: string;
-    dtSecondaryTextColor: string;
-    dtAccentTextColor: string;
-
-    ltPrimaryColor: string;
-    ltSecondaryColor: string;
-    ltBlueColor: string;
-    ltAlphaPrimaryColor: string;
-    ltBorderColor: string;
-    ltAlphaBorderColor: string;
-    ltLineColor: string;
-    ltHeaderColor: string;
-    ltPrimaryTextColor: string;
-    ltSecondaryTextColor: string;
-    ltAccentTextColor: string;
-
-    whiteColor: string;
-    grayColor: string;
-    blackColor: string;
-    bookmarkColor: string;
-  }
-
-  interface Palette {
-    customColors: CustomColors;
-  }
-
-  interface PaletteOptions {
-    customColors?: CustomColors;
-  }
-}
-
-const darkTheme = createTheme({
-  typography: {
-    fontFamily: '"Open Sans", sans-serif',
-    h1: {
-      fontWeight: 600,
-    },
-    h2: {
-      fontWeight: 600,
-    },
-    h3: {
-      fontWeight: 600,
-    },
-    h4: {
-      fontWeight: 600,
-    },
-    h5: {
-      fontWeight: 600,
-    },
-    h6: {
-      fontWeight: 600,
-    },
-    button: {
-      textTransform: 'none',
-      fontWeight: 500,
-    },
-  },
-  shape: {
-    borderRadius: 8,
-  },
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: SURFACE,
-      light: SURFACE_HOVER,
-      dark: SURFACE_DEEPEST,
-      contrastText: WHITE,
-    },
-    secondary: {
-      main: ACCENT,
-      light: ACCENT_LIGHT_ALT,
-      dark: ACCENT_DEEPEST,
-      contrastText: WHITE,
-    },
-    background: {
-      default: SURFACE,
-      paper: SURFACE_HEADER,
-    },
-    text: {
-      primary: TEXT_PRIMARY,
-      secondary: ACCENT,
-      disabled: 'rgba(191, 191, 191, 0.5)',
-    },
-    divider: BORDER,
-    customColors: {
-      dtPrimaryColor: SURFACE,
-      dtSecondaryColor: ACCENT,
-      dtBlueColor: INFO,
-      dtAlphaPrimaryColor: 'rgba(0, 0, 0, 0.19)',
-      dtBorderColor: BORDER,
-      dtAlphaBorderColor: 'rgba(84, 84, 88, 0.44)',
-      dtLineColor: BORDER,
-      dtHeaderColor: SURFACE_HEADER,
-      dtPrimaryTextColor: TEXT_PRIMARY,
-      dtSecondaryTextColor: ACCENT,
-      dtAccentTextColor: 'rgba(245, 245, 250, 0.5)',
-
-      ltPrimaryColor: WHITE,
-      ltSecondaryColor: ACCENT,
-      ltBlueColor: INFO_DEEP,
-      ltAlphaPrimaryColor: 'rgba(255, 255, 255, 0.10)',
-      ltBorderColor: BORDER_LIGHT,
-      ltAlphaBorderColor: 'rgba(224, 224, 224, 0.2)',
-      ltLineColor: TEXT_DIM,
-      ltHeaderColor: LILAC_TINT,
-      ltPrimaryTextColor: TEXT_ON_LIGHT,
-      ltSecondaryTextColor: ACCENT,
-      ltAccentTextColor: TEXT_ON_LIGHT_MUTED,
-
-      whiteColor: WHITE,
-      grayColor: OFF_WHITE,
-      blackColor: BLACK,
-      bookmarkColor: WARNING_ORANGE,
-    },
-  },
-  components: {
-    MuiToolbar: {
-      styleOverrides: {
-        root: {
-          minHeight: '32px !important',
-          height: '32px !important',
-          paddingLeft: '8px !important',
-          paddingRight: '8px !important',
-        },
-      },
-    },
-    MuiAppBar: {
-      styleOverrides: {
-        root: {
-          backgroundColor: `${SURFACE_HEADER} !important`,
-          boxShadow: 'none !important',
-          border: 'none !important',
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          textTransform: 'none',
-          fontWeight: 500,
-        },
-        contained: {
-          boxShadow: 'none',
-          '&:hover': {
-            boxShadow: 'none',
-          },
-        },
-      },
-    },
-    MuiChip: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          fontWeight: 500,
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-          backgroundImage: 'none',
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          backgroundImage: 'none',
-        },
-        rounded: {
-          borderRadius: 8,
-        },
-      },
-    },
-  },
-});
 
 installDebugApi();
 
 function App() {
+  const scheme = useColorScheme();
+  const theme = useMemo(() => createAppTheme(scheme), [scheme]);
+
   const [savedUrl, setSavedUrl] = useState<string | null>(null);
   const [playerUrl, setPlayerUrl] = useState<string | null>(null);
   const [animeId, setAnimeId] = useState<string | null>(null);
@@ -405,7 +199,7 @@ function App() {
 
   if (!savedUrl) {
     return (
-      <ThemeProvider theme={darkTheme}>
+      <ThemeProvider theme={theme}>
         <CssBaseline />
         <UrlInputPage onSubmit={handleUrlSubmit} />
       </ThemeProvider>
@@ -413,7 +207,7 @@ function App() {
   }
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
         <Box
@@ -538,8 +332,11 @@ function App() {
  * Корень приложения: ловит ошибки рендера, чтобы окно не оставалось белым
  */
 export default function AppRoot() {
+  const scheme = useColorScheme();
+  const theme = useMemo(() => createAppTheme(scheme), [scheme]);
+
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <ErrorBoundary title="Произошла ошибка в приложении">
         <App />

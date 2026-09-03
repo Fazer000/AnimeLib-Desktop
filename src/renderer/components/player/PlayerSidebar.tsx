@@ -74,7 +74,7 @@ function PlayerSidebarRefactored({
     >
       <Box
         sx={{
-          backgroundColor: theme.palette.customColors.dtPrimaryColor,
+          backgroundColor: theme.palette.customColors.primaryColor,
           mb: 1,
           borderRadius: 2,
           opacity: isCollapsed ? 0 : 1,
@@ -93,7 +93,7 @@ function PlayerSidebarRefactored({
           <Typography
             variant="subtitle1"
             sx={{
-              color: theme.palette.customColors.dtPrimaryTextColor,
+              color: theme.palette.customColors.primaryTextColor,
               fontWeight: 600,
             }}
           >
@@ -107,7 +107,7 @@ function PlayerSidebarRefactored({
               onClick={() => setHotkeysOpen(true)}
               sx={{
                 p: 0.5,
-                color: theme.palette.customColors.dtPrimaryTextColor,
+                color: theme.palette.customColors.primaryTextColor,
                 opacity: 0.65,
                 '&:hover': { opacity: 1 },
               }}
@@ -138,8 +138,7 @@ function PlayerSidebarRefactored({
                   sx={{
                     width: '70%',
                     height: 3,
-                    backgroundColor:
-                      theme.palette.customColors.dtSecondaryColor,
+                    backgroundColor: theme.palette.customColors.secondaryColor,
                     borderRadius: '8px',
                   }}
                 />
@@ -158,7 +157,7 @@ function PlayerSidebarRefactored({
                 disableRipple={false}
                 TouchRippleProps={{
                   style: {
-                    color: theme.palette.customColors.dtSecondaryColor,
+                    color: theme.palette.customColors.secondaryColor,
                   },
                 }}
                 label={
@@ -189,20 +188,20 @@ function PlayerSidebarRefactored({
                 sx={{
                   minHeight: 40,
                   padding: '8px 12px',
-                  color: theme.palette.customColors.dtPrimaryTextColor,
+                  color: theme.palette.customColors.primaryTextColor,
                   borderRadius: '8px',
                   margin: '0 4px',
                   position: 'relative',
                   overflow: 'hidden',
                   '&.Mui-selected': {
-                    color: theme.palette.customColors.dtSecondaryColor,
+                    color: theme.palette.customColors.secondaryColor,
                     '&::before': {
                       opacity: 1,
                       transform: 'scale(1)',
                     },
                   },
                   '&:hover': {
-                    backgroundColor: `${theme.palette.customColors.dtSecondaryColor}08`,
+                    backgroundColor: `${theme.palette.customColors.secondaryColor}08`,
                     transform: 'translateY(-1px)',
                     '&::before': {
                       opacity: 0.3,
@@ -224,7 +223,7 @@ function PlayerSidebarRefactored({
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    background: `linear-gradient(135deg, ${theme.palette.customColors.dtSecondaryColor}20, ${theme.palette.customColors.dtSecondaryColor}05)`,
+                    background: `linear-gradient(135deg, ${theme.palette.customColors.secondaryColor}20, ${theme.palette.customColors.secondaryColor}05)`,
                     borderRadius: '8px',
                     opacity: 0,
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -241,7 +240,7 @@ function PlayerSidebarRefactored({
           flex: 1,
           overflow: 'auto',
           position: 'relative',
-          backgroundColor: theme.palette.customColors.dtPrimaryColor,
+          backgroundColor: theme.palette.customColors.primaryColor,
           borderRadius: 2,
           opacity: isCollapsed ? 0 : 1,
           visibility: isCollapsed ? 'hidden' : 'visible',
@@ -253,10 +252,10 @@ function PlayerSidebarRefactored({
             background: 'transparent',
           },
           '&::-webkit-scrollbar-thumb': {
-            background: theme.palette.customColors.dtAlphaBorderColor,
+            background: theme.palette.customColors.alphaBorderColor,
             borderRadius: '4px',
             '&:hover': {
-              background: theme.palette.customColors.dtBorderColor,
+              background: theme.palette.customColors.borderColor,
             },
           },
         }}
@@ -279,7 +278,7 @@ function PlayerSidebarRefactored({
             <CircularProgress
               size={24}
               sx={{
-                color: theme.palette.customColors.dtSecondaryColor,
+                color: theme.palette.customColors.secondaryColor,
               }}
             />
           </Box>
@@ -310,7 +309,7 @@ function PlayerSidebarRefactored({
                   disableRipple={false}
                   TouchRippleProps={{
                     style: {
-                      color: theme.palette.customColors.dtSecondaryColor,
+                      color: theme.palette.customColors.secondaryColor,
                     },
                   }}
                   sx={{
@@ -334,8 +333,8 @@ function PlayerSidebarRefactored({
                       textAlign: 'left',
                       fontWeight: 500,
                       color: isSelected
-                        ? theme.palette.customColors.dtSecondaryTextColor
-                        : theme.palette.customColors.dtPrimaryTextColor,
+                        ? theme.palette.customColors.secondaryTextColor
+                        : theme.palette.customColors.primaryTextColor,
                       fontSize: '0.8125rem',
                       minWidth: 0,
                       overflow: 'hidden',
@@ -363,7 +362,7 @@ function PlayerSidebarRefactored({
                     {isSubtitlesOnly && (
                       <Box
                         sx={{
-                          color: theme.palette.customColors.dtPrimaryTextColor,
+                          color: theme.palette.customColors.primaryTextColor,
                           backgroundColor: 'rgba(116, 116, 128, 0.24)',
                           padding: '2px 8px',
                           borderRadius: 2,
@@ -411,7 +410,7 @@ function PlayerSidebarRefactored({
             <Typography
               variant="body2"
               sx={{
-                color: theme.palette.customColors.dtAccentTextColor,
+                color: theme.palette.customColors.accentTextColor,
                 textAlign: 'center',
               }}
             >

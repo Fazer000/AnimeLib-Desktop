@@ -35,7 +35,7 @@ const CommentItem = memo(
     return (
       <Box
         sx={{
-          backgroundColor: theme.palette.customColors.dtPrimaryColor,
+          backgroundColor: theme.palette.customColors.primaryColor,
           borderRadius: 2,
           padding: 2.5,
           boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
@@ -61,12 +61,12 @@ const CommentItem = memo(
                 gap: 1.5,
                 mb: 1,
                 paddingBottom: 1,
-                borderBottom: `1px solid ${theme.palette.customColors.dtBorderColor}15`,
+                borderBottom: `1px solid ${theme.palette.customColors.borderColor}15`,
               }}
             >
               <Typography
                 sx={{
-                  color: theme.palette.customColors.dtPrimaryTextColor,
+                  color: theme.palette.customColors.primaryTextColor,
                   fontSize: '0.9375rem',
                   fontWeight: 600,
                 }}
@@ -83,7 +83,7 @@ const CommentItem = memo(
               >
                 <Typography
                   sx={{
-                    color: theme.palette.customColors.dtAccentTextColor,
+                    color: theme.palette.customColors.accentTextColor,
                     fontSize: '0.6875rem',
                     fontWeight: 500,
                   }}
@@ -104,7 +104,7 @@ const CommentItem = memo(
 
             <Box
               sx={{
-                color: theme.palette.customColors.dtPrimaryTextColor,
+                color: theme.palette.customColors.primaryTextColor,
                 fontSize: '0.9375rem',
                 wordBreak: 'break-word',
                 lineHeight: 1.7,

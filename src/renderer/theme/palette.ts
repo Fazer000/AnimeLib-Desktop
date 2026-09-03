@@ -130,3 +130,12 @@ export const LIGHT_QUALITY_4K = '#8A5406';
 export const LIGHT_QUALITY_FHD = ACCENT_DEEPEST;
 export const LIGHT_QUALITY_HD = '#1D4ED8';
 export const LIGHT_QUALITY_SD = '#4E5561';
+
+/** Полупрозрачные подложки и границы, ранее вписанные в тему строками. */
+export const DARK_ALPHA_SURFACE = 'rgba(0, 0, 0, 0.19)';
+export const DARK_ALPHA_BORDER = 'rgba(84, 84, 88, 0.44)';
+export const DARK_TEXT_ACCENT = 'rgba(245, 245, 250, 0.5)';
+export const DARK_TEXT_DISABLED = 'rgba(191, 191, 191, 0.5)';
+export const LIGHT_ALPHA_SURFACE = 'rgba(255, 255, 255, 0.10)';
+export const LIGHT_ALPHA_BORDER = 'rgba(224, 224, 224, 0.2)';
+export const LIGHT_TEXT_DISABLED = 'rgba(33, 33, 33, 0.38)';

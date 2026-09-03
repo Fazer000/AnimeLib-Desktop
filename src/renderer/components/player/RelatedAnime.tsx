@@ -51,7 +51,7 @@ function RelatedAnimeCard({
         maxWidth: 400,
         height: 140,
         display: 'flex',
-        backgroundColor: theme.palette.customColors.dtPrimaryColor,
+        backgroundColor: theme.palette.customColors.primaryColor,
         borderRadius: 2,
         overflow: 'hidden',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
@@ -103,7 +103,7 @@ function RelatedAnimeCard({
             sx={{
               fontSize: '0.7rem',
               fontWeight: 600,
-              color: theme.palette.customColors.dtAccentTextColor,
+              color: theme.palette.customColors.accentTextColor,
               textTransform: 'uppercase',
               marginBottom: 0.5,
             }}
@@ -115,7 +115,7 @@ function RelatedAnimeCard({
             sx={{
               fontSize: '1rem',
               fontWeight: 600,
-              color: theme.palette.customColors.dtPrimaryTextColor,
+              color: theme.palette.customColors.primaryTextColor,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               display: '-webkit-box',
@@ -133,7 +133,7 @@ function RelatedAnimeCard({
           <Typography
             sx={{
               fontSize: '0.8rem',
-              color: theme.palette.customColors.dtAccentTextColor,
+              color: theme.palette.customColors.accentTextColor,
             }}
           >
             {item.media.type.label} • {item.media.status.label}
@@ -267,7 +267,7 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
           sx={{
             fontSize: '1.5rem',
             fontWeight: 600,
-            color: theme.palette.customColors.dtPrimaryTextColor,
+            color: theme.palette.customColors.primaryTextColor,
             fontFamily: 'Open Sans, sans-serif',
           }}
         >

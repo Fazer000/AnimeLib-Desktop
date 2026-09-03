@@ -98,7 +98,7 @@ function NextEpisodeNotification({
         <Typography
           sx={{
             fontSize: '1.25rem',
-            color: theme.palette.customColors.dtPrimaryTextColor,
+            color: theme.palette.customColors.primaryTextColor,
             marginBottom: 0.5,
             fontWeight: 600,
             textAlign: 'center',
@@ -111,7 +111,7 @@ function NextEpisodeNotification({
           <Typography
             sx={{
               fontSize: '1rem',
-              color: theme.palette.customColors.dtPrimaryTextColor,
+              color: theme.palette.customColors.primaryTextColor,
               marginBottom: 2,
               fontWeight: 500,
               textAlign: 'center',
@@ -124,7 +124,7 @@ function NextEpisodeNotification({
         <Typography
           sx={{
             fontSize: '1rem',
-            color: theme.palette.customColors.dtAccentTextColor,
+            color: theme.palette.customColors.accentTextColor,
             marginBottom: 3,
             textAlign: 'center',
           }}
@@ -146,7 +146,7 @@ function NextEpisodeNotification({
               onCancel();
             }}
             sx={{
-              color: theme.palette.customColors.dtAccentTextColor,
+              color: theme.palette.customColors.accentTextColor,
               textTransform: 'none',
               fontSize: '1rem',
               padding: '10px 24px',
@@ -168,15 +168,15 @@ function NextEpisodeNotification({
             }}
             variant="contained"
             sx={{
-              backgroundColor: theme.palette.customColors.dtSecondaryColor,
-              color: theme.palette.customColors.dtPrimaryTextColor,
+              backgroundColor: theme.palette.customColors.secondaryColor,
+              color: theme.palette.customColors.primaryTextColor,
               textTransform: 'none',
               fontSize: '1rem',
               padding: '10px 32px',
               borderRadius: 2,
               boxShadow: 'none',
               '&:hover': {
-                backgroundColor: theme.palette.customColors.dtSecondaryColor,
+                backgroundColor: theme.palette.customColors.secondaryColor,
                 opacity: 0.9,
                 boxShadow: 'none',
               },

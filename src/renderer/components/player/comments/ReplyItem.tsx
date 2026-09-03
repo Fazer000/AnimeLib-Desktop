@@ -64,7 +64,7 @@ const ReplyItem = memo(
             >
               <Typography
                 sx={{
-                  color: theme.palette.customColors.dtPrimaryTextColor,
+                  color: theme.palette.customColors.primaryTextColor,
                   fontSize: '0.875rem',
                   fontWeight: 600,
                 }}
@@ -76,7 +76,7 @@ const ReplyItem = memo(
                 <>
                   <Typography
                     sx={{
-                      color: theme.palette.customColors.dtAccentTextColor,
+                      color: theme.palette.customColors.accentTextColor,
                       fontSize: '0.75rem',
                     }}
                   >
@@ -84,7 +84,7 @@ const ReplyItem = memo(
                   </Typography>
                   <Typography
                     sx={{
-                      color: theme.palette.customColors.dtAccentTextColor,
+                      color: theme.palette.customColors.accentTextColor,
                       fontSize: '0.875rem',
                       fontWeight: 500,
                     }}
@@ -96,7 +96,7 @@ const ReplyItem = memo(
 
               <Typography
                 sx={{
-                  color: theme.palette.customColors.dtAccentTextColor,
+                  color: theme.palette.customColors.accentTextColor,
                   fontSize: '0.6875rem',
                   ml: 'auto',
                 }}
@@ -116,7 +116,7 @@ const ReplyItem = memo(
 
             <Box
               sx={{
-                color: theme.palette.customColors.dtPrimaryTextColor,
+                color: theme.palette.customColors.primaryTextColor,
                 fontSize: '0.875rem',
                 wordBreak: 'break-word',
                 lineHeight: 1.6,

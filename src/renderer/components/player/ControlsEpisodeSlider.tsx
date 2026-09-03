@@ -227,7 +227,7 @@ function ControlsEpisodeSlider({
                   : '1px solid rgba(116, 116, 128, 0.33)',
                 color: isSelected
                   ? ACCENT
-                  : theme.palette.customColors.dtPrimaryTextColor,
+                  : theme.palette.customColors.primaryTextColor,
                 textAlign: 'left',
                 position: 'relative',
                 overflow: 'hidden',
@@ -271,7 +271,7 @@ function ControlsEpisodeSlider({
                   <BookmarkRounded
                     sx={{
                       fontSize: '0.9rem',
-                      color: theme.palette.customColors.dtSecondaryColor,
+                      color: theme.palette.customColors.secondaryColor,
                     }}
                   />
                 )}
@@ -280,8 +280,8 @@ function ControlsEpisodeSlider({
                   sx={{
                     fontWeight: 'bold',
                     color: isSelected
-                      ? theme.palette.customColors.dtSecondaryColor
-                      : theme.palette.customColors.dtPrimaryTextColor,
+                      ? theme.palette.customColors.secondaryColor
+                      : theme.palette.customColors.primaryTextColor,
                     textTransform: 'none',
                     fontSize: '0.84rem',
                     textWrap: 'nowrap',
