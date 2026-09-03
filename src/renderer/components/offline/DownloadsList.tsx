@@ -31,8 +31,6 @@ import {
   ACCENT_LIGHT,
   DANGER,
   DANGER_STRONG,
-  SURFACE_RAISED,
-  WHITE,
 } from '../../theme/palette';
 
 interface DownloadsListProps {
@@ -228,9 +226,9 @@ function DownloadsList({ tasks }: DownloadsListProps) {
         slotProps={{
           paper: {
             sx: {
-              backgroundColor: SURFACE_RAISED,
+              backgroundColor: customColors.raisedColor,
               backgroundImage: 'none',
-              color: WHITE,
+              color: customColors.dialogTextColor,
             },
           },
         }}
@@ -249,7 +247,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
             sx={{
               textTransform: 'none',
               fontSize: OFFLINE_FONT.button,
-              color: alpha(WHITE, 0.6),
+              color: alpha(customColors.dialogTextColor, 0.6),
             }}
           >
             Оставить
@@ -265,7 +263,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
               fontSize: OFFLINE_FONT.button,
               px: 2,
               backgroundColor: DANGER,
-              color: WHITE,
+              color: customColors.dialogTextColor,
               '&:hover': { backgroundColor: DANGER_STRONG },
             }}
           >

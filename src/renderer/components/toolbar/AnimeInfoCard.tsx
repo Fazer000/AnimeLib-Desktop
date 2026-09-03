@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, CircularProgress } from '@mui/material';
+import { Box, Typography, CircularProgress, useTheme } from '@mui/material';
 import { Star } from '@mui/icons-material';
 import { animeApi, AnimeInfo } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 
 import { createLogger } from '../../../shared/logger';
-import {
-  ACCENT,
-  DANGER_BRIGHT,
-  SUCCESS,
-  WARNING,
-  WHITE_SHORT,
-} from '../../theme/palette';
+import { ACCENT, DANGER_BRIGHT, SUCCESS, WARNING } from '../../theme/palette';
 
 const log = createLogger('AnimeInfoCard');
 
@@ -31,6 +25,7 @@ function AnimeInfoCard({
   onMouseLeave,
   onClick,
 }: AnimeInfoCardProps) {
+  const { customColors } = useTheme().palette;
   const [animeInfo, setAnimeInfo] = useState<AnimeInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -186,7 +181,7 @@ function AnimeInfoCard({
               <Typography
                 variant="h5"
                 sx={{
-                  color: WHITE_SHORT,
+                  color: customColors.dialogTextColor,
                   fontWeight: 600,
                   fontSize: '1.5rem',
                   lineHeight: 1.2,
@@ -266,7 +261,7 @@ function AnimeInfoCard({
                 <Star sx={{ color: WARNING, fontSize: 20 }} />
                 <Typography
                   sx={{
-                    color: WHITE_SHORT,
+                    color: customColors.dialogTextColor,
                     fontSize: '1.125rem',
                     fontWeight: 600,
                   }}

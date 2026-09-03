@@ -10,27 +10,25 @@ import {
   DialogTitle,
   TextField,
   Typography,
+  useTheme,
 } from '@mui/material';
+import type { CustomColors } from '@mui/material/styles';
 import { ExpandMore } from '@mui/icons-material';
-import {
-  DANGER_DEEP,
-  DANGER_SOFT,
-  SURFACE_DIALOG,
-} from '../../../theme/palette';
+import { DANGER_DEEP, DANGER_SOFT } from '../../../theme/palette';
 
-const paperSx = (minWidth: number) => ({
-  backgroundColor: SURFACE_DIALOG,
+const paperSx = (minWidth: number, colors: CustomColors) => ({
+  backgroundColor: colors.dialogColor,
   backgroundImage: 'none',
   borderRadius: 2,
   minWidth,
 });
 
-const TITLE_SX = {
-  color: 'rgba(255, 255, 255, 0.95)',
+const titleSx = (colors: CustomColors) => ({
+  color: `rgba(${colors.onSurfaceRgb}, 0.95)`,
   fontSize: '1.0625rem',
   fontWeight: 600,
   pb: 1,
-};
+});
 
 const ACTIONS_SX = { px: 3, pb: 2, gap: 1 };
 
@@ -59,15 +57,18 @@ export function IgnoreUserDialog({
   onClose,
   onConfirm,
 }: IgnoreUserDialogProps) {
+  const { customColors } = useTheme().palette;
   const [hintOpen, setHintOpen] = useState(false);
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      slotProps={{ paper: { sx: paperSx(420) } }}
+      slotProps={{ paper: { sx: paperSx(420, customColors) } }}
     >
-      <DialogTitle sx={TITLE_SX}>Добавление в игнор-лист</DialogTitle>
+      <DialogTitle sx={titleSx(customColors)}>
+        Добавление в игнор-лист
+      </DialogTitle>
       <DialogContent sx={{ pb: 1 }}>
         <Typography
           sx={{
@@ -165,13 +166,14 @@ export function DeleteCommentDialog({
   onClose,
   onConfirm,
 }: DeleteCommentDialogProps) {
+  const { customColors } = useTheme().palette;
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      slotProps={{ paper: { sx: paperSx(360) } }}
+      slotProps={{ paper: { sx: paperSx(360, customColors) } }}
     >
-      <DialogTitle sx={TITLE_SX}>Подтвердите действие</DialogTitle>
+      <DialogTitle sx={titleSx(customColors)}>Подтвердите действие</DialogTitle>
       <DialogContent sx={{ pb: 1 }}>
         <DialogContentText
           sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.9375rem' }}

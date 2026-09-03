@@ -9,20 +9,14 @@ import {
   Tabs,
   CircularProgress,
   ButtonBase,
+  useTheme,
 } from '@mui/material';
 import { Close, Search, PlayArrowRounded } from '@mui/icons-material';
 import { animeApi } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 
 import { createLogger } from '../../../shared/logger';
-import {
-  ACCENT,
-  SURFACE_DARKER,
-  SURFACE_ELEVATED,
-  SURFACE_MUTED,
-  TEXT_MUTED,
-  WHITE,
-} from '../../theme/palette';
+import { ACCENT } from '../../theme/palette';
 
 const log = createLogger('SearchModal');
 
@@ -67,6 +61,7 @@ function SearchResultCard({
   onPlayerClick: () => void;
 }) {
   const coverUrl = useImageWithReferer(result.cover?.default || '');
+  const { customColors } = useTheme().palette;
 
   return (
     <Box
@@ -91,7 +86,7 @@ function SearchResultCard({
           textAlign: 'left',
           transition: 'background-color 0.2s',
           '&:hover': {
-            backgroundColor: SURFACE_MUTED,
+            backgroundColor: customColors.mutedColor,
           },
         }}
       >
@@ -105,14 +100,14 @@ function SearchResultCard({
             borderRadius: 1,
             objectFit: 'cover',
             flexShrink: 0,
-            backgroundColor: SURFACE_MUTED,
+            backgroundColor: customColors.mutedColor,
           }}
         />
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography
             variant="body2"
             sx={{
-              color: WHITE,
+              color: customColors.dialogTextColor,
               fontWeight: 500,
               marginBottom: 0.5,
               overflow: 'hidden',
@@ -125,7 +120,7 @@ function SearchResultCard({
           <Typography
             variant="body1"
             sx={{
-              color: WHITE,
+              color: customColors.dialogTextColor,
               marginBottom: 0.5,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -137,7 +132,7 @@ function SearchResultCard({
           <Typography
             variant="caption"
             sx={{
-              color: TEXT_MUTED,
+              color: customColors.mutedTextColor,
               display: 'block',
             }}
           >
@@ -181,7 +176,7 @@ function SearchResultCard({
           >
             <PlayArrowRounded
               sx={{
-                color: WHITE,
+                color: customColors.dialogTextColor,
                 fontSize: 24,
               }}
             />
@@ -196,6 +191,7 @@ function SearchResultCard({
  * SearchModal - Компонент модального окна поиска аниме
  */
 function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
+  const { customColors } = useTheme().palette;
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeTab, setActiveTab] = useState<number>(0);
   const [isSearching, setIsSearching] = useState<boolean>(false);
@@ -266,7 +262,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
         sx={{
           width: '90%',
           maxWidth: 800,
-          backgroundColor: SURFACE_ELEVATED,
+          backgroundColor: customColors.elevatedSurfaceColor,
           borderRadius: 2,
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
           outline: 'none',
@@ -278,13 +274,13 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
         <Box
           sx={{
             padding: 1,
-            borderBottom: `1px solid ${SURFACE_MUTED}`,
+            borderBottom: `1px solid ${customColors.mutedColor}`,
             display: 'flex',
             alignItems: 'center',
             gap: 1.5,
           }}
         >
-          <Search sx={{ color: TEXT_MUTED, fontSize: 20 }} />
+          <Search sx={{ color: customColors.mutedTextColor, fontSize: 20 }} />
           <TextField
             autoFocus
             fullWidth
@@ -294,7 +290,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
             variant="standard"
             sx={{
               '& .MuiInput-root': {
-                color: WHITE,
+                color: customColors.dialogTextColor,
                 fontSize: '16px',
                 '&:before': {
                   borderBottom: 'none',
@@ -309,7 +305,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
               '& .MuiInputBase-input': {
                 padding: 0,
                 '&::placeholder': {
-                  color: TEXT_MUTED,
+                  color: customColors.mutedTextColor,
                   opacity: 1,
                 },
               },
@@ -318,10 +314,10 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
           <IconButton
             onClick={onClose}
             sx={{
-              color: TEXT_MUTED,
+              color: customColors.mutedTextColor,
               padding: 0.5,
               '&:hover': {
-                color: WHITE,
+                color: customColors.dialogTextColor,
               },
             }}
           >
@@ -331,8 +327,8 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
 
         <Box
           sx={{
-            borderBottom: `1px solid ${SURFACE_MUTED}`,
-            backgroundColor: SURFACE_DARKER,
+            borderBottom: `1px solid ${customColors.mutedColor}`,
+            backgroundColor: customColors.panelColor,
           }}
         >
           <Tabs
@@ -355,7 +351,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
                 borderRadius: '3px 3px 0 0',
               },
               '& .MuiTab-root': {
-                color: TEXT_MUTED,
+                color: customColors.mutedTextColor,
                 textTransform: 'none',
                 fontSize: '13px',
                 minHeight: 40,
@@ -364,15 +360,15 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
                 fontFamily: 'Open Sans, sans-serif',
                 transition: 'color 200ms',
                 '&.Mui-selected': {
-                  color: WHITE,
+                  color: customColors.dialogTextColor,
                   fontWeight: 600,
                 },
                 '&:hover': {
-                  color: WHITE,
+                  color: customColors.dialogTextColor,
                 },
               },
               '& .MuiTabs-scrollButtons': {
-                color: TEXT_MUTED,
+                color: customColors.mutedTextColor,
               },
             }}
           >
@@ -407,7 +403,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
               sx={{
                 textAlign: 'center',
                 padding: 4,
-                color: TEXT_MUTED,
+                color: customColors.mutedTextColor,
               }}
             >
               <Typography variant="body2">
@@ -423,7 +419,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
                 sx={{
                   textAlign: 'center',
                   padding: 4,
-                  color: TEXT_MUTED,
+                  color: customColors.mutedTextColor,
                 }}
               >
                 <Typography variant="body2">Ничего не найдено</Typography>
@@ -451,7 +447,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
                     fill: ACCENT,
                   },
                   '& .site-logo__words': {
-                    fill: WHITE,
+                    fill: customColors.dialogTextColor,
                   },
                 }}
               >
@@ -466,7 +462,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
               </Box>
               <Typography
                 sx={{
-                  color: WHITE,
+                  color: customColors.dialogTextColor,
                   fontSize: '14px',
                   fontWeight: 600,
                   fontFamily: 'Open Sans, sans-serif',

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import {
   animeApi,
   Episode,
@@ -36,8 +36,6 @@ import {
   ACCENT,
   ACCENT_DEEP,
   BLACK_SHORT,
-  SURFACE_DEEPEST,
-  SURFACE_HEADER,
   TEXT_PRIMARY,
   WHITE,
   WHITE_SHORT,
@@ -77,6 +75,7 @@ function PlayerPageRefactored({
   initialEpisodeId,
   onPlayOffline,
 }: PlayerPageProps) {
+  const { customColors } = useTheme().palette;
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
   const [currentAnimeId] = useState<string>(animeId);
@@ -470,7 +469,7 @@ function PlayerPageRefactored({
         height: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: SURFACE_DEEPEST,
+        backgroundColor: customColors.pageColor,
         overflow: 'hidden',
       }}
     >
@@ -487,7 +486,7 @@ function PlayerPageRefactored({
           }
         }}
         canGoBack
-        backgroundColor={SURFACE_HEADER}
+        backgroundColor={customColors.headerColor}
         height={TOOLBAR_HEIGHT}
         isPlayerPage
         showUrlInput={showUrlInput}

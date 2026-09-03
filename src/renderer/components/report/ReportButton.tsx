@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Box, Fab, Tooltip } from '@mui/material';
+import { Box, Fab, Tooltip, useTheme } from '@mui/material';
+import type { CustomColors } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
 import { BugReportRounded } from '@mui/icons-material';
 import ReportDialog from './ReportDialog';
@@ -8,30 +9,31 @@ import {
   FLOATING_BUTTONS_LEFT,
   ReportPayload,
 } from '../../../constants';
-import { ACCENT, BLACK, BORDER, SURFACE_DEEPEST } from '../../theme/palette';
+import { ACCENT } from '../../theme/palette';
 import { createLogger } from '../../../shared/logger';
 
 const log = createLogger('ReportButton');
 
-const FAB_SX = {
-  backgroundColor: alpha(SURFACE_DEEPEST, 0.85),
+const fabSx = (customColors: CustomColors) => ({
+  backgroundColor: alpha(customColors.pageColor, 0.85),
   backdropFilter: 'blur(10px)',
-  border: `1px solid ${alpha(BORDER, 0.6)}`,
+  border: `1px solid ${alpha(customColors.borderColor, 0.6)}`,
   color: ACCENT,
-  boxShadow: `0 4px 12px ${alpha(BLACK, 0.4)}`,
+  boxShadow: `0 4px 12px ${alpha(customColors.blackColor, 0.4)}`,
   transition: 'all 0.3s ease',
   '&:hover': {
     backgroundColor: alpha(ACCENT, 0.24),
     transform: 'translateY(-2px)',
-    boxShadow: `0 6px 16px ${alpha(BLACK, 0.5)}`,
+    boxShadow: `0 6px 16px ${alpha(customColors.blackColor, 0.5)}`,
   },
   '&:active': { transform: 'translateY(0)' },
-};
+});
 
 /**
  * Плавающая кнопка обращения к разработчику вне плеера
  */
 function ReportButton() {
+  const { customColors } = useTheme().palette;
   const [open, setOpen] = useState<boolean>(false);
 
   const handleSubmit = (payload: ReportPayload) => {
@@ -55,7 +57,7 @@ function ReportButton() {
             size="medium"
             aria-label="Сообщить о проблеме"
             onClick={() => setOpen(true)}
-            sx={FAB_SX}
+            sx={fabSx(customColors)}
           >
             <BugReportRounded sx={{ fontSize: 24 }} />
           </Fab>

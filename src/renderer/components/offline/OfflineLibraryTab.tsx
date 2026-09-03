@@ -40,8 +40,6 @@ import {
   ACCENT_DEEP,
   DANGER,
   DANGER_STRONG,
-  SURFACE_RAISED,
-  WHITE,
 } from '../../theme/palette';
 
 interface OfflineLibraryTabProps {
@@ -142,7 +140,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
             px: 3,
             pt: 2,
             pb: 2,
-            backgroundColor: SURFACE_RAISED,
+            backgroundColor: customColors.raisedColor,
           }}
         >
           <TextField
@@ -173,8 +171,8 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
             sx={{
               '& .MuiInputBase-root': {
                 fontSize: OFFLINE_FONT.body,
-                color: WHITE,
-                backgroundColor: SURFACE_RAISED,
+                color: customColors.dialogTextColor,
+                backgroundColor: customColors.raisedColor,
               },
               '& .MuiOutlinedInput-notchedOutline': {
                 borderColor: `rgba(${customColors.onSurfaceRgb}, 0.18)`,
@@ -242,7 +240,9 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                   transition: 'background-color 0.15s',
                   '&:hover': {
                     backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.07)`,
-                    '& .library-chevron': { color: WHITE },
+                    '& .library-chevron': {
+                      color: customColors.dialogTextColor,
+                    },
                   },
                 }}
               >
@@ -321,7 +321,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                     minWidth: OFFLINE_LIBRARY_ACTION_WIDTH,
                     whiteSpace: 'nowrap',
                     backgroundColor: ACCENT,
-                    color: WHITE,
+                    color: customColors.dialogTextColor,
                     '&:hover': { backgroundColor: ACCENT_DEEP },
                   }}
                 >
@@ -453,9 +453,9 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
         slotProps={{
           paper: {
             sx: {
-              backgroundColor: SURFACE_RAISED,
+              backgroundColor: customColors.raisedColor,
               backgroundImage: 'none',
-              color: WHITE,
+              color: customColors.dialogTextColor,
             },
           },
         }}
@@ -501,7 +501,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
               fontSize: OFFLINE_FONT.button,
               px: 2,
               backgroundColor: DANGER,
-              color: WHITE,
+              color: customColors.dialogTextColor,
               '&:hover': { backgroundColor: DANGER_STRONG },
             }}
           >

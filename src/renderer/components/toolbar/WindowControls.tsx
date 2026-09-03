@@ -1,10 +1,9 @@
 /* eslint-disable react/require-default-props */
 import React from 'react';
-import { IconButton, Box, Tooltip, Typography } from '@mui/material';
+import { IconButton, Box, Tooltip, Typography, useTheme } from '@mui/material';
 import { Remove, Fullscreen, Close } from '@mui/icons-material';
 import UpdateButton from './UpdateButton';
 import { APP_NAME, APP_VERSION } from '../../../constants';
-import { WHITE } from '../../theme/palette';
 
 interface WindowControlsProps {
   onMinimize?: () => void;
@@ -25,8 +24,9 @@ function WindowControls({
   onMaximize,
   onClose,
 }: WindowControlsProps) {
+  const { customColors } = useTheme().palette;
   const buttonStyle = {
-    color: WHITE,
+    color: customColors.dialogTextColor,
     WebkitAppRegion: 'no-drag' as const,
     appRegion: 'no-drag' as const,
     padding: 0.5,

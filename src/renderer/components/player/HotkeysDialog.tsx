@@ -6,7 +6,9 @@ import {
   DialogTitle,
   IconButton,
   Typography,
+  useTheme,
 } from '@mui/material';
+import type { CustomColors } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
 import { CloseRounded, KeyboardRounded } from '@mui/icons-material';
 import {
@@ -14,37 +16,32 @@ import {
   HOTKEY_LAYOUT_HINT,
   HotkeyGroup,
 } from '../../../constants';
-import {
-  ACCENT,
-  BORDER,
-  SURFACE_RAISED,
-  TEXT_MUTED,
-  WHITE,
-} from '../../theme/palette';
+import { ACCENT } from '../../theme/palette';
 
 interface HotkeysDialogProps {
   open: boolean;
   onClose: () => void;
 }
 
-const KEY_SX = {
+const keySx = (customColors: CustomColors) => ({
   px: 0.75,
   py: 0.25,
   minWidth: 22,
   textAlign: 'center',
   fontSize: '0.72rem',
   fontFamily: 'monospace',
-  color: WHITE,
+  color: customColors.dialogTextColor,
   borderRadius: 1,
-  border: `1px solid ${alpha(BORDER, 0.9)}`,
-  backgroundColor: alpha(WHITE, 0.06),
+  border: `1px solid ${alpha(customColors.borderColor, 0.9)}`,
+  backgroundColor: alpha(customColors.dialogTextColor, 0.06),
   whiteSpace: 'nowrap',
-};
+});
 
 /**
  * Колонка одной группы сочетаний
  */
 function HotkeyColumn({ group }: { group: HotkeyGroup }) {
+  const { customColors } = useTheme().palette;
   return (
     <Box>
       <Typography
@@ -71,13 +68,18 @@ function HotkeyColumn({ group }: { group: HotkeyGroup }) {
             py: 0.5,
           }}
         >
-          <Typography sx={{ fontSize: '0.82rem', color: alpha(WHITE, 0.85) }}>
+          <Typography
+            sx={{
+              fontSize: '0.82rem',
+              color: alpha(customColors.dialogTextColor, 0.85),
+            }}
+          >
             {item.label}
           </Typography>
 
           <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
             {item.keys.map((key) => (
-              <Box key={key} sx={KEY_SX}>
+              <Box key={key} sx={keySx(customColors)}>
                 {key}
               </Box>
             ))}
@@ -92,6 +94,7 @@ function HotkeyColumn({ group }: { group: HotkeyGroup }) {
  * Окно со списком горячих клавиш плеера
  */
 function HotkeysDialog({ open, onClose }: HotkeysDialogProps) {
+  const { customColors } = useTheme().palette;
   return (
     <Dialog
       open={open}
@@ -101,9 +104,9 @@ function HotkeysDialog({ open, onClose }: HotkeysDialogProps) {
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: SURFACE_RAISED,
+            backgroundColor: customColors.raisedColor,
             backgroundImage: 'none',
-            color: WHITE,
+            color: customColors.dialogTextColor,
             borderRadius: 2,
           },
         },
@@ -124,7 +127,7 @@ function HotkeysDialog({ open, onClose }: HotkeysDialogProps) {
           onClick={onClose}
           size="small"
           aria-label="Закрыть"
-          sx={{ ml: 'auto', color: TEXT_MUTED }}
+          sx={{ ml: 'auto', color: customColors.mutedTextColor }}
         >
           <CloseRounded sx={{ fontSize: 20 }} />
         </IconButton>
@@ -144,7 +147,13 @@ function HotkeysDialog({ open, onClose }: HotkeysDialogProps) {
           ))}
         </Box>
 
-        <Typography sx={{ fontSize: '0.75rem', color: TEXT_MUTED, mt: 2.5 }}>
+        <Typography
+          sx={{
+            fontSize: '0.75rem',
+            color: customColors.mutedTextColor,
+            mt: 2.5,
+          }}
+        >
           {HOTKEY_LAYOUT_HINT}
         </Typography>
       </DialogContent>

@@ -8,7 +8,9 @@ import {
   MenuItem,
   TextField,
   Typography,
+  useTheme,
 } from '@mui/material';
+import type { CustomColors } from '@mui/material/styles';
 import { BugReportRounded } from '@mui/icons-material';
 import {
   REPORT_DESCRIPTION_MAX,
@@ -19,14 +21,7 @@ import {
   ReportKind,
   ReportPayload,
 } from '../../../constants';
-import {
-  ACCENT,
-  ACCENT_DEEP,
-  BORDER,
-  SURFACE_RAISED,
-  TEXT_MUTED,
-  WHITE,
-} from '../../theme/palette';
+import { ACCENT, ACCENT_DEEP } from '../../theme/palette';
 
 interface ReportDialogProps {
   open: boolean;
@@ -34,23 +29,27 @@ interface ReportDialogProps {
   onClose: () => void;
 }
 
-const FIELD_SX = {
+const fieldSx = (customColors: CustomColors) => ({
   '& .MuiOutlinedInput-root': {
-    color: WHITE,
+    color: customColors.dialogTextColor,
     fontSize: '0.9rem',
-    '& fieldset': { borderColor: BORDER },
+    '& fieldset': { borderColor: customColors.borderColor },
     '&:hover fieldset': { borderColor: ACCENT },
     '&.Mui-focused fieldset': { borderColor: ACCENT },
   },
-  '& .MuiInputLabel-root': { color: TEXT_MUTED, fontSize: '0.9rem' },
+  '& .MuiInputLabel-root': {
+    color: customColors.mutedTextColor,
+    fontSize: '0.9rem',
+  },
   '& .MuiInputLabel-root.Mui-focused': { color: ACCENT },
-  '& .MuiFormHelperText-root': { color: TEXT_MUTED },
-};
+  '& .MuiFormHelperText-root': { color: customColors.mutedTextColor },
+});
 
 /**
  * Форма обращения, из которой собирается issue на GitHub
  */
 function ReportDialog({ open, onSubmit, onClose }: ReportDialogProps) {
+  const { customColors } = useTheme().palette;
   const [kind, setKind] = useState<ReportKind>(REPORT_KIND_DEFAULT);
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
@@ -76,9 +75,9 @@ function ReportDialog({ open, onSubmit, onClose }: ReportDialogProps) {
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: SURFACE_RAISED,
+            backgroundColor: customColors.raisedColor,
             backgroundImage: 'none',
-            color: WHITE,
+            color: customColors.dialogTextColor,
             borderRadius: 2,
           },
         },
@@ -94,7 +93,9 @@ function ReportDialog({ open, onSubmit, onClose }: ReportDialogProps) {
       <DialogContent
         sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}
       >
-        <Typography sx={{ fontSize: '0.85rem', color: TEXT_MUTED }}>
+        <Typography
+          sx={{ fontSize: '0.85rem', color: customColors.mutedTextColor }}
+        >
           Обращение откроется на GitHub уже заполненным — останется только
           отправить. Версия приложения и данные об ОС подставятся автоматически.
         </Typography>
@@ -105,7 +106,7 @@ function ReportDialog({ open, onSubmit, onClose }: ReportDialogProps) {
           label="Категория"
           value={kind}
           onChange={(event) => setKind(event.target.value as ReportKind)}
-          sx={FIELD_SX}
+          sx={fieldSx(customColors)}
           slotProps={{ select: { MenuProps: { disableScrollLock: true } } }}
         >
           {REPORT_KINDS.map((value) => (
@@ -121,7 +122,7 @@ function ReportDialog({ open, onSubmit, onClose }: ReportDialogProps) {
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           slotProps={{ htmlInput: { maxLength: REPORT_TITLE_MAX } }}
-          sx={FIELD_SX}
+          sx={fieldSx(customColors)}
         />
 
         <TextField
@@ -134,14 +135,14 @@ function ReportDialog({ open, onSubmit, onClose }: ReportDialogProps) {
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           slotProps={{ htmlInput: { maxLength: REPORT_DESCRIPTION_MAX } }}
-          sx={FIELD_SX}
+          sx={fieldSx(customColors)}
         />
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button
           onClick={onClose}
-          sx={{ textTransform: 'none', color: TEXT_MUTED }}
+          sx={{ textTransform: 'none', color: customColors.mutedTextColor }}
         >
           Отмена
         </Button>
@@ -152,7 +153,7 @@ function ReportDialog({ open, onSubmit, onClose }: ReportDialogProps) {
           sx={{
             textTransform: 'none',
             backgroundColor: ACCENT,
-            color: WHITE,
+            color: customColors.dialogTextColor,
             '&:hover': { backgroundColor: ACCENT_DEEP },
           }}
         >

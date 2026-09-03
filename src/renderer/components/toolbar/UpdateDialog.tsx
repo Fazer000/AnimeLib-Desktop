@@ -1,4 +1,5 @@
 import React from 'react';
+import type { CustomColors } from '@mui/material/styles';
 import {
   Box,
   Button,
@@ -8,6 +9,7 @@ import {
   DialogTitle,
   LinearProgress,
   Typography,
+  useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { OpenInNewRounded } from '@mui/icons-material';
@@ -19,8 +21,6 @@ import {
   SUCCESS_DEEP,
   SUCCESS_MID,
   SUCCESS_STRONG,
-  SURFACE_RAISED,
-  WHITE,
 } from '../../theme/palette';
 
 interface UpdateDialogProps {
@@ -55,7 +55,10 @@ const formatDate = (value: string): string => {
 /**
  * Отображает описание релиза с базовой разметкой Markdown
  */
-const renderNotes = (notes: string): React.ReactNode => {
+const renderNotes = (
+  notes: string,
+  customColors: CustomColors,
+): React.ReactNode => {
   const lines = notes.split('\n').filter((line) => line.trim().length > 0);
 
   if (lines.length === 0) {
@@ -77,7 +80,7 @@ const renderNotes = (notes: string): React.ReactNode => {
           sx={{
             fontSize: '0.9rem',
             fontWeight: 600,
-            color: WHITE,
+            color: customColors.dialogTextColor,
             mt: index === 0 ? 0 : 1.5,
             mb: 0.5,
           }}
@@ -126,6 +129,7 @@ function UpdateDialog({
   onOpenRelease,
   onClose,
 }: UpdateDialogProps) {
+  const { customColors } = useTheme().palette;
   const isDownloading = status === 'downloading';
   const publishedAt = formatDate(updateInfo.publishedAt);
 
@@ -138,9 +142,9 @@ function UpdateDialog({
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: SURFACE_RAISED,
+            backgroundColor: customColors.raisedColor,
             backgroundImage: 'none',
-            color: WHITE,
+            color: customColors.dialogTextColor,
             borderRadius: 2,
           },
         },
@@ -160,7 +164,7 @@ function UpdateDialog({
 
       <DialogContent dividers sx={{ borderColor: 'rgba(255,255,255,0.1)' }}>
         <Box sx={{ maxHeight: 320, overflowY: 'auto', pr: 1 }}>
-          {renderNotes(updateInfo.releaseNotes)}
+          {renderNotes(updateInfo.releaseNotes, customColors)}
         </Box>
 
         {isDownloading && (

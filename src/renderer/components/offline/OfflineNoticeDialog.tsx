@@ -9,12 +9,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { CloudOffRounded } from '@mui/icons-material';
-import {
-  ACCENT,
-  ACCENT_DEEP,
-  SURFACE_RAISED,
-  WHITE,
-} from '../../theme/palette';
+import { ACCENT, ACCENT_DEEP } from '../../theme/palette';
 
 interface OfflineNoticeDialogProps {
   open: boolean;
@@ -40,9 +35,9 @@ function OfflineNoticeDialog({
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: SURFACE_RAISED,
+            backgroundColor: customColors.raisedColor,
             backgroundImage: 'none',
-            color: WHITE,
+            color: customColors.dialogTextColor,
             borderRadius: 2,
           },
         },
@@ -77,7 +72,7 @@ function OfflineNoticeDialog({
           sx={{
             textTransform: 'none',
             backgroundColor: ACCENT,
-            color: WHITE,
+            color: customColors.dialogTextColor,
             '&:hover': { backgroundColor: ACCENT_DEEP },
           }}
         >

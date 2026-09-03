@@ -29,13 +29,19 @@ import {
   OFF_WHITE,
   NEUTRAL_RGB,
   SURFACE,
+  LIGHT_ON_SURFACE_MUTED,
   LIGHT_SURFACE_CONTAINER_HIGH,
+  LIGHT_SURFACE_CONTAINER_HIGHEST,
+  SURFACE_DARKER,
   SURFACE_DEEPEST,
   SURFACE_DIALOG,
+  SURFACE_ELEVATED,
   SURFACE_HEADER,
   SURFACE_HOVER,
+  SURFACE_MUTED,
   SURFACE_RAISED,
   TEXT_DIM,
+  TEXT_MUTED,
   TEXT_ON_LIGHT,
   TEXT_ON_LIGHT_MUTED,
   TEXT_PRIMARY,
@@ -59,6 +65,11 @@ declare module '@mui/material/styles' {
     accentTextColor: string;
     dialogColor: string;
     raisedColor: string;
+    pageColor: string;
+    panelColor: string;
+    elevatedSurfaceColor: string;
+    mutedColor: string;
+    mutedTextColor: string;
     dialogTextColor: string;
     accentSoftColor: string;
 
@@ -108,6 +119,11 @@ const DARK_COLORS = {
   accentTextColor: DARK_TEXT_ACCENT,
   dialogColor: SURFACE_DIALOG,
   raisedColor: SURFACE_RAISED,
+  pageColor: SURFACE_DEEPEST,
+  panelColor: SURFACE_DARKER,
+  elevatedSurfaceColor: SURFACE_ELEVATED,
+  mutedColor: SURFACE_MUTED,
+  mutedTextColor: TEXT_MUTED,
   dialogTextColor: WHITE,
   accentSoftColor: ACCENT_LIGHT,
   onSurfaceRgb: DARK_ON_SURFACE_RGB,
@@ -130,6 +146,11 @@ const LIGHT_COLORS = {
   accentTextColor: TEXT_ON_LIGHT_MUTED,
   dialogColor: WHITE,
   raisedColor: LIGHT_SURFACE_CONTAINER_HIGH,
+  pageColor: LIGHT_SURFACE,
+  panelColor: WHITE,
+  elevatedSurfaceColor: WHITE,
+  mutedColor: LIGHT_SURFACE_CONTAINER_HIGHEST,
+  mutedTextColor: LIGHT_ON_SURFACE_MUTED,
   dialogTextColor: TEXT_ON_LIGHT,
   accentSoftColor: ACCENT,
   onSurfaceRgb: LIGHT_ON_SURFACE_RGB,

@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Fab, Zoom } from '@mui/material';
+import { Box, Fab, Zoom, useTheme } from '@mui/material';
 import { KeyboardArrowUp } from '@mui/icons-material';
 
 import { createLogger } from '../../../shared/logger';
-import { WHITE_SHORT } from '../../theme/palette';
 
 const log = createLogger('ScrollToTopButton');
 
@@ -20,6 +19,7 @@ function ScrollToTopButton({
   threshold = 300,
   scrollContainerId,
 }: ScrollToTopButtonProps) {
+  const { customColors } = useTheme().palette;
   const [showButton, setShowButton] = useState(false);
 
   useEffect(() => {
@@ -91,7 +91,7 @@ function ScrollToTopButton({
             backgroundColor: 'rgba(20, 20, 20, 0.85)',
             backdropFilter: 'blur(10px)',
             border: '1px solid rgba(116, 116, 128, 0.33)',
-            color: WHITE_SHORT,
+            color: customColors.dialogTextColor,
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
             transition: 'all 0.3s ease',
             '&:hover': {

@@ -20,12 +20,7 @@ import {
   OFFLINE_FONT,
   OFFLINE_ICON,
 } from '../../../constants';
-import {
-  ACCENT,
-  DANGER,
-  SUCCESS_MID,
-  SURFACE_RAISED,
-} from '../../theme/palette';
+import { ACCENT, DANGER, SUCCESS_MID } from '../../theme/palette';
 
 export type KodikQualityMap = Record<number, string[]>;
 
@@ -184,7 +179,7 @@ function EpisodeSelectionList({
           mx: -3,
           px: 3,
           pt: 2,
-          backgroundColor: SURFACE_RAISED,
+          backgroundColor: customColors.raisedColor,
         }}
       >
         <Box sx={{ display: 'flex', gap: 1.5, mb: 2, mt: 0.5 }}>

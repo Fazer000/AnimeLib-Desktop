@@ -9,6 +9,7 @@ import {
   IconButton,
   Slider,
   Typography,
+  useTheme,
 } from '@mui/material';
 import { CloseRounded } from '@mui/icons-material';
 import { CommentsSettings } from '../../hooks/useCommentsSettings';
@@ -16,7 +17,7 @@ import {
   COMMENTS_COLLAPSE_MAX_LEVEL,
   COMMENTS_COLLAPSE_MIN_LEVEL,
 } from '../../../constants';
-import { ACCENT, ACCENT_SOFT, SURFACE_DIALOG } from '../../theme/palette';
+import { ACCENT, ACCENT_SOFT } from '../../theme/palette';
 
 const CHECKBOX_SX = {
   color: 'rgba(255, 255, 255, 0.4)',
@@ -40,6 +41,7 @@ function CommentsSettingsDialog({
   onChange,
   onClose,
 }: CommentsSettingsDialogProps) {
+  const { customColors } = useTheme().palette;
   return (
     <Dialog
       open={open}
@@ -47,7 +49,7 @@ function CommentsSettingsDialog({
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: SURFACE_DIALOG,
+            backgroundColor: customColors.dialogColor,
             backgroundImage: 'none',
             borderRadius: 2,
             minWidth: 460,

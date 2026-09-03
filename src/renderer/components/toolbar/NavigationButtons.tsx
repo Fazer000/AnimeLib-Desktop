@@ -1,8 +1,7 @@
 /* eslint-disable react/require-default-props */
 import React from 'react';
-import { IconButton, Box } from '@mui/material';
+import { IconButton, Box, useTheme } from '@mui/material';
 import { ArrowBack, Refresh, Home, Search } from '@mui/icons-material';
-import { WHITE } from '../../theme/palette';
 
 interface NavigationButtonsProps {
   onBack?: () => void;
@@ -27,8 +26,9 @@ function NavigationButtons({
   onSearch,
   canGoBack = false,
 }: NavigationButtonsProps) {
+  const { customColors } = useTheme().palette;
   const buttonStyle = {
-    color: WHITE,
+    color: customColors.dialogTextColor,
     WebkitAppRegion: 'no-drag' as const,
     appRegion: 'no-drag' as const,
     padding: 0.5,
