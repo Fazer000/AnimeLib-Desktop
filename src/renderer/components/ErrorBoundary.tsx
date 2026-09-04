@@ -1,8 +1,8 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import {
-  ACCENT,
-  ACCENT_DEEP,
+  DARK_PRIMARY,
+  PRIMARY_DEEP,
   BLACK_SHORT,
   TEXT_PRIMARY,
   WHITE,
@@ -69,7 +69,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             fontSize: '80px',
             fontWeight: 'bold',
             marginBottom: 2,
-            color: ACCENT,
+            color: DARK_PRIMARY,
           }}
         >
           Ошибка
@@ -95,14 +95,14 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
           variant="contained"
           onClick={() => this.setState({ hasError: false, error: undefined })}
           sx={{
-            backgroundColor: ACCENT,
+            backgroundColor: DARK_PRIMARY,
             color: WHITE,
             padding: '10px 30px',
             fontSize: '14px',
             textTransform: 'none',
             borderRadius: 4,
             fontWeight: 500,
-            '&:hover': { backgroundColor: ACCENT_DEEP },
+            '&:hover': { backgroundColor: PRIMARY_DEEP },
           }}
         >
           Попробовать снова

@@ -1,7 +1,8 @@
 import type { SxProps, Theme } from '@mui/material';
 import {
-  ACCENT_BRIGHT,
-  ACCENT_LIGHT,
+  DARK_PRIMARY_ACCENT,
+  PRIMARY_ACCENT_RGB,
+  PRIMARY_RGB,
   TEXT_DISABLED,
 } from '../../../theme/palette';
 
@@ -34,8 +35,8 @@ export const OPTION_ITEM_SX = {
   ...MENU_ITEM_BASE,
   '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.08)' },
   '&.Mui-selected': {
-    backgroundColor: 'rgba(124, 58, 237, 0.25)',
-    color: ACCENT_LIGHT,
+    backgroundColor: `rgba(${PRIMARY_RGB}, 0.25)`,
+    color: DARK_PRIMARY_ACCENT,
   },
 };
 
@@ -59,7 +60,7 @@ export const CAPTION_BLOCK_SX = {
 
 export const CHEVRON_SX = { color: 'rgba(255, 255, 255, 0.7)' };
 
-export const CHECK_ICON_SX = { fontSize: 16, color: ACCENT_LIGHT };
+export const CHECK_ICON_SX = { fontSize: 16, color: DARK_PRIMARY_ACCENT };
 
 export const HEADER_SX = {
   display: 'flex',
@@ -113,11 +114,14 @@ const switchSx = (accent: string, trackColor: string) => ({
   },
 });
 
-export const SWITCH_SX = switchSx(ACCENT_LIGHT, 'rgba(187, 134, 252, 0.3)');
+export const SWITCH_SX = switchSx(
+  DARK_PRIMARY_ACCENT,
+  `rgba(${PRIMARY_ACCENT_RGB}, 0.3)`,
+);
 
 export const SWITCH_SKIP_SX = switchSx(
-  ACCENT_BRIGHT,
-  'rgba(192, 132, 252, 0.3)',
+  DARK_PRIMARY_ACCENT,
+  `rgba(${PRIMARY_ACCENT_RGB}, 0.3)`,
 );
 
 /** Квадратная плашка с иконкой или тегом качества слева от строки. */
@@ -163,10 +167,12 @@ const makeChipSx =
     borderRadius: 1,
     cursor: 'pointer',
     backgroundColor: isSelected
-      ? 'rgba(124, 58, 237, 0.3)'
+      ? `rgba(${PRIMARY_RGB}, 0.3)`
       : 'rgba(255, 255, 255, 0.1)',
-    border: isSelected ? `1px solid ${ACCENT_LIGHT}` : '1px solid transparent',
-    color: isSelected ? ACCENT_LIGHT : 'rgba(255, 255, 255, 0.7)',
+    border: isSelected
+      ? `1px solid ${DARK_PRIMARY_ACCENT}`
+      : '1px solid transparent',
+    color: isSelected ? DARK_PRIMARY_ACCENT : 'rgba(255, 255, 255, 0.7)',
     fontWeight: isSelected ? 600 : 400,
     fontSize,
     fontFamily: 'Roboto, sans-serif',

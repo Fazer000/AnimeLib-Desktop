@@ -1,6 +1,6 @@
 import { PLAYER_INSET_X, PLAYER_INSET_Y } from '../../constants';
 import {
-  ACCENT_VIOLET,
+  QUALITY_FHD,
   INFO_BRIGHT,
   QUALITY_4K,
   QUALITY_SD,
@@ -69,7 +69,7 @@ export function getQualityTagFromResolution(quality: string): string {
  */
 export const QUALITY_TAG_COLORS: Record<string, string> = {
   '4K': QUALITY_4K,
-  FHD: ACCENT_VIOLET,
+  FHD: QUALITY_FHD,
   HD: INFO_BRIGHT,
   SD: QUALITY_SD,
 };
@@ -78,7 +78,7 @@ export const QUALITY_TAG_COLORS: Record<string, string> = {
  * Возвращает цвет метки качества
  */
 export function getQualityTagColor(tag: string): string {
-  return QUALITY_TAG_COLORS[tag] || ACCENT_VIOLET;
+  return QUALITY_TAG_COLORS[tag] || QUALITY_FHD;
 }
 
 /**

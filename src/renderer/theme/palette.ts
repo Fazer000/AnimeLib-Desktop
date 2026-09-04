@@ -5,16 +5,7 @@
  */
 
 /** Фиолетовая линейка бренда, от самой тёмной к самой светлой. */
-export const ACCENT_DEEPEST = '#5B21B6';
-export const ACCENT_DEEP = '#6D28D9';
-export const ACCENT = '#7C3AED';
-export const ACCENT_VIOLET = '#8B5CF6';
-export const ACCENT_ORCHID = '#9F7AEA';
-export const ACCENT_LIGHT_ALT = '#9F67FF';
-export const ACCENT_MID = '#A855F7';
-export const ACCENT_SOFT = '#A78BFA';
-export const ACCENT_LIGHT = '#BB86FC';
-export const ACCENT_BRIGHT = '#C084FC';
+export const QUALITY_FHD = '#8B5CF6';
 
 /** Поверхности: от самой глубокой к самой светлой. */
 export const SURFACE_DEEPEST = '#0A0A0A';
@@ -128,7 +119,7 @@ export const LIGHT_SUCCESS = '#16A34A';
 
 /** Метки качества светлой схемы: те же хюи, затемнённые под белый фон. */
 export const LIGHT_QUALITY_4K = '#8A5406';
-export const LIGHT_QUALITY_FHD = ACCENT_DEEPEST;
+export const LIGHT_QUALITY_FHD = '#5B21B6';
 export const LIGHT_QUALITY_HD = '#1D4ED8';
 export const LIGHT_QUALITY_SD = '#4E5561';
 
@@ -151,7 +142,6 @@ export const DARK_OVERLAY_RGB = '20, 20, 20';
 export const LIGHT_OVERLAY_RGB = '255, 255, 255';
 export const DARK_ELEVATED_RGB = '55, 55, 55';
 export const LIGHT_ELEVATED_RGB = '224, 224, 224';
-export const ACCENT_RGB = '124, 58, 237';
 export const DANGER_RGB = '239, 83, 80';
 export const DANGER_STRONG_RGB = '211, 47, 47';
 export const DANGER_SOFT_RGB = '248, 113, 113';
@@ -164,6 +154,7 @@ export const DANGER_DARK_RGB = '198, 40, 40';
 export const WARNING_DARK = '#B45309';
 export const SURFACE_HEADER_RGB = '37, 37, 39';
 export const PRIMARY_RGB = '94, 53, 177';
+export const PRIMARY_ACCENT_RGB = '179, 157, 219';
 export const DARK_SURFACE_RGB = '14, 14, 16';
 export const DARK_SURFACE_CONTAINER_RGB = '22, 22, 26';
 export const DARK_SURFACE_CONTAINER_HIGHEST_RGB = '38, 38, 42';

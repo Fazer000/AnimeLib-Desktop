@@ -3,8 +3,8 @@ import { Box, Typography, TextField, Button, Fade } from '@mui/material';
 import iconSvg from '../../../assets/icon.svg';
 import { DEFAULT_SITE_URL } from '../utils/urlHelpers';
 import {
-  ACCENT,
-  ACCENT_DEEP,
+  DARK_PRIMARY,
+  PRIMARY_DEEP,
   GRADIENT_VIOLET,
   SURFACE_DEEPEST,
   WHITE,
@@ -121,7 +121,7 @@ function UrlInputPage({ onSubmit }: UrlInputProps) {
                 sx={{
                   fontSize: '13px',
                   fontWeight: 600,
-                  color: ACCENT,
+                  color: DARK_PRIMARY,
                   mb: 2,
                   textTransform: 'uppercase',
                   letterSpacing: '0.1em',
@@ -152,7 +152,7 @@ function UrlInputPage({ onSubmit }: UrlInputProps) {
                       borderColor: 'rgba(124, 58, 237, 0.6)',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: ACCENT,
+                      borderColor: DARK_PRIMARY,
                       boxShadow: '0 0 0 4px rgba(124, 58, 237, 0.1)',
                     },
                     '& input': {
@@ -172,7 +172,7 @@ function UrlInputPage({ onSubmit }: UrlInputProps) {
                   fontWeight: 600,
                   textTransform: 'none',
                   borderRadius: '16px',
-                  background: `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_DEEP} 100%)`,
+                  background: `linear-gradient(135deg, ${DARK_PRIMARY} 0%, ${PRIMARY_DEEP} 100%)`,
                   color: WHITE,
                   transition: 'all 0.3s ease',
                   '&:active': {

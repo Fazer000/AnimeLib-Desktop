@@ -17,12 +17,7 @@ import {
 import { NavRow, ToggleRow } from './rows';
 import { MENU_ICON_SIZE, menuIconBoxSx } from './styles';
 import type { AutoSkipSettings, MenuPage } from './types';
-import {
-  ACCENT_BRIGHT,
-  ACCENT_LIGHT,
-  ACCENT_MID,
-  ACCENT_ORCHID,
-} from '../../../theme/palette';
+import {} from '../../../theme/palette';
 
 interface MainPageProps {
   qualityOptions: Array<{ label: string; value: string }>;
@@ -86,7 +81,7 @@ function MainPage({
 
       <NavRow
         icon={
-          <Box sx={menuIconBoxSx(ACCENT_MID)}>
+          <Box sx={menuIconBoxSx(customColors.onVideoAccentColor)}>
             <SpeedOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
           </Box>
         }
@@ -97,7 +92,7 @@ function MainPage({
 
       <NavRow
         icon={
-          <Box sx={menuIconBoxSx(ACCENT_LIGHT)}>
+          <Box sx={menuIconBoxSx(customColors.onVideoAccentColor)}>
             <FastForwardOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
           </Box>
         }
@@ -108,7 +103,7 @@ function MainPage({
 
       <NavRow
         icon={
-          <Box sx={menuIconBoxSx(ACCENT_BRIGHT)}>
+          <Box sx={menuIconBoxSx(customColors.onVideoAccentColor)}>
             <SkipNextOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
           </Box>
         }
@@ -119,7 +114,7 @@ function MainPage({
 
       <NavRow
         icon={
-          <Box sx={menuIconBoxSx(ACCENT_ORCHID)}>
+          <Box sx={menuIconBoxSx(customColors.onVideoAccentColor)}>
             <SubtitlesOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
           </Box>
         }
