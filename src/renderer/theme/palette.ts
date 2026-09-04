@@ -88,6 +88,7 @@ export const DARK_OUTLINE = 'rgba(255, 255, 255, 0.16)';
 
 /** Акцент тёмной схемы: заливка кнопок и светлый тон для текста выделения. */
 export const DARK_PRIMARY = '#5E35B1';
+export const PRIMARY_DEEP = '#4A2A8C';
 export const DARK_PRIMARY_ACCENT = '#B39DDB';
 export const DARK_PRIMARY_CONTAINER = 'rgba(94, 53, 177, 0.26)';
 export const DARK_PRIMARY_QUIET = 'rgba(94, 53, 177, 0.16)';
@@ -145,7 +146,7 @@ export const LIGHT_TEXT_DISABLED = 'rgba(33, 33, 33, 0.38)';
  * а прозрачность задаётся на месте применения.
  */
 export const DARK_ON_SURFACE_RGB = '255, 255, 255';
-export const LIGHT_ON_SURFACE_RGB = '26, 26, 26';
+export const LIGHT_ON_SURFACE_RGB = '23, 23, 26';
 export const DARK_OVERLAY_RGB = '20, 20, 20';
 export const LIGHT_OVERLAY_RGB = '255, 255, 255';
 export const DARK_ELEVATED_RGB = '55, 55, 55';
@@ -162,5 +163,10 @@ export const DANGER_DARK = '#C62828';
 export const DANGER_DARK_RGB = '198, 40, 40';
 export const WARNING_DARK = '#B45309';
 export const SURFACE_HEADER_RGB = '37, 37, 39';
+export const PRIMARY_RGB = '94, 53, 177';
+export const DARK_SURFACE_RGB = '14, 14, 16';
+export const DARK_SURFACE_CONTAINER_RGB = '22, 22, 26';
+export const DARK_SURFACE_CONTAINER_HIGHEST_RGB = '38, 38, 42';
+export const LIGHT_SURFACE_CONTAINER_HIGHEST_RGB = '219, 219, 224';
 export const LILAC_TINT_RGB = '237, 231, 246';
 export const NEUTRAL_RGB = '116, 116, 128';
