@@ -261,7 +261,7 @@ function VideoControls({
   const overlayButtonSx = {
     backgroundColor: 'rgba(20, 20, 20, 0.45)',
     border: '1px solid rgba(116, 116, 128, 0.33)',
-    color: theme.palette.customColors.primaryTextColor,
+    color: theme.palette.customColors.onVideoColor,
     padding: 1,
     borderRadius: 4,
     '&:hover': {
@@ -308,7 +308,7 @@ function VideoControls({
             side="left"
             active={downloadManagerOpen}
             label="Загрузки"
-            color={theme.palette.customColors.primaryTextColor}
+            color={theme.palette.customColors.onVideoColor}
             onClick={onOpenDownloadManager}
             icon={<DownloadRounded sx={ICON_SX} />}
           />
@@ -334,7 +334,7 @@ function VideoControls({
             label={sidebarCollapsed ? 'Показать озвучки' : 'Скрыть озвучки'}
             color={
               sidebarCollapsed
-                ? theme.palette.customColors.primaryTextColor
+                ? theme.palette.customColors.onVideoColor
                 : ACCENT
             }
             onClick={onSidebarToggle}
@@ -374,7 +374,7 @@ function VideoControls({
             sx={{
               backgroundColor: 'rgba(20, 20, 20, 0.45)',
               border: '1px solid rgba(116, 116, 128, 0.33)',
-              color: theme.palette.customColors.primaryTextColor,
+              color: theme.palette.customColors.onVideoColor,
               padding: '10px 20px',
               borderRadius: 2,
               cursor: 'pointer',
@@ -435,7 +435,7 @@ function VideoControls({
                 ...overlayButtonSx,
                 color: episodesVisible
                   ? ACCENT
-                  : theme.palette.customColors.primaryTextColor,
+                  : theme.palette.customColors.onVideoColor,
               }}
             >
               <ListRounded sx={ICON_SX} />

@@ -1,5 +1,12 @@
 import { memo, useCallback, useState } from 'react';
-import { Box, IconButton, Menu, MenuItem, Typography } from '@mui/material';
+import {
+  Box,
+  IconButton,
+  Menu,
+  MenuItem,
+  Typography,
+  useTheme,
+} from '@mui/material';
 import {
   DeleteOutline,
   EditOutlined,
@@ -7,23 +14,24 @@ import {
   MoreHoriz,
   PersonOffOutlined,
 } from '@mui/icons-material';
+import type { CustomColors } from '@mui/material/styles';
 import { Comment } from '../../../services/player';
 import CommentEditor, { CommentSubmitData } from '../CommentEditor';
 import { DeleteCommentDialog, IgnoreUserDialog } from './dialogs';
 import type { ReplyControls } from './types';
-import { ACCENT_SOFT, DANGER_SOFT } from '../../../theme/palette';
 
-const REPLY_LINK_SX = {
-  color: ACCENT_SOFT,
+const replyLinkSx = (colors: CustomColors) => ({
+  color: colors.accentSoftColor,
   fontSize: '0.8125rem',
   cursor: 'pointer',
   userSelect: 'none' as const,
   '&:hover': { textDecoration: 'underline' },
-};
+});
 
 /** Ссылка «ответить», меню действий и формы редактирования и ответа. */
 const CommentActions = memo(
   ({ comment, controls }: { comment: Comment; controls: ReplyControls }) => {
+    const { customColors } = useTheme().palette;
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -72,7 +80,7 @@ const CommentActions = memo(
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1 }}>
           <Typography
             component="span"
-            sx={REPLY_LINK_SX}
+            sx={replyLinkSx(customColors)}
             onClick={() => controls.onReplyStart(comment.id)}
           >
             ответить
@@ -81,7 +89,10 @@ const CommentActions = memo(
           <IconButton
             size="small"
             onClick={(event) => setAnchorEl(event.currentTarget)}
-            sx={{ padding: '2px', color: 'rgba(255, 255, 255, 0.5)' }}
+            sx={{
+              padding: '2px',
+              color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
+            }}
           >
             <MoreHoriz sx={{ fontSize: 16 }} />
           </IconButton>
@@ -111,7 +122,7 @@ const CommentActions = memo(
                 setAnchorEl(null);
                 setConfirmOpen(true);
               }}
-              sx={{ color: DANGER_SOFT, gap: 1 }}
+              sx={{ color: customColors.dangerSoftColor, gap: 1 }}
             >
               <DeleteOutline sx={{ fontSize: 18 }} />
               Удалить

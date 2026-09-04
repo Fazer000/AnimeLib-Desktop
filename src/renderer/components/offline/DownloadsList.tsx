@@ -12,6 +12,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import type { CustomColors } from '@mui/material/styles';
 import { CloseRounded, PlayArrowRounded } from '@mui/icons-material';
 import {
   DownloadTask,
@@ -26,23 +27,18 @@ import {
   formatProgress,
   formatSpeed,
 } from '../../utils/offlineFormat';
-import {
-  ACCENT,
-  ACCENT_LIGHT,
-  DANGER,
-  DANGER_STRONG,
-} from '../../theme/palette';
+import { ACCENT, ACCENT_LIGHT } from '../../theme/palette';
 
 interface DownloadsListProps {
   tasks: DownloadTask[];
 }
 
-const CANCEL_SX = {
+const cancelSx = (colors: CustomColors) => ({
   textTransform: 'none',
   fontSize: OFFLINE_FONT.button,
-  color: DANGER,
-  '&:hover': { backgroundColor: alpha(DANGER, 0.12) },
-};
+  color: colors.dangerColor,
+  '&:hover': { backgroundColor: alpha(colors.dangerColor, 0.12) },
+});
 
 const CLEAR_SX = {
   textTransform: 'none',
@@ -118,7 +114,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
           <Button
             size="small"
             onClick={() => setConfirmOpen(true)}
-            sx={CANCEL_SX}
+            sx={cancelSx(customColors)}
           >
             Отменить все
           </Button>
@@ -161,7 +157,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
                   fontSize: OFFLINE_FONT.hint,
                   color:
                     task.status === 'error'
-                      ? DANGER
+                      ? customColors.dangerColor
                       : `rgba(${customColors.onSurfaceRgb}, 0.55)`,
                 }}
               >
@@ -262,9 +258,9 @@ function DownloadsList({ tasks }: DownloadsListProps) {
               textTransform: 'none',
               fontSize: OFFLINE_FONT.button,
               px: 2,
-              backgroundColor: DANGER,
-              color: customColors.dialogTextColor,
-              '&:hover': { backgroundColor: DANGER_STRONG },
+              backgroundColor: customColors.dangerColor,
+              color: customColors.onAccentColor,
+              '&:hover': { backgroundColor: customColors.dangerHoverColor },
             }}
           >
             Отменить все

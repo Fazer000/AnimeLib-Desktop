@@ -182,13 +182,12 @@ describe('CommentsManager: голоса', () => {
     ).toBe(3);
   });
 
-  it('цвет зависит от знака', () => {
-    const positive = CommentsManager.getVoteColor(1);
-    const negative = CommentsManager.getVoteColor(-1);
-
-    expect(CommentsManager.getVoteColor(0)).toBe('inherit');
-    expect(positive).not.toBe(negative);
-    expect(positive).not.toBe('inherit');
+  it('знак счёта определяет тон', () => {
+    expect(CommentsManager.getVoteTone(1)).toBe('positive');
+    expect(CommentsManager.getVoteTone(12)).toBe('positive');
+    expect(CommentsManager.getVoteTone(-1)).toBe('negative');
+    expect(CommentsManager.getVoteTone(-7)).toBe('negative');
+    expect(CommentsManager.getVoteTone(0)).toBe('neutral');
   });
 });
 

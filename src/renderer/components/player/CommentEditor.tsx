@@ -85,10 +85,10 @@ const MenuButton = memo(
               ? theme.palette.customColors.secondaryColor
               : theme.palette.customColors.accentTextColor,
             backgroundColor: active
-              ? 'rgba(255, 255, 255, 0.1)'
+              ? `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.1)`
               : 'transparent',
             '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+              backgroundColor: `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.15)`,
             },
           }}
         >
@@ -257,6 +257,7 @@ function CommentEditorComponent({
     <Box
       sx={{
         backgroundColor: theme.palette.customColors.primaryColor,
+        border: `1px solid ${theme.palette.customColors.borderColor}`,
         borderRadius: 2,
         boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
         mx: 1,
@@ -268,7 +269,7 @@ function CommentEditorComponent({
           display: 'flex',
           gap: 0.5,
           padding: 1,
-          borderBottom: `1px solid ${theme.palette.customColors.borderColor}15`,
+          borderBottom: `1px solid rgba(${theme.palette.customColors.onSurfaceRgb}, 0.09)`,
           flexWrap: 'wrap',
         }}
       >
@@ -335,7 +336,7 @@ function CommentEditorComponent({
           display: 'flex',
           justifyContent: 'flex-end',
           gap: 1,
-          borderTop: `1px solid ${theme.palette.customColors.borderColor}15`,
+          borderTop: `1px solid rgba(${theme.palette.customColors.onSurfaceRgb}, 0.09)`,
         }}
       >
         {onCancel && (
@@ -354,7 +355,7 @@ function CommentEditorComponent({
           startIcon={<Send />}
           sx={{
             backgroundColor: theme.palette.customColors.secondaryColor,
-            color: theme.palette.customColors.primaryTextColor,
+            color: theme.palette.customColors.onAccentColor,
             '&:hover': {
               backgroundColor: theme.palette.customColors.secondaryColor,
               opacity: 0.8,
@@ -386,7 +387,7 @@ function CommentEditorComponent({
         <DialogTitle
           sx={{
             color: theme.palette.customColors.primaryTextColor,
-            borderBottom: `1px solid ${theme.palette.customColors.borderColor}15`,
+            borderBottom: `1px solid rgba(${theme.palette.customColors.onSurfaceRgb}, 0.09)`,
           }}
         >
           Название спойлера
@@ -435,7 +436,7 @@ function CommentEditorComponent({
         <DialogActions
           sx={{
             padding: 2,
-            borderTop: `1px solid ${theme.palette.customColors.borderColor}15`,
+            borderTop: `1px solid rgba(${theme.palette.customColors.onSurfaceRgb}, 0.09)`,
           }}
         >
           <Button
@@ -447,7 +448,7 @@ function CommentEditorComponent({
             sx={{
               color: theme.palette.customColors.accentTextColor,
               '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                backgroundColor: `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.1)`,
               },
             }}
           >

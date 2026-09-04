@@ -60,7 +60,7 @@ function EpisodeNavigationHint({
     cursor: showControls ? 'pointer' : 'none',
     backgroundColor: 'rgba(20, 20, 20, 0.45)',
     border: '1px solid rgba(116, 116, 128, 0.33)',
-    color: theme.palette.customColors.primaryTextColor,
+    color: theme.palette.customColors.onVideoColor,
     width: 60,
     height: 60,
     transition: 'all 0.3s ease',
@@ -122,7 +122,7 @@ function EpisodeNavigationHint({
             {previousEpisode && (
               <Typography
                 sx={{
-                  color: theme.palette.customColors.primaryTextColor,
+                  color: theme.palette.customColors.onVideoColor,
                   fontSize: '14px',
                   fontWeight: 500,
                   textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
@@ -187,7 +187,7 @@ function EpisodeNavigationHint({
             {nextEpisode && (
               <Typography
                 sx={{
-                  color: theme.palette.customColors.primaryTextColor,
+                  color: theme.palette.customColors.onVideoColor,
                   fontSize: '14px',
                   fontWeight: 500,
                   textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',

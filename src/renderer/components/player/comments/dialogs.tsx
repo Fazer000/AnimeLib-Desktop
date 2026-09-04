@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
 import { ExpandMore } from '@mui/icons-material';
-import { DANGER_DEEP, DANGER_SOFT } from '../../../theme/palette';
+import { DANGER_DEEP } from '../../../theme/palette';
 
 const paperSx = (minWidth: number, colors: CustomColors) => ({
   backgroundColor: colors.dialogColor,
@@ -72,7 +72,7 @@ export function IgnoreUserDialog({
       <DialogContent sx={{ pb: 1 }}>
         <Typography
           sx={{
-            color: 'rgba(255, 255, 255, 0.7)',
+            color: `rgba(${customColors.onSurfaceRgb}, 0.7)`,
             fontSize: '0.8125rem',
             mb: 1,
           }}
@@ -86,7 +86,9 @@ export function IgnoreUserDialog({
           multiline
           minRows={3}
           fullWidth
-          slotProps={{ input: { sx: { color: 'rgba(255, 255, 255, 0.9)' } } }}
+          slotProps={{
+            input: { sx: { color: `rgba(${customColors.onSurfaceRgb}, 0.9)` } },
+          }}
         />
 
         <Box
@@ -96,20 +98,23 @@ export function IgnoreUserDialog({
             p: 1.5,
             borderRadius: 1.5,
             cursor: 'pointer',
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.05)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}
         >
           <Typography
-            sx={{ color: 'rgba(255, 255, 255, 0.9)', fontWeight: 500 }}
+            sx={{
+              color: `rgba(${customColors.onSurfaceRgb}, 0.9)`,
+              fontWeight: 500,
+            }}
           >
             Что позволяет игнор-лист?
           </Typography>
           <ExpandMore
             sx={{
-              color: 'rgba(255, 255, 255, 0.6)',
+              color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
               transform: hintOpen ? 'rotate(180deg)' : 'none',
               transition: 'transform 0.2s ease',
             }}
@@ -119,7 +124,7 @@ export function IgnoreUserDialog({
           <Box
             component="ul"
             sx={{
-              color: 'rgba(255, 255, 255, 0.7)',
+              color: `rgba(${customColors.onSurfaceRgb}, 0.7)`,
               fontSize: '0.875rem',
               pl: 3,
               mt: 1,
@@ -135,7 +140,7 @@ export function IgnoreUserDialog({
         <Button
           onClick={onClose}
           disabled={isSubmitting}
-          sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
+          sx={{ color: `rgba(${customColors.onSurfaceRgb}, 0.7)` }}
         >
           Отмена
         </Button>
@@ -176,7 +181,10 @@ export function DeleteCommentDialog({
       <DialogTitle sx={titleSx(customColors)}>Подтвердите действие</DialogTitle>
       <DialogContent sx={{ pb: 1 }}>
         <DialogContentText
-          sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.9375rem' }}
+          sx={{
+            color: `rgba(${customColors.onSurfaceRgb}, 0.7)`,
+            fontSize: '0.9375rem',
+          }}
         >
           Вы действительно хотите удалить комментарий?
         </DialogContentText>
@@ -186,8 +194,10 @@ export function DeleteCommentDialog({
           onClick={onClose}
           disabled={isDeleting}
           sx={{
-            color: 'rgba(255, 255, 255, 0.7)',
-            '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.08)' },
+            color: `rgba(${customColors.onSurfaceRgb}, 0.7)`,
+            '&:hover': {
+              backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.08)`,
+            },
           }}
         >
           Отменить
@@ -196,9 +206,11 @@ export function DeleteCommentDialog({
           onClick={onConfirm}
           disabled={isDeleting}
           sx={{
-            color: DANGER_SOFT,
+            color: customColors.dangerSoftColor,
             fontWeight: 600,
-            '&:hover': { backgroundColor: 'rgba(248, 113, 113, 0.12)' },
+            '&:hover': {
+              backgroundColor: `rgba(${customColors.dangerSoftRgb}, 0.12)`,
+            },
           }}
         >
           {isDeleting ? 'Удаление...' : 'Удалить'}

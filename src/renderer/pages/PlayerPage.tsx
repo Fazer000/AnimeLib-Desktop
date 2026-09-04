@@ -38,7 +38,6 @@ import {
   BLACK_SHORT,
   TEXT_PRIMARY,
   WHITE,
-  WHITE_SHORT,
 } from '../theme/palette';
 
 const log = createLogger('PlayerPage');
@@ -486,7 +485,6 @@ function PlayerPageRefactored({
           }
         }}
         canGoBack
-        backgroundColor={customColors.headerColor}
         height={TOOLBAR_HEIGHT}
         isPlayerPage
         showUrlInput={showUrlInput}
@@ -680,7 +678,7 @@ function PlayerPageRefactored({
                           px: 3,
                           py: 1,
                           backgroundColor: ACCENT,
-                          color: WHITE_SHORT,
+                          color: customColors.onAccentColor,
                           border: 'none',
                           borderRadius: '8px',
                           fontSize: '14px',

@@ -42,11 +42,11 @@ function WindowControls({
         <Typography
           sx={{
             fontSize: '0.75rem',
-            color: 'rgba(255, 255, 255, 0.6)',
+            color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
             userSelect: 'none',
             cursor: 'default',
             '&:hover': {
-              color: 'rgba(255, 255, 255, 0.9)',
+              color: `rgba(${customColors.onSurfaceRgb}, 0.9)`,
             },
           }}
         >

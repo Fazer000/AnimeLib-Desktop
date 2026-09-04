@@ -1,7 +1,6 @@
 import { animeApi } from '../../api/animeApi';
 
 import { createLogger } from '../../../shared/logger';
-import { DANGER_SOFT, SUCCESS } from '../../theme/palette';
 
 const log = createLogger('CommentsManager');
 
@@ -54,6 +53,8 @@ export interface CommentsPaginationState {
  * - Форматирование даты и текста
  * - Вычисление голосов
  */
+export type VoteTone = 'positive' | 'negative' | 'neutral';
+
 export class CommentsManager {
   private config: CommentsManagerConfig;
 
@@ -385,13 +386,12 @@ export class CommentsManager {
     return comment.votes.up - comment.votes.down;
   }
 
-  /**
-   * Получить цвет для отображения голосов
-   */
-  public static getVoteColor(count: number): string {
-    if (count > 0) return SUCCESS;
-    if (count < 0) return DANGER_SOFT;
-    return 'inherit';
+  /** Знак счёта голосов; цвет выбирает представление */
+  public static getVoteTone(count: number): VoteTone {
+    if (count > 0) return 'positive';
+    if (count < 0) return 'negative';
+
+    return 'neutral';
   }
 
   /**

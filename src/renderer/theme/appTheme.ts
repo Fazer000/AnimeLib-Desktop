@@ -8,7 +8,13 @@ import {
   BLACK,
   BORDER,
   BORDER_LIGHT,
+  DANGER,
+  DANGER_DEEP,
   DANGER_RGB,
+  DANGER_SOFT,
+  DANGER_SOFT_RGB,
+  DANGER_STRONG,
+  DANGER_STRONG_RGB,
   DARK_ALPHA_BORDER,
   DARK_ALPHA_SURFACE,
   DARK_ELEVATED_RGB,
@@ -28,6 +34,10 @@ import {
   LILAC_TINT,
   OFF_WHITE,
   NEUTRAL_RGB,
+  SUCCESS,
+  SUCCESS_DEEP,
+  SUCCESS_DEEP_RGB,
+  SUCCESS_RGB,
   SURFACE,
   LIGHT_ON_SURFACE_MUTED,
   LIGHT_SURFACE_CONTAINER_HIGH,
@@ -72,12 +82,21 @@ declare module '@mui/material/styles' {
     mutedTextColor: string;
     dialogTextColor: string;
     accentSoftColor: string;
+    onAccentColor: string;
+    onVideoColor: string;
+    onVideoMutedColor: string;
+    dangerColor: string;
+    dangerHoverColor: string;
+    dangerSoftColor: string;
+    successColor: string;
 
     onSurfaceRgb: string;
     overlayRgb: string;
     elevatedRgb: string;
     accentRgb: string;
     dangerRgb: string;
+    dangerSoftRgb: string;
+    successRgb: string;
     neutralRgb: string;
 
     whiteColor: string;
@@ -97,8 +116,10 @@ declare module '@mui/material/styles' {
 
 const SHARED = {
   accentRgb: ACCENT_RGB,
-  dangerRgb: DANGER_RGB,
   neutralRgb: NEUTRAL_RGB,
+  onAccentColor: WHITE,
+  onVideoColor: TEXT_PRIMARY,
+  onVideoMutedColor: DARK_TEXT_ACCENT,
   whiteColor: WHITE,
   grayColor: OFF_WHITE,
   blackColor: BLACK,
@@ -126,6 +147,13 @@ const DARK_COLORS = {
   mutedTextColor: TEXT_MUTED,
   dialogTextColor: WHITE,
   accentSoftColor: ACCENT_LIGHT,
+  dangerColor: DANGER,
+  dangerHoverColor: DANGER_STRONG,
+  dangerSoftColor: DANGER_SOFT,
+  successColor: SUCCESS,
+  dangerRgb: DANGER_RGB,
+  dangerSoftRgb: DANGER_SOFT_RGB,
+  successRgb: SUCCESS_RGB,
   onSurfaceRgb: DARK_ON_SURFACE_RGB,
   overlayRgb: DARK_OVERLAY_RGB,
   elevatedRgb: DARK_ELEVATED_RGB,
@@ -153,6 +181,13 @@ const LIGHT_COLORS = {
   mutedTextColor: LIGHT_ON_SURFACE_MUTED,
   dialogTextColor: TEXT_ON_LIGHT,
   accentSoftColor: ACCENT,
+  dangerColor: DANGER_STRONG,
+  dangerHoverColor: DANGER_DEEP,
+  dangerSoftColor: DANGER_STRONG,
+  successColor: SUCCESS_DEEP,
+  dangerRgb: DANGER_STRONG_RGB,
+  dangerSoftRgb: DANGER_STRONG_RGB,
+  successRgb: SUCCESS_DEEP_RGB,
   onSurfaceRgb: LIGHT_ON_SURFACE_RGB,
   overlayRgb: LIGHT_OVERLAY_RGB,
   elevatedRgb: LIGHT_ELEVATED_RGB,

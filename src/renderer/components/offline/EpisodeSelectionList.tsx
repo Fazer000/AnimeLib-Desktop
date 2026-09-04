@@ -20,7 +20,7 @@ import {
   OFFLINE_FONT,
   OFFLINE_ICON,
 } from '../../../constants';
-import { ACCENT, DANGER, SUCCESS_MID } from '../../theme/palette';
+import { ACCENT, SUCCESS_MID } from '../../theme/palette';
 
 export type KodikQualityMap = Record<number, string[]>;
 
@@ -350,7 +350,12 @@ function EpisodeSelectionList({
               )}
 
               {isSelected && !isLoading && qualities.length === 0 && (
-                <Typography sx={{ fontSize: OFFLINE_FONT.hint, color: DANGER }}>
+                <Typography
+                  sx={{
+                    fontSize: OFFLINE_FONT.hint,
+                    color: customColors.dangerColor,
+                  }}
+                >
                   нет озвучки
                 </Typography>
               )}

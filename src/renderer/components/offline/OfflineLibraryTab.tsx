@@ -35,12 +35,7 @@ import {
   progressStore,
 } from '../../services/offline';
 import { formatSize, sumSize } from '../../utils/offlineFormat';
-import {
-  ACCENT,
-  ACCENT_DEEP,
-  DANGER,
-  DANGER_STRONG,
-} from '../../theme/palette';
+import { ACCENT, ACCENT_DEEP } from '../../theme/palette';
 
 interface OfflineLibraryTabProps {
   anime: OfflineAnime[];
@@ -321,7 +316,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                     minWidth: OFFLINE_LIBRARY_ACTION_WIDTH,
                     whiteSpace: 'nowrap',
                     backgroundColor: ACCENT,
-                    color: customColors.dialogTextColor,
+                    color: customColors.onAccentColor,
                     '&:hover': { backgroundColor: ACCENT_DEEP },
                   }}
                 >
@@ -336,7 +331,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                     width: 40,
                     height: 40,
                     borderRadius: 1.5,
-                    color: DANGER,
+                    color: customColors.dangerColor,
                     border: `1px solid rgba(${customColors.dangerRgb}, 0.3)`,
                     backgroundColor: `rgba(${customColors.dangerRgb}, 0.08)`,
                     transition: 'background-color 0.15s, border-color 0.15s',
@@ -381,7 +376,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                         backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.07)`,
                         '& .episode-remove': {
                           opacity: 1,
-                          color: DANGER,
+                          color: customColors.dangerColor,
                         },
                       },
                     }}
@@ -500,9 +495,9 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
               textTransform: 'none',
               fontSize: OFFLINE_FONT.button,
               px: 2,
-              backgroundColor: DANGER,
-              color: customColors.dialogTextColor,
-              '&:hover': { backgroundColor: DANGER_STRONG },
+              backgroundColor: customColors.dangerColor,
+              color: customColors.onAccentColor,
+              '&:hover': { backgroundColor: customColors.dangerHoverColor },
             }}
           >
             Удалить

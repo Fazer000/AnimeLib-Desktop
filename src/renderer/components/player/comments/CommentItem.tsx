@@ -61,7 +61,7 @@ const CommentItem = memo(
                 gap: 1.5,
                 mb: 1,
                 paddingBottom: 1,
-                borderBottom: `1px solid ${theme.palette.customColors.borderColor}15`,
+                borderBottom: `1px solid rgba(${theme.palette.customColors.onSurfaceRgb}, 0.09)`,
               }}
             >
               <Typography
@@ -94,7 +94,7 @@ const CommentItem = memo(
 
               <VoteControls
                 count={voteCount}
-                color={CommentsManager.getVoteColor(voteCount)}
+                tone={CommentsManager.getVoteTone(voteCount)}
                 userVote={userVotes.get(comment.id)}
                 disabled={isVoting}
                 onVote={(vote) => onVote(comment.id, vote)}

@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types, react/require-default-props */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { AppBar, Toolbar, Box } from '@mui/material';
+import { AppBar, Toolbar, Box, useTheme } from '@mui/material';
 import NavigationButtons from './toolbar/NavigationButtons';
 import UrlBar from './toolbar/UrlBar';
 import WindowControls from './toolbar/WindowControls';
@@ -10,7 +10,6 @@ import SearchModal from './toolbar/SearchModal';
 import { buildAnimePageUrl } from '../utils/urlHelpers';
 
 import { createLogger } from '../../shared/logger';
-import { SURFACE_HEADER } from '../theme/palette';
 
 const log = createLogger('Toolbar');
 
@@ -61,7 +60,7 @@ function ToolbarRefactored({
   onMaximize,
   onClose,
 
-  backgroundColor = SURFACE_HEADER,
+  backgroundColor,
   height = 32,
 
   isPlayerPage = false,
@@ -72,6 +71,8 @@ function ToolbarRefactored({
   onOpenAnimePage,
   hideAnimeHandle = false,
 }: ToolbarProps) {
+  const { customColors } = useTheme().palette;
+  const headerColor = backgroundColor ?? customColors.headerColor;
   const [showAnimeInfo, setShowAnimeInfo] = useState<boolean>(false);
   const [showSearchModal, setShowSearchModal] = useState<boolean>(false);
 
@@ -158,7 +159,7 @@ function ToolbarRefactored({
           left: 0,
           right: 0,
           zIndex: 1300,
-          backgroundColor: `${backgroundColor} !important`,
+          backgroundColor: `${headerColor} !important`,
           WebkitAppRegion: 'drag',
           appRegion: 'drag',
           borderRadius: isPlayerPage ? '0 0 16px 16px' : '0',
@@ -169,7 +170,7 @@ function ToolbarRefactored({
           '--Paper-shadow': 'none !important',
           '--Paper-overlay': 'none !important',
           '&.MuiAppBar-root': {
-            backgroundColor: `${backgroundColor} !important`,
+            backgroundColor: `${headerColor} !important`,
             boxShadow: 'none !important',
             border: 'none !important',
             '--Paper-shadow': 'none !important',

@@ -1,10 +1,10 @@
 import { Box, IconButton, Typography, useTheme } from '@mui/material';
 import { ArrowDownward, ArrowUpward } from '@mui/icons-material';
-import { DANGER_SOFT, SUCCESS } from '../../../theme/palette';
+import type { VoteTone } from '../../../services/player/CommentsManager';
 
 interface VoteControlsProps {
   count: number;
-  color: string;
+  tone: VoteTone;
   userVote?: 0 | 1;
   disabled: boolean;
   onVote: (vote: 0 | 1) => void;
@@ -14,7 +14,7 @@ interface VoteControlsProps {
 /** Кнопки голосования со счётчиком: компактный вариант для ответов. */
 function VoteControls({
   count,
-  color,
+  tone,
   userVote,
   disabled,
   onVote,
@@ -22,8 +22,15 @@ function VoteControls({
 }: VoteControlsProps) {
   const theme = useTheme();
   const isFull = variant === 'full';
-  const accent = theme.palette.customColors.accentTextColor;
+  const { customColors } = theme.palette;
+  const accent = customColors.accentTextColor;
   const iconSize = isFull ? 18 : 14;
+
+  const toneColor = {
+    positive: customColors.successColor,
+    negative: customColors.dangerSoftColor,
+    neutral: 'inherit',
+  }[tone];
 
   const buttonSx = (active: boolean, activeColor: string, tint: string) =>
     isFull
@@ -60,14 +67,18 @@ function VoteControls({
         size="small"
         onClick={() => onVote(1)}
         disabled={disabled}
-        sx={buttonSx(userVote === 1, SUCCESS, 'rgba(74, 222, 128, 0.1)')}
+        sx={buttonSx(
+          userVote === 1,
+          customColors.successColor,
+          `rgba(${customColors.successRgb}, 0.1)`,
+        )}
       >
         <ArrowUpward sx={{ fontSize: iconSize }} />
       </IconButton>
 
       <Typography
         sx={{
-          color,
+          color: toneColor,
           fontWeight: isFull ? 700 : 600,
           fontSize: isFull ? '0.875rem' : '0.75rem',
           minWidth: isFull ? '28px' : '20px',
@@ -82,7 +93,11 @@ function VoteControls({
         size="small"
         onClick={() => onVote(0)}
         disabled={disabled}
-        sx={buttonSx(userVote === 0, DANGER_SOFT, 'rgba(248, 113, 113, 0.1)')}
+        sx={buttonSx(
+          userVote === 0,
+          customColors.dangerSoftColor,
+          `rgba(${customColors.dangerSoftRgb}, 0.1)`,
+        )}
       >
         <ArrowDownward sx={{ fontSize: iconSize }} />
       </IconButton>

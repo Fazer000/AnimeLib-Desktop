@@ -227,7 +227,7 @@ function ControlsEpisodeSlider({
                   : '1px solid rgba(116, 116, 128, 0.33)',
                 color: isSelected
                   ? ACCENT
-                  : theme.palette.customColors.primaryTextColor,
+                  : theme.palette.customColors.onVideoColor,
                 textAlign: 'left',
                 position: 'relative',
                 overflow: 'hidden',
@@ -281,7 +281,7 @@ function ControlsEpisodeSlider({
                     fontWeight: 'bold',
                     color: isSelected
                       ? theme.palette.customColors.secondaryColor
-                      : theme.palette.customColors.primaryTextColor,
+                      : theme.palette.customColors.onVideoColor,
                     textTransform: 'none',
                     fontSize: '0.84rem',
                     textWrap: 'nowrap',

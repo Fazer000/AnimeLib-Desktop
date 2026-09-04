@@ -88,14 +88,14 @@ function ScrollToTopButton({
           onClick={scrollToTop}
           size="medium"
           sx={{
-            backgroundColor: 'rgba(20, 20, 20, 0.85)',
+            backgroundColor: `rgba(${customColors.overlayRgb}, 0.85)`,
             backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(116, 116, 128, 0.33)',
+            border: `1px solid rgba(${customColors.neutralRgb}, 0.33)`,
             color: customColors.dialogTextColor,
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
             transition: 'all 0.3s ease',
             '&:hover': {
-              backgroundColor: 'rgba(116, 116, 128, 0.4)',
+              backgroundColor: `rgba(${customColors.neutralRgb}, 0.4)`,
               transform: 'translateY(-2px)',
               boxShadow: '0 6px 16px rgba(0, 0, 0, 0.5)',
             },

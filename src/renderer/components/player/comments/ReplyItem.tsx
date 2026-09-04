@@ -106,7 +106,7 @@ const ReplyItem = memo(
 
               <VoteControls
                 count={voteCount}
-                color={CommentsManager.getVoteColor(voteCount)}
+                tone={CommentsManager.getVoteTone(voteCount)}
                 userVote={userVotes.get(comment.id)}
                 disabled={isVoting}
                 onVote={(vote) => onVote(comment.id, vote)}

@@ -11,19 +11,20 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import type { CustomColors } from '@mui/material/styles';
 import { CloseRounded } from '@mui/icons-material';
 import { CommentsSettings } from '../../hooks/useCommentsSettings';
 import {
   COMMENTS_COLLAPSE_MAX_LEVEL,
   COMMENTS_COLLAPSE_MIN_LEVEL,
 } from '../../../constants';
-import { ACCENT, ACCENT_SOFT } from '../../theme/palette';
+import { ACCENT } from '../../theme/palette';
 
-const CHECKBOX_SX = {
-  color: 'rgba(255, 255, 255, 0.4)',
-  '&.Mui-checked': { color: ACCENT_SOFT },
-  '&:hover': { backgroundColor: 'rgba(167, 139, 250, 0.08)' },
-};
+const checkboxSx = (colors: CustomColors) => ({
+  color: `rgba(${colors.onSurfaceRgb}, 0.4)`,
+  '&.Mui-checked': { color: colors.accentSoftColor },
+  '&:hover': { backgroundColor: `rgba(${colors.accentRgb}, 0.08)` },
+});
 
 interface CommentsSettingsDialogProps {
   open: boolean;
@@ -59,7 +60,7 @@ function CommentsSettingsDialog({
     >
       <DialogTitle
         sx={{
-          color: 'rgba(255, 255, 255, 0.95)',
+          color: `rgba(${customColors.onSurfaceRgb}, 0.95)`,
           fontSize: '1.0625rem',
           fontWeight: 600,
           display: 'flex',
@@ -71,7 +72,7 @@ function CommentsSettingsDialog({
         <IconButton
           onClick={onClose}
           size="small"
-          sx={{ color: 'rgba(255, 255, 255, 0.5)' }}
+          sx={{ color: `rgba(${customColors.onSurfaceRgb}, 0.5)` }}
         >
           <CloseRounded sx={{ fontSize: 18 }} />
         </IconButton>
@@ -83,17 +84,24 @@ function CommentsSettingsDialog({
             <Checkbox
               checked={settings.disabled}
               onChange={(event) => onChange({ disabled: event.target.checked })}
-              sx={CHECKBOX_SX}
+              sx={checkboxSx(customColors)}
             />
           }
           label={
-            <Typography sx={{ color: 'rgba(255, 255, 255, 0.85)' }}>
+            <Typography
+              sx={{ color: `rgba(${customColors.onSurfaceRgb}, 0.85)` }}
+            >
               Отключить комментарии <strong>в плеере</strong>
             </Typography>
           }
         />
 
-        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.08)', my: 0.5 }} />
+        <Divider
+          sx={{
+            borderColor: `rgba(${customColors.onSurfaceRgb}, 0.08)`,
+            my: 0.5,
+          }}
+        />
 
         <FormControlLabel
           control={
@@ -102,17 +110,24 @@ function CommentsSettingsDialog({
               onChange={(event) =>
                 onChange({ highlightNew: event.target.checked })
               }
-              sx={CHECKBOX_SX}
+              sx={checkboxSx(customColors)}
             />
           }
           label={
-            <Typography sx={{ color: 'rgba(255, 255, 255, 0.85)' }}>
+            <Typography
+              sx={{ color: `rgba(${customColors.onSurfaceRgb}, 0.85)` }}
+            >
               Выделять новые комментарии
             </Typography>
           }
         />
 
-        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.08)', my: 0.5 }} />
+        <Divider
+          sx={{
+            borderColor: `rgba(${customColors.onSurfaceRgb}, 0.08)`,
+            my: 0.5,
+          }}
+        />
 
         <Box sx={{ pt: 1.5 }}>
           <Box
@@ -123,11 +138,16 @@ function CommentsSettingsDialog({
               mb: 0.5,
             }}
           >
-            <Typography sx={{ color: 'rgba(255, 255, 255, 0.85)' }}>
+            <Typography
+              sx={{ color: `rgba(${customColors.onSurfaceRgb}, 0.85)` }}
+            >
               Сворачивать вложенные комментарии
             </Typography>
             <Typography
-              sx={{ color: 'rgba(255, 255, 255, 0.95)', fontWeight: 700 }}
+              sx={{
+                color: `rgba(${customColors.onSurfaceRgb}, 0.95)`,
+                fontWeight: 700,
+              }}
             >
               {settings.collapseFromLevel >= COMMENTS_COLLAPSE_MAX_LEVEL
                 ? 'никогда'

@@ -26,7 +26,6 @@ import {
 import { PLAYER_PROTOCOL_PREFIX } from '../../constants';
 
 import { createLogger } from '../../shared/logger';
-import { SURFACE_HEADER } from '../theme/palette';
 
 const log = createLogger('WebView');
 
@@ -418,7 +417,6 @@ function WebViewRefactored({
         onMinimize={handleWindowMinimize}
         onMaximize={handleWindowMaximize}
         onClose={handleWindowClose}
-        backgroundColor={SURFACE_HEADER}
         height={32}
       />
 

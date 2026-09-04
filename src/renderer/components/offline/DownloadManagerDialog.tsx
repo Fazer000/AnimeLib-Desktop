@@ -753,7 +753,7 @@ function DownloadManagerDialog({
                 fontSize: OFFLINE_FONT.body,
                 px: 2,
                 backgroundColor: ACCENT,
-                color: customColors.dialogTextColor,
+                color: customColors.onAccentColor,
                 '&:hover': { backgroundColor: ACCENT_DEEP },
                 '&.Mui-disabled': {
                   backgroundColor: alpha(ACCENT, 0.25),
@@ -841,7 +841,7 @@ function DownloadManagerDialog({
               fontSize: OFFLINE_FONT.button,
               px: 2,
               backgroundColor: ACCENT,
-              color: customColors.dialogTextColor,
+              color: customColors.onAccentColor,
               '&:hover': { backgroundColor: ACCENT_DEEP },
             }}
           >

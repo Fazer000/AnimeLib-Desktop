@@ -5,7 +5,7 @@ import { animeApi, AnimeInfo } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 
 import { createLogger } from '../../../shared/logger';
-import { ACCENT, DANGER_BRIGHT, SUCCESS, WARNING } from '../../theme/palette';
+import { ACCENT, WARNING } from '../../theme/palette';
 
 const log = createLogger('AnimeInfoCard');
 
@@ -67,12 +67,12 @@ function AnimeInfoCard({
         <Box
           sx={{
             width: 320,
-            backgroundColor: 'rgba(28, 28, 28, 0.95)',
+            backgroundColor: `rgba(${customColors.overlayRgb}, 0.95)`,
             backdropFilter: 'blur(10px)',
             borderRadius: 2,
             padding: 3,
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
-            border: '1px solid rgba(116, 116, 128, 0.2)',
+            border: `1px solid rgba(${customColors.neutralRgb}, 0.2)`,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -117,17 +117,17 @@ function AnimeInfoCard({
           minWidth: '25vw',
           maxWidth: '50vw',
           pointerEvents: 'auto',
-          backgroundColor: 'rgba(35, 34, 34, 0.66)',
+          backgroundColor: `rgba(${customColors.overlayRgb}, 0.66)`,
           backdropFilter: 'blur(4px)',
-          border: '1px solid rgba(24, 24, 24, 0.35)',
+          border: `1px solid rgba(${customColors.neutralRgb}, 0.35)`,
           borderRadius: 2,
           padding: 2.5,
           cursor: onClick ? 'pointer' : 'default',
           transition: 'background-color 0.2s ease, border-color 0.2s ease',
           '&:hover': onClick
             ? {
-                backgroundColor: 'rgba(45, 43, 43, 0.75)',
-                borderColor: 'rgba(124, 58, 237, 0.4)',
+                backgroundColor: `rgba(${customColors.elevatedRgb}, 0.75)`,
+                borderColor: `rgba(${customColors.accentRgb}, 0.4)`,
               }
             : undefined,
         }}
@@ -211,7 +211,7 @@ function AnimeInfoCard({
                 >
                   <Typography
                     sx={{
-                      color: 'rgba(255, 255, 255, 0.6)',
+                      color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
                       fontSize: '0.875rem',
                     }}
                   >
@@ -224,13 +224,16 @@ function AnimeInfoCard({
                     width: 4,
                     height: 4,
                     borderRadius: '50%',
-                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                    backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
                   }}
                 />
 
                 <Typography
                   sx={{
-                    color: animeInfo.status.id === 2 ? SUCCESS : WARNING,
+                    color:
+                      animeInfo.status.id === 2
+                        ? customColors.successColor
+                        : WARNING,
                     fontSize: '0.875rem',
                     fontWeight: 500,
                   }}
@@ -243,13 +246,13 @@ function AnimeInfoCard({
                     width: 4,
                     height: 4,
                     borderRadius: '50%',
-                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                    backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
                   }}
                 />
 
                 <Typography
                   sx={{
-                    color: 'rgba(255, 255, 255, 0.6)',
+                    color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
                     fontSize: '0.875rem',
                   }}
                 >
@@ -270,7 +273,7 @@ function AnimeInfoCard({
                 </Typography>
                 <Typography
                   sx={{
-                    color: 'rgba(255, 255, 255, 0.5)',
+                    color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
                     fontSize: '0.875rem',
                   }}
                 >
@@ -283,20 +286,20 @@ function AnimeInfoCard({
                         width: 4,
                         height: 4,
                         borderRadius: '50%',
-                        backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                        backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
                       }}
                     />
                     <Box
                       sx={{
                         padding: '2px 8px',
-                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                        border: '1px solid rgba(239, 68, 68, 0.4)',
+                        backgroundColor: `rgba(${customColors.dangerRgb}, 0.2)`,
+                        border: `1px solid rgba(${customColors.dangerRgb}, 0.4)`,
                         borderRadius: 1,
                       }}
                     >
                       <Typography
                         sx={{
-                          color: DANGER_BRIGHT,
+                          color: customColors.dangerColor,
                           fontSize: '0.75rem',
                           fontWeight: 600,
                         }}

@@ -17,7 +17,6 @@ import { UpdateInfo } from '../../../constants';
 import { UpdateStatus } from '../../hooks/useUpdateChecker';
 import {
   ACCENT_LIGHT,
-  DANGER,
   SUCCESS_DEEP,
   SUCCESS_MID,
   SUCCESS_STRONG,
@@ -63,7 +62,12 @@ const renderNotes = (
 
   if (lines.length === 0) {
     return (
-      <Typography sx={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>
+      <Typography
+        sx={{
+          fontSize: '0.85rem',
+          color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
+        }}
+      >
         Описание изменений не указано
       </Typography>
     );
@@ -96,7 +100,7 @@ const renderNotes = (
           key={key}
           sx={{
             fontSize: '0.85rem',
-            color: 'rgba(255,255,255,0.8)',
+            color: `rgba(${customColors.onSurfaceRgb}, 0.8)`,
             pl: 1.5,
             mb: 0.25,
           }}
@@ -109,7 +113,11 @@ const renderNotes = (
     return (
       <Typography
         key={key}
-        sx={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', mb: 0.5 }}
+        sx={{
+          fontSize: '0.85rem',
+          color: `rgba(${customColors.onSurfaceRgb}, 0.8)`,
+          mb: 0.5,
+        }}
       >
         {text}
       </Typography>
@@ -155,14 +163,21 @@ function UpdateDialog({
           {updateInfo.releaseName || `Версия ${updateInfo.latestVersion}`}
         </Typography>
         <Typography
-          sx={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.55)', mt: 0.5 }}
+          sx={{
+            fontSize: '0.8rem',
+            color: `rgba(${customColors.onSurfaceRgb}, 0.55)`,
+            mt: 0.5,
+          }}
         >
           {`Текущая версия ${updateInfo.currentVersion} → ${updateInfo.latestVersion}`}
           {publishedAt ? ` · ${publishedAt}` : ''}
         </Typography>
       </DialogTitle>
 
-      <DialogContent dividers sx={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+      <DialogContent
+        dividers
+        sx={{ borderColor: `rgba(${customColors.onSurfaceRgb}, 0.1)` }}
+      >
         <Box sx={{ maxHeight: 320, overflowY: 'auto', pr: 1 }}>
           {renderNotes(updateInfo.releaseNotes, customColors)}
         </Box>
@@ -175,14 +190,14 @@ function UpdateDialog({
               sx={{
                 height: 6,
                 borderRadius: 3,
-                backgroundColor: 'rgba(255,255,255,0.12)',
+                backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.12)`,
                 '& .MuiLinearProgress-bar': { backgroundColor: SUCCESS_MID },
               }}
             />
             <Typography
               sx={{
                 fontSize: '0.8rem',
-                color: 'rgba(255,255,255,0.6)',
+                color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
                 mt: 0.75,
               }}
             >
@@ -192,7 +207,9 @@ function UpdateDialog({
         )}
 
         {status === 'error' && (
-          <Typography sx={{ fontSize: '0.8rem', color: DANGER, mt: 2 }}>
+          <Typography
+            sx={{ fontSize: '0.8rem', color: customColors.dangerColor, mt: 2 }}
+          >
             Не удалось загрузить обновление. Страница релиза открыта в браузере.
           </Typography>
         )}
@@ -216,7 +233,10 @@ function UpdateDialog({
         <Button
           onClick={onClose}
           disabled={isDownloading}
-          sx={{ color: 'rgba(255,255,255,0.6)', textTransform: 'none' }}
+          sx={{
+            color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
+            textTransform: 'none',
+          }}
         >
           Позже
         </Button>

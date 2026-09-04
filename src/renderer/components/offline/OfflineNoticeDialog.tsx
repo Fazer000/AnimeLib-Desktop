@@ -72,7 +72,7 @@ function OfflineNoticeDialog({
           sx={{
             textTransform: 'none',
             backgroundColor: ACCENT,
-            color: customColors.dialogTextColor,
+            color: customColors.onAccentColor,
             '&:hover': { backgroundColor: ACCENT_DEEP },
           }}
         >

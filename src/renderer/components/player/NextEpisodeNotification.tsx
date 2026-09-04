@@ -98,7 +98,7 @@ function NextEpisodeNotification({
         <Typography
           sx={{
             fontSize: '1.25rem',
-            color: theme.palette.customColors.primaryTextColor,
+            color: theme.palette.customColors.onVideoColor,
             marginBottom: 0.5,
             fontWeight: 600,
             textAlign: 'center',
@@ -111,7 +111,7 @@ function NextEpisodeNotification({
           <Typography
             sx={{
               fontSize: '1rem',
-              color: theme.palette.customColors.primaryTextColor,
+              color: theme.palette.customColors.onVideoColor,
               marginBottom: 2,
               fontWeight: 500,
               textAlign: 'center',
@@ -124,7 +124,7 @@ function NextEpisodeNotification({
         <Typography
           sx={{
             fontSize: '1rem',
-            color: theme.palette.customColors.accentTextColor,
+            color: theme.palette.customColors.onVideoMutedColor,
             marginBottom: 3,
             textAlign: 'center',
           }}
@@ -146,7 +146,7 @@ function NextEpisodeNotification({
               onCancel();
             }}
             sx={{
-              color: theme.palette.customColors.accentTextColor,
+              color: theme.palette.customColors.onVideoMutedColor,
               textTransform: 'none',
               fontSize: '1rem',
               padding: '10px 24px',
@@ -169,7 +169,7 @@ function NextEpisodeNotification({
             variant="contained"
             sx={{
               backgroundColor: theme.palette.customColors.secondaryColor,
-              color: theme.palette.customColors.primaryTextColor,
+              color: theme.palette.customColors.onVideoColor,
               textTransform: 'none',
               fontSize: '1rem',
               padding: '10px 32px',
