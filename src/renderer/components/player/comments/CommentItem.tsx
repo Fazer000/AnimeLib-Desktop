@@ -76,7 +76,7 @@ const CommentItem = memo(
 
               <Box
                 sx={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  backgroundColor: `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.06)`,
                   padding: '2px 8px',
                   borderRadius: 1,
                 }}

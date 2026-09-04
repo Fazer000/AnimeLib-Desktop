@@ -20,6 +20,8 @@ interface EdgeActionButtonProps {
   solid?: boolean;
   // eslint-disable-next-line react/require-default-props
   docked?: boolean;
+  // eslint-disable-next-line react/require-default-props
+  onVideo?: boolean;
 }
 
 const LABEL_SX = {
@@ -40,8 +42,15 @@ function EdgeActionButton({
   active = false,
   solid = false,
   docked = false,
+  onVideo = false,
 }: EdgeActionButtonProps) {
   const { customColors } = useTheme().palette;
+  const surfaceRgb = onVideo
+    ? customColors.onVideoSurfaceRgb
+    : customColors.overlayRgb;
+  const raisedRgb = onVideo
+    ? customColors.onVideoElevatedRgb
+    : customColors.elevatedRgb;
   const ghostRef = useRef<HTMLSpanElement | null>(null);
   const [labelWidth, setLabelWidth] = useState<number>(0);
   const [hovered, setHovered] = useState<boolean>(false);
@@ -124,7 +133,7 @@ function EdgeActionButton({
         userSelect: 'none',
         backgroundColor: active
           ? `rgba(${customColors.accentRgb}, 0.28)`
-          : `rgba(${customColors.overlayRgb}, ${solid ? 0.9 : 0.45})`,
+          : `rgba(${surfaceRgb}, ${solid ? 0.9 : 0.45})`,
         backdropFilter: solid ? 'blur(10px)' : 'none',
         border: `1px solid ${
           active
@@ -146,10 +155,10 @@ function EdgeActionButton({
           `border-radius ${BOOKMARKS_PANEL_DURATION_MS}ms ${BOOKMARKS_PANEL_EASING}`,
         ].join(', '),
         '&:hover': {
-          backgroundColor: `rgba(${customColors.elevatedRgb}, 0.52)`,
+          backgroundColor: `rgba(${raisedRgb}, 0.52)`,
         },
         '&:active': {
-          backgroundColor: `rgba(${customColors.elevatedRgb}, 0.72)`,
+          backgroundColor: `rgba(${raisedRgb}, 0.72)`,
         },
       }}
     >

@@ -214,13 +214,13 @@ function EpisodeSliderRefactored({
               position: 'absolute',
               left: 10,
               zIndex: 2,
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.7)`,
               color: theme.palette.customColors.secondaryColor,
               width: 32,
               height: 32,
               mb: 0.85,
               '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.9)`,
               },
             }}
           >
@@ -237,8 +237,7 @@ function EpisodeSliderRefactored({
               bottom: 0,
               width: 40,
               mb: 0.85,
-              background:
-                'linear-gradient(to right, rgba(10, 10, 10, 0.9), transparent)',
+              background: `linear-gradient(to right, rgba(${theme.palette.customColors.overlayRgb}, 0.9), transparent)`,
               zIndex: 1,
               pointerEvents: 'none',
             }}
@@ -301,8 +300,8 @@ function EpisodeSliderRefactored({
                   mb: 2,
                   '&:hover': {
                     backgroundColor: isSelected
-                      ? 'rgba(124, 58, 237, 0.2)'
-                      : 'rgba(255, 255, 255, 0.08)',
+                      ? `rgba(${theme.palette.customColors.accentRgb}, 0.2)`
+                      : `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.08)`,
                   },
                   '&:active': {
                     transform: 'scale(0.96)',
@@ -374,8 +373,7 @@ function EpisodeSliderRefactored({
               bottom: 0,
               width: 40,
               mb: 0.85,
-              background:
-                'linear-gradient(to left, rgba(10, 10, 10, 0.9), transparent)',
+              background: `linear-gradient(to left, rgba(${theme.palette.customColors.overlayRgb}, 0.9), transparent)`,
               zIndex: 1,
               pointerEvents: 'none',
             }}
@@ -390,12 +388,12 @@ function EpisodeSliderRefactored({
               right: 10,
               zIndex: 2,
               mb: 0.85,
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.7)`,
               color: theme.palette.customColors.secondaryColor,
               width: 32,
               height: 32,
               '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.9)`,
               },
             }}
           >

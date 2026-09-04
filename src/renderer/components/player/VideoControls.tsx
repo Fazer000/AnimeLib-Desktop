@@ -306,6 +306,7 @@ function VideoControls({
         >
           <EdgeActionButton
             side="left"
+            onVideo
             active={downloadManagerOpen}
             label="Загрузки"
             color={theme.palette.customColors.onVideoColor}
@@ -331,6 +332,7 @@ function VideoControls({
         >
           <EdgeActionButton
             side="right"
+            onVideo
             label={sidebarCollapsed ? 'Показать озвучки' : 'Скрыть озвучки'}
             color={
               sidebarCollapsed

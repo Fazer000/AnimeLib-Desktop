@@ -1,7 +1,6 @@
 import React, { memo, useState } from 'react';
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 import { Comment } from '../../../services/player';
-import { ACCENT_SOFT, SURFACE_DIALOG } from '../../../theme/palette';
 
 /** Ширина полоски в разметке; зона клика шире за счёт ::after. */
 const RAIL_WIDTH = 6;
@@ -34,6 +33,7 @@ const RepliesThread = memo(
     collapseFromLevel,
     children,
   }: RepliesThreadProps) => {
+    const { customColors } = useTheme().palette;
     const [collapsed, setCollapsed] = useState(level >= collapseFromLevel);
     const countLabel = count > 99 ? '99+' : String(count);
     const pillWidth = countLabel.length > 2 ? 28 : 20;
@@ -59,10 +59,12 @@ const RepliesThread = memo(
               left: -RAIL_HIT_PADDING,
               right: -RAIL_HIT_PADDING,
             },
-            '&:hover .thread-rail-line': { borderColor: ACCENT_SOFT },
+            '&:hover .thread-rail-line': {
+              borderColor: customColors.accentSoftColor,
+            },
             '&:hover .thread-rail-pill': {
-              backgroundColor: ACCENT_SOFT,
-              color: SURFACE_DIALOG,
+              backgroundColor: customColors.accentSoftColor,
+              color: customColors.onAccentColor,
             },
           }}
         >
@@ -76,8 +78,8 @@ const RepliesThread = memo(
                 flexShrink: 0,
                 boxSizing: 'border-box',
                 borderRadius: '10px',
-                backgroundColor: 'rgba(255, 255, 255, 0.14)',
-                color: 'rgba(255, 255, 255, 0.7)',
+                backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.14)`,
+                color: `rgba(${customColors.onSurfaceRgb}, 0.7)`,
                 fontSize: '0.6875rem',
                 fontWeight: 700,
                 lineHeight: 1,
@@ -99,7 +101,7 @@ const RepliesThread = memo(
                 alignSelf: 'stretch',
                 flexShrink: 0,
                 boxSizing: 'border-box',
-                borderLeft: '2px solid rgba(255, 255, 255, 0.08)',
+                borderLeft: `2px solid rgba(${customColors.onSurfaceRgb}, 0.16)`,
                 borderTopLeftRadius: 8,
                 borderBottomLeftRadius: 8,
                 transition: 'border-color 0.15s ease',

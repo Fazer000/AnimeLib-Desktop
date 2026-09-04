@@ -11,10 +11,11 @@ import {
   DANGER,
   DANGER_DEEP,
   DANGER_RGB,
+  DANGER_DARK,
+  DANGER_DARK_RGB,
   DANGER_SOFT,
   DANGER_SOFT_RGB,
   DANGER_STRONG,
-  DANGER_STRONG_RGB,
   DARK_ALPHA_BORDER,
   DARK_ALPHA_SURFACE,
   DARK_ELEVATED_RGB,
@@ -32,11 +33,12 @@ import {
   LIGHT_SURFACE,
   LIGHT_TEXT_DISABLED,
   LILAC_TINT,
+  LILAC_TINT_RGB,
   OFF_WHITE,
   NEUTRAL_RGB,
   SUCCESS,
-  SUCCESS_DEEP,
-  SUCCESS_DEEP_RGB,
+  SUCCESS_DARK,
+  SUCCESS_DARK_RGB,
   SUCCESS_RGB,
   SURFACE,
   LIGHT_ON_SURFACE_MUTED,
@@ -47,6 +49,7 @@ import {
   SURFACE_DIALOG,
   SURFACE_ELEVATED,
   SURFACE_HEADER,
+  SURFACE_HEADER_RGB,
   SURFACE_HOVER,
   SURFACE_MUTED,
   SURFACE_RAISED,
@@ -55,6 +58,8 @@ import {
   TEXT_ON_LIGHT,
   TEXT_ON_LIGHT_MUTED,
   TEXT_PRIMARY,
+  WARNING,
+  WARNING_DARK,
   WARNING_ORANGE,
   WHITE,
 } from './palette';
@@ -85,13 +90,17 @@ declare module '@mui/material/styles' {
     onAccentColor: string;
     onVideoColor: string;
     onVideoMutedColor: string;
+    onVideoSurfaceRgb: string;
+    onVideoElevatedRgb: string;
     dangerColor: string;
     dangerHoverColor: string;
     dangerSoftColor: string;
     successColor: string;
+    warningColor: string;
 
     onSurfaceRgb: string;
     overlayRgb: string;
+    headerRgb: string;
     elevatedRgb: string;
     accentRgb: string;
     dangerRgb: string;
@@ -120,6 +129,8 @@ const SHARED = {
   onAccentColor: WHITE,
   onVideoColor: TEXT_PRIMARY,
   onVideoMutedColor: DARK_TEXT_ACCENT,
+  onVideoSurfaceRgb: DARK_OVERLAY_RGB,
+  onVideoElevatedRgb: DARK_ELEVATED_RGB,
   whiteColor: WHITE,
   grayColor: OFF_WHITE,
   blackColor: BLACK,
@@ -151,11 +162,13 @@ const DARK_COLORS = {
   dangerHoverColor: DANGER_STRONG,
   dangerSoftColor: DANGER_SOFT,
   successColor: SUCCESS,
+  warningColor: WARNING,
   dangerRgb: DANGER_RGB,
   dangerSoftRgb: DANGER_SOFT_RGB,
   successRgb: SUCCESS_RGB,
   onSurfaceRgb: DARK_ON_SURFACE_RGB,
   overlayRgb: DARK_OVERLAY_RGB,
+  headerRgb: SURFACE_HEADER_RGB,
   elevatedRgb: DARK_ELEVATED_RGB,
   ...SHARED,
 };
@@ -181,15 +194,17 @@ const LIGHT_COLORS = {
   mutedTextColor: LIGHT_ON_SURFACE_MUTED,
   dialogTextColor: TEXT_ON_LIGHT,
   accentSoftColor: ACCENT,
-  dangerColor: DANGER_STRONG,
+  dangerColor: DANGER_DARK,
   dangerHoverColor: DANGER_DEEP,
-  dangerSoftColor: DANGER_STRONG,
-  successColor: SUCCESS_DEEP,
-  dangerRgb: DANGER_STRONG_RGB,
-  dangerSoftRgb: DANGER_STRONG_RGB,
-  successRgb: SUCCESS_DEEP_RGB,
+  dangerSoftColor: DANGER_DARK,
+  successColor: SUCCESS_DARK,
+  warningColor: WARNING_DARK,
+  dangerRgb: DANGER_DARK_RGB,
+  dangerSoftRgb: DANGER_DARK_RGB,
+  successRgb: SUCCESS_DARK_RGB,
   onSurfaceRgb: LIGHT_ON_SURFACE_RGB,
   overlayRgb: LIGHT_OVERLAY_RGB,
+  headerRgb: LILAC_TINT_RGB,
   elevatedRgb: LIGHT_ELEVATED_RGB,
   ...SHARED,
 };

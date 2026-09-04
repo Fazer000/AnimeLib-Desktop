@@ -5,7 +5,7 @@ import { animeApi, AnimeInfo } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 
 import { createLogger } from '../../../shared/logger';
-import { ACCENT, WARNING } from '../../theme/palette';
+import { ACCENT } from '../../theme/palette';
 
 const log = createLogger('AnimeInfoCard');
 
@@ -67,7 +67,7 @@ function AnimeInfoCard({
         <Box
           sx={{
             width: 320,
-            backgroundColor: `rgba(${customColors.overlayRgb}, 0.95)`,
+            backgroundColor: `rgba(${customColors.headerRgb}, 0.92)`,
             backdropFilter: 'blur(10px)',
             borderRadius: 2,
             padding: 3,
@@ -117,8 +117,8 @@ function AnimeInfoCard({
           minWidth: '25vw',
           maxWidth: '50vw',
           pointerEvents: 'auto',
-          backgroundColor: `rgba(${customColors.overlayRgb}, 0.66)`,
-          backdropFilter: 'blur(4px)',
+          backgroundColor: `rgba(${customColors.headerRgb}, 0.92)`,
+          backdropFilter: 'blur(10px)',
           border: `1px solid rgba(${customColors.neutralRgb}, 0.35)`,
           borderRadius: 2,
           padding: 2.5,
@@ -126,7 +126,7 @@ function AnimeInfoCard({
           transition: 'background-color 0.2s ease, border-color 0.2s ease',
           '&:hover': onClick
             ? {
-                backgroundColor: `rgba(${customColors.elevatedRgb}, 0.75)`,
+                backgroundColor: customColors.headerColor,
                 borderColor: `rgba(${customColors.accentRgb}, 0.4)`,
               }
             : undefined,
@@ -233,7 +233,7 @@ function AnimeInfoCard({
                     color:
                       animeInfo.status.id === 2
                         ? customColors.successColor
-                        : WARNING,
+                        : customColors.warningColor,
                     fontSize: '0.875rem',
                     fontWeight: 500,
                   }}
@@ -261,7 +261,7 @@ function AnimeInfoCard({
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Star sx={{ color: WARNING, fontSize: 20 }} />
+                <Star sx={{ color: customColors.warningColor, fontSize: 20 }} />
                 <Typography
                   sx={{
                     color: customColors.dialogTextColor,
