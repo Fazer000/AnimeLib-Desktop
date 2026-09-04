@@ -55,6 +55,7 @@ import {
   PRIMARY_RGB,
   SUCCESS_DARK_RGB,
   SUCCESS_RGB,
+  SURFACE_HEADER,
   WARNING,
   WARNING_DARK,
   WARNING_ORANGE,
@@ -72,6 +73,7 @@ declare module '@mui/material/styles' {
     alphaBorderColor: string;
     lineColor: string;
     headerColor: string;
+    siteHeaderColor: string;
     primaryTextColor: string;
     secondaryTextColor: string;
     accentTextColor: string;
@@ -84,8 +86,10 @@ declare module '@mui/material/styles' {
     mutedTextColor: string;
     dialogTextColor: string;
     accentSoftColor: string;
+    accentHoverColor: string;
     onAccentColor: string;
     onVideoColor: string;
+    onVideoAccentColor: string;
     onVideoMutedColor: string;
     onVideoSurfaceRgb: string;
     onVideoElevatedRgb: string;
@@ -125,6 +129,7 @@ const SHARED = {
   neutralRgb: NEUTRAL_RGB,
   onAccentColor: WHITE,
   onVideoColor: DARK_ON_SURFACE,
+  onVideoAccentColor: DARK_PRIMARY_ACCENT,
   onVideoMutedColor: DARK_TEXT_ACCENT,
   onVideoSurfaceRgb: DARK_SURFACE_RGB,
   onVideoElevatedRgb: DARK_SURFACE_CONTAINER_HIGHEST_RGB,
@@ -143,6 +148,7 @@ const DARK_COLORS = {
   alphaBorderColor: DARK_OUTLINE_VARIANT,
   lineColor: DARK_OUTLINE_VARIANT,
   headerColor: DARK_SURFACE_CONTAINER,
+  siteHeaderColor: SURFACE_HEADER,
   primaryTextColor: DARK_ON_SURFACE,
   secondaryTextColor: DARK_PRIMARY_ACCENT,
   accentTextColor: DARK_ON_SURFACE_VARIANT,
@@ -155,6 +161,7 @@ const DARK_COLORS = {
   mutedTextColor: DARK_ON_SURFACE_MUTED,
   dialogTextColor: DARK_ON_SURFACE,
   accentSoftColor: DARK_PRIMARY_ACCENT,
+  accentHoverColor: PRIMARY_DEEP,
   dangerColor: DARK_ERROR,
   dangerHoverColor: DANGER_STRONG,
   dangerSoftColor: DANGER_SOFT,
@@ -179,6 +186,7 @@ const LIGHT_COLORS = {
   alphaBorderColor: LIGHT_OUTLINE_VARIANT,
   lineColor: LIGHT_OUTLINE_VARIANT,
   headerColor: LILAC_TINT,
+  siteHeaderColor: LILAC_TINT,
   primaryTextColor: LIGHT_ON_SURFACE,
   secondaryTextColor: LIGHT_PRIMARY,
   accentTextColor: LIGHT_ON_SURFACE_VARIANT,
@@ -191,6 +199,7 @@ const LIGHT_COLORS = {
   mutedTextColor: LIGHT_ON_SURFACE_MUTED,
   dialogTextColor: LIGHT_ON_SURFACE,
   accentSoftColor: LIGHT_PRIMARY_ACCENT,
+  accentHoverColor: PRIMARY_DEEP,
   dangerColor: LIGHT_ERROR,
   dangerHoverColor: DANGER_DEEP,
   dangerSoftColor: LIGHT_ERROR,

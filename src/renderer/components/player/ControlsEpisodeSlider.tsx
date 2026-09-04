@@ -1,7 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Box, Button, Typography, useTheme } from '@mui/material';
 import { BookmarkRounded } from '@mui/icons-material';
-import { ACCENT } from '../../theme/palette';
 
 interface Episode {
   id: number;
@@ -223,10 +222,10 @@ function ControlsEpisodeSlider({
                 flex: episodes.length > 6 ? '1' : 'none',
                 backgroundColor: 'rgba(20, 20, 20, 0.45)',
                 border: isSelected
-                  ? `1px solid ${ACCENT}`
+                  ? `1px solid ${theme.palette.customColors.onVideoAccentColor}`
                   : '1px solid rgba(116, 116, 128, 0.33)',
                 color: isSelected
-                  ? ACCENT
+                  ? theme.palette.customColors.onVideoAccentColor
                   : theme.palette.customColors.onVideoColor,
                 textAlign: 'left',
                 position: 'relative',

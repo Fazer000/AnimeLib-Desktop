@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, IconButton, Slider, Fade } from '@mui/material';
+import { Box, IconButton, Slider, Fade, useTheme } from '@mui/material';
 
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 import VolumeDownRoundedIcon from '@mui/icons-material/VolumeDownRounded';
@@ -7,7 +7,7 @@ import VolumeMuteRoundedIcon from '@mui/icons-material/VolumeMuteRounded';
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import ControlTooltip from './ControlTooltip';
 import { PLAYER_CONTROL_ICON_SIZE } from '../../../constants';
-import { ACCENT, ACCENT_LIGHT, WHITE_SHORT } from '../../theme/palette';
+import { WHITE_SHORT } from '../../theme/palette';
 
 const ICON_SX = { fontSize: `${PLAYER_CONTROL_ICON_SIZE}px` };
 
@@ -29,6 +29,7 @@ function VolumeControl({
   onVolumeChange,
   onToggleMute,
 }: VolumeControlProps) {
+  const { customColors } = useTheme().palette;
   const [isDragging, setIsDragging] = useState(false);
 
   const handleVolumeChange = (event: Event, newValue: number | number[]) => {
@@ -111,7 +112,7 @@ function VolumeControl({
             '&:hover': {
               backgroundColor: 'rgba(255, 255, 255, 0.1)',
               transform: 'scale(1.15)',
-              color: ACCENT_LIGHT,
+              color: customColors.onVideoAccentColor,
             },
             '&:active': {
               transform: 'scale(0.95)',
@@ -165,13 +166,13 @@ function VolumeControl({
           step={0.01}
           size="small"
           sx={{
-            color: ACCENT,
+            color: customColors.onVideoAccentColor,
             cursor: 'pointer',
             '& .MuiSlider-thumb': {
               width: 12,
               height: 12,
               backgroundColor: WHITE_SHORT,
-              border: `2px solid ${ACCENT_LIGHT}`,
+              border: `2px solid ${customColors.onVideoAccentColor}`,
               borderRadius: '50%',
               transition: isDragging
                 ? 'none'
@@ -190,7 +191,7 @@ function VolumeControl({
             },
             '& .MuiSlider-track': {
               height: 4,
-              background: ACCENT,
+              background: customColors.secondaryColor,
               borderRadius: 50,
               border: 'none',
               transition: isDragging ? 'none' : 'width 0.1s ease',

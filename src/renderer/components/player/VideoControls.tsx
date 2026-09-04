@@ -37,7 +37,7 @@ import {
 } from '../../../constants';
 
 import { createLogger } from '../../../shared/logger';
-import { ACCENT, WHITE_SHORT } from '../../theme/palette';
+import { WHITE_SHORT } from '../../theme/palette';
 
 const log = createLogger('VideoControls');
 
@@ -337,7 +337,7 @@ function VideoControls({
             color={
               sidebarCollapsed
                 ? theme.palette.customColors.onVideoColor
-                : ACCENT
+                : theme.palette.customColors.onVideoAccentColor
             }
             onClick={onSidebarToggle}
             icon={<GraphicEqRounded sx={ICON_SX} />}
@@ -436,7 +436,7 @@ function VideoControls({
               sx={{
                 ...overlayButtonSx,
                 color: episodesVisible
-                  ? ACCENT
+                  ? theme.palette.customColors.onVideoAccentColor
                   : theme.palette.customColors.onVideoColor,
               }}
             >
@@ -533,13 +533,15 @@ function VideoControls({
                     onSaveBookmark();
                   }}
                   sx={{
-                    color: hasBookmark ? ACCENT : 'white',
+                    color: hasBookmark
+                      ? theme.palette.customColors.onVideoAccentColor
+                      : 'white',
                     padding: 0.25,
                     borderRadius: 2,
                     '&:hover': {
                       backgroundColor: 'rgba(255, 255, 255, 0.1)',
                       transform: 'scale(1.1)',
-                      color: ACCENT,
+                      color: theme.palette.customColors.onVideoAccentColor,
                     },
                     transition: 'all 0.2s ease',
                   }}
@@ -559,7 +561,7 @@ function VideoControls({
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     transform: 'scale(1.1)',
-                    color: ACCENT,
+                    color: theme.palette.customColors.onVideoAccentColor,
                   },
                   transition: 'all 0.2s ease',
                 }}
@@ -603,7 +605,7 @@ function VideoControls({
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     transform: 'scale(1.1)',
-                    color: ACCENT,
+                    color: theme.palette.customColors.onVideoAccentColor,
                   },
                   transition: 'all 0.2s ease',
                 }}
@@ -631,7 +633,7 @@ function VideoControls({
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     transform: 'scale(1.1)',
-                    color: ACCENT,
+                    color: theme.palette.customColors.onVideoAccentColor,
                   },
                   transition: 'all 0.2s ease',
                 }}

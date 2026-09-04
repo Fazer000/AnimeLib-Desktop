@@ -14,7 +14,6 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 import type { CustomColors } from '@mui/material/styles';
 import { FolderOpenRounded } from '@mui/icons-material';
 import { animeApi, AnimeInfo, Episode, Player } from '../../api/animeApi';
@@ -47,7 +46,6 @@ import {
 import { getSiteOrigin } from '../../utils/urlHelpers';
 
 import { createLogger } from '../../../shared/logger';
-import { ACCENT, ACCENT_DEEP } from '../../theme/palette';
 
 const log = createLogger('DownloadManager');
 
@@ -90,8 +88,8 @@ const footerButtonSx = (customColors: CustomColors) => ({
   px: 2,
   '&:hover': {
     color: customColors.dialogTextColor,
-    borderColor: ACCENT,
-    backgroundColor: alpha(ACCENT, 0.14),
+    borderColor: customColors.accentSoftColor,
+    backgroundColor: `rgba(${customColors.accentRgb}, 0.14)`,
   },
 });
 
@@ -670,7 +668,7 @@ function DownloadManagerDialog({
             sx={{
               fontSize: OFFLINE_FONT.hint,
               color: migration
-                ? ACCENT
+                ? customColors.accentSoftColor
                 : `rgba(${customColors.onSurfaceRgb}, 0.7)`,
               flex: 1,
               minWidth: 0,
@@ -752,11 +750,11 @@ function DownloadManagerDialog({
                 textTransform: 'none',
                 fontSize: OFFLINE_FONT.body,
                 px: 2,
-                backgroundColor: ACCENT,
+                backgroundColor: customColors.secondaryColor,
                 color: customColors.onAccentColor,
-                '&:hover': { backgroundColor: ACCENT_DEEP },
+                '&:hover': { backgroundColor: customColors.accentHoverColor },
                 '&.Mui-disabled': {
-                  backgroundColor: alpha(ACCENT, 0.25),
+                  backgroundColor: `rgba(${customColors.accentRgb}, 0.25)`,
                   color: `rgba(${customColors.onSurfaceRgb}, 0.4)`,
                 },
               }}
@@ -840,9 +838,9 @@ function DownloadManagerDialog({
               textTransform: 'none',
               fontSize: OFFLINE_FONT.button,
               px: 2,
-              backgroundColor: ACCENT,
+              backgroundColor: customColors.secondaryColor,
               color: customColors.onAccentColor,
-              '&:hover': { backgroundColor: ACCENT_DEEP },
+              '&:hover': { backgroundColor: customColors.accentHoverColor },
             }}
           >
             Всё равно скачать

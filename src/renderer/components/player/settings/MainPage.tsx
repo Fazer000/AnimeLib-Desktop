@@ -1,4 +1,4 @@
-import { Box, Divider } from '@mui/material';
+import { Box, Divider, useTheme } from '@mui/material';
 import {
   FastForwardOutlined,
   SkipNextOutlined,
@@ -18,7 +18,6 @@ import { NavRow, ToggleRow } from './rows';
 import { MENU_ICON_SIZE, menuIconBoxSx } from './styles';
 import type { AutoSkipSettings, MenuPage } from './types';
 import {
-  ACCENT,
   ACCENT_BRIGHT,
   ACCENT_LIGHT,
   ACCENT_MID,
@@ -66,8 +65,11 @@ function MainPage({
   onAutoplayChange,
   onAmbientLightChange,
 }: MainPageProps) {
+  const { customColors } = useTheme().palette;
   const qualityTag = getQualityTagFromResolution(selectedQuality);
-  const qualityColor = qualityTag ? getQualityTagColor(qualityTag) : ACCENT;
+  const qualityColor = qualityTag
+    ? getQualityTagColor(qualityTag)
+    : customColors.onVideoAccentColor;
   const activeSkips = Object.values(autoSkipSettings).filter(Boolean).length;
 
   return (

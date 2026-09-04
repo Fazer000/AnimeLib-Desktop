@@ -1,8 +1,7 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import { SkipManager } from '../../../services/player';
 import { ChipGroup, PageHeader } from './rows';
 import { CHIP_QUARTER_SX, CHIP_THIRD_SX } from './styles';
-import { ACCENT_LIGHT } from '../../../theme/palette';
 
 const MINUTES = [0, 1, 2, 3, 4, 5];
 const SECONDS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
@@ -15,6 +14,7 @@ interface SkipPageProps {
 
 /** Настройка шага перемотки. */
 function SkipPage({ skipManager, onSkipTimeChange, onBack }: SkipPageProps) {
+  const { customColors } = useTheme().palette;
   return (
     <Box>
       <PageHeader title="Время перемотки" onBack={onBack} />
@@ -73,7 +73,7 @@ function SkipPage({ skipManager, onSkipTimeChange, onBack }: SkipPageProps) {
         <Typography
           variant="body2"
           sx={{
-            color: ACCENT_LIGHT,
+            color: customColors.onVideoAccentColor,
             fontWeight: 600,
             fontFamily: 'Roboto, sans-serif',
           }}

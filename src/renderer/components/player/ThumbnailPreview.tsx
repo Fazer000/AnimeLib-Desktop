@@ -1,6 +1,6 @@
 import React, { useState, useLayoutEffect, memo, useRef } from 'react';
-import { Box, Typography, CircularProgress } from '@mui/material';
-import { ACCENT, SURFACE_DARKER, SURFACE_MUTED } from '../../theme/palette';
+import { Box, Typography, CircularProgress, useTheme } from '@mui/material';
+import { SURFACE_DARKER, SURFACE_MUTED } from '../../theme/palette';
 
 interface ThumbnailPreviewProps {
   thumbnailUrl: string | null;
@@ -20,6 +20,7 @@ const ThumbnailPreview = memo(
     isApproximate,
     position,
   }: ThumbnailPreviewProps) => {
+    const { customColors } = useTheme().palette;
     const [isVisible, setIsVisible] = useState(false);
     const previewRef = useRef<HTMLDivElement>(null);
     const [adjustedPosition, setAdjustedPosition] = useState({
@@ -165,7 +166,10 @@ const ThumbnailPreview = memo(
                 backgroundColor: SURFACE_MUTED,
               }}
             >
-              <CircularProgress size={28} sx={{ color: ACCENT }} />
+              <CircularProgress
+                size={28}
+                sx={{ color: customColors.onVideoAccentColor }}
+              />
             </Box>
           )}
 
@@ -194,7 +198,7 @@ const ThumbnailPreview = memo(
               left: 0,
               height: 3,
               width: `${duration > 0 ? (time / duration) * 100 : 0}%`,
-              backgroundColor: ACCENT,
+              backgroundColor: customColors.secondaryColor,
               zIndex: 3,
               transition: 'width 0.1s ease',
             }}

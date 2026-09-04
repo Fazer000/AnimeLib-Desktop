@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from 'react';
-import { Box, IconButton, Typography } from '@mui/material';
+import { Box, IconButton, Typography, useTheme } from '@mui/material';
 import { PlayArrowRounded, PauseRounded } from '@mui/icons-material';
 import KeyboardDoubleArrowRightRoundedIcon from '@mui/icons-material/KeyboardDoubleArrowRightRounded';
 import ControlTooltip from './ControlTooltip';
 import { formatTime } from '../../utils/videoHelpers';
 import { PlaybackTimeStore } from '../../services/player';
 import { PLAYER_CONTROL_ICON_SIZE } from '../../../constants';
-import { ACCENT, TEXT_PRIMARY } from '../../theme/palette';
+import { TEXT_PRIMARY } from '../../theme/palette';
 
 const ICON_SX = { fontSize: `${PLAYER_CONTROL_ICON_SIZE}px` };
 
@@ -63,6 +63,7 @@ function PlaybackControls({
   onTogglePlay,
   onSkipForward,
 }: PlaybackControlsProps) {
+  const { customColors } = useTheme().palette;
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
       <IconButton
@@ -77,7 +78,7 @@ function PlaybackControls({
           '&:hover': {
             backgroundColor: 'rgba(255, 255, 255, 0.1)',
             transform: 'scale(1.1)',
-            color: ACCENT,
+            color: customColors.onVideoAccentColor,
           },
           transition: 'all 0.2s ease',
         }}
@@ -106,7 +107,7 @@ function PlaybackControls({
               '&:hover': {
                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 transform: 'scale(1.1)',
-                color: ACCENT,
+                color: customColors.onVideoAccentColor,
               },
               transition: 'all 0.2s ease',
             }}

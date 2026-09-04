@@ -1,8 +1,7 @@
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 import { SpeedOutlined } from '@mui/icons-material';
 import { OptionRow, PageHeader } from './rows';
 import { MENU_ICON_SIZE } from './styles';
-import { ACCENT_LIGHT, ACCENT_MID } from '../../../theme/palette';
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
@@ -14,6 +13,7 @@ interface SpeedPageProps {
 
 /** Выбор скорости воспроизведения. */
 function SpeedPage({ playbackRate, onSelect, onBack }: SpeedPageProps) {
+  const { customColors } = useTheme().palette;
   return (
     <Box>
       <PageHeader title="Скорость" onBack={onBack} />
@@ -31,7 +31,9 @@ function SpeedPage({ playbackRate, onSelect, onBack }: SpeedPageProps) {
               <SpeedOutlined
                 sx={{
                   fontSize: MENU_ICON_SIZE,
-                  color: selected ? ACCENT_LIGHT : ACCENT_MID,
+                  color: selected
+                    ? customColors.onVideoAccentColor
+                    : customColors.onVideoMutedColor,
                   opacity: 0.7,
                 }}
               />

@@ -16,7 +16,6 @@ import {
   HOTKEY_LAYOUT_HINT,
   HotkeyGroup,
 } from '../../../constants';
-import { ACCENT } from '../../theme/palette';
 
 interface HotkeysDialogProps {
   open: boolean;
@@ -48,7 +47,7 @@ function HotkeyColumn({ group }: { group: HotkeyGroup }) {
         sx={{
           fontSize: '0.78rem',
           fontWeight: 600,
-          color: ACCENT,
+          color: customColors.accentSoftColor,
           textTransform: 'uppercase',
           letterSpacing: '0.04em',
           mb: 1,
@@ -121,7 +120,9 @@ function HotkeysDialog({ open, onClose }: HotkeysDialogProps) {
           pr: 1,
         }}
       >
-        <KeyboardRounded sx={{ fontSize: 20, color: ACCENT }} />
+        <KeyboardRounded
+          sx={{ fontSize: 20, color: customColors.accentSoftColor }}
+        />
         Горячие клавиши
         <IconButton
           onClick={onClose}

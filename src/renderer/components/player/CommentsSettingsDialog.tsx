@@ -18,7 +18,6 @@ import {
   COMMENTS_COLLAPSE_MAX_LEVEL,
   COMMENTS_COLLAPSE_MIN_LEVEL,
 } from '../../../constants';
-import { ACCENT } from '../../theme/palette';
 
 const checkboxSx = (colors: CustomColors) => ({
   color: `rgba(${colors.onSurfaceRgb}, 0.4)`,
@@ -162,7 +161,7 @@ function CommentsSettingsDialog({
             onChange={(_, value) =>
               onChange({ collapseFromLevel: value as number })
             }
-            sx={{ color: ACCENT }}
+            sx={{ color: customColors.secondaryColor }}
           />
         </Box>
       </DialogContent>

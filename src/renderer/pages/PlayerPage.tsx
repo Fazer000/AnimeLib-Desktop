@@ -32,13 +32,7 @@ import { useEpisodeCatalog } from './player/useEpisodeCatalog';
 import { useEpisodePlayers } from './player/useEpisodePlayers';
 
 import { createLogger } from '../../shared/logger';
-import {
-  ACCENT,
-  ACCENT_DEEP,
-  BLACK_SHORT,
-  TEXT_PRIMARY,
-  WHITE,
-} from '../theme/palette';
+import { BLACK_SHORT, TEXT_PRIMARY, WHITE } from '../theme/palette';
 
 const log = createLogger('PlayerPage');
 
@@ -624,7 +618,7 @@ function PlayerPageRefactored({
                         sx={{
                           fontSize: '120px',
                           fontWeight: 'bold',
-                          color: ACCENT,
+                          color: customColors.accentSoftColor,
                         }}
                       >
                         404
@@ -662,7 +656,10 @@ function PlayerPageRefactored({
                     >
                       <Typography
                         variant="h4"
-                        sx={{ color: ACCENT, fontWeight: 'bold' }}
+                        sx={{
+                          color: customColors.accentSoftColor,
+                          fontWeight: 'bold',
+                        }}
                       >
                         Ошибка Kodik
                       </Typography>
@@ -677,13 +674,15 @@ function PlayerPageRefactored({
                           mt: 1,
                           px: 3,
                           py: 1,
-                          backgroundColor: ACCENT,
+                          backgroundColor: customColors.secondaryColor,
                           color: customColors.onAccentColor,
                           border: 'none',
                           borderRadius: '8px',
                           fontSize: '14px',
                           cursor: 'pointer',
-                          '&:hover': { backgroundColor: ACCENT_DEEP },
+                          '&:hover': {
+                            backgroundColor: customColors.accentHoverColor,
+                          },
                         }}
                       >
                         Повторить

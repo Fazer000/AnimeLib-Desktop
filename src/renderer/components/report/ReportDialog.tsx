@@ -21,7 +21,6 @@ import {
   ReportKind,
   ReportPayload,
 } from '../../../constants';
-import { ACCENT, ACCENT_DEEP } from '../../theme/palette';
 
 interface ReportDialogProps {
   open: boolean;
@@ -34,14 +33,14 @@ const fieldSx = (customColors: CustomColors) => ({
     color: customColors.dialogTextColor,
     fontSize: '0.9rem',
     '& fieldset': { borderColor: customColors.borderColor },
-    '&:hover fieldset': { borderColor: ACCENT },
-    '&.Mui-focused fieldset': { borderColor: ACCENT },
+    '&:hover fieldset': { borderColor: customColors.accentSoftColor },
+    '&.Mui-focused fieldset': { borderColor: customColors.accentSoftColor },
   },
   '& .MuiInputLabel-root': {
     color: customColors.mutedTextColor,
     fontSize: '0.9rem',
   },
-  '& .MuiInputLabel-root.Mui-focused': { color: ACCENT },
+  '& .MuiInputLabel-root.Mui-focused': { color: customColors.accentSoftColor },
   '& .MuiFormHelperText-root': { color: customColors.mutedTextColor },
 });
 
@@ -86,7 +85,9 @@ function ReportDialog({ open, onSubmit, onClose }: ReportDialogProps) {
       <DialogTitle
         sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '1rem' }}
       >
-        <BugReportRounded sx={{ fontSize: 20, color: ACCENT }} />
+        <BugReportRounded
+          sx={{ fontSize: 20, color: customColors.accentSoftColor }}
+        />
         Сообщить о проблеме
       </DialogTitle>
 
@@ -152,9 +153,9 @@ function ReportDialog({ open, onSubmit, onClose }: ReportDialogProps) {
           onClick={() => onSubmit({ kind, title, description })}
           sx={{
             textTransform: 'none',
-            backgroundColor: ACCENT,
+            backgroundColor: customColors.secondaryColor,
             color: customColors.onAccentColor,
-            '&:hover': { backgroundColor: ACCENT_DEEP },
+            '&:hover': { backgroundColor: customColors.accentHoverColor },
           }}
         >
           Продолжить в GitHub

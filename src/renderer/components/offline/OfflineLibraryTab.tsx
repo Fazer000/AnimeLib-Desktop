@@ -35,7 +35,6 @@ import {
   progressStore,
 } from '../../services/offline';
 import { formatSize, sumSize } from '../../utils/offlineFormat';
-import { ACCENT, ACCENT_DEEP } from '../../theme/palette';
 
 interface OfflineLibraryTabProps {
   anime: OfflineAnime[];
@@ -176,7 +175,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                 borderColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
               },
               '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: ACCENT,
+                borderColor: customColors.accentSoftColor,
               },
             }}
           />
@@ -315,9 +314,11 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                     flexShrink: 0,
                     minWidth: OFFLINE_LIBRARY_ACTION_WIDTH,
                     whiteSpace: 'nowrap',
-                    backgroundColor: ACCENT,
+                    backgroundColor: customColors.secondaryColor,
                     color: customColors.onAccentColor,
-                    '&:hover': { backgroundColor: ACCENT_DEEP },
+                    '&:hover': {
+                      backgroundColor: customColors.accentHoverColor,
+                    },
                   }}
                 >
                   {progress ? 'Продолжить' : 'Смотреть'}
@@ -389,7 +390,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                         color:
                           episode.fileName === activeFile ||
                           progress?.episodeId === episode.episodeId
-                            ? ACCENT
+                            ? customColors.accentSoftColor
                             : `rgba(${customColors.onSurfaceRgb}, 0.75)`,
                       }}
                       noWrap

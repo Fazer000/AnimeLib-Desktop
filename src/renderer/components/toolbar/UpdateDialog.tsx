@@ -11,16 +11,10 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 import { OpenInNewRounded } from '@mui/icons-material';
 import { UpdateInfo } from '../../../constants';
 import { UpdateStatus } from '../../hooks/useUpdateChecker';
-import {
-  ACCENT_LIGHT,
-  SUCCESS_DEEP,
-  SUCCESS_MID,
-  SUCCESS_STRONG,
-} from '../../theme/palette';
+import { SUCCESS_DEEP, SUCCESS_MID, SUCCESS_STRONG } from '../../theme/palette';
 
 interface UpdateDialogProps {
   open: boolean;
@@ -223,8 +217,10 @@ function UpdateDialog({
             mr: 'auto',
             textTransform: 'none',
             fontSize: '0.85rem',
-            color: ACCENT_LIGHT,
-            '&:hover': { backgroundColor: alpha(ACCENT_LIGHT, 0.12) },
+            color: customColors.accentSoftColor,
+            '&:hover': {
+              backgroundColor: `rgba(${customColors.accentRgb}, 0.12)`,
+            },
           }}
         >
           Страница релиза

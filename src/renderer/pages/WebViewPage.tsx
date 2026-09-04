@@ -5,7 +5,7 @@ import React, {
   useCallback,
   useImperativeHandle,
 } from 'react';
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 import CustomToolbar from '../components/Toolbar';
 import useStableSize from '../hooks/useStableSize';
 import {
@@ -62,6 +62,7 @@ function WebViewRefactored({
   onBeforeGoBack,
 }: WebViewProps) {
   const [currentUrl, setCurrentUrl] = useState(savedUrl);
+  const { customColors } = useTheme().palette;
   const [canGoBack, setCanGoBack] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
 
@@ -417,6 +418,7 @@ function WebViewRefactored({
         onMinimize={handleWindowMinimize}
         onMaximize={handleWindowMaximize}
         onClose={handleWindowClose}
+        backgroundColor={customColors.siteHeaderColor}
         height={32}
       />
 

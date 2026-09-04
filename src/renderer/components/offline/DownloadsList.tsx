@@ -27,7 +27,6 @@ import {
   formatProgress,
   formatSpeed,
 } from '../../utils/offlineFormat';
-import { ACCENT, ACCENT_LIGHT } from '../../theme/palette';
 
 interface DownloadsListProps {
   tasks: DownloadTask[];
@@ -40,12 +39,12 @@ const cancelSx = (colors: CustomColors) => ({
   '&:hover': { backgroundColor: alpha(colors.dangerColor, 0.12) },
 });
 
-const CLEAR_SX = {
+const clearSx = (colors: CustomColors) => ({
   textTransform: 'none',
   fontSize: OFFLINE_FONT.button,
-  color: ACCENT_LIGHT,
-  '&:hover': { backgroundColor: alpha(ACCENT_LIGHT, 0.12) },
-};
+  color: colors.accentSoftColor,
+  '&:hover': { backgroundColor: alpha(colors.accentSoftColor, 0.12) },
+});
 
 const STATUS_LABELS: Record<string, string> = {
   queued: 'В очереди',
@@ -124,7 +123,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
           <Button
             size="small"
             onClick={() => offlineStore.clearFinished()}
-            sx={CLEAR_SX}
+            sx={clearSx(customColors)}
           >
             Очистить список
           </Button>
@@ -172,7 +171,10 @@ function DownloadsList({ tasks }: DownloadsListProps) {
                   onClick={() => offlineStore.resume(task.id)}
                 >
                   <PlayArrowRounded
-                    sx={{ fontSize: OFFLINE_ICON.lg, color: ACCENT }}
+                    sx={{
+                      fontSize: OFFLINE_ICON.lg,
+                      color: customColors.accentSoftColor,
+                    }}
                   />
                 </IconButton>
               )}
@@ -197,7 +199,9 @@ function DownloadsList({ tasks }: DownloadsListProps) {
                 height: 5,
                 borderRadius: 2.5,
                 backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.12)`,
-                '& .MuiLinearProgress-bar': { backgroundColor: ACCENT },
+                '& .MuiLinearProgress-bar': {
+                  backgroundColor: customColors.secondaryColor,
+                },
               }}
             />
           )}

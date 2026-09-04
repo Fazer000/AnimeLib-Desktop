@@ -9,7 +9,6 @@ import {
   useTheme,
 } from '@mui/material';
 import { CloudOffRounded } from '@mui/icons-material';
-import { ACCENT, ACCENT_DEEP } from '../../theme/palette';
 
 interface OfflineNoticeDialogProps {
   open: boolean;
@@ -46,7 +45,9 @@ function OfflineNoticeDialog({
       <DialogTitle
         sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '1rem' }}
       >
-        <CloudOffRounded sx={{ fontSize: 20, color: ACCENT }} />
+        <CloudOffRounded
+          sx={{ fontSize: 20, color: customColors.accentSoftColor }}
+        />
         Нет соединения с сайтом
       </DialogTitle>
 
@@ -71,9 +72,9 @@ function OfflineNoticeDialog({
           onClick={onOpenLibrary}
           sx={{
             textTransform: 'none',
-            backgroundColor: ACCENT,
+            backgroundColor: customColors.secondaryColor,
             color: customColors.onAccentColor,
-            '&:hover': { backgroundColor: ACCENT_DEEP },
+            '&:hover': { backgroundColor: customColors.accentHoverColor },
           }}
         >
           Открыть библиотеку

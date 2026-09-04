@@ -28,7 +28,6 @@ import {
   formatContinueLabel,
   formatOfflineLabel,
 } from '../utils/bookmarkFormat';
-import { ACCENT } from '../theme/palette';
 
 const paperSx = (colors: CustomColors) => ({
   width: BOOKMARKS_PANEL_WIDTH,
@@ -218,7 +217,11 @@ function ContinueWatchingButton({
             setAttached(true);
             setOpen(true);
           }}
-          icon={<BookmarkRounded sx={{ fontSize: 24, color: ACCENT }} />}
+          icon={
+            <BookmarkRounded
+              sx={{ fontSize: 24, color: customColors.accentSoftColor }}
+            />
+          }
         />
 
         <Menu

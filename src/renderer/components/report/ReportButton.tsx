@@ -9,7 +9,6 @@ import {
   FLOATING_BUTTONS_LEFT,
   ReportPayload,
 } from '../../../constants';
-import { ACCENT } from '../../theme/palette';
 import { createLogger } from '../../../shared/logger';
 
 const log = createLogger('ReportButton');
@@ -18,11 +17,11 @@ const fabSx = (customColors: CustomColors) => ({
   backgroundColor: alpha(customColors.pageColor, 0.85),
   backdropFilter: 'blur(10px)',
   border: `1px solid ${alpha(customColors.borderColor, 0.6)}`,
-  color: ACCENT,
+  color: customColors.accentSoftColor,
   boxShadow: `0 4px 12px ${alpha(customColors.blackColor, 0.4)}`,
   transition: 'all 0.3s ease',
   '&:hover': {
-    backgroundColor: alpha(ACCENT, 0.24),
+    backgroundColor: `rgba(${customColors.accentRgb}, 0.24)`,
     transform: 'translateY(-2px)',
     boxShadow: `0 6px 16px ${alpha(customColors.blackColor, 0.5)}`,
   },

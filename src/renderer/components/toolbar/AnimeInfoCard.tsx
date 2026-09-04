@@ -5,7 +5,6 @@ import { animeApi, AnimeInfo } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 
 import { createLogger } from '../../../shared/logger';
-import { ACCENT } from '../../theme/palette';
 
 const log = createLogger('AnimeInfoCard');
 
@@ -78,7 +77,10 @@ function AnimeInfoCard({
             alignItems: 'center',
           }}
         >
-          <CircularProgress size={30} sx={{ color: ACCENT }} />
+          <CircularProgress
+            size={30}
+            sx={{ color: customColors.accentSoftColor }}
+          />
         </Box>
       </Box>
     );

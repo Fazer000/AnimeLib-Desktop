@@ -12,7 +12,6 @@ import { Link, Close } from '@mui/icons-material';
 import { saveSiteUrl } from '../../utils/urlHelpers';
 
 import { createLogger } from '../../../shared/logger';
-import { ACCENT } from '../../theme/palette';
 
 const log = createLogger('UrlBar');
 
@@ -109,10 +108,10 @@ function UrlBar({
                       borderColor: customColors.borderColor,
                     },
                     '&:hover fieldset': {
-                      borderColor: ACCENT,
+                      borderColor: customColors.accentSoftColor,
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: ACCENT,
+                      borderColor: customColors.accentSoftColor,
                     },
                   },
                   '& .MuiInputBase-input': {

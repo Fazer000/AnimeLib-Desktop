@@ -20,7 +20,7 @@ import {
   OFFLINE_FONT,
   OFFLINE_ICON,
 } from '../../../constants';
-import { ACCENT, SUCCESS_MID } from '../../theme/palette';
+import { SUCCESS_MID } from '../../theme/palette';
 
 export type KodikQualityMap = Record<number, string[]>;
 
@@ -57,13 +57,13 @@ const selectSx = (customColors: CustomColors) => ({
 const labelSx = (customColors: CustomColors) => ({
   fontSize: OFFLINE_FONT.episode,
   color: `rgba(${customColors.onSurfaceRgb}, 0.55)`,
-  '&.Mui-focused': { color: ACCENT },
+  '&.Mui-focused': { color: customColors.accentSoftColor },
 });
 
 const checkboxSx = (customColors: CustomColors) => ({
   color: `rgba(${customColors.onSurfaceRgb}, 0.45)`,
-  '&.Mui-checked': { color: ACCENT },
-  '&.MuiCheckbox-indeterminate': { color: ACCENT },
+  '&.Mui-checked': { color: customColors.secondaryColor },
+  '&.MuiCheckbox-indeterminate': { color: customColors.secondaryColor },
 });
 
 const DOWNLOADED_CHECKBOX_SX = {
@@ -346,7 +346,10 @@ function EpisodeSelectionList({
               </Box>
 
               {isSelected && isLoading && (
-                <CircularProgress size={17} sx={{ color: ACCENT, mr: 1 }} />
+                <CircularProgress
+                  size={17}
+                  sx={{ color: customColors.accentSoftColor, mr: 1 }}
+                />
               )}
 
               {isSelected && !isLoading && qualities.length === 0 && (

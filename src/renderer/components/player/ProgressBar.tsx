@@ -5,11 +5,12 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { Box, Slider } from '@mui/material';
+import { Box, Slider, useTheme } from '@mui/material';
+import type { CustomColors } from '@mui/material/styles';
 import { formatTime } from '../../utils/videoHelpers';
 import { ThumbnailManager, PlaybackTimeStore } from '../../services/player';
 import ThumbnailPreview from './ThumbnailPreview';
-import { ACCENT, ACCENT_LIGHT, WHITE_SHORT } from '../../theme/palette';
+import { WHITE_SHORT } from '../../theme/palette';
 
 interface TimeCode {
   type: 'opening' | 'ending' | 'compilation' | 'splashScreen';
@@ -93,8 +94,8 @@ const HOVER_MARKER_SX = {
   zIndex: 10,
 };
 
-const SLIDER_SX = {
-  color: ACCENT,
+const sliderSx = (colors: CustomColors) => ({
+  color: colors.onVideoAccentColor,
   height: 28,
   padding: '0 !important',
   cursor: 'pointer',
@@ -110,7 +111,7 @@ const SLIDER_SX = {
     width: 14,
     height: 14,
     backgroundColor: WHITE_SHORT,
-    border: `3px solid ${ACCENT_LIGHT}`,
+    border: `3px solid ${colors.onVideoAccentColor}`,
     opacity: 0,
     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
     cursor: 'grab',
@@ -129,7 +130,7 @@ const SLIDER_SX = {
   '&:hover .MuiSlider-thumb': {
     opacity: 1,
   },
-};
+});
 
 const TOOLTIP_SX = {
   position: 'absolute',
@@ -198,6 +199,7 @@ function ProgressBar({
   timecode = [],
   thumbnailManager = null,
 }: ProgressBarProps) {
+  const { customColors } = useTheme().palette;
   const [dragTime, setDragTime] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [sliderTime, setSliderTime] = useState(0);
@@ -438,7 +440,7 @@ function ProgressBar({
                   left: 0,
                   height: '100%',
                   width: 0,
-                  background: ACCENT,
+                  background: customColors.secondaryColor,
                   borderRadius: 10,
                   transition: progressTransition,
                   willChange: isDragging ? 'width' : 'auto',
@@ -505,7 +507,7 @@ function ProgressBar({
           }
         }}
         onMouseLeave={onProgressMouseLeave}
-        sx={SLIDER_SX}
+        sx={sliderSx(customColors)}
       />
 
       {hoverTime !== null && duration > 0 && (

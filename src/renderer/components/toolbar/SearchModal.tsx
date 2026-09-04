@@ -16,7 +16,6 @@ import { animeApi } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 
 import { createLogger } from '../../../shared/logger';
-import { ACCENT } from '../../theme/palette';
 
 const log = createLogger('SearchModal');
 
@@ -346,7 +345,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
             sx={{
               minHeight: 40,
               '& .MuiTabs-indicator': {
-                backgroundColor: ACCENT,
+                backgroundColor: customColors.secondaryColor,
                 height: 3,
                 borderRadius: '3px 3px 0 0',
               },
@@ -394,7 +393,10 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
                 padding: 4,
               }}
             >
-              <CircularProgress size={32} sx={{ color: ACCENT }} />
+              <CircularProgress
+                size={32}
+                sx={{ color: customColors.accentSoftColor }}
+              />
             </Box>
           )}
 
@@ -444,7 +446,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
                   width: 24,
                   height: 24,
                   '& .site-logo__corner': {
-                    fill: ACCENT,
+                    fill: customColors.accentSoftColor,
                   },
                   '& .site-logo__words': {
                     fill: customColors.dialogTextColor,
