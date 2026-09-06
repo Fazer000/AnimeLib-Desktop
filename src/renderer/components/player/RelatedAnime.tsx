@@ -51,9 +51,9 @@ function RelatedAnimeCard({
         height: 140,
         display: 'flex',
         backgroundColor: theme.palette.customColors.primaryColor,
+        border: `1px solid ${theme.palette.customColors.lineColor}`,
         borderRadius: 2,
         overflow: 'hidden',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
         textAlign: 'left',
         justifyContent: 'flex-start',
         cursor: isAnime ? 'pointer' : 'not-allowed',
@@ -284,13 +284,13 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 10,
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.7)`,
               backdropFilter: 'blur(4px)',
-              color: 'white',
+              color: theme.palette.customColors.primaryTextColor,
               width: 48,
               height: 48,
               '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.85)`,
               },
             }}
           >
@@ -344,13 +344,13 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 10,
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.7)`,
               backdropFilter: 'blur(4px)',
-              color: 'white',
+              color: theme.palette.customColors.primaryTextColor,
               width: 48,
               height: 48,
               '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.85)`,
               },
             }}
           >

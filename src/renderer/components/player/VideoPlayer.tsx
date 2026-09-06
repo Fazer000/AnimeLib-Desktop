@@ -913,14 +913,14 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               justifyContent: 'center',
               borderRadius: '50%',
               cursor: 'pointer',
-              backgroundColor: 'rgba(28, 28, 28, 0.45)',
+              backgroundColor: `rgba(${customColors.onVideoSurfaceRgb}, 0.45)`,
               backdropFilter: 'blur(4px)',
               transition:
                 'transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease',
               '&:hover': {
                 transform: 'translate(-50%, -50%) scale(1.08)',
-                backgroundColor: 'rgba(124, 58, 237, 0.35)',
-                boxShadow: '0 0 32px 8px rgba(124, 58, 237, 0.45)',
+                backgroundColor: `rgba(${customColors.accentRgb}, 0.35)`,
+                boxShadow: `0 0 32px 8px rgba(${customColors.accentRgb}, 0.45)`,
               },
             }}
           >

@@ -289,13 +289,12 @@ function EpisodeSliderRefactored({
                   borderRadius: 10,
                   backgroundColor: theme.palette.primary.main,
                   border: isSelected
-                    ? `1px solid ${theme.palette.customColors.secondaryColor}`
-                    : '1px solid transparent',
+                    ? `1px solid ${theme.palette.customColors.accentSoftColor}`
+                    : `1px solid ${theme.palette.customColors.lineColor}`,
                   cursor: 'pointer',
                   position: 'relative',
                   overflow: 'hidden',
                   transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
                   mt: 1.25,
                   mb: 2,
                   '&:hover': {
@@ -315,7 +314,7 @@ function EpisodeSliderRefactored({
                     right: 0,
                     bottom: 0,
                     background: isSelected
-                      ? `linear-gradient(135deg, ${theme.palette.customColors.secondaryColor}20, transparent)`
+                      ? `linear-gradient(135deg, rgba(${theme.palette.customColors.accentRgb}, 0.13), transparent)`
                       : 'transparent',
                     borderRadius: 10,
                     opacity: isSelected ? 1 : 0,

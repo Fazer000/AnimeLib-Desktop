@@ -259,7 +259,6 @@ function CommentEditorComponent({
         backgroundColor: theme.palette.customColors.primaryColor,
         border: `1px solid ${theme.palette.customColors.borderColor}`,
         borderRadius: 2,
-        boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
         mx: 1,
         mb: 2.5,
       }}

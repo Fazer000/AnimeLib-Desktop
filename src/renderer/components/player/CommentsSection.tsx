@@ -109,7 +109,7 @@ const CommentsSection = memo(
           <Box
             sx={{
               backgroundColor: theme.palette.customColors.primaryColor,
-              boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
+              border: `1px solid ${theme.palette.customColors.lineColor}`,
               margin: 1,
               padding: 2,
               borderRadius: 2,
@@ -142,7 +142,7 @@ const CommentsSection = memo(
                 startIcon={<TuneRounded sx={{ fontSize: 18 }} />}
                 sx={{
                   color: theme.palette.customColors.accentTextColor,
-                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  backgroundColor: theme.palette.customColors.mutedColor,
                   borderRadius: 2,
                   textTransform: 'none',
                   fontSize: '0.875rem',
@@ -167,13 +167,13 @@ const CommentsSection = memo(
                     minWidth: 150,
                     color: theme.palette.customColors.primaryTextColor,
                     fontSize: '0.875rem',
-                    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                    backgroundColor: theme.palette.customColors.mutedColor,
                     borderRadius: 2,
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: `${theme.palette.customColors.borderColor}30`,
+                      borderColor: `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.19)`,
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: `${theme.palette.customColors.secondaryColor}50`,
+                      borderColor: `rgba(${theme.palette.customColors.accentRgb}, 0.31)`,
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                       borderColor: theme.palette.customColors.secondaryColor,
@@ -193,12 +193,12 @@ const CommentsSection = memo(
                           color: theme.palette.customColors.primaryTextColor,
                           fontSize: '0.875rem',
                           '&:hover': {
-                            backgroundColor: `${theme.palette.customColors.secondaryColor}20`,
+                            backgroundColor: `rgba(${theme.palette.customColors.accentRgb}, 0.13)`,
                           },
                           '&.Mui-selected': {
-                            backgroundColor: `${theme.palette.customColors.secondaryColor}30`,
+                            backgroundColor: `rgba(${theme.palette.customColors.accentRgb}, 0.19)`,
                             '&:hover': {
-                              backgroundColor: `${theme.palette.customColors.secondaryColor}40`,
+                              backgroundColor: `rgba(${theme.palette.customColors.accentRgb}, 0.25)`,
                             },
                           },
                         },
@@ -220,7 +220,7 @@ const CommentsSection = memo(
                 margin: 1,
                 padding: 4,
                 textAlign: 'center',
-                backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                backgroundColor: theme.palette.customColors.mutedColor,
                 borderRadius: 2,
               }}
             >

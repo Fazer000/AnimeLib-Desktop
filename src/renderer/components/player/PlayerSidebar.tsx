@@ -67,7 +67,6 @@ function PlayerSidebarRefactored({
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: isCollapsed ? 'none' : '0 0 10px 0 rgba(0, 0, 0, 0.4)',
         borderRadius: 2,
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       }}
@@ -75,6 +74,7 @@ function PlayerSidebarRefactored({
       <Box
         sx={{
           backgroundColor: theme.palette.customColors.primaryColor,
+          border: `1px solid ${theme.palette.customColors.lineColor}`,
           mb: 1,
           borderRadius: 2,
           opacity: isCollapsed ? 0 : 1,
@@ -201,7 +201,7 @@ function PlayerSidebarRefactored({
                     },
                   },
                   '&:hover': {
-                    backgroundColor: `${theme.palette.customColors.secondaryColor}08`,
+                    backgroundColor: `rgba(${theme.palette.customColors.accentRgb}, 0.03)`,
                     transform: 'translateY(-1px)',
                     '&::before': {
                       opacity: 0.3,
@@ -223,7 +223,7 @@ function PlayerSidebarRefactored({
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    background: `linear-gradient(135deg, ${theme.palette.customColors.secondaryColor}20, ${theme.palette.customColors.secondaryColor}05)`,
+                    background: `linear-gradient(135deg, rgba(${theme.palette.customColors.accentRgb}, 0.13), rgba(${theme.palette.customColors.accentRgb}, 0.02))`,
                     borderRadius: '8px',
                     opacity: 0,
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -241,6 +241,7 @@ function PlayerSidebarRefactored({
           overflow: 'auto',
           position: 'relative',
           backgroundColor: theme.palette.customColors.primaryColor,
+          border: `1px solid ${theme.palette.customColors.lineColor}`,
           borderRadius: 2,
           opacity: isCollapsed ? 0 : 1,
           visibility: isCollapsed ? 'hidden' : 'visible',
@@ -271,7 +272,7 @@ function PlayerSidebarRefactored({
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              backgroundColor: 'rgba(28, 28, 28, 0.8)',
+              backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.8)`,
               zIndex: 10,
             }}
           >

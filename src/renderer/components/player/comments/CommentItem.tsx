@@ -36,12 +36,16 @@ const CommentItem = memo(
       <Box
         sx={{
           backgroundColor: theme.palette.customColors.primaryColor,
+          border: `1px solid ${theme.palette.customColors.lineColor}`,
           borderRadius: 2,
           padding: 2.5,
-          boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
           mx: 1,
           my: 0.5,
-          ...(isNew ? { border: '1px solid rgba(124, 58, 237, 0.5)' } : {}),
+          ...(isNew
+            ? {
+                border: `1px solid rgba(${theme.palette.customColors.accentRgb}, 0.5)`,
+              }
+            : {}),
         }}
       >
         <Box sx={{ display: 'flex', gap: 2 }}>
