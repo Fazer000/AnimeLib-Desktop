@@ -13,6 +13,8 @@ const sliderButtonSx = (colors: CustomColors) => ({
   flexShrink: 0,
   width: 32,
   height: 32,
+  mt: 1.25,
+  mb: 2,
   color: colors.accentSoftColor,
   backgroundColor: colors.primaryColor,
   border: `1px solid ${colors.lineColor}`,

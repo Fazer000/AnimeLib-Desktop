@@ -98,8 +98,8 @@ export const LIGHT_ON_SURFACE_MUTED = '#83838C';
 export const LIGHT_ON_SURFACE_DISABLED = '#B2B2B9';
 
 /** Границы светлой схемы. */
-export const LIGHT_OUTLINE_VARIANT = 'rgba(20, 18, 30, 0.10)';
-export const LIGHT_OUTLINE = 'rgba(20, 18, 30, 0.20)';
+export const LIGHT_OUTLINE_VARIANT = 'rgba(20, 18, 30, 0.16)';
+export const LIGHT_OUTLINE = 'rgba(20, 18, 30, 0.26)';
 
 /** Акцент светлой схемы: на светлом фоне он же служит цветом выделения. */
 export const LIGHT_PRIMARY = '#5E35B1';
