@@ -94,8 +94,6 @@ function PlayerPageRefactored({
     offlineMode,
   );
 
-  const [videoAspectRatio, setVideoAspectRatio] = useState<number | null>(null);
-
   const [showDownloadManager, setShowDownloadManager] =
     useState<boolean>(false);
 
@@ -530,13 +528,9 @@ function PlayerPageRefactored({
             >
               <Box
                 sx={{
-                  width: getFittedWidth(
-                    videoAspectRatio || DEFAULT_VIDEO_ASPECT_RATIO,
-                  ),
+                  width: getFittedWidth(DEFAULT_VIDEO_ASPECT_RATIO),
                   height: 'auto',
-                  aspectRatio: (
-                    videoAspectRatio || DEFAULT_VIDEO_ASPECT_RATIO
-                  ).toFixed(4),
+                  aspectRatio: DEFAULT_VIDEO_ASPECT_RATIO.toFixed(4),
                   position: 'relative',
                 }}
               >
@@ -578,13 +572,9 @@ function PlayerPageRefactored({
             >
               <Box
                 sx={{
-                  width: getFittedWidth(
-                    videoAspectRatio || DEFAULT_VIDEO_ASPECT_RATIO,
-                  ),
+                  width: getFittedWidth(DEFAULT_VIDEO_ASPECT_RATIO),
                   height: 'auto',
-                  aspectRatio: (
-                    videoAspectRatio || DEFAULT_VIDEO_ASPECT_RATIO
-                  ).toFixed(4),
+                  aspectRatio: DEFAULT_VIDEO_ASPECT_RATIO.toFixed(4),
                   position: 'relative',
                   borderRadius: PLAYER_BORDER_RADIUS,
                   overflow: 'hidden',
@@ -708,7 +698,6 @@ function PlayerPageRefactored({
                       onEpisodeSelectWithAutoplay={
                         handleEpisodeClickWithAutoplay
                       }
-                      onAspectRatioChange={setVideoAspectRatio}
                       onPlayingChange={setIsVideoPlaying}
                       onControlsVisibilityChange={setControlsVisible}
                       initialTimecode={initialTimecode}
@@ -742,7 +731,7 @@ function PlayerPageRefactored({
                 zIndex: 2,
                 alignSelf: 'center',
                 height: getFittedHeight(
-                  videoAspectRatio || DEFAULT_VIDEO_ASPECT_RATIO,
+                  DEFAULT_VIDEO_ASPECT_RATIO,
                   SIDEBAR_WIDTH_CSS,
                 ),
               }}

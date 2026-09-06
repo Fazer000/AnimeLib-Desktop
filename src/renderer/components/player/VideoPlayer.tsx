@@ -52,7 +52,6 @@ import {
 } from '../../../constants';
 import { getSiteOrigin } from '../../utils/urlHelpers';
 import { useMediaSession } from './hooks/useMediaSession';
-import { useVideoAspectRatio } from './hooks/useVideoAspectRatio';
 import { useFullscreenPhase } from './hooks/useFullscreenPhase';
 import { usePlayerSegments } from './hooks/usePlayerSegments';
 import { useNextEpisodeFlow } from './hooks/useNextEpisodeFlow';
@@ -117,7 +116,6 @@ interface VideoPlayerProps {
   // eslint-disable-next-line react/require-default-props
   downloadManagerOpen?: boolean;
   // eslint-disable-next-line react/require-default-props
-  onAspectRatioChange?: (aspectRatio: number | null) => void;
   // eslint-disable-next-line react/require-default-props
   ambientLightEnabled?: boolean;
   // eslint-disable-next-line react/require-default-props
@@ -169,7 +167,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       onSidebarToggle,
       onOpenDownloadManager,
       downloadManagerOpen = false,
-      onAspectRatioChange,
       ambientLightEnabled = true,
       onAmbientLightChange,
       offlineMode = false,
@@ -423,8 +420,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     useEffect(() => {
       timecodeAppliedRef.current = false;
     }, [currentPlayerData]);
-
-    useVideoAspectRatio(videoRef, currentPlayerData, onAspectRatioChange);
 
     const {
       showNotification: showNextEpisodeNotification,
