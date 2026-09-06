@@ -7,8 +7,20 @@ import {
   ButtonBase,
 } from '@mui/material';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
+import type { CustomColors } from '@mui/material/styles';
 import { RelatedAnime as RelatedAnimeType } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
+import { RELATED_WIDTH_CSS } from '../../../constants';
+
+const scrollButtonSx = (colors: CustomColors) => ({
+  flexShrink: 0,
+  width: 40,
+  height: 40,
+  color: colors.primaryTextColor,
+  backgroundColor: colors.primaryColor,
+  border: `1px solid ${colors.lineColor}`,
+  '&:hover': { backgroundColor: colors.mutedColor },
+});
 
 interface RelatedAnimeProps {
   relatedAnime: RelatedAnimeType[];
@@ -251,6 +263,8 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
     <Box
       sx={{
         width: '100%',
+        maxWidth: RELATED_WIDTH_CSS,
+        marginX: 'auto',
         marginTop: 4,
         marginBottom: 4,
         position: 'relative',
@@ -274,29 +288,17 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
         </Typography>
       </Box>
 
-      <Box sx={{ position: 'relative' }}>
-        {canScrollLeft && (
-          <IconButton
-            onClick={() => scroll('left')}
-            sx={{
-              position: 'absolute',
-              left: 16,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              zIndex: 10,
-              backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.7)`,
-              backdropFilter: 'blur(4px)',
-              color: theme.palette.customColors.primaryTextColor,
-              width: 48,
-              height: 48,
-              '&:hover': {
-                backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.85)`,
-              },
-            }}
-          >
-            <ChevronLeft sx={{ fontSize: 32 }} />
-          </IconButton>
-        )}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2 }}>
+        <IconButton
+          onClick={() => scroll('left')}
+          aria-label="Предыдущие"
+          sx={{
+            ...scrollButtonSx(theme.palette.customColors),
+            visibility: canScrollLeft ? 'visible' : 'hidden',
+          }}
+        >
+          <ChevronLeft sx={{ fontSize: 24 }} />
+        </IconButton>
 
         <Box
           ref={scrollContainerRef}
@@ -306,6 +308,8 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
           sx={{
+            flex: 1,
+            minWidth: 0,
             display: 'flex',
             gap: 2.5,
             overflowX: 'auto',
@@ -314,8 +318,6 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
             '&::-webkit-scrollbar': {
               display: 'none',
             },
-            paddingLeft: 2,
-            paddingRight: 2,
             paddingTop: 1,
             paddingBottom: 1,
             cursor: isDragging ? 'grabbing' : 'grab',
@@ -335,28 +337,16 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
             ))}
         </Box>
 
-        {canScrollRight && (
-          <IconButton
-            onClick={() => scroll('right')}
-            sx={{
-              position: 'absolute',
-              right: 16,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              zIndex: 10,
-              backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.7)`,
-              backdropFilter: 'blur(4px)',
-              color: theme.palette.customColors.primaryTextColor,
-              width: 48,
-              height: 48,
-              '&:hover': {
-                backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.85)`,
-              },
-            }}
-          >
-            <ChevronRight sx={{ fontSize: 32 }} />
-          </IconButton>
-        )}
+        <IconButton
+          onClick={() => scroll('right')}
+          aria-label="Следующие"
+          sx={{
+            ...scrollButtonSx(theme.palette.customColors),
+            visibility: canScrollRight ? 'visible' : 'hidden',
+          }}
+        >
+          <ChevronRight sx={{ fontSize: 24 }} />
+        </IconButton>
       </Box>
     </Box>
   );

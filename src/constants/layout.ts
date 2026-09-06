@@ -33,12 +33,12 @@ export const BOOKMARKS_COVER = { width: 44, height: 62 } as const;
  * Границы резиновой ширины сайдбара озвучек, px
  */
 export const SIDEBAR_MIN_WIDTH = 300;
-export const SIDEBAR_MAX_WIDTH = 360;
+export const SIDEBAR_MAX_WIDTH = 400;
 
 /**
  * Предпочтительная ширина сайдбара (доля ширины окна)
  */
-export const SIDEBAR_PREFERRED_WIDTH = '24vw';
+export const SIDEBAR_PREFERRED_WIDTH = '22vw';
 
 /**
  * CSS-ширина сайдбара с ограничениями min/max
@@ -49,6 +49,17 @@ export const SIDEBAR_WIDTH_CSS = `clamp(${SIDEBAR_MIN_WIDTH}px, ${SIDEBAR_PREFER
  * Ширина сайдбара для расчёта минимума окна (нижняя граница clamp), px
  */
 export const SIDEBAR_WIDTH = SIDEBAR_MIN_WIDTH;
+
+/**
+ * Резиновая ширина блока связанного: тянется за окном, но не разъезжается на сверхшироких
+ */
+export const RELATED_WIDTH_CSS = 'clamp(1200px, 96vw, 2000px)';
+
+/**
+ * Резиновая ширина комментариев: нижняя граница держит читаемую строку,
+ * верхняя не даёт строке уйти за сотню знаков
+ */
+export const COMMENTS_WIDTH_CSS = 'clamp(860px, 66vw, 1400px)';
 
 /**
  * Отступ сайдбара с каждой стороны, px

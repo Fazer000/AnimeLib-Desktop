@@ -14,7 +14,7 @@
 
 /* Placeholder */
 .comment-editor-content p.is-editor-empty:first-child::before {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--ce-placeholder);
   content: attr(data-placeholder);
   float: left;
   height: 0;
@@ -23,18 +23,18 @@
 
 /* Blockquote */
 .comment-editor-content blockquote {
-  border-left: 3px solid rgba(84, 84, 88, 0.44);
-  background-color: rgba(59, 59, 59, 0.43);
+  border-left: 3px solid var(--ce-quote-rule);
+  background-color: var(--ce-quote-bg);
   padding: 8px 12px;
   margin: 8px 0;
   border-radius: 8px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--ce-text);
 }
 
 /* Spoiler */
 .comment-editor-content .spoiler-inline {
-  background-color: rgba(124, 58, 237, 0.2);
-  border: 1px solid rgba(124, 58, 237, 0.3);
+  background-color: var(--ce-accent-bg);
+  border: 1px solid var(--ce-accent-border);
   padding: 4px 8px;
   border-radius: 6px;
   cursor: pointer;
@@ -45,15 +45,15 @@
 }
 
 .comment-editor-content .spoiler-inline:hover {
-  background-color: rgba(124, 58, 237, 0.3);
-  border-color: rgba(124, 58, 237, 0.5);
+  background-color: var(--ce-accent-bg-hover);
+  border-color: var(--ce-accent-border-hover);
 }
 
 .comment-editor-content .spoiler-inline::before {
   content: attr(data-visible-text);
   font-weight: 600;
   margin-right: 6px;
-  color: rgba(124, 58, 237, 0.8);
+  color: var(--ce-accent-text);
   font-size: 0.875rem;
 }
 
@@ -63,8 +63,8 @@
 
 /* Support for old format spoilers from existing comments */
 .comment-editor-content .spoiler-node[data-spoiler-type="inline"] {
-  background-color: rgba(124, 58, 237, 0.2);
-  border: 1px solid rgba(124, 58, 237, 0.3);
+  background-color: var(--ce-accent-bg);
+  border: 1px solid var(--ce-accent-border);
   padding: 2px 6px;
   border-radius: 4px;
   cursor: pointer;
@@ -75,15 +75,15 @@
 }
 
 .comment-editor-content .spoiler-node[data-spoiler-type="inline"]:hover {
-  background-color: rgba(124, 58, 237, 0.3);
-  border-color: rgba(124, 58, 237, 0.5);
+  background-color: var(--ce-accent-bg-hover);
+  border-color: var(--ce-accent-border-hover);
 }
 
 .comment-editor-content .spoiler-node[data-spoiler-type="inline"]::before {
   content: attr(data-spoiler-text);
   font-weight: 600;
   margin-right: 6px;
-  color: rgba(124, 58, 237, 0.8);
+  color: var(--ce-accent-text);
   font-size: 0.875rem;
 }
 
@@ -117,16 +117,16 @@
 }
 
 .comment-editor-content::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--ce-scroll-track);
   border-radius: 3px;
 }
 
 .comment-editor-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--ce-scroll-thumb);
   border-radius: 3px;
 }
 
 .comment-editor-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--ce-scroll-thumb-hover);
 }
 

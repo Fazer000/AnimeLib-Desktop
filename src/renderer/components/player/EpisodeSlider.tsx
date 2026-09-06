@@ -5,8 +5,19 @@ import {
   ChevronRight,
   BookmarkRounded,
 } from '@mui/icons-material';
+import type { CustomColors } from '@mui/material/styles';
 import { Episode } from '../../api/animeApi';
 import { EPISODE_SLIDER_HEIGHT } from '../../../constants';
+
+const sliderButtonSx = (colors: CustomColors) => ({
+  flexShrink: 0,
+  width: 32,
+  height: 32,
+  color: colors.accentSoftColor,
+  backgroundColor: colors.primaryColor,
+  border: `1px solid ${colors.lineColor}`,
+  '&:hover': { backgroundColor: colors.mutedColor },
+});
 
 interface EpisodeSliderProps {
   episodes: Episode[];
@@ -204,53 +215,28 @@ function EpisodeSliderRefactored({
         sx={{
           display: 'flex',
           alignItems: 'center',
-          position: 'relative',
+          gap: 1,
+          px: 1,
         }}
       >
-        {canScrollLeft && (
-          <IconButton
-            onClick={() => handleScroll('left')}
-            sx={{
-              position: 'absolute',
-              left: 10,
-              zIndex: 2,
-              backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.7)`,
-              color: theme.palette.customColors.secondaryColor,
-              width: 32,
-              height: 32,
-              mb: 0.85,
-              '&:hover': {
-                backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.9)`,
-              },
-            }}
-          >
-            <ChevronLeft />
-          </IconButton>
-        )}
-
-        {canScrollLeft && (
-          <Box
-            sx={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: 40,
-              mb: 0.85,
-              background: `linear-gradient(to right, rgba(${theme.palette.customColors.overlayRgb}, 0.9), transparent)`,
-              zIndex: 1,
-              pointerEvents: 'none',
-            }}
-          />
-        )}
+        <IconButton
+          onClick={() => handleScroll('left')}
+          aria-label="Предыдущие эпизоды"
+          sx={{
+            ...sliderButtonSx(theme.palette.customColors),
+            visibility: canScrollLeft ? 'visible' : 'hidden',
+          }}
+        >
+          <ChevronLeft />
+        </IconButton>
 
         <Box
           ref={scrollRef}
           sx={{
+            flex: 1,
+            minWidth: 0,
             display: 'flex',
-            width: '100%',
             gap: 1.25,
-            px: 1,
             overflowX: 'auto',
             overflowY: 'hidden',
             cursor: isDragging ? 'grabbing' : 'grab',
@@ -363,42 +349,16 @@ function EpisodeSliderRefactored({
           })}
         </Box>
 
-        {canScrollRight && (
-          <Box
-            sx={{
-              position: 'absolute',
-              right: 0,
-              top: 0,
-              bottom: 0,
-              width: 40,
-              mb: 0.85,
-              background: `linear-gradient(to left, rgba(${theme.palette.customColors.overlayRgb}, 0.9), transparent)`,
-              zIndex: 1,
-              pointerEvents: 'none',
-            }}
-          />
-        )}
-
-        {canScrollRight && (
-          <IconButton
-            onClick={() => handleScroll('right')}
-            sx={{
-              position: 'absolute',
-              right: 10,
-              zIndex: 2,
-              mb: 0.85,
-              backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.7)`,
-              color: theme.palette.customColors.secondaryColor,
-              width: 32,
-              height: 32,
-              '&:hover': {
-                backgroundColor: `rgba(${theme.palette.customColors.overlayRgb}, 0.9)`,
-              },
-            }}
-          >
-            <ChevronRight />
-          </IconButton>
-        )}
+        <IconButton
+          onClick={() => handleScroll('right')}
+          aria-label="Следующие эпизоды"
+          sx={{
+            ...sliderButtonSx(theme.palette.customColors),
+            visibility: canScrollRight ? 'visible' : 'hidden',
+          }}
+        >
+          <ChevronRight />
+        </IconButton>
       </Box>
     </Box>
   );

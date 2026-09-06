@@ -256,6 +256,18 @@ function CommentEditorComponent({
   return (
     <Box
       sx={{
+        '--ce-placeholder': `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.4)`,
+        '--ce-text': theme.palette.customColors.primaryTextColor,
+        '--ce-quote-rule': theme.palette.customColors.borderColor,
+        '--ce-quote-bg': `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.06)`,
+        '--ce-accent-bg': `rgba(${theme.palette.customColors.accentRgb}, 0.2)`,
+        '--ce-accent-border': `rgba(${theme.palette.customColors.accentRgb}, 0.3)`,
+        '--ce-accent-bg-hover': `rgba(${theme.palette.customColors.accentRgb}, 0.3)`,
+        '--ce-accent-border-hover': `rgba(${theme.palette.customColors.accentRgb}, 0.5)`,
+        '--ce-accent-text': theme.palette.customColors.accentSoftColor,
+        '--ce-scroll-track': `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.08)`,
+        '--ce-scroll-thumb': `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.2)`,
+        '--ce-scroll-thumb-hover': `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.3)`,
         backgroundColor: theme.palette.customColors.primaryColor,
         border: `1px solid ${theme.palette.customColors.borderColor}`,
         borderRadius: 2,

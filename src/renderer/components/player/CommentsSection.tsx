@@ -12,6 +12,7 @@ import { TuneRounded } from '@mui/icons-material';
 import Comments from './Comments';
 import CommentsSettingsDialog from './CommentsSettingsDialog';
 import useCommentsSettings from '../../hooks/useCommentsSettings';
+import { COMMENTS_WIDTH_CSS } from '../../../constants';
 
 import { createLogger } from '../../../shared/logger';
 
@@ -101,8 +102,8 @@ const CommentsSection = memo(
       >
         <Box
           sx={{
-            width: '70%',
-            maxWidth: '1200px',
+            width: '100%',
+            maxWidth: COMMENTS_WIDTH_CSS,
             overflow: 'hidden',
           }}
         >
