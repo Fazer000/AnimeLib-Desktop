@@ -21,7 +21,7 @@ import {
   OFFLINE_ICON,
 } from '../../../constants';
 import { SUCCESS_MID } from '../../theme/palette';
-import { formatSize } from '../../utils/offlineFormat';
+import { DownloadedEpisodeInfo, formatSize } from '../../utils/offlineFormat';
 
 export type KodikQualityMap = Record<number, string[]>;
 
@@ -37,7 +37,7 @@ interface EpisodeSelectionListProps {
   loadingIds: number[];
   qualityByEpisode: Record<number, string>;
   downloadedIds: number[];
-  downloadedSizes: Record<number, number>;
+  downloadedEpisodes: Record<number, DownloadedEpisodeInfo>;
   onToggle: (episodeId: number, extend: boolean) => void;
   onToggleAll: () => void;
   onTeamChange: (teamName: string) => void;
@@ -49,7 +49,14 @@ const selectSx = (customColors: CustomColors) => ({
   fontSize: OFFLINE_FONT.episode,
   color: customColors.dialogTextColor,
   '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: `rgba(${customColors.onSurfaceRgb}, 0.18)`,
+    borderColor: customColors.borderColor,
+  },
+  '&:hover .MuiOutlinedInput-notchedOutline': {
+    borderColor: customColors.accentSoftColor,
+  },
+  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: customColors.accentSoftColor,
+    borderWidth: 1,
   },
   '& .MuiSvgIcon-root': {
     color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
@@ -158,7 +165,7 @@ function EpisodeSelectionList({
   loadingIds,
   qualityByEpisode,
   downloadedIds,
-  downloadedSizes,
+  downloadedEpisodes,
   onToggle,
   onToggleAll,
   onTeamChange,
@@ -354,16 +361,30 @@ function EpisodeSelectionList({
                 )}
               </Box>
 
-              {isDownloaded && downloadedSizes[episode.id] > 0 && (
-                <Typography
+              {isDownloaded && (
+                <Box
                   sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.25,
+                    flexShrink: 0,
                     fontSize: OFFLINE_FONT.hint,
                     color: customColors.mutedTextColor,
-                    flexShrink: 0,
                   }}
                 >
-                  {formatSize(downloadedSizes[episode.id])}
-                </Typography>
+                  <Typography sx={{ fontSize: 'inherit' }}>
+                    {formatSize(downloadedEpisodes[episode.id]?.size || 0)}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: 'inherit',
+                      minWidth: 44,
+                      textAlign: 'right',
+                    }}
+                  >
+                    {downloadedEpisodes[episode.id]?.quality || ''}
+                  </Typography>
+                </Box>
               )}
 
               {isSelected && isLoading && (

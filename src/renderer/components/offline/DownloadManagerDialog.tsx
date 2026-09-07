@@ -21,7 +21,7 @@ import { animeApi, AnimeInfo, Episode, Player } from '../../api/animeApi';
 import { offlineStore, sizeEstimator } from '../../services/offline';
 import {
   formatSize,
-  mapDownloadedSizes,
+  mapDownloadedEpisodes,
   sumSize,
 } from '../../utils/offlineFormat';
 import { normalizeKodikUrl, toKodikDirectUrl } from '../../utils/kodikHelpers';
@@ -44,6 +44,7 @@ import {
   OFFLINE_DOWNLOADABLE_PLAYERS,
   OFFLINE_FONT,
   OFFLINE_MIN_FREE_SPACE_BYTES,
+  OFFLINE_DIALOG_CLOSE_INSET,
   OFFLINE_FOOTER_HEIGHT,
   OFFLINE_ICON,
   OFFLINE_TAB_HEIGHT,
@@ -190,14 +191,14 @@ function DownloadManagerDialog({
     );
   }, [playersByEpisode, players, teamName, kodikQualities]);
 
-  const downloadedSizes = useMemo(
-    () => mapDownloadedSizes(snapshot.anime),
+  const downloadedEpisodes = useMemo(
+    () => mapDownloadedEpisodes(snapshot.anime),
     [snapshot],
   );
 
   const downloadedIds = useMemo(
-    () => Object.keys(downloadedSizes).map(Number),
-    [downloadedSizes],
+    () => Object.keys(downloadedEpisodes).map(Number),
+    [downloadedEpisodes],
   );
 
   const librarySize = useMemo(
@@ -549,29 +550,34 @@ function DownloadManagerDialog({
             color: customColors.dialogTextColor,
             borderRadius: 2,
             height: OFFLINE_DIALOG_HEIGHT,
+            position: 'relative',
             display: 'flex',
             flexDirection: 'column',
           },
         },
       }}
     >
-      <DialogTitle sx={{ pb: 0 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography
-            sx={{ fontSize: OFFLINE_FONT.dialogTitle, fontWeight: 600 }}
-          >
-            Менеджер загрузок
-          </Typography>
+      <IconButton
+        onClick={onClose}
+        size="small"
+        aria-label="Закрыть"
+        sx={{
+          position: 'absolute',
+          top: OFFLINE_DIALOG_CLOSE_INSET,
+          right: OFFLINE_DIALOG_CLOSE_INSET,
+          zIndex: 1,
+          color: customColors.mutedTextColor,
+        }}
+      >
+        <CloseRounded sx={{ fontSize: 20 }} />
+      </IconButton>
 
-          <IconButton
-            onClick={onClose}
-            size="small"
-            aria-label="Закрыть"
-            sx={{ ml: 'auto', color: customColors.mutedTextColor }}
-          >
-            <CloseRounded sx={{ fontSize: 20 }} />
-          </IconButton>
-        </Box>
+      <DialogTitle sx={{ pb: 0 }}>
+        <Typography
+          sx={{ fontSize: OFFLINE_FONT.dialogTitle, fontWeight: 600 }}
+        >
+          Менеджер загрузок
+        </Typography>
 
         <Tabs
           value={tab}
@@ -616,7 +622,7 @@ function DownloadManagerDialog({
             loadingIds={loadingIds}
             qualityByEpisode={qualityByEpisode}
             downloadedIds={downloadedIds}
-            downloadedSizes={downloadedSizes}
+            downloadedEpisodes={downloadedEpisodes}
             onToggle={handleToggle}
             onToggleAll={handleToggleAll}
             onTeamChange={setTeamName}
@@ -675,7 +681,7 @@ function DownloadManagerDialog({
           alignItems: 'center',
           gap: 1.25,
           minWidth: 0,
-          backgroundColor: customColors.raisedColor,
+          backgroundColor: customColors.footerColor,
           borderTop: `1px solid ${customColors.lineColor}`,
         }}
       >
@@ -761,7 +767,7 @@ function DownloadManagerDialog({
           flexShrink: 0,
           boxSizing: 'border-box',
           justifyContent: 'flex-end',
-          backgroundColor: customColors.raisedColor,
+          backgroundColor: customColors.footerColor,
           borderTop: `1px solid ${customColors.lineColor}`,
         }}
       >

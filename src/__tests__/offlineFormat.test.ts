@@ -3,7 +3,7 @@ import {
   formatProgress,
   formatSize,
   formatSpeed,
-  mapDownloadedSizes,
+  mapDownloadedEpisodes,
   sumSize,
 } from '../renderer/utils/offlineFormat';
 import type { OfflineAnime } from '../constants';
@@ -94,10 +94,10 @@ describe('sumSize', () => {
   });
 });
 
-describe('mapDownloadedSizes', () => {
+describe('mapDownloadedEpisodes', () => {
   const makeAnime = (
     animeId: string,
-    episodes: { episodeId: number; fileSize: number }[],
+    episodes: { episodeId: number; fileSize: number; quality: string }[],
   ) =>
     ({
       animeId,
@@ -108,38 +108,55 @@ describe('mapDownloadedSizes', () => {
       episodes,
     }) as unknown as OfflineAnime;
 
-  it('собирает размер по идентификатору серии', () => {
-    const sizes = mapDownloadedSizes([
+  it('собирает размер и качество по идентификатору серии', () => {
+    const map = mapDownloadedEpisodes([
       makeAnime('a', [
-        { episodeId: 1, fileSize: 100 },
-        { episodeId: 2, fileSize: 250 },
+        { episodeId: 1, fileSize: 100, quality: '1080p' },
+        { episodeId: 2, fileSize: 250, quality: '720p' },
       ]),
     ]);
 
-    expect(sizes).toEqual({ 1: 100, 2: 250 });
+    expect(map).toEqual({
+      1: { size: 100, quality: '1080p' },
+      2: { size: 250, quality: '720p' },
+    });
   });
 
   it('складывает серии с одинаковым идентификатором из разных тайтлов', () => {
-    const sizes = mapDownloadedSizes([
-      makeAnime('a', [{ episodeId: 7, fileSize: 100 }]),
-      makeAnime('b', [{ episodeId: 7, fileSize: 40 }]),
+    const map = mapDownloadedEpisodes([
+      makeAnime('a', [{ episodeId: 7, fileSize: 100, quality: '1080p' }]),
+      makeAnime('b', [{ episodeId: 7, fileSize: 40, quality: '720p' }]),
     ]);
 
-    expect(sizes[7]).toBe(140);
+    expect(map[7].size).toBe(140);
+  });
+
+  it('пустое качество не затирает уже известное', () => {
+    const map = mapDownloadedEpisodes([
+      makeAnime('a', [{ episodeId: 3, fileSize: 10, quality: '1080p' }]),
+      makeAnime('b', [{ episodeId: 3, fileSize: 5, quality: '' }]),
+    ]);
+
+    expect(map[3].quality).toBe('1080p');
   });
 
   it('нулевой и отсутствующий размер не ломают подсчёт', () => {
-    const sizes = mapDownloadedSizes([
+    const map = mapDownloadedEpisodes([
       makeAnime('a', [
-        { episodeId: 1, fileSize: 0 },
-        { episodeId: 2 } as { episodeId: number; fileSize: number },
+        { episodeId: 1, fileSize: 0, quality: '480p' },
+        { episodeId: 2 } as {
+          episodeId: number;
+          fileSize: number;
+          quality: string;
+        },
       ]),
     ]);
 
-    expect(sizes).toEqual({ 1: 0, 2: 0 });
+    expect(map[1]).toEqual({ size: 0, quality: '480p' });
+    expect(map[2]).toEqual({ size: 0, quality: '' });
   });
 
   it('пустой каталог даёт пустую карту', () => {
-    expect(mapDownloadedSizes([])).toEqual({});
+    expect(mapDownloadedEpisodes([])).toEqual({});
   });
 });

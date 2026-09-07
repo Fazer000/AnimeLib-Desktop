@@ -68,15 +68,25 @@ export const formatEta = (seconds: number): string => {
 export const sumSize = (values: number[]): number =>
   values.reduce((sum, value) => sum + (value || 0), 0);
 
-/** Собирает размеры скачанных серий по их идентификаторам */
-export const mapDownloadedSizes = (
+/** Размер и качество скачанной серии */
+export interface DownloadedEpisodeInfo {
+  size: number;
+  quality: string;
+}
+
+/** Собирает размер и качество скачанных серий по их идентификаторам */
+export const mapDownloadedEpisodes = (
   anime: OfflineAnime[],
-): Record<number, number> =>
-  anime.reduce<Record<number, number>>((sizes, item) => {
+): Record<number, DownloadedEpisodeInfo> =>
+  anime.reduce<Record<number, DownloadedEpisodeInfo>>((map, item) => {
     item.episodes.forEach((episode) => {
-      sizes[episode.episodeId] =
-        (sizes[episode.episodeId] || 0) + (episode.fileSize || 0);
+      const known = map[episode.episodeId];
+
+      map[episode.episodeId] = {
+        size: (known?.size || 0) + (episode.fileSize || 0),
+        quality: episode.quality || known?.quality || '',
+      };
     });
 
-    return sizes;
+    return map;
   }, {});

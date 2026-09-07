@@ -81,6 +81,7 @@ declare module '@mui/material/styles' {
     accentTextColor: string;
     dialogColor: string;
     raisedColor: string;
+    footerColor: string;
     pageColor: string;
     panelColor: string;
     elevatedSurfaceColor: string;
@@ -157,6 +158,7 @@ const DARK_COLORS = {
   accentTextColor: DARK_ON_SURFACE_VARIANT,
   dialogColor: DARK_SURFACE_CONTAINER,
   raisedColor: DARK_SURFACE_CONTAINER_HIGH,
+  footerColor: DARK_SURFACE_CONTAINER_HIGHEST,
   pageColor: DARK_SURFACE,
   panelColor: DARK_SURFACE_CONTAINER,
   elevatedSurfaceColor: DARK_SURFACE_CONTAINER_HIGHEST,
@@ -196,6 +198,7 @@ const LIGHT_COLORS = {
   accentTextColor: LIGHT_ON_SURFACE_VARIANT,
   dialogColor: LIGHT_SURFACE_CONTAINER,
   raisedColor: LIGHT_SURFACE_CONTAINER_HIGH,
+  footerColor: LIGHT_SURFACE_CONTAINER_HIGH,
   pageColor: LIGHT_SURFACE,
   panelColor: LIGHT_SURFACE_CONTAINER,
   elevatedSurfaceColor: LIGHT_SURFACE_CONTAINER_HIGHEST,

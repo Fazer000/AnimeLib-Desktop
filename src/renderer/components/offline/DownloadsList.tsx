@@ -135,7 +135,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
         )}
       </Box>
 
-      {tasks.map((task) => {
+      {tasks.map((task, index) => {
         const isRunning =
           task.status === 'queued' ||
           task.status === 'downloading' ||
@@ -164,6 +164,18 @@ function DownloadsList({ tasks }: DownloadsListProps) {
                 gap: 1.25,
               }}
             >
+              <Typography
+                sx={{
+                  fontSize: OFFLINE_FONT.hint,
+                  color: customColors.mutedTextColor,
+                  minWidth: 20,
+                  flexShrink: 0,
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {index + 1}
+              </Typography>
+
               {isDone && (
                 <DownloadDoneRounded
                   sx={{

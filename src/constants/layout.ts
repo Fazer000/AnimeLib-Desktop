@@ -109,6 +109,11 @@ export const MIN_WINDOW_HEIGHT =
 export const OFFLINE_DIALOG_MAX_WIDTH = 'lg';
 export const OFFLINE_DIALOG_HEIGHT = 'min(820px, 92vh)';
 export const OFFLINE_FOOTER_HEIGHT = 66;
+
+/**
+ * Отступ крестика закрытия от верхнего и правого края окна, px
+ */
+export const OFFLINE_DIALOG_CLOSE_INSET = 12;
 export const OFFLINE_ACTIONS_HEIGHT = 70;
 export const OFFLINE_TAB_HEIGHT = 44;
 
