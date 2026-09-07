@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -19,9 +19,12 @@ import {
   DeleteRounded,
   ExpandMoreRounded,
   PlayArrowRounded,
+  SearchOffRounded,
   SearchRounded,
+  VideoLibraryRounded,
 } from '@mui/icons-material';
 import {
+  DIALOG_TITLE_RIGHT_INSET,
   OFFLINE_COVER,
   OFFLINE_FONT,
   OFFLINE_ICON,
@@ -35,6 +38,8 @@ import {
   progressStore,
 } from '../../services/offline';
 import { formatSize, sumSize } from '../../utils/offlineFormat';
+import DialogCloseButton from '../DialogCloseButton';
+import EmptyState from './EmptyState';
 
 interface OfflineLibraryTabProps {
   anime: OfflineAnime[];
@@ -95,7 +100,14 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
   const { customColors } = useTheme().palette;
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [pending, setPending] = useState<PendingRemoval | null>(null);
+  const shownRef = useRef<PendingRemoval | null>(null);
   const [query, setQuery] = useState<string>('');
+
+  if (pending) {
+    shownRef.current = pending;
+  }
+
+  const shown = pending || shownRef.current;
 
   const activeFile = offlineStore.getActiveFile();
 
@@ -109,16 +121,10 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
 
   if (anime.length === 0) {
     return (
-      <Typography
-        sx={{
-          fontSize: OFFLINE_FONT.body,
-          color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
-          pt: 2,
-        }}
-      >
-        Библиотека пока пуста. Откройте аниме в плеере и скачайте серии для
-        оффлайн просмотра.
-      </Typography>
+      <EmptyState
+        icon={<VideoLibraryRounded />}
+        text="Библиотека пока пуста. Откройте аниме в плеере и скачайте серии для оффлайн просмотра."
+      />
     );
   }
 
@@ -168,29 +174,25 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                 color: customColors.dialogTextColor,
                 backgroundColor: customColors.dialogColor,
               },
-              '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: `rgba(${customColors.onSurfaceRgb}, 0.18)`,
+              '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+                borderColor: customColors.borderColor,
               },
-              '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
-              },
-              '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: customColors.accentSoftColor,
-              },
+              '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline':
+                {
+                  borderColor: customColors.accentSoftColor,
+                },
+              '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+                {
+                  borderColor: customColors.accentSoftColor,
+                  borderWidth: 1,
+                },
             }}
           />
         </Box>
       )}
 
       {filtered.length === 0 && (
-        <Typography
-          sx={{
-            fontSize: OFFLINE_FONT.body,
-            color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
-          }}
-        >
-          Ничего не найдено
-        </Typography>
+        <EmptyState icon={<SearchOffRounded />} text="Ничего не найдено" />
       )}
 
       {filtered.map((item) => {
@@ -448,21 +450,31 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
         slotProps={{
           paper: {
             sx: {
-              backgroundColor: customColors.dialogColor,
+              backgroundColor: customColors.raisedColor,
               backgroundImage: 'none',
+              border: `1px solid ${customColors.lineColor}`,
               color: customColors.dialogTextColor,
+              position: 'relative',
             },
           },
         }}
       >
-        <DialogTitle sx={{ fontSize: OFFLINE_FONT.section, fontWeight: 600 }}>
+        <DialogCloseButton onClose={() => setPending(null)} />
+
+        <DialogTitle
+          sx={{
+            fontSize: OFFLINE_FONT.section,
+            fontWeight: 600,
+            pr: `${DIALOG_TITLE_RIGHT_INSET}px`,
+          }}
+        >
           Подтверждение удаления
         </DialogTitle>
         <DialogContent>
           <Typography sx={{ fontSize: OFFLINE_FONT.body }}>
-            {pending?.text}
+            {shown?.text}
           </Typography>
-          {pending?.note && (
+          {shown?.note && (
             <Typography
               sx={{
                 fontSize: OFFLINE_FONT.caption,
@@ -470,21 +482,11 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                 mt: 1.25,
               }}
             >
-              {pending.note}
+              {shown.note}
             </Typography>
           )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={() => setPending(null)}
-            sx={{
-              textTransform: 'none',
-              fontSize: OFFLINE_FONT.button,
-              color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
-            }}
-          >
-            Отмена
-          </Button>
           <Button
             variant="contained"
             onClick={() => {

@@ -15,16 +15,20 @@ import { alpha } from '@mui/material/styles';
 import type { CustomColors } from '@mui/material/styles';
 import {
   CloseRounded,
+  CloudDownloadRounded,
   DownloadDoneRounded,
   PlayArrowRounded,
 } from '@mui/icons-material';
 import {
+  DIALOG_TITLE_RIGHT_INSET,
   DownloadTask,
   OFFLINE_FONT,
   OFFLINE_ICON,
   isActiveDownload,
 } from '../../../constants';
 import { offlineStore } from '../../services/offline';
+import DialogCloseButton from '../DialogCloseButton';
+import EmptyState from './EmptyState';
 import useDownloadSpeed from '../../hooks/useDownloadSpeed';
 import {
   formatEta,
@@ -89,14 +93,10 @@ function DownloadsList({ tasks }: DownloadsListProps) {
 
   if (tasks.length === 0) {
     return (
-      <Typography
-        sx={{
-          fontSize: OFFLINE_FONT.body,
-          color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
-        }}
-      >
-        Очередь пуста. Загруженные серии доступны на вкладке «Библиотека».
-      </Typography>
+      <EmptyState
+        icon={<CloudDownloadRounded />}
+        text="Очередь пуста. Загруженные серии доступны на вкладке «Библиотека»."
+      />
     );
   }
 
@@ -281,12 +281,22 @@ function DownloadsList({ tasks }: DownloadsListProps) {
             sx: {
               backgroundColor: customColors.raisedColor,
               backgroundImage: 'none',
+              border: `1px solid ${customColors.lineColor}`,
               color: customColors.dialogTextColor,
+              position: 'relative',
             },
           },
         }}
       >
-        <DialogTitle sx={{ fontSize: OFFLINE_FONT.section, fontWeight: 600 }}>
+        <DialogCloseButton onClose={() => setConfirmOpen(false)} />
+
+        <DialogTitle
+          sx={{
+            fontSize: OFFLINE_FONT.section,
+            fontWeight: 600,
+            pr: `${DIALOG_TITLE_RIGHT_INSET}px`,
+          }}
+        >
           Отменить все загрузки?
         </DialogTitle>
         <DialogContent>
@@ -295,16 +305,6 @@ function DownloadsList({ tasks }: DownloadsListProps) {
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={() => setConfirmOpen(false)}
-            sx={{
-              textTransform: 'none',
-              fontSize: OFFLINE_FONT.button,
-              color: alpha(customColors.dialogTextColor, 0.6),
-            }}
-          >
-            Оставить
-          </Button>
           <Button
             variant="contained"
             onClick={() => {

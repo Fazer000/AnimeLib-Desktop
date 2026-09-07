@@ -15,11 +15,15 @@ import {
 import type { CustomColors } from '@mui/material/styles';
 import { ExpandMore } from '@mui/icons-material';
 import { DANGER_DEEP } from '../../../theme/palette';
+import DialogCloseButton from '../../DialogCloseButton';
+import { DIALOG_TITLE_RIGHT_INSET } from '../../../../constants';
 
 const paperSx = (minWidth: number, colors: CustomColors) => ({
-  backgroundColor: colors.dialogColor,
+  backgroundColor: colors.raisedColor,
   backgroundImage: 'none',
+  border: `1px solid ${colors.lineColor}`,
   borderRadius: 2,
+  position: 'relative' as const,
   minWidth,
 });
 
@@ -28,6 +32,7 @@ const titleSx = (colors: CustomColors) => ({
   fontSize: '1.0625rem',
   fontWeight: 600,
   pb: 1,
+  pr: `${DIALOG_TITLE_RIGHT_INSET}px`,
 });
 
 const ACTIONS_SX = { px: 3, pb: 2, gap: 1 };
@@ -66,6 +71,8 @@ export function IgnoreUserDialog({
       onClose={onClose}
       slotProps={{ paper: { sx: paperSx(420, customColors) } }}
     >
+      <DialogCloseButton onClose={onClose} />
+
       <DialogTitle sx={titleSx(customColors)}>
         Добавление в игнор-лист
       </DialogTitle>
@@ -138,13 +145,6 @@ export function IgnoreUserDialog({
       </DialogContent>
       <DialogActions sx={ACTIONS_SX}>
         <Button
-          onClick={onClose}
-          disabled={isSubmitting}
-          sx={{ color: `rgba(${customColors.onSurfaceRgb}, 0.7)` }}
-        >
-          Отмена
-        </Button>
-        <Button
           onClick={onConfirm}
           disabled={isSubmitting}
           variant="contained"
@@ -178,6 +178,8 @@ export function DeleteCommentDialog({
       onClose={onClose}
       slotProps={{ paper: { sx: paperSx(360, customColors) } }}
     >
+      <DialogCloseButton onClose={onClose} />
+
       <DialogTitle sx={titleSx(customColors)}>Подтвердите действие</DialogTitle>
       <DialogContent sx={{ pb: 1 }}>
         <DialogContentText
@@ -190,18 +192,6 @@ export function DeleteCommentDialog({
         </DialogContentText>
       </DialogContent>
       <DialogActions sx={ACTIONS_SX}>
-        <Button
-          onClick={onClose}
-          disabled={isDeleting}
-          sx={{
-            color: `rgba(${customColors.onSurfaceRgb}, 0.7)`,
-            '&:hover': {
-              backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.08)`,
-            },
-          }}
-        >
-          Отменить
-        </Button>
         <Button
           onClick={onConfirm}
           disabled={isDeleting}

@@ -6,18 +6,18 @@ import {
   DialogTitle,
   Divider,
   FormControlLabel,
-  IconButton,
   Slider,
   Typography,
   useTheme,
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
-import { CloseRounded } from '@mui/icons-material';
-import { CommentsSettings } from '../../hooks/useCommentsSettings';
+import DialogCloseButton from '../DialogCloseButton';
 import {
+  DIALOG_TITLE_RIGHT_INSET,
   COMMENTS_COLLAPSE_MAX_LEVEL,
   COMMENTS_COLLAPSE_MIN_LEVEL,
 } from '../../../constants';
+import { CommentsSettings } from '../../hooks/useCommentsSettings';
 
 const checkboxSx = (colors: CustomColors) => ({
   color: `rgba(${colors.onSurfaceRgb}, 0.4)`,
@@ -51,30 +51,25 @@ function CommentsSettingsDialog({
           sx: {
             backgroundColor: customColors.dialogColor,
             backgroundImage: 'none',
+            border: `1px solid ${customColors.lineColor}`,
             borderRadius: 2,
+            position: 'relative',
             minWidth: 460,
           },
         },
       }}
     >
+      <DialogCloseButton onClose={onClose} />
+
       <DialogTitle
         sx={{
           color: `rgba(${customColors.onSurfaceRgb}, 0.95)`,
           fontSize: '1.0625rem',
           fontWeight: 600,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          pr: `${DIALOG_TITLE_RIGHT_INSET}px`,
         }}
       >
         Настройки комментариев
-        <IconButton
-          onClick={onClose}
-          size="small"
-          sx={{ color: `rgba(${customColors.onSurfaceRgb}, 0.5)` }}
-        >
-          <CloseRounded sx={{ fontSize: 18 }} />
-        </IconButton>
       </DialogTitle>
 
       <DialogContent sx={{ pb: 3 }}>

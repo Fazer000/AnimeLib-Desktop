@@ -7,7 +7,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  IconButton,
   Snackbar,
   Tab,
   Tabs,
@@ -16,7 +15,7 @@ import {
   useTheme,
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
-import { CloseRounded, FolderOpenRounded } from '@mui/icons-material';
+import { FolderOpenRounded } from '@mui/icons-material';
 import { animeApi, AnimeInfo, Episode, Player } from '../../api/animeApi';
 import { offlineStore, sizeEstimator } from '../../services/offline';
 import {
@@ -27,6 +26,7 @@ import {
 import { normalizeKodikUrl, toKodikDirectUrl } from '../../utils/kodikHelpers';
 import useOfflineLibrary from '../../hooks/useOfflineLibrary';
 import { QualityManager } from '../../services/player';
+import DialogCloseButton from '../DialogCloseButton';
 import EpisodeSelectionList, {
   KodikQualityMap,
   getEpisodeQualities,
@@ -44,7 +44,7 @@ import {
   OFFLINE_DOWNLOADABLE_PLAYERS,
   OFFLINE_FONT,
   OFFLINE_MIN_FREE_SPACE_BYTES,
-  OFFLINE_DIALOG_CLOSE_INSET,
+  DIALOG_TITLE_RIGHT_INSET,
   OFFLINE_FOOTER_HEIGHT,
   OFFLINE_ICON,
   OFFLINE_TAB_HEIGHT,
@@ -557,22 +557,9 @@ function DownloadManagerDialog({
         },
       }}
     >
-      <IconButton
-        onClick={onClose}
-        size="small"
-        aria-label="Закрыть"
-        sx={{
-          position: 'absolute',
-          top: OFFLINE_DIALOG_CLOSE_INSET,
-          right: OFFLINE_DIALOG_CLOSE_INSET,
-          zIndex: 1,
-          color: customColors.mutedTextColor,
-        }}
-      >
-        <CloseRounded sx={{ fontSize: 20 }} />
-      </IconButton>
+      <DialogCloseButton onClose={onClose} />
 
-      <DialogTitle sx={{ pb: 0 }}>
+      <DialogTitle sx={{ pb: 0, pr: `${DIALOG_TITLE_RIGHT_INSET}px` }}>
         <Typography
           sx={{ fontSize: OFFLINE_FONT.dialogTitle, fontWeight: 600 }}
         >
@@ -806,12 +793,22 @@ function DownloadManagerDialog({
             sx: {
               backgroundColor: customColors.raisedColor,
               backgroundImage: 'none',
+              border: `1px solid ${customColors.lineColor}`,
+              position: 'relative',
               color: customColors.dialogTextColor,
             },
           },
         }}
       >
-        <DialogTitle sx={{ fontSize: OFFLINE_FONT.section, fontWeight: 600 }}>
+        <DialogCloseButton onClose={() => setSpaceWarning(null)} />
+
+        <DialogTitle
+          sx={{
+            fontSize: OFFLINE_FONT.section,
+            fontWeight: 600,
+            pr: `${DIALOG_TITLE_RIGHT_INSET}px`,
+          }}
+        >
           Недостаточно места
         </DialogTitle>
         <DialogContent>
@@ -829,16 +826,6 @@ function DownloadManagerDialog({
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={() => setSpaceWarning(null)}
-            sx={{
-              textTransform: 'none',
-              fontSize: OFFLINE_FONT.button,
-              color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
-            }}
-          >
-            Отмена
-          </Button>
           <Button
             variant="contained"
             onClick={() => {

@@ -12,7 +12,8 @@ import {
   useTheme,
 } from '@mui/material';
 import { OpenInNewRounded } from '@mui/icons-material';
-import { UpdateInfo } from '../../../constants';
+import DialogCloseButton from '../DialogCloseButton';
+import { DIALOG_TITLE_RIGHT_INSET, UpdateInfo } from '../../../constants';
 import { UpdateStatus } from '../../hooks/useUpdateChecker';
 import { SUCCESS_DEEP, SUCCESS_MID, SUCCESS_STRONG } from '../../theme/palette';
 
@@ -144,15 +145,19 @@ function UpdateDialog({
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: customColors.raisedColor,
+            backgroundColor: customColors.dialogColor,
             backgroundImage: 'none',
+            border: `1px solid ${customColors.lineColor}`,
             color: customColors.dialogTextColor,
             borderRadius: 2,
+            position: 'relative',
           },
         },
       }}
     >
-      <DialogTitle sx={{ pb: 0.5 }}>
+      {!isDownloading && <DialogCloseButton onClose={onClose} />}
+
+      <DialogTitle sx={{ pb: 0.5, pr: `${DIALOG_TITLE_RIGHT_INSET}px` }}>
         <Typography sx={{ fontSize: '1.1rem', fontWeight: 600 }}>
           {updateInfo.releaseName || `Версия ${updateInfo.latestVersion}`}
         </Typography>
@@ -226,16 +231,6 @@ function UpdateDialog({
           Страница релиза
         </Button>
 
-        <Button
-          onClick={onClose}
-          disabled={isDownloading}
-          sx={{
-            color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
-            textTransform: 'none',
-          }}
-        >
-          Позже
-        </Button>
         <Button
           onClick={onConfirm}
           disabled={isDownloading}

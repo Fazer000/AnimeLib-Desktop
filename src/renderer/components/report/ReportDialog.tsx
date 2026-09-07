@@ -12,7 +12,9 @@ import {
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
 import { BugReportRounded } from '@mui/icons-material';
+import DialogCloseButton from '../DialogCloseButton';
 import {
+  DIALOG_TITLE_RIGHT_INSET,
   REPORT_DESCRIPTION_MAX,
   REPORT_KIND_DEFAULT,
   REPORT_KIND_LABELS,
@@ -74,16 +76,26 @@ function ReportDialog({ open, onSubmit, onClose }: ReportDialogProps) {
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: customColors.raisedColor,
+            backgroundColor: customColors.dialogColor,
             backgroundImage: 'none',
+            border: `1px solid ${customColors.lineColor}`,
             color: customColors.dialogTextColor,
             borderRadius: 2,
+            position: 'relative',
           },
         },
       }}
     >
+      <DialogCloseButton onClose={onClose} />
+
       <DialogTitle
-        sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '1rem' }}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          fontSize: '1rem',
+          pr: `${DIALOG_TITLE_RIGHT_INSET}px`,
+        }}
       >
         <BugReportRounded
           sx={{ fontSize: 20, color: customColors.accentSoftColor }}
@@ -141,12 +153,6 @@ function ReportDialog({ open, onSubmit, onClose }: ReportDialogProps) {
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button
-          onClick={onClose}
-          sx={{ textTransform: 'none', color: customColors.mutedTextColor }}
-        >
-          Отмена
-        </Button>
         <Button
           variant="contained"
           disabled={!canSubmit}

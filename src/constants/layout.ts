@@ -113,7 +113,12 @@ export const OFFLINE_FOOTER_HEIGHT = 66;
 /**
  * Отступ крестика закрытия от верхнего и правого края окна, px
  */
-export const OFFLINE_DIALOG_CLOSE_INSET = 12;
+export const DIALOG_CLOSE_INSET = 12;
+
+/**
+ * Место, которое заголовок окна оставляет крестику справа, px
+ */
+export const DIALOG_TITLE_RIGHT_INSET = 48;
 export const OFFLINE_ACTIONS_HEIGHT = 70;
 export const OFFLINE_TAB_HEIGHT = 44;
 
@@ -131,6 +136,11 @@ export const OFFLINE_FONT = {
   hint: '0.84rem',
   button: '0.9rem',
 } as const;
+
+/**
+ * Размер иконки пустого состояния вкладки, px
+ */
+export const OFFLINE_EMPTY_ICON_SIZE = 44;
 
 /**
  * Размеры иконок менеджера загрузок, px

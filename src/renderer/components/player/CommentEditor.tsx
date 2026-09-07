@@ -25,6 +25,8 @@ import {
   Send,
 } from '@mui/icons-material';
 import { SpoilerInline } from './tiptap/SpoilerInline';
+import DialogCloseButton from '../DialogCloseButton';
+import { DIALOG_TITLE_RIGHT_INSET } from '../../../constants';
 import '../../CommentEditor.css';
 
 import { createLogger } from '../../../shared/logger';
@@ -388,17 +390,31 @@ function CommentEditorComponent({
           setSpoilerTitle('');
           setEditingSpoilerId(null);
         }}
-        PaperProps={{
-          sx: {
-            backgroundColor: theme.palette.customColors.primaryColor,
-            color: theme.palette.customColors.primaryTextColor,
+        slotProps={{
+          paper: {
+            sx: {
+              backgroundColor: theme.palette.customColors.raisedColor,
+              backgroundImage: 'none',
+              border: `1px solid ${theme.palette.customColors.lineColor}`,
+              color: theme.palette.customColors.primaryTextColor,
+              position: 'relative',
+            },
           },
         }}
       >
+        <DialogCloseButton
+          onClose={() => {
+            setSpoilerDialogOpen(false);
+            setSpoilerTitle('');
+            setEditingSpoilerId(null);
+          }}
+        />
+
         <DialogTitle
           sx={{
             color: theme.palette.customColors.primaryTextColor,
             borderBottom: `1px solid rgba(${theme.palette.customColors.onSurfaceRgb}, 0.09)`,
+            pr: `${DIALOG_TITLE_RIGHT_INSET}px`,
           }}
         >
           Название спойлера
@@ -450,21 +466,6 @@ function CommentEditorComponent({
             borderTop: `1px solid rgba(${theme.palette.customColors.onSurfaceRgb}, 0.09)`,
           }}
         >
-          <Button
-            onClick={() => {
-              setSpoilerDialogOpen(false);
-              setSpoilerTitle('');
-              setEditingSpoilerId(null);
-            }}
-            sx={{
-              color: theme.palette.customColors.accentTextColor,
-              '&:hover': {
-                backgroundColor: `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.1)`,
-              },
-            }}
-          >
-            Отмена
-          </Button>
           <Button
             onClick={handleSpoilerSubmit}
             variant="contained"

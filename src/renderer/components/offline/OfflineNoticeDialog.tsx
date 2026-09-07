@@ -9,6 +9,8 @@ import {
   useTheme,
 } from '@mui/material';
 import { CloudOffRounded } from '@mui/icons-material';
+import DialogCloseButton from '../DialogCloseButton';
+import { DIALOG_TITLE_RIGHT_INSET } from '../../../constants';
 
 interface OfflineNoticeDialogProps {
   open: boolean;
@@ -36,14 +38,24 @@ function OfflineNoticeDialog({
           sx: {
             backgroundColor: customColors.raisedColor,
             backgroundImage: 'none',
+            border: `1px solid ${customColors.lineColor}`,
             color: customColors.dialogTextColor,
             borderRadius: 2,
+            position: 'relative',
           },
         },
       }}
     >
+      <DialogCloseButton onClose={onClose} />
+
       <DialogTitle
-        sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '1rem' }}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          fontSize: '1rem',
+          pr: `${DIALOG_TITLE_RIGHT_INSET}px`,
+        }}
       >
         <CloudOffRounded
           sx={{ fontSize: 20, color: customColors.accentSoftColor }}
@@ -58,15 +70,6 @@ function OfflineNoticeDialog({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button
-          onClick={onClose}
-          sx={{
-            textTransform: 'none',
-            color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
-          }}
-        >
-          Остаться
-        </Button>
         <Button
           variant="contained"
           onClick={onOpenLibrary}

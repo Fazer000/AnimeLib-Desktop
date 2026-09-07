@@ -4,14 +4,15 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-  IconButton,
   Typography,
   useTheme,
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
-import { CloseRounded, KeyboardRounded } from '@mui/icons-material';
+import { KeyboardRounded } from '@mui/icons-material';
+import DialogCloseButton from '../DialogCloseButton';
 import {
+  DIALOG_TITLE_RIGHT_INSET,
   HOTKEY_GROUPS,
   HOTKEY_LAYOUT_HINT,
   HotkeyGroup,
@@ -103,35 +104,31 @@ function HotkeysDialog({ open, onClose }: HotkeysDialogProps) {
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: customColors.raisedColor,
+            backgroundColor: customColors.dialogColor,
             backgroundImage: 'none',
+            border: `1px solid ${customColors.lineColor}`,
             color: customColors.dialogTextColor,
             borderRadius: 2,
+            position: 'relative',
           },
         },
       }}
     >
+      <DialogCloseButton onClose={onClose} />
+
       <DialogTitle
         sx={{
           display: 'flex',
           alignItems: 'center',
           gap: 1,
           fontSize: '1rem',
-          pr: 1,
+          pr: `${DIALOG_TITLE_RIGHT_INSET}px`,
         }}
       >
         <KeyboardRounded
           sx={{ fontSize: 20, color: customColors.accentSoftColor }}
         />
         Горячие клавиши
-        <IconButton
-          onClick={onClose}
-          size="small"
-          aria-label="Закрыть"
-          sx={{ ml: 'auto', color: customColors.mutedTextColor }}
-        >
-          <CloseRounded sx={{ fontSize: 20 }} />
-        </IconButton>
       </DialogTitle>
 
       <DialogContent>
