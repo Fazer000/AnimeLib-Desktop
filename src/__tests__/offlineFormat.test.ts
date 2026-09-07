@@ -3,8 +3,10 @@ import {
   formatProgress,
   formatSize,
   formatSpeed,
+  mapDownloadedSizes,
   sumSize,
 } from '../renderer/utils/offlineFormat';
+import type { OfflineAnime } from '../constants';
 
 const MB = 1024 * 1024;
 const GB = MB * 1024;
@@ -89,5 +91,55 @@ describe('sumSize', () => {
   it('пропуски в списке считает нулями', () => {
     expect(sumSize([1, NaN, 3])).toBe(4);
     expect(sumSize([])).toBe(0);
+  });
+});
+
+describe('mapDownloadedSizes', () => {
+  const makeAnime = (
+    animeId: string,
+    episodes: { episodeId: number; fileSize: number }[],
+  ) =>
+    ({
+      animeId,
+      title: animeId,
+      coverUrl: '',
+      coverFileName: '',
+      updatedAt: '',
+      episodes,
+    }) as unknown as OfflineAnime;
+
+  it('собирает размер по идентификатору серии', () => {
+    const sizes = mapDownloadedSizes([
+      makeAnime('a', [
+        { episodeId: 1, fileSize: 100 },
+        { episodeId: 2, fileSize: 250 },
+      ]),
+    ]);
+
+    expect(sizes).toEqual({ 1: 100, 2: 250 });
+  });
+
+  it('складывает серии с одинаковым идентификатором из разных тайтлов', () => {
+    const sizes = mapDownloadedSizes([
+      makeAnime('a', [{ episodeId: 7, fileSize: 100 }]),
+      makeAnime('b', [{ episodeId: 7, fileSize: 40 }]),
+    ]);
+
+    expect(sizes[7]).toBe(140);
+  });
+
+  it('нулевой и отсутствующий размер не ломают подсчёт', () => {
+    const sizes = mapDownloadedSizes([
+      makeAnime('a', [
+        { episodeId: 1, fileSize: 0 },
+        { episodeId: 2 } as { episodeId: number; fileSize: number },
+      ]),
+    ]);
+
+    expect(sizes).toEqual({ 1: 0, 2: 0 });
+  });
+
+  it('пустой каталог даёт пустую карту', () => {
+    expect(mapDownloadedSizes([])).toEqual({});
   });
 });

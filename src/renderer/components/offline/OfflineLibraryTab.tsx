@@ -134,7 +134,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
             px: 3,
             pt: 2,
             pb: 2,
-            backgroundColor: customColors.raisedColor,
+            backgroundColor: customColors.dialogColor,
           }}
         >
           <TextField
@@ -166,7 +166,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
               '& .MuiInputBase-root': {
                 fontSize: OFFLINE_FONT.body,
                 color: customColors.dialogTextColor,
-                backgroundColor: customColors.raisedColor,
+                backgroundColor: customColors.dialogColor,
               },
               '& .MuiOutlinedInput-notchedOutline': {
                 borderColor: `rgba(${customColors.onSurfaceRgb}, 0.18)`,
@@ -329,16 +329,15 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                 <IconButton
                   sx={{
                     flexShrink: 0,
-                    width: 40,
-                    height: 40,
+                    width: 36,
+                    height: 36,
                     borderRadius: 1.5,
-                    color: customColors.dangerColor,
-                    border: `1px solid rgba(${customColors.dangerRgb}, 0.3)`,
-                    backgroundColor: `rgba(${customColors.dangerRgb}, 0.08)`,
-                    transition: 'background-color 0.15s, border-color 0.15s',
+                    color: customColors.accentTextColor,
+                    backgroundColor: customColors.mutedColor,
+                    transition: 'background-color 0.15s, color 0.15s',
                     '&:hover': {
-                      backgroundColor: `rgba(${customColors.dangerRgb}, 0.2)`,
-                      borderColor: `rgba(${customColors.dangerRgb}, 0.6)`,
+                      color: customColors.dangerColor,
+                      backgroundColor: `rgba(${customColors.dangerRgb}, 0.14)`,
                     },
                   }}
                   onClick={() =>
@@ -449,7 +448,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
         slotProps={{
           paper: {
             sx: {
-              backgroundColor: customColors.raisedColor,
+              backgroundColor: customColors.dialogColor,
               backgroundImage: 'none',
               color: customColors.dialogTextColor,
             },

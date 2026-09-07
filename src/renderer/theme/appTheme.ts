@@ -18,6 +18,7 @@ import {
   DARK_OUTLINE_VARIANT,
   DARK_PRIMARY,
   DARK_PRIMARY_ACCENT,
+  DARK_PRIMARY_QUIET,
   DARK_SUCCESS,
   DARK_SURFACE,
   DARK_SURFACE_CONTAINER,
@@ -40,6 +41,7 @@ import {
   LIGHT_OVERLAY_RGB,
   LIGHT_PRIMARY,
   LIGHT_PRIMARY_ACCENT,
+  LIGHT_PRIMARY_QUIET,
   LIGHT_QUALITY_HD,
   LIGHT_SUCCESS,
   LIGHT_SURFACE,
@@ -87,6 +89,7 @@ declare module '@mui/material/styles' {
     dialogTextColor: string;
     accentSoftColor: string;
     accentHoverColor: string;
+    accentQuietColor: string;
     onAccentColor: string;
     onVideoColor: string;
     onVideoAccentColor: string;
@@ -162,6 +165,7 @@ const DARK_COLORS = {
   dialogTextColor: DARK_ON_SURFACE,
   accentSoftColor: DARK_PRIMARY_ACCENT,
   accentHoverColor: PRIMARY_DEEP,
+  accentQuietColor: DARK_PRIMARY_QUIET,
   dangerColor: DARK_ERROR,
   dangerHoverColor: DANGER_STRONG,
   dangerSoftColor: DANGER_SOFT,
@@ -200,6 +204,7 @@ const LIGHT_COLORS = {
   dialogTextColor: LIGHT_ON_SURFACE,
   accentSoftColor: LIGHT_PRIMARY_ACCENT,
   accentHoverColor: PRIMARY_DEEP,
+  accentQuietColor: LIGHT_PRIMARY_QUIET,
   dangerColor: LIGHT_ERROR,
   dangerHoverColor: DANGER_DEEP,
   dangerSoftColor: LIGHT_ERROR,

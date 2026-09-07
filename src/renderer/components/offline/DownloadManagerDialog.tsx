@@ -7,6 +7,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   Snackbar,
   Tab,
   Tabs,
@@ -15,10 +16,14 @@ import {
   useTheme,
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
-import { FolderOpenRounded } from '@mui/icons-material';
+import { CloseRounded, FolderOpenRounded } from '@mui/icons-material';
 import { animeApi, AnimeInfo, Episode, Player } from '../../api/animeApi';
 import { offlineStore, sizeEstimator } from '../../services/offline';
-import { formatSize, sumSize } from '../../utils/offlineFormat';
+import {
+  formatSize,
+  mapDownloadedSizes,
+  sumSize,
+} from '../../utils/offlineFormat';
 import { normalizeKodikUrl, toKodikDirectUrl } from '../../utils/kodikHelpers';
 import useOfflineLibrary from '../../hooks/useOfflineLibrary';
 import { QualityManager } from '../../services/player';
@@ -79,6 +84,14 @@ const getAuthToken = (): string => {
     return '';
   }
 };
+
+const tabSx = (customColors: CustomColors) => ({
+  textTransform: 'none' as const,
+  minHeight: OFFLINE_TAB_HEIGHT,
+  fontSize: OFFLINE_FONT.tab,
+  color: customColors.accentTextColor,
+  '&.Mui-selected': { color: customColors.accentSoftColor },
+});
 
 const footerButtonSx = (customColors: CustomColors) => ({
   textTransform: 'none',
@@ -177,10 +190,14 @@ function DownloadManagerDialog({
     );
   }, [playersByEpisode, players, teamName, kodikQualities]);
 
-  const downloadedIds = useMemo(
-    () =>
-      snapshot.anime.flatMap((item) => item.episodes.map((e) => e.episodeId)),
+  const downloadedSizes = useMemo(
+    () => mapDownloadedSizes(snapshot.anime),
     [snapshot],
+  );
+
+  const downloadedIds = useMemo(
+    () => Object.keys(downloadedSizes).map(Number),
+    [downloadedSizes],
   );
 
   const librarySize = useMemo(
@@ -341,6 +358,14 @@ function DownloadManagerDialog({
       .filter((id) => !playersByEpisode[id] && !loadingIds.includes(id))
       .forEach((id) => loadEpisodePlayers(id));
   };
+
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      const next = prev.filter((id) => !downloadedIds.includes(id));
+
+      return next.length === prev.length ? prev : next;
+    });
+  }, [downloadedIds]);
 
   const handleToggle = (episodeId: number, extend: boolean) => {
     const lastId = lastToggledRef.current;
@@ -518,8 +543,9 @@ function DownloadManagerDialog({
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: customColors.raisedColor,
+            backgroundColor: customColors.dialogColor,
             backgroundImage: 'none',
+            border: `1px solid ${customColors.lineColor}`,
             color: customColors.dialogTextColor,
             borderRadius: 2,
             height: OFFLINE_DIALOG_HEIGHT,
@@ -530,44 +556,39 @@ function DownloadManagerDialog({
       }}
     >
       <DialogTitle sx={{ pb: 0 }}>
-        <Typography
-          sx={{ fontSize: OFFLINE_FONT.dialogTitle, fontWeight: 600 }}
-        >
-          Менеджер загрузок
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography
+            sx={{ fontSize: OFFLINE_FONT.dialogTitle, fontWeight: 600 }}
+          >
+            Менеджер загрузок
+          </Typography>
+
+          <IconButton
+            onClick={onClose}
+            size="small"
+            aria-label="Закрыть"
+            sx={{ ml: 'auto', color: customColors.mutedTextColor }}
+          >
+            <CloseRounded sx={{ fontSize: 20 }} />
+          </IconButton>
+        </Box>
 
         <Tabs
           value={tab}
           onChange={(event, value) => setTab(value)}
-          textColor="secondary"
-          indicatorColor="secondary"
-          sx={{ mt: 1.25, minHeight: OFFLINE_TAB_HEIGHT }}
+          sx={{
+            mt: 1.25,
+            minHeight: OFFLINE_TAB_HEIGHT,
+            '& .MuiTabs-indicator': {
+              backgroundColor: customColors.accentSoftColor,
+            },
+          }}
         >
-          <Tab
-            label="Скачать серии"
-            disabled={!hasContext}
-            sx={{
-              textTransform: 'none',
-              minHeight: OFFLINE_TAB_HEIGHT,
-              fontSize: OFFLINE_FONT.tab,
-            }}
-          />
-          <Tab
-            label="Загрузки"
-            sx={{
-              textTransform: 'none',
-              minHeight: OFFLINE_TAB_HEIGHT,
-              fontSize: OFFLINE_FONT.tab,
-            }}
-          />
-          <Tab
-            label="Библиотека"
-            sx={{
-              textTransform: 'none',
-              minHeight: OFFLINE_TAB_HEIGHT,
-              fontSize: OFFLINE_FONT.tab,
-            }}
-          />
+          {hasContext && (
+            <Tab value={0} label="Скачать серии" sx={tabSx(customColors)} />
+          )}
+          <Tab value={1} label="Загрузки" sx={tabSx(customColors)} />
+          <Tab value={2} label="Библиотека" sx={tabSx(customColors)} />
         </Tabs>
       </DialogTitle>
 
@@ -595,6 +616,7 @@ function DownloadManagerDialog({
             loadingIds={loadingIds}
             qualityByEpisode={qualityByEpisode}
             downloadedIds={downloadedIds}
+            downloadedSizes={downloadedSizes}
             onToggle={handleToggle}
             onToggleAll={handleToggleAll}
             onTeamChange={setTeamName}
@@ -653,6 +675,8 @@ function DownloadManagerDialog({
           alignItems: 'center',
           gap: 1.25,
           minWidth: 0,
+          backgroundColor: customColors.raisedColor,
+          borderTop: `1px solid ${customColors.lineColor}`,
         }}
       >
         <Typography
@@ -737,7 +761,8 @@ function DownloadManagerDialog({
           flexShrink: 0,
           boxSizing: 'border-box',
           justifyContent: 'flex-end',
-          borderTop: `1px solid rgba(${customColors.onSurfaceRgb}, 0.1)`,
+          backgroundColor: customColors.raisedColor,
+          borderTop: `1px solid ${customColors.lineColor}`,
         }}
       >
         <Box sx={{ display: 'flex', gap: 1.25 }}>
@@ -764,25 +789,6 @@ function DownloadManagerDialog({
                 : `Скачать${selectedSize > 0 ? ` (${formatSize(selectedSize)})` : ''}`}
             </Button>
           )}
-
-          <Button
-            variant="contained"
-            onClick={onClose}
-            sx={{
-              textTransform: 'none',
-              fontSize: OFFLINE_FONT.body,
-              px: 2,
-              color: customColors.dialogTextColor,
-              backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.14)`,
-              boxShadow: 'none',
-              '&:hover': {
-                backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.22)`,
-                boxShadow: 'none',
-              },
-            }}
-          >
-            Закрыть
-          </Button>
         </Box>
       </DialogActions>
 

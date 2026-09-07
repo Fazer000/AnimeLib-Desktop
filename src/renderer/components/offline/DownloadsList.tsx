@@ -13,7 +13,11 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type { CustomColors } from '@mui/material/styles';
-import { CloseRounded, PlayArrowRounded } from '@mui/icons-material';
+import {
+  CloseRounded,
+  DownloadDoneRounded,
+  PlayArrowRounded,
+} from '@mui/icons-material';
 import {
   DownloadTask,
   OFFLINE_FONT,
@@ -25,6 +29,7 @@ import useDownloadSpeed from '../../hooks/useDownloadSpeed';
 import {
   formatEta,
   formatProgress,
+  formatSize,
   formatSpeed,
 } from '../../utils/offlineFormat';
 
@@ -130,95 +135,131 @@ function DownloadsList({ tasks }: DownloadsListProps) {
         )}
       </Box>
 
-      {tasks.map((task) => (
-        <Box
-          key={task.id}
-          sx={{
-            py: 1.25,
-            borderBottom: `1px solid rgba(${customColors.onSurfaceRgb}, 0.06)`,
-          }}
-        >
+      {tasks.map((task) => {
+        const isRunning =
+          task.status === 'queued' ||
+          task.status === 'downloading' ||
+          task.status === 'paused';
+        const isDone = task.status === 'completed';
+
+        return (
           <Box
+            key={task.id}
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 1.25,
+              px: isRunning ? 1.5 : 0.5,
+              py: isRunning ? 1.25 : 1,
+              mb: isRunning ? 0.875 : 0,
+              borderRadius: isRunning ? 1 : 0,
+              opacity: isDone ? 0.7 : 1,
+              backgroundColor: isRunning
+                ? customColors.raisedColor
+                : 'transparent',
             }}
           >
-            <Typography sx={{ fontSize: OFFLINE_FONT.body }} noWrap>
-              {`${task.animeTitle} · ${task.episodeNumber} серия · ${task.quality} · ${task.teamName}`}
-            </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 1.25,
+              }}
+            >
+              {isDone && (
+                <DownloadDoneRounded
+                  sx={{
+                    fontSize: OFFLINE_ICON.md,
+                    color: customColors.successColor,
+                    flexShrink: 0,
+                  }}
+                />
+              )}
 
-            <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              <Typography
+                sx={{
+                  fontSize: OFFLINE_FONT.body,
+                  flex: 1,
+                  minWidth: 0,
+                  color: isDone ? customColors.accentTextColor : 'inherit',
+                }}
+                noWrap
+              >
+                {`${task.animeTitle} · ${task.episodeNumber} серия · ${task.quality} · ${task.teamName}`}
+              </Typography>
+
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: OFFLINE_FONT.hint,
+                    color:
+                      task.status === 'error'
+                        ? customColors.dangerColor
+                        : customColors.mutedTextColor,
+                  }}
+                >
+                  {isDone && formatSize(task.totalBytes)}
+                  {!isDone &&
+                    (task.status === 'downloading'
+                      ? `${task.progress}%`
+                      : task.error || STATUS_LABELS[task.status])}
+                </Typography>
+
+                {(task.status === 'paused' || task.status === 'error') && (
+                  <IconButton
+                    size="small"
+                    onClick={() => offlineStore.resume(task.id)}
+                  >
+                    <PlayArrowRounded
+                      sx={{
+                        fontSize: OFFLINE_ICON.lg,
+                        color: customColors.accentSoftColor,
+                      }}
+                    />
+                  </IconButton>
+                )}
+
+                {task.status !== 'cancelled' && !isDone && (
+                  <IconButton
+                    size="small"
+                    onClick={() => offlineStore.cancel(task.id)}
+                  >
+                    <CloseRounded sx={{ fontSize: OFFLINE_ICON.md }} />
+                  </IconButton>
+                )}
+              </Box>
+            </Box>
+
+            {isRunning && (
+              <LinearProgress
+                variant="determinate"
+                value={task.status === 'queued' ? 0 : task.progress}
+                sx={{
+                  mt: 1,
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: customColors.borderColor,
+                  '& .MuiLinearProgress-bar': {
+                    backgroundColor: customColors.accentSoftColor,
+                  },
+                }}
+              />
+            )}
+
+            {task.status === 'downloading' && (
               <Typography
                 sx={{
                   fontSize: OFFLINE_FONT.hint,
-                  color:
-                    task.status === 'error'
-                      ? customColors.dangerColor
-                      : `rgba(${customColors.onSurfaceRgb}, 0.55)`,
+                  color: customColors.mutedTextColor,
+                  mt: 0.75,
                 }}
               >
-                {task.status === 'downloading'
-                  ? `${task.progress}%`
-                  : task.error || STATUS_LABELS[task.status]}
+                {buildDetails(task, speeds[task.id] || 0)}
               </Typography>
-
-              {(task.status === 'paused' || task.status === 'error') && (
-                <IconButton
-                  size="small"
-                  onClick={() => offlineStore.resume(task.id)}
-                >
-                  <PlayArrowRounded
-                    sx={{
-                      fontSize: OFFLINE_ICON.lg,
-                      color: customColors.accentSoftColor,
-                    }}
-                  />
-                </IconButton>
-              )}
-
-              {task.status !== 'cancelled' && task.status !== 'completed' && (
-                <IconButton
-                  size="small"
-                  onClick={() => offlineStore.cancel(task.id)}
-                >
-                  <CloseRounded sx={{ fontSize: OFFLINE_ICON.md }} />
-                </IconButton>
-              )}
-            </Box>
+            )}
           </Box>
-
-          {(task.status === 'downloading' || task.status === 'paused') && (
-            <LinearProgress
-              variant="determinate"
-              value={task.progress}
-              sx={{
-                mt: 1,
-                height: 5,
-                borderRadius: 2.5,
-                backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.12)`,
-                '& .MuiLinearProgress-bar': {
-                  backgroundColor: customColors.secondaryColor,
-                },
-              }}
-            />
-          )}
-
-          {task.status === 'downloading' && (
-            <Typography
-              sx={{
-                fontSize: OFFLINE_FONT.hint,
-                color: `rgba(${customColors.onSurfaceRgb}, 0.45)`,
-                mt: 0.5,
-              }}
-            >
-              {buildDetails(task, speeds[task.id] || 0)}
-            </Typography>
-          )}
-        </Box>
-      ))}
+        );
+      })}
 
       <Dialog
         open={confirmOpen}

@@ -21,6 +21,7 @@ import {
   OFFLINE_ICON,
 } from '../../../constants';
 import { SUCCESS_MID } from '../../theme/palette';
+import { formatSize } from '../../utils/offlineFormat';
 
 export type KodikQualityMap = Record<number, string[]>;
 
@@ -36,6 +37,7 @@ interface EpisodeSelectionListProps {
   loadingIds: number[];
   qualityByEpisode: Record<number, string>;
   downloadedIds: number[];
+  downloadedSizes: Record<number, number>;
   onToggle: (episodeId: number, extend: boolean) => void;
   onToggleAll: () => void;
   onTeamChange: (teamName: string) => void;
@@ -156,6 +158,7 @@ function EpisodeSelectionList({
   loadingIds,
   qualityByEpisode,
   downloadedIds,
+  downloadedSizes,
   onToggle,
   onToggleAll,
   onTeamChange,
@@ -179,7 +182,7 @@ function EpisodeSelectionList({
           mx: -3,
           px: 3,
           pt: 2,
-          backgroundColor: customColors.raisedColor,
+          backgroundColor: customColors.dialogColor,
         }}
       >
         <Box sx={{ display: 'flex', gap: 1.5, mb: 2, mt: 0.5 }}>
@@ -252,7 +255,7 @@ function EpisodeSelectionList({
             sx={checkboxSx(customColors)}
           />
           <Typography sx={{ fontSize: OFFLINE_FONT.body }}>
-            {`Выбрать все · выбрано ${selectedIds.length}`}
+            {`Выбрать все · выбрано ${selectedIds.length} из ${selectableCount}`}
           </Typography>
         </Box>
       </Box>
@@ -281,7 +284,13 @@ function EpisodeSelectionList({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 py: 0.25,
+                px: 0.5,
                 gap: 1,
+                borderRadius: 1.5,
+                opacity: isDownloaded ? 0.62 : 1,
+                backgroundColor: isSelected
+                  ? customColors.accentQuietColor
+                  : 'transparent',
               }}
             >
               <Box
@@ -344,6 +353,18 @@ function EpisodeSelectionList({
                   </Typography>
                 )}
               </Box>
+
+              {isDownloaded && downloadedSizes[episode.id] > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: OFFLINE_FONT.hint,
+                    color: customColors.mutedTextColor,
+                    flexShrink: 0,
+                  }}
+                >
+                  {formatSize(downloadedSizes[episode.id])}
+                </Typography>
+              )}
 
               {isSelected && isLoading && (
                 <CircularProgress

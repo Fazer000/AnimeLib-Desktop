@@ -1,6 +1,7 @@
 /**
- * Форматирование размеров, скорости и времени оффлайн-загрузок
+ * Размеры, скорость и время оффлайн-загрузок
  */
+import type { OfflineAnime } from '../../constants';
 
 const MB = 1024 * 1024;
 const GB = MB * 1024;
@@ -66,3 +67,16 @@ export const formatEta = (seconds: number): string => {
  */
 export const sumSize = (values: number[]): number =>
   values.reduce((sum, value) => sum + (value || 0), 0);
+
+/** Собирает размеры скачанных серий по их идентификаторам */
+export const mapDownloadedSizes = (
+  anime: OfflineAnime[],
+): Record<number, number> =>
+  anime.reduce<Record<number, number>>((sizes, item) => {
+    item.episodes.forEach((episode) => {
+      sizes[episode.episodeId] =
+        (sizes[episode.episodeId] || 0) + (episode.fileSize || 0);
+    });
+
+    return sizes;
+  }, {});
