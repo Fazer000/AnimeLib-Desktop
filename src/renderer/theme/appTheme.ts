@@ -63,7 +63,7 @@ import {
   WARNING_ORANGE,
   WHITE,
 } from './palette';
-import { SCROLLBAR_WIDTH } from '../../constants';
+import { SCROLLBAR_WIDTH, TOOLBAR_HEIGHT } from '../../constants';
 import { ColorSchemeName } from './themeMode';
 
 declare module '@mui/material/styles' {
@@ -326,8 +326,8 @@ export function createAppTheme(scheme: ColorSchemeName): Theme {
       MuiToolbar: {
         styleOverrides: {
           root: {
-            minHeight: '32px !important',
-            height: '32px !important',
+            minHeight: `${TOOLBAR_HEIGHT}px !important`,
+            height: `${TOOLBAR_HEIGHT}px !important`,
             paddingLeft: '8px !important',
             paddingRight: '8px !important',
           },

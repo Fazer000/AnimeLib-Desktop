@@ -23,7 +23,7 @@ import {
   ScriptInjectionManager,
   playerHistoryManager,
 } from '../services/webview';
-import { PLAYER_PROTOCOL_PREFIX } from '../../constants';
+import { PLAYER_PROTOCOL_PREFIX, TOOLBAR_HEIGHT } from '../../constants';
 
 import { createLogger } from '../../shared/logger';
 
@@ -419,7 +419,7 @@ function WebViewRefactored({
         onMaximize={handleWindowMaximize}
         onClose={handleWindowClose}
         backgroundColor={customColors.siteHeaderColor}
-        height={32}
+        height={TOOLBAR_HEIGHT}
       />
 
       <Box
@@ -427,7 +427,7 @@ function WebViewRefactored({
         sx={{
           flex: 1,
           position: 'relative',
-          marginTop: '32px',
+          marginTop: `${TOOLBAR_HEIGHT}px`,
           overflow: 'hidden',
         }}
       >

@@ -3,19 +3,19 @@
  */
 
 /**
- * Радиус скругления плеера в оконном режиме (MUI spacing)
+ * Радиус скругления кадра. Ноль: кадр вровень с сайдбаром и шапкой
  */
-export const PLAYER_BORDER_RADIUS = 2;
+export const PLAYER_BORDER_RADIUS = 0;
 
 /**
- * Горизонтальный отступ плеера от краёв области, px
+ * Горизонтальный отступ кадра от краёв области, px
  */
-export const PLAYER_INSET_X = 8;
+export const PLAYER_INSET_X = 0;
 
 /**
- * Вертикальный отступ плеера от краёв области, px
+ * Вертикальный отступ кадра от краёв области, px
  */
-export const PLAYER_INSET_Y = 16;
+export const PLAYER_INSET_Y = 0;
 
 /**
  * Размер значков нижней панели управления плеером, px

@@ -563,7 +563,7 @@ function PlayerPageRefactored({
                 width: `calc(100% - ${SIDEBAR_WIDTH_CSS})`,
                 height: '100%',
                 minHeight: `${MIN_VIDEO_AREA_HEIGHT}px`,
-                justifyContent: 'center',
+                justifyContent: 'flex-start',
                 alignItems: 'center',
                 overflow: 'hidden',
                 zIndex: 0,
@@ -578,9 +578,6 @@ function PlayerPageRefactored({
                   position: 'relative',
                   borderRadius: PLAYER_BORDER_RADIUS,
                   overflow: 'hidden',
-                  boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
-                  margin: 1,
-                  marginRight: 0,
                   zIndex: 1,
                 }}
               >
@@ -729,7 +726,7 @@ function PlayerPageRefactored({
               sx={{
                 position: 'relative',
                 zIndex: 2,
-                alignSelf: 'center',
+                alignSelf: 'flex-start',
                 height: getFittedHeight(
                   DEFAULT_VIDEO_ASPECT_RATIO,
                   SIDEBAR_WIDTH_CSS,

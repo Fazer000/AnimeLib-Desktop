@@ -61,22 +61,20 @@ function PlayerSidebarRefactored({
       sx={{
         position: 'relative',
         width: isCollapsed ? '0px' : SIDEBAR_WIDTH_CSS,
-        height: 'calc(100% - 16px)',
-        margin: 1,
-        marginLeft: isCollapsed ? 0 : 1,
+        height: '100%',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        borderRadius: 2,
+        backgroundColor: theme.palette.customColors.primaryColor,
+        borderLeft: isCollapsed
+          ? 'none'
+          : `1px solid ${theme.palette.customColors.lineColor}`,
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       }}
     >
       <Box
         sx={{
-          backgroundColor: theme.palette.customColors.primaryColor,
-          border: `1px solid ${theme.palette.customColors.lineColor}`,
-          mb: 1,
-          borderRadius: 2,
+          borderBottom: `1px solid ${theme.palette.customColors.lineColor}`,
           opacity: isCollapsed ? 0 : 1,
           visibility: isCollapsed ? 'hidden' : 'visible',
           transition: 'opacity 0.2s ease, visibility 0.2s ease',
@@ -240,9 +238,6 @@ function PlayerSidebarRefactored({
           flex: 1,
           overflow: 'auto',
           position: 'relative',
-          backgroundColor: theme.palette.customColors.primaryColor,
-          border: `1px solid ${theme.palette.customColors.lineColor}`,
-          borderRadius: 2,
           opacity: isCollapsed ? 0 : 1,
           visibility: isCollapsed ? 'hidden' : 'visible',
           transition: 'opacity 0.2s ease, visibility 0.2s ease',

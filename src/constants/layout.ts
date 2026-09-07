@@ -7,7 +7,7 @@ import { PLAYER_INSET_X, PLAYER_INSET_Y } from './player';
 /**
  * Высота тулбара, px
  */
-export const TOOLBAR_HEIGHT = 32;
+export const TOOLBAR_HEIGHT = 38;
 
 /**
  * Позиция плавающих кнопок вне плеера, px
@@ -39,13 +39,13 @@ export const EDGE_ACCENT_BORDER_ALPHA = 0.45;
 /**
  * Границы резиновой ширины сайдбара озвучек, px
  */
-export const SIDEBAR_MIN_WIDTH = 300;
-export const SIDEBAR_MAX_WIDTH = 400;
+export const SIDEBAR_MIN_WIDTH = 280;
+export const SIDEBAR_MAX_WIDTH = 320;
 
 /**
  * Предпочтительная ширина сайдбара (доля ширины окна)
  */
-export const SIDEBAR_PREFERRED_WIDTH = '22vw';
+export const SIDEBAR_PREFERRED_WIDTH = '17vw';
 
 /**
  * CSS-ширина сайдбара с ограничениями min/max
@@ -67,11 +67,6 @@ export const RELATED_WIDTH_CSS = 'clamp(1200px, 96vw, 2000px)';
  * верхняя не даёт строке уйти за сотню знаков
  */
 export const COMMENTS_WIDTH_CSS = 'clamp(860px, 66vw, 1400px)';
-
-/**
- * Отступ сайдбара с каждой стороны, px
- */
-export const SIDEBAR_MARGIN = 8;
 
 /**
  * Высота полосы эпизодов, px
@@ -98,11 +93,7 @@ export const MIN_VIDEO_AREA_HEIGHT = MIN_VIDEO_HEIGHT + PLAYER_INSET_Y;
  * Минимальная ширина окна, при которой видео 360p помещается целиком, px
  */
 export const MIN_WINDOW_WIDTH =
-  MIN_VIDEO_WIDTH +
-  PLAYER_INSET_X +
-  SIDEBAR_WIDTH +
-  SIDEBAR_MARGIN * 2 +
-  SCROLLBAR_WIDTH;
+  MIN_VIDEO_WIDTH + PLAYER_INSET_X + SIDEBAR_WIDTH + SCROLLBAR_WIDTH;
 
 /**
  * Минимальная высота окна, при которой видео 360p помещается целиком, px
