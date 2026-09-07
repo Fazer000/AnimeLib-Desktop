@@ -16,7 +16,7 @@ const log = createLogger('ReportButton');
 const fabSx = (customColors: CustomColors) => ({
   backgroundColor: alpha(customColors.pageColor, 0.85),
   backdropFilter: 'blur(10px)',
-  border: `1px solid ${alpha(customColors.borderColor, 0.6)}`,
+  border: `1px solid ${customColors.borderColor}`,
   color: customColors.accentSoftColor,
   boxShadow: `0 4px 12px ${alpha(customColors.blackColor, 0.4)}`,
   transition: 'all 0.3s ease',

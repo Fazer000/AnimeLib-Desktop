@@ -30,6 +30,13 @@ export const BOOKMARKS_PANEL_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 export const BOOKMARKS_COVER = { width: 44, height: 62 } as const;
 
 /**
+ * Матовая поверхность краевых кнопок и панели закладок
+ */
+export const EDGE_SURFACE_ALPHA = 0.72;
+export const EDGE_SURFACE_BLUR = 'blur(14px)';
+export const EDGE_ACCENT_BORDER_ALPHA = 0.45;
+
+/**
  * Границы резиновой ширины сайдбара озвучек, px
  */
 export const SIDEBAR_MIN_WIDTH = 300;

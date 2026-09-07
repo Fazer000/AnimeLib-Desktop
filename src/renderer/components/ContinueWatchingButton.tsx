@@ -7,7 +7,6 @@ import {
   Zoom,
   useTheme,
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 import type { CustomColors } from '@mui/material/styles';
 import { BookmarkRounded } from '@mui/icons-material';
 import { BookmarkItem } from '../api/animeApi';
@@ -18,6 +17,9 @@ import {
   BOOKMARKS_PANEL_MAX_HEIGHT,
   BOOKMARKS_PANEL_RADIUS,
   BOOKMARKS_PANEL_WIDTH,
+  EDGE_ACCENT_BORDER_ALPHA,
+  EDGE_SURFACE_ALPHA,
+  EDGE_SURFACE_BLUR,
   FLOATING_BUTTONS_GAP,
   FLOATING_BUTTONS_TOP,
   OfflineContinueItem,
@@ -33,16 +35,16 @@ const paperSx = (colors: CustomColors) => ({
   width: BOOKMARKS_PANEL_WIDTH,
   maxHeight: BOOKMARKS_PANEL_MAX_HEIGHT,
   overflowY: 'auto',
-  backgroundColor: `rgba(${colors.overlayRgb}, 0.72)`,
-  backdropFilter: 'blur(14px)',
+  backgroundColor: `rgba(${colors.overlayRgb}, ${EDGE_SURFACE_ALPHA})`,
+  backdropFilter: EDGE_SURFACE_BLUR,
   backgroundImage: 'none',
-  border: `1px solid ${alpha(colors.secondaryColor, 0.45)}`,
+  border: `1px solid rgba(${colors.accentRgb}, ${EDGE_ACCENT_BORDER_ALPHA})`,
   borderLeft: 'none',
   borderRadius: `0 ${BOOKMARKS_PANEL_RADIUS}px ${BOOKMARKS_PANEL_RADIUS}px ${BOOKMARKS_PANEL_RADIUS}px`,
   boxShadow: 'none',
   '&::-webkit-scrollbar': { width: 6 },
   '&::-webkit-scrollbar-thumb': {
-    backgroundColor: alpha(colors.borderColor, 0.8),
+    backgroundColor: `rgba(${colors.onSurfaceRgb}, 0.25)`,
     borderRadius: 3,
   },
 });
@@ -51,7 +53,7 @@ const rowSx = (colors: CustomColors) => ({
   gap: 1.25,
   px: 1.5,
   py: 0.75,
-  '&:hover': { backgroundColor: alpha(colors.secondaryColor, 0.14) },
+  '&:hover': { backgroundColor: colors.accentQuietColor },
 });
 
 const coverSx = (colors: CustomColors) => ({
@@ -60,7 +62,7 @@ const coverSx = (colors: CustomColors) => ({
   flexShrink: 0,
   borderRadius: 1,
   overflow: 'hidden',
-  backgroundColor: alpha(colors.borderColor, 0.35),
+  backgroundColor: colors.mutedColor,
 });
 
 const titleProps = (colors: CustomColors) => ({

@@ -63,6 +63,7 @@ import {
   WARNING_ORANGE,
   WHITE,
 } from './palette';
+import { SCROLLBAR_WIDTH } from '../../constants';
 import { ColorSchemeName } from './themeMode';
 
 declare module '@mui/material/styles' {
@@ -298,6 +299,30 @@ export function createAppTheme(scheme: ColorSchemeName): Theme {
       customColors,
     },
     components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          'html, body, #root': {
+            backgroundColor: base.background,
+          },
+          '*::-webkit-scrollbar': {
+            width: SCROLLBAR_WIDTH,
+            height: SCROLLBAR_WIDTH,
+          },
+          '*::-webkit-scrollbar-track': {
+            backgroundColor: 'transparent',
+          },
+          '*::-webkit-scrollbar-corner': {
+            backgroundColor: 'transparent',
+          },
+          '*::-webkit-scrollbar-thumb': {
+            backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.25)`,
+            borderRadius: SCROLLBAR_WIDTH / 2,
+          },
+          '*::-webkit-scrollbar-thumb:hover': {
+            backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.4)`,
+          },
+        },
+      },
       MuiToolbar: {
         styleOverrides: {
           root: {

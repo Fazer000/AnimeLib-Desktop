@@ -3,6 +3,9 @@ import { Box, Typography, useTheme } from '@mui/material';
 import {
   BOOKMARKS_PANEL_DURATION_MS,
   BOOKMARKS_PANEL_EASING,
+  EDGE_ACCENT_BORDER_ALPHA,
+  EDGE_SURFACE_ALPHA,
+  EDGE_SURFACE_BLUR,
   PLAYER_EDGE_BUTTON_RADIUS,
   PLAYER_EDGE_BUTTON_SIZE,
 } from '../../constants';
@@ -131,13 +134,11 @@ function EdgeActionButton({
         cursor: 'pointer',
         overflow: 'hidden',
         userSelect: 'none',
-        backgroundColor: active
-          ? `rgba(${customColors.accentRgb}, 0.28)`
-          : `rgba(${surfaceRgb}, ${solid ? 0.9 : 0.45})`,
-        backdropFilter: solid ? 'blur(10px)' : 'none',
+        backgroundColor: `rgba(${surfaceRgb}, ${solid ? EDGE_SURFACE_ALPHA : 0.45})`,
+        backdropFilter: solid ? EDGE_SURFACE_BLUR : 'none',
         border: `1px solid ${
           active
-            ? `rgba(${customColors.accentRgb}, 0.6)`
+            ? `rgba(${customColors.accentRgb}, ${EDGE_ACCENT_BORDER_ALPHA})`
             : `rgba(${customColors.neutralRgb}, 0.33)`
         }`,
         borderLeft: isLeft ? 'none' : dockedSide,

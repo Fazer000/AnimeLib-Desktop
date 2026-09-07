@@ -32,7 +32,7 @@ const keySx = (customColors: CustomColors) => ({
   fontFamily: 'monospace',
   color: customColors.dialogTextColor,
   borderRadius: 1,
-  border: `1px solid ${alpha(customColors.borderColor, 0.9)}`,
+  border: `1px solid ${customColors.borderColor}`,
   backgroundColor: alpha(customColors.dialogTextColor, 0.06),
   whiteSpace: 'nowrap',
 });

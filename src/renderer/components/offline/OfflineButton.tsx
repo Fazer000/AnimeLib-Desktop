@@ -30,7 +30,7 @@ const counterSx = (colors: CustomColors) => ({
   justifyContent: 'center',
   borderRadius: '8px',
   backgroundColor: colors.secondaryColor,
-  color: colors.whiteColor,
+  color: colors.onAccentColor,
   fontSize: '0.62rem',
   fontWeight: 700,
   lineHeight: 1,
@@ -89,7 +89,7 @@ function OfflineButton({
           }}
           icon={
             <DownloadRounded
-              sx={{ fontSize: 24, color: customColors.secondaryColor }}
+              sx={{ fontSize: 24, color: customColors.accentSoftColor }}
             />
           }
         />
