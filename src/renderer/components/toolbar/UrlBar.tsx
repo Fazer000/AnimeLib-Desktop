@@ -8,7 +8,7 @@ import {
   Fade,
   useTheme,
 } from '@mui/material';
-import { Link, Close } from '@mui/icons-material';
+import { LinkIcon, X } from '../icons';
 import { saveSiteUrl } from '../../utils/urlHelpers';
 
 import { createLogger } from '../../../shared/logger';
@@ -131,7 +131,7 @@ function UrlBar({
                           padding: 0.5,
                         }}
                       >
-                        <Close sx={{ fontSize: 14 }} />
+                        <X sx={{ fontSize: 14 }} />
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -172,7 +172,7 @@ function UrlBar({
           aria-label="Переключить URL ввод"
         >
           {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-          <Link sx={{ fontSize: 16 }} />
+          <LinkIcon sx={{ fontSize: 16 }} />
         </IconButton>
       )}
     </>

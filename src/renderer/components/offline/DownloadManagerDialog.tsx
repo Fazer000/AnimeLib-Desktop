@@ -15,7 +15,7 @@ import {
   useTheme,
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
-import { FolderOpenRounded } from '@mui/icons-material';
+import { FolderOpen } from '../icons';
 import { animeApi, AnimeInfo, Episode, Player } from '../../api/animeApi';
 import { offlineStore, sizeEstimator } from '../../services/offline';
 import {
@@ -712,7 +712,7 @@ function DownloadManagerDialog({
           size="small"
           variant="outlined"
           disabled={Boolean(migration)}
-          startIcon={<FolderOpenRounded sx={{ fontSize: OFFLINE_ICON.md }} />}
+          startIcon={<FolderOpen sx={{ fontSize: OFFLINE_ICON.md }} />}
           onClick={handleChooseDirectory}
           sx={{ ...footerButtonSx(customColors), flexShrink: 0 }}
         >

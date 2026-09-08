@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import { KeyboardArrowDownRounded } from '@mui/icons-material';
+import { ChevronDown } from '../icons';
 import { WHITE } from '../../theme/palette';
 
 interface AnimeInfoHandleProps {
@@ -33,7 +33,7 @@ function AnimeInfoHandle({ hidden }: AnimeInfoHandleProps) {
         transition: 'opacity 0.2s ease',
       }}
     >
-      <KeyboardArrowDownRounded
+      <ChevronDown
         sx={{
           fontSize: 16,
           color: WHITE,

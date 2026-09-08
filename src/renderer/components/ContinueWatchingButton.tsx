@@ -8,7 +8,7 @@ import {
   useTheme,
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
-import { BookmarkRounded } from '@mui/icons-material';
+import { Bookmark } from './icons';
 import { BookmarkItem } from '../api/animeApi';
 import EdgeActionButton from './EdgeActionButton';
 import {
@@ -220,7 +220,7 @@ function ContinueWatchingButton({
             setOpen(true);
           }}
           icon={
-            <BookmarkRounded
+            <Bookmark
               sx={{ fontSize: 24, color: customColors.accentSoftColor }}
             />
           }

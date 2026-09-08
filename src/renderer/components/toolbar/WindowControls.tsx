@@ -1,7 +1,7 @@
 /* eslint-disable react/require-default-props */
 import React from 'react';
 import { IconButton, Box, Tooltip, Typography, useTheme } from '@mui/material';
-import { Remove, Fullscreen, Close } from '@mui/icons-material';
+import { Maximize, Minus, X } from '../icons';
 import UpdateButton from './UpdateButton';
 import { APP_NAME, APP_VERSION } from '../../../constants';
 
@@ -17,7 +17,7 @@ interface WindowControlsProps {
  * Features:
  * - Minimize window
  * - Maximize/restore window
- * - Close window
+ * - X window
  */
 function WindowControls({
   onMinimize,
@@ -56,19 +56,19 @@ function WindowControls({
 
       {onMinimize && (
         <IconButton size="small" onClick={onMinimize} sx={buttonStyle}>
-          <Remove sx={{ fontSize: 20 }} />
+          <Minus sx={{ fontSize: 20 }} />
         </IconButton>
       )}
 
       {onMaximize && (
         <IconButton size="small" onClick={onMaximize} sx={buttonStyle}>
-          <Fullscreen sx={{ fontSize: 20 }} />
+          <Maximize sx={{ fontSize: 20 }} />
         </IconButton>
       )}
 
       {onClose && (
         <IconButton size="small" onClick={onClose} sx={buttonStyle}>
-          <Close sx={{ fontSize: 20 }} />
+          <X sx={{ fontSize: 20 }} />
         </IconButton>
       )}
     </Box>

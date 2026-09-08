@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconButton, useTheme } from '@mui/material';
-import { CloseRounded } from '@mui/icons-material';
+import { X } from './icons';
 import { DIALOG_CLOSE_INSET } from '../../constants';
 
 interface DialogCloseButtonProps {
@@ -26,7 +26,7 @@ function DialogCloseButton({ onClose }: DialogCloseButtonProps) {
         color: customColors.mutedTextColor,
       }}
     >
-      <CloseRounded sx={{ fontSize: 20 }} />
+      <X sx={{ fontSize: 20 }} />
     </IconButton>
   );
 }

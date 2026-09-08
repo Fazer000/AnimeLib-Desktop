@@ -13,7 +13,7 @@ import {
   useTheme,
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
-import { ExpandMore } from '@mui/icons-material';
+import { ChevronDown } from '../../icons';
 import { DANGER_DEEP } from '../../../theme/palette';
 import DialogCloseButton from '../../DialogCloseButton';
 import { DIALOG_TITLE_RIGHT_INSET } from '../../../../constants';
@@ -119,7 +119,7 @@ export function IgnoreUserDialog({
           >
             Что позволяет игнор-лист?
           </Typography>
-          <ExpandMore
+          <ChevronDown
             sx={{
               color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
               transform: hintOpen ? 'rotate(180deg)' : 'none',

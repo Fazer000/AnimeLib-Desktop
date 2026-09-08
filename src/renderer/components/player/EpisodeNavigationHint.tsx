@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, IconButton, Typography, useTheme } from '@mui/material';
-import { ChevronLeft, ChevronRight } from '@mui/icons-material';
+import { ChevronLeft, ChevronRight } from '../icons';
 
 interface EpisodeNavigationHintProps {
   currentEpisodeIndex: number;

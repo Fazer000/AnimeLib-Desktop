@@ -9,7 +9,7 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
-import { KeyboardRounded } from '@mui/icons-material';
+import { Keyboard } from '../icons';
 import { Player } from '../../api/animeApi';
 import { PlayerSelectionManager } from '../../services/player/PlayerSelectionManager';
 import { SIDEBAR_WIDTH_CSS, PLAYER_TYPE_KODIK } from '../../../constants';
@@ -111,7 +111,7 @@ function PlayerSidebarRefactored({
                 '&:hover': { opacity: 1 },
               }}
             >
-              <KeyboardRounded sx={{ fontSize: 20 }} />
+              <Keyboard sx={{ fontSize: 20 }} />
             </IconButton>
           </ControlTooltip>
         </Box>

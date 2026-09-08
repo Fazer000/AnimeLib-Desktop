@@ -1,11 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Box, Button, IconButton, Typography, useTheme } from '@mui/material';
-import {
-  ChevronLeft,
-  ChevronRight,
-  BookmarkRounded,
-} from '@mui/icons-material';
 import type { CustomColors } from '@mui/material/styles';
+import { Bookmark, ChevronLeft, ChevronRight } from '../icons';
 import { Episode } from '../../api/animeApi';
 import {
   EPISODE_CHIP_MARGIN_BOTTOM,
@@ -316,7 +312,7 @@ function EpisodeSliderRefactored({
                   }}
                 >
                   {hasBookmark && (
-                    <BookmarkRounded
+                    <Bookmark
                       sx={{
                         fontSize: '0.9rem',
                         color: isSelected

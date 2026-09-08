@@ -12,7 +12,7 @@ import {
   useTheme,
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
-import { DownloadDoneRounded } from '@mui/icons-material';
+import { CheckCheck } from '../icons';
 import { Episode, Player } from '../../api/animeApi';
 import {
   OFFLINE_DOWNLOADABLE_PLAYER,
@@ -316,9 +316,7 @@ function EpisodeSelectionList({
                         checked
                         disabled
                         checkedIcon={
-                          <DownloadDoneRounded
-                            sx={{ fontSize: OFFLINE_ICON.md }}
-                          />
+                          <CheckCheck sx={{ fontSize: OFFLINE_ICON.md }} />
                         }
                         sx={DOWNLOADED_CHECKBOX_SX}
                       />

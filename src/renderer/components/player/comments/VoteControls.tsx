@@ -1,5 +1,5 @@
 import { Box, IconButton, Typography, useTheme } from '@mui/material';
-import { ArrowDownward, ArrowUpward } from '@mui/icons-material';
+import { ArrowDown, ArrowUp } from '../../icons';
 import type { VoteTone } from '../../../services/player/CommentsManager';
 
 interface VoteControlsProps {
@@ -73,7 +73,7 @@ function VoteControls({
           `rgba(${customColors.successRgb}, 0.1)`,
         )}
       >
-        <ArrowUpward sx={{ fontSize: iconSize }} />
+        <ArrowUp sx={{ fontSize: iconSize }} />
       </IconButton>
 
       <Typography
@@ -99,7 +99,7 @@ function VoteControls({
           `rgba(${customColors.dangerSoftRgb}, 0.1)`,
         )}
       >
-        <ArrowDownward sx={{ fontSize: iconSize }} />
+        <ArrowDown sx={{ fontSize: iconSize }} />
       </IconButton>
     </Box>
   );

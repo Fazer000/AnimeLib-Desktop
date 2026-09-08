@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
-import { ExpandMore, ExpandLess } from '@mui/icons-material';
+import { ChevronDown, ChevronUp } from '../icons';
 
 interface CommentTextProps {
   html: string;
@@ -291,14 +291,14 @@ function CommentText({ html }: CommentTextProps) {
                       }}
                     >
                       {isRevealed ? (
-                        <ExpandLess
+                        <ChevronUp
                           sx={{
                             fontSize: '1.25rem',
                             color: theme.palette.customColors.secondaryColor,
                           }}
                         />
                       ) : (
-                        <ExpandMore
+                        <ChevronDown
                           sx={{
                             fontSize: '1.25rem',
                             color: theme.palette.customColors.secondaryColor,

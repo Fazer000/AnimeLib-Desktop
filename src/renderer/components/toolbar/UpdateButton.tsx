@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@mui/material';
-import { SystemUpdateAlt } from '@mui/icons-material';
+import { ArrowDownToLine } from '../icons';
 import useUpdateChecker from '../../hooks/useUpdateChecker';
 import UpdateDialog from './UpdateDialog';
 import { SUCCESS_DEEP, SUCCESS_STRONG, WHITE } from '../../theme/palette';
@@ -28,7 +28,7 @@ function UpdateButton() {
       <Button
         size="small"
         variant="contained"
-        startIcon={<SystemUpdateAlt sx={{ fontSize: 16 }} />}
+        startIcon={<ArrowDownToLine sx={{ fontSize: 16 }} />}
         onClick={() => setDialogOpen(true)}
         sx={{
           WebkitAppRegion: 'no-drag',

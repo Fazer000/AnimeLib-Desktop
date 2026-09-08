@@ -13,12 +13,7 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type { CustomColors } from '@mui/material/styles';
-import {
-  CloseRounded,
-  CloudDownloadRounded,
-  DownloadDoneRounded,
-  PlayArrowRounded,
-} from '@mui/icons-material';
+import { CheckCheck, CloudDownload, Play, X } from '../icons';
 import {
   DIALOG_TITLE_RIGHT_INSET,
   DownloadTask,
@@ -94,7 +89,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
   if (tasks.length === 0) {
     return (
       <EmptyState
-        icon={<CloudDownloadRounded />}
+        icon={<CloudDownload />}
         text="Очередь пуста. Загруженные серии доступны на вкладке «Библиотека»."
       />
     );
@@ -177,7 +172,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
               </Typography>
 
               {isDone && (
-                <DownloadDoneRounded
+                <CheckCheck
                   sx={{
                     fontSize: OFFLINE_ICON.md,
                     color: customColors.successColor,
@@ -222,7 +217,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
                     size="small"
                     onClick={() => offlineStore.resume(task.id)}
                   >
-                    <PlayArrowRounded
+                    <Play
                       sx={{
                         fontSize: OFFLINE_ICON.lg,
                         color: customColors.accentSoftColor,
@@ -236,7 +231,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
                     size="small"
                     onClick={() => offlineStore.cancel(task.id)}
                   >
-                    <CloseRounded sx={{ fontSize: OFFLINE_ICON.md }} />
+                    <X sx={{ fontSize: OFFLINE_ICON.md }} />
                   </IconButton>
                 )}
               </Box>

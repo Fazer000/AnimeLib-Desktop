@@ -8,7 +8,7 @@ import {
   FormControl,
   Button,
 } from '@mui/material';
-import { TuneRounded } from '@mui/icons-material';
+import { SlidersHorizontal } from '../icons';
 import Comments from './Comments';
 import CommentsSettingsDialog from './CommentsSettingsDialog';
 import useCommentsSettings from '../../hooks/useCommentsSettings';
@@ -140,7 +140,7 @@ const CommentsSection = memo(
             >
               <Button
                 onClick={() => setSettingsOpen(true)}
-                startIcon={<TuneRounded sx={{ fontSize: 18 }} />}
+                startIcon={<SlidersHorizontal sx={{ fontSize: 18 }} />}
                 sx={{
                   color: theme.palette.customColors.accentTextColor,
                   backgroundColor: theme.palette.customColors.mutedColor,

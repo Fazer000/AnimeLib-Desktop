@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import { Box, IconButton, Slider, Fade, useTheme } from '@mui/material';
+import { Volume, Volume1, Volume2, VolumeX } from '../icons';
 
-import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
-import VolumeDownRoundedIcon from '@mui/icons-material/VolumeDownRounded';
-import VolumeMuteRoundedIcon from '@mui/icons-material/VolumeMuteRounded';
-import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import ControlTooltip from './ControlTooltip';
 import { PLAYER_CONTROL_ICON_SIZE } from '../../../constants';
 import { WHITE_SHORT } from '../../theme/palette';
@@ -46,15 +43,15 @@ function VolumeControl({
 
   const getVolumeIcon = () => {
     if (isMuted || volume === 0) {
-      return <VolumeOffRoundedIcon sx={ICON_SX} />;
+      return <VolumeX sx={ICON_SX} />;
     }
     if (volume < 0.3) {
-      return <VolumeMuteRoundedIcon sx={ICON_SX} />;
+      return <Volume sx={ICON_SX} />;
     }
     if (volume < 0.7) {
-      return <VolumeDownRoundedIcon sx={ICON_SX} />;
+      return <Volume1 sx={ICON_SX} />;
     }
-    return <VolumeUpRoundedIcon sx={ICON_SX} />;
+    return <Volume2 sx={ICON_SX} />;
   };
 
   const getTooltipText = () => {
@@ -112,7 +109,7 @@ function VolumeControl({
             '&:hover': {
               backgroundColor: 'rgba(255, 255, 255, 0.1)',
               transform: 'scale(1.15)',
-              color: customColors.onVideoAccentColor,
+              color: customColors.onVideoColor,
             },
             '&:active': {
               transform: 'scale(0.95)',
@@ -166,13 +163,13 @@ function VolumeControl({
           step={0.01}
           size="small"
           sx={{
-            color: customColors.onVideoAccentColor,
+            color: customColors.onVideoMutedColor,
             cursor: 'pointer',
             '& .MuiSlider-thumb': {
               width: 12,
               height: 12,
               backgroundColor: WHITE_SHORT,
-              border: `2px solid ${customColors.onVideoAccentColor}`,
+              border: `2px solid ${customColors.onVideoMutedColor}`,
               borderRadius: '50%',
               transition: isDragging
                 ? 'none'
@@ -191,7 +188,7 @@ function VolumeControl({
             },
             '& .MuiSlider-track': {
               height: 4,
-              background: customColors.secondaryColor,
+              background: customColors.onVideoMutedColor,
               borderRadius: 50,
               border: 'none',
               transition: isDragging ? 'none' : 'width 0.1s ease',

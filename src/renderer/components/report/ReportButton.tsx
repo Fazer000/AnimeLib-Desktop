@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Box, Fab, Tooltip, useTheme } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
-import { BugReportRounded } from '@mui/icons-material';
+import { Bug } from '../icons';
 import ReportDialog from './ReportDialog';
 import {
   FLOATING_BUTTONS_BOTTOM,
@@ -58,7 +58,7 @@ function ReportButton() {
             onClick={() => setOpen(true)}
             sx={fabSx(customColors)}
           >
-            <BugReportRounded sx={{ fontSize: 24 }} />
+            <Bug sx={{ fontSize: 24 }} />
           </Fab>
         </Tooltip>
       </Box>

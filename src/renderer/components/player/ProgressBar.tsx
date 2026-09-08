@@ -440,7 +440,7 @@ function ProgressBar({
                   left: 0,
                   height: '100%',
                   width: 0,
-                  background: customColors.secondaryColor,
+                  background: customColors.onVideoAccentColor,
                   borderRadius: 10,
                   transition: progressTransition,
                   willChange: isDragging ? 'width' : 'auto',

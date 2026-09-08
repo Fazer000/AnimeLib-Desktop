@@ -1,5 +1,5 @@
 import { Box, useTheme } from '@mui/material';
-import { SpeedOutlined } from '@mui/icons-material';
+import { Gauge } from '../../icons';
 import { OptionRow, PageHeader } from './rows';
 import { MENU_ICON_SIZE } from './styles';
 
@@ -28,7 +28,7 @@ function SpeedPage({ playbackRate, onSelect, onBack }: SpeedPageProps) {
             selected={selected}
             onSelect={() => onSelect(speed)}
             leading={
-              <SpeedOutlined
+              <Gauge
                 sx={{
                   fontSize: MENU_ICON_SIZE,
                   color: selected

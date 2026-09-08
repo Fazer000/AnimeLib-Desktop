@@ -15,7 +15,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { PlayArrow, Pause } from '@mui/icons-material';
+import { Pause, Play } from '../icons';
 import {
   Player,
   KodikVideoLinks,
@@ -922,7 +922,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               },
             }}
           >
-            <PlayArrow
+            <Play
               sx={{
                 fontSize: PLAYER_CENTER_ICON_FONT_SIZE,
                 color: 'white',
@@ -984,7 +984,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
                   }}
                 />
               ) : (
-                <PlayArrow
+                <Play
                   sx={{
                     fontSize: PLAYER_CENTER_ICON_FONT_SIZE,
                     color: 'white',

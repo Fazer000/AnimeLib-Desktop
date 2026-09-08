@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Box, IconButton, Typography, useTheme, Button } from '@mui/material';
+import type { CustomColors } from '@mui/material/styles';
 import {
-  SettingsRounded,
-  FullscreenRounded,
-  FullscreenExitRounded,
-  PictureInPictureAltRounded,
-  ListRounded,
-  BookmarkAddRounded,
-  GraphicEqRounded,
-  DownloadRounded,
-} from '@mui/icons-material';
+  AudioLines,
+  Bookmark,
+  Download,
+  ListVideo,
+  Maximize,
+  Minimize,
+  PictureInPicture2,
+  Settings,
+} from '../icons';
 
 import ProgressBar from './ProgressBar';
 import PlaybackControls from './PlaybackControls';
 import VolumeControl from './VolumeControl';
 import ControlsEpisodeSlider from './ControlsEpisodeSlider';
 import ControlTooltip from './ControlTooltip';
-import EdgeActionButton from '../EdgeActionButton';
 import SettingsMenu from './SettingsMenu';
 import {
   SkipManager,
@@ -32,6 +32,8 @@ import {
 } from '../../utils/videoHelpers';
 import {
   PLAYER_CONTROL_ICON_SIZE,
+  PLAYER_CORNER_INSET,
+  PLAYER_TOP_SCRIM_HEIGHT,
   PLAYER_FULLSCREEN_EASING,
   PLAYER_FULLSCREEN_TRANSITION,
 } from '../../../constants';
@@ -42,6 +44,16 @@ import { WHITE_SHORT } from '../../theme/palette';
 const log = createLogger('VideoControls');
 
 const ICON_SX = { fontSize: `${PLAYER_CONTROL_ICON_SIZE}px` };
+
+const cornerButtonSx = (colors: CustomColors, active: boolean) => ({
+  padding: 0.75,
+  color: active ? colors.onVideoAccentColor : colors.onVideoMutedColor,
+  transition: 'color 0.18s ease',
+  '&:hover': {
+    color: active ? colors.onVideoAccentColor : colors.onVideoColor,
+    backgroundColor: 'transparent',
+  },
+});
 
 const OVERLAY_APPEAR_SX = {
   animation: `overlayAppear ${PLAYER_FULLSCREEN_TRANSITION}ms ${PLAYER_FULLSCREEN_EASING}`,
@@ -277,25 +289,12 @@ function VideoControls({
   // @ts-ignore
   return (
     <>
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          left: 0,
-          height: '40%',
-          width: '100%',
-          background:
-            'linear-gradient(to bottom, rgba(0, 0, 0, 0.53) 5%, rgba(0, 0, 0, 0) 100%)',
-        }}
-      />
-
       {onOpenDownloadManager && !isFullscreen && (
         <Box
           sx={{
             position: 'absolute',
-            top: 16,
-            left: 0,
+            top: PLAYER_CORNER_INSET,
+            left: PLAYER_CORNER_INSET,
             opacity: showControls ? 1 : 0,
             pointerEvents: showControls ? 'auto' : 'none',
             transition: 'opacity 0.3s ease-in-out',
@@ -304,15 +303,21 @@ function VideoControls({
           }}
           onMouseMove={onMouseMove}
         >
-          <EdgeActionButton
-            side="left"
-            onVideo
-            active={downloadManagerOpen}
-            label="Загрузки"
-            color={theme.palette.customColors.onVideoColor}
-            onClick={onOpenDownloadManager}
-            icon={<DownloadRounded sx={ICON_SX} />}
-          />
+          <ControlTooltip title="Загрузки" placement="right">
+            <IconButton
+              onClick={(event) => {
+                event.stopPropagation();
+                onOpenDownloadManager();
+              }}
+              aria-label="Загрузки"
+              sx={cornerButtonSx(
+                theme.palette.customColors,
+                downloadManagerOpen,
+              )}
+            >
+              <Download sx={ICON_SX} />
+            </IconButton>
+          </ControlTooltip>
         </Box>
       )}
 
@@ -320,8 +325,8 @@ function VideoControls({
         <Box
           sx={{
             position: 'absolute',
-            top: 16,
-            right: 0,
+            top: PLAYER_CORNER_INSET,
+            right: PLAYER_CORNER_INSET,
             opacity: showControls ? 1 : 0,
             pointerEvents: showControls ? 'auto' : 'none',
             transition: 'opacity 0.3s ease-in-out',
@@ -330,18 +335,23 @@ function VideoControls({
           }}
           onMouseMove={onMouseMove}
         >
-          <EdgeActionButton
-            side="right"
-            onVideo
-            label={sidebarCollapsed ? 'Показать озвучки' : 'Скрыть озвучки'}
-            color={
-              sidebarCollapsed
-                ? theme.palette.customColors.onVideoColor
-                : theme.palette.customColors.onVideoAccentColor
-            }
-            onClick={onSidebarToggle}
-            icon={<GraphicEqRounded sx={ICON_SX} />}
-          />
+          <ControlTooltip
+            placement="left"
+            title={sidebarCollapsed ? 'Показать озвучки' : 'Скрыть озвучки'}
+          >
+            <IconButton
+              onClick={(event) => {
+                event.stopPropagation();
+                onSidebarToggle();
+              }}
+              aria-label={
+                sidebarCollapsed ? 'Показать озвучки' : 'Скрыть озвучки'
+              }
+              sx={cornerButtonSx(theme.palette.customColors, !sidebarCollapsed)}
+            >
+              <AudioLines sx={ICON_SX} />
+            </IconButton>
+          </ControlTooltip>
         </Box>
       )}
 
@@ -440,10 +450,28 @@ function VideoControls({
                   : theme.palette.customColors.onVideoColor,
               }}
             >
-              <ListRounded sx={ICON_SX} />
+              <ListVideo sx={ICON_SX} />
             </IconButton>
           </ControlTooltip>
         </Box>
+      )}
+
+      {!isFullscreen && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: `${PLAYER_TOP_SCRIM_HEIGHT}px`,
+            opacity: showControls ? 0.8 : 0,
+            background:
+              'linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 30%, transparent 100%)',
+            transition: 'opacity 0.3s ease-in-out',
+            pointerEvents: 'none',
+            zIndex: 899,
+          }}
+        />
       )}
 
       <Box
@@ -546,7 +574,7 @@ function VideoControls({
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  <BookmarkAddRounded sx={ICON_SX} />
+                  <Bookmark sx={ICON_SX} />
                 </IconButton>
               </ControlTooltip>
             )}
@@ -567,7 +595,7 @@ function VideoControls({
                 }}
               >
                 <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-                  <SettingsRounded sx={ICON_SX} />
+                  <Settings sx={ICON_SX} />
 
                   {qualityBadge && (
                     <Typography
@@ -610,7 +638,7 @@ function VideoControls({
                   transition: 'all 0.2s ease',
                 }}
               >
-                <PictureInPictureAltRounded sx={ICON_SX} />
+                <PictureInPicture2 sx={ICON_SX} />
               </IconButton>
             </ControlTooltip>
 
@@ -639,9 +667,9 @@ function VideoControls({
                 }}
               >
                 {isFullscreen ? (
-                  <FullscreenExitRounded sx={ICON_SX} />
+                  <Minimize sx={ICON_SX} />
                 ) : (
-                  <FullscreenRounded sx={ICON_SX} />
+                  <Maximize sx={ICON_SX} />
                 )}
               </IconButton>
             </ControlTooltip>

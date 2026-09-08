@@ -28,6 +28,16 @@ export const PLAYER_INSET_Y = 0;
 export const PLAYER_CONTROL_ICON_SIZE = 24;
 
 /**
+ * Отступ угловых значков от кромки кадра, px
+ */
+export const PLAYER_CORNER_INSET = 14;
+
+/**
+ * Высота затемнения у верхней кромки кадра, px
+ */
+export const PLAYER_TOP_SCRIM_HEIGHT = 150;
+
+/**
  * Длительность перехода в полноэкранный режим и обратно, мс
  */
 export const PLAYER_FULLSCREEN_TRANSITION = 320;

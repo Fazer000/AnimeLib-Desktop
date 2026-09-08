@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Box, IconButton, Typography, useTheme } from '@mui/material';
-import { PlayArrowRounded, PauseRounded } from '@mui/icons-material';
-import KeyboardDoubleArrowRightRoundedIcon from '@mui/icons-material/KeyboardDoubleArrowRightRounded';
+import { ChevronsRight, Pause, Play } from '../icons';
 import ControlTooltip from './ControlTooltip';
 import { formatTime } from '../../utils/videoHelpers';
 import { PlaybackTimeStore } from '../../services/player';
@@ -83,11 +82,7 @@ function PlaybackControls({
           transition: 'all 0.2s ease',
         }}
       >
-        {isPlaying ? (
-          <PauseRounded sx={ICON_SX} />
-        ) : (
-          <PlayArrowRounded sx={ICON_SX} />
-        )}
+        {isPlaying ? <Pause sx={ICON_SX} /> : <Play sx={ICON_SX} />}
       </IconButton>
 
       <ControlTooltip
@@ -112,7 +107,7 @@ function PlaybackControls({
               transition: 'all 0.2s ease',
             }}
           >
-            <KeyboardDoubleArrowRightRoundedIcon sx={ICON_SX} />
+            <ChevronsRight sx={ICON_SX} />
           </IconButton>
         </span>
       </ControlTooltip>

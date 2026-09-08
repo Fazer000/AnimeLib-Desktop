@@ -8,7 +8,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { CloudOffRounded } from '@mui/icons-material';
+import { CloudOff } from '../icons';
 import DialogCloseButton from '../DialogCloseButton';
 import { DIALOG_TITLE_RIGHT_INSET } from '../../../constants';
 
@@ -57,9 +57,7 @@ function OfflineNoticeDialog({
           pr: `${DIALOG_TITLE_RIGHT_INSET}px`,
         }}
       >
-        <CloudOffRounded
-          sx={{ fontSize: 20, color: customColors.accentSoftColor }}
-        />
+        <CloudOff sx={{ fontSize: 20, color: customColors.accentSoftColor }} />
         Нет соединения с сайтом
       </DialogTitle>
 

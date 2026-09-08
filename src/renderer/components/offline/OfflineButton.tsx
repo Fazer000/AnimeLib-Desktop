@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type { CustomColors } from '@mui/material/styles';
-import { DownloadRounded } from '@mui/icons-material';
+import { Download } from '../icons';
 import DownloadManagerDialog from './DownloadManagerDialog';
 import EdgeActionButton from '../EdgeActionButton';
 import useOfflineLibrary from '../../hooks/useOfflineLibrary';
@@ -88,7 +88,7 @@ function OfflineButton({
             setOpen(true);
           }}
           icon={
-            <DownloadRounded
+            <Download
               sx={{ fontSize: 24, color: customColors.accentSoftColor }}
             />
           }

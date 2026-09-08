@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
-import { KeyboardRounded } from '@mui/icons-material';
+import { Keyboard } from '../icons';
 import DialogCloseButton from '../DialogCloseButton';
 import {
   DIALOG_TITLE_RIGHT_INSET,
@@ -125,9 +125,7 @@ function HotkeysDialog({ open, onClose }: HotkeysDialogProps) {
           pr: `${DIALOG_TITLE_RIGHT_INSET}px`,
         }}
       >
-        <KeyboardRounded
-          sx={{ fontSize: 20, color: customColors.accentSoftColor }}
-        />
+        <Keyboard sx={{ fontSize: 20, color: customColors.accentSoftColor }} />
         Горячие клавиши
       </DialogTitle>
 

@@ -6,7 +6,7 @@ const EDGE_MARGIN = 8;
 
 interface ControlTooltipProps {
   title: string;
-  placement?: 'top' | 'left' | 'right';
+  placement?: 'top' | 'bottom' | 'left' | 'right';
   children: React.ReactNode;
 }
 
@@ -24,7 +24,7 @@ function ControlTooltip({
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
-    if (!open || placement !== 'top') {
+    if (!open || (placement !== 'top' && placement !== 'bottom')) {
       setOffsetX(0);
       return;
     }
@@ -52,6 +52,12 @@ function ControlTooltip({
   if (placement === 'top') {
     placementSx = {
       bottom: 'calc(100% + 8px)',
+      left: '50%',
+      transform: `translateX(calc(-50% + ${offsetX}px))`,
+    };
+  } else if (placement === 'bottom') {
+    placementSx = {
+      top: 'calc(100% + 8px)',
       left: '50%',
       transform: `translateX(calc(-50% + ${offsetX}px))`,
     };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Fab, Zoom, useTheme } from '@mui/material';
-import { KeyboardArrowUp } from '@mui/icons-material';
+import { ChevronUp } from '../icons';
 
 import { createLogger } from '../../../shared/logger';
 
@@ -104,7 +104,7 @@ function ScrollToTopButton({
             },
           }}
         >
-          <KeyboardArrowUp sx={{ fontSize: 28 }} />
+          <ChevronUp sx={{ fontSize: 28 }} />
         </Fab>
       </Box>
     </Zoom>

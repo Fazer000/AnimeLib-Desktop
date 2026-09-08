@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Box, Button, Typography, useTheme } from '@mui/material';
-import { BookmarkRounded } from '@mui/icons-material';
+import { Bookmark } from '../icons';
 import { EPISODE_CHIP_MIN_WIDTH } from '../../../constants';
 
 interface Episode {
@@ -255,7 +255,7 @@ function ControlsEpisodeSlider({
                 }}
               >
                 {hasBookmark && (
-                  <BookmarkRounded
+                  <Bookmark
                     sx={{
                       fontSize: '0.9rem',
                       color: isSelected

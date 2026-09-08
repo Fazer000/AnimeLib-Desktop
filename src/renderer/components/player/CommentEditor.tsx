@@ -16,14 +16,14 @@ import {
   useTheme,
 } from '@mui/material';
 import {
-  FormatBold,
-  FormatItalic,
-  FormatUnderlined,
-  FormatStrikethrough,
-  FormatQuote,
-  Visibility,
+  Bold,
+  Eye,
+  Italic,
+  Quote,
   Send,
-} from '@mui/icons-material';
+  Strikethrough,
+  Underline as UnderlineIcon,
+} from '../icons';
 import { SpoilerInline } from './tiptap/SpoilerInline';
 import DialogCloseButton from '../DialogCloseButton';
 import { DIALOG_TITLE_RIGHT_INSET } from '../../../constants';
@@ -291,7 +291,7 @@ function CommentEditorComponent({
           active={editor.isActive('bold')}
           tooltip="Жирный (Ctrl+B)"
         >
-          <FormatBold fontSize="small" />
+          <Bold fontSize="small" />
         </MenuButton>
 
         <MenuButton
@@ -299,7 +299,7 @@ function CommentEditorComponent({
           active={editor.isActive('italic')}
           tooltip="Курсив (Ctrl+I)"
         >
-          <FormatItalic fontSize="small" />
+          <Italic fontSize="small" />
         </MenuButton>
 
         <MenuButton
@@ -307,7 +307,7 @@ function CommentEditorComponent({
           active={editor.isActive('underline')}
           tooltip="Подчеркнутый (Ctrl+U)"
         >
-          <FormatUnderlined fontSize="small" />
+          <UnderlineIcon fontSize="small" />
         </MenuButton>
 
         <MenuButton
@@ -315,7 +315,7 @@ function CommentEditorComponent({
           active={editor.isActive('strike')}
           tooltip="Зачеркнутый"
         >
-          <FormatStrikethrough fontSize="small" />
+          <Strikethrough fontSize="small" />
         </MenuButton>
 
         <MenuButton
@@ -323,7 +323,7 @@ function CommentEditorComponent({
           active={editor.isActive('blockquote')}
           tooltip="Цитата"
         >
-          <FormatQuote fontSize="small" />
+          <Quote fontSize="small" />
         </MenuButton>
 
         <MenuButton
@@ -337,7 +337,7 @@ function CommentEditorComponent({
           active={editor.isActive('spoilerInline')}
           tooltip="Спойлер (выделите текст и нажмите)"
         >
-          <Visibility fontSize="small" />
+          <Eye fontSize="small" />
         </MenuButton>
       </Box>
 

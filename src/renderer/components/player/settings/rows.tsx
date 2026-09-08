@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, IconButton, MenuItem, Switch, Typography } from '@mui/material';
-import { ArrowBackRounded, CheckRounded } from '@mui/icons-material';
+import { ArrowLeft, Check } from '../../icons';
 import {
   BACK_BUTTON_SX,
   CAPTION_BLOCK_SX,
@@ -39,7 +39,7 @@ export function PageHeader({ title, onBack }: PageHeaderProps) {
         }}
         sx={BACK_BUTTON_SX}
       >
-        <ArrowBackRounded sx={{ fontSize: 16 }} />
+        <ArrowLeft sx={{ fontSize: 16 }} />
       </IconButton>
       <Typography variant="subtitle2" sx={HEADER_TITLE_SX}>
         {title}
@@ -177,7 +177,7 @@ export function OptionRow({
         >
           {label}
         </Typography>
-        {selected && <CheckRounded sx={CHECK_ICON_SX} />}
+        {selected && <Check sx={CHECK_ICON_SX} />}
       </Box>
     </MenuItem>
   );

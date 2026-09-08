@@ -15,14 +15,14 @@ import {
   useTheme,
 } from '@mui/material';
 import {
-  CloseRounded,
-  DeleteRounded,
-  ExpandMoreRounded,
-  PlayArrowRounded,
-  SearchOffRounded,
-  SearchRounded,
-  VideoLibraryRounded,
-} from '@mui/icons-material';
+  ChevronDown,
+  Library,
+  Play,
+  Search,
+  SearchX,
+  Trash2,
+  X,
+} from '../icons';
 import {
   DIALOG_TITLE_RIGHT_INSET,
   OFFLINE_COVER,
@@ -122,7 +122,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
   if (anime.length === 0) {
     return (
       <EmptyState
-        icon={<VideoLibraryRounded />}
+        icon={<Library />}
         text="Библиотека пока пуста. Откройте аниме в плеере и скачайте серии для оффлайн просмотра."
       />
     );
@@ -152,7 +152,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchRounded
+                  <Search
                     sx={{
                       fontSize: OFFLINE_ICON.md,
                       color: `rgba(${customColors.onSurfaceRgb}, 0.45)`,
@@ -163,7 +163,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
               endAdornment: query ? (
                 <InputAdornment position="end">
                   <IconButton size="small" onClick={() => setQuery('')}>
-                    <CloseRounded sx={{ fontSize: OFFLINE_ICON.sm }} />
+                    <X sx={{ fontSize: OFFLINE_ICON.sm }} />
                   </IconButton>
                 </InputAdornment>
               ) : null,
@@ -192,7 +192,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
       )}
 
       {filtered.length === 0 && (
-        <EmptyState icon={<SearchOffRounded />} text="Ничего не найдено" />
+        <EmptyState icon={<SearchX />} text="Ничего не найдено" />
       )}
 
       {filtered.map((item) => {
@@ -288,7 +288,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                   </Typography>
                 </Box>
 
-                <ExpandMoreRounded
+                <ChevronDown
                   className="library-chevron"
                   sx={{
                     fontSize: OFFLINE_ICON.lg,
@@ -304,9 +304,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                 <Button
                   size="small"
                   variant="contained"
-                  startIcon={
-                    <PlayArrowRounded sx={{ fontSize: OFFLINE_ICON.md }} />
-                  }
+                  startIcon={<Play sx={{ fontSize: OFFLINE_ICON.md }} />}
                   onClick={() => onPlay(item.animeId, progress?.episodeId)}
                   sx={{
                     textTransform: 'none',
@@ -352,7 +350,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                     })
                   }
                 >
-                  <DeleteRounded sx={{ fontSize: OFFLINE_ICON.lg }} />
+                  <Trash2 sx={{ fontSize: OFFLINE_ICON.lg }} />
                 </IconButton>
               </Tooltip>
             </Box>
@@ -434,7 +432,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                         remove();
                       }}
                     >
-                      <CloseRounded sx={{ fontSize: OFFLINE_ICON.sm }} />
+                      <X sx={{ fontSize: OFFLINE_ICON.sm }} />
                     </IconButton>
                   </Box>
                 ))}

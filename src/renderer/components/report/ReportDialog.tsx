@@ -11,7 +11,7 @@ import {
   useTheme,
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
-import { BugReportRounded } from '@mui/icons-material';
+import { Bug } from '../icons';
 import DialogCloseButton from '../DialogCloseButton';
 import {
   DIALOG_TITLE_RIGHT_INSET,
@@ -97,9 +97,7 @@ function ReportDialog({ open, onSubmit, onClose }: ReportDialogProps) {
           pr: `${DIALOG_TITLE_RIGHT_INSET}px`,
         }}
       >
-        <BugReportRounded
-          sx={{ fontSize: 20, color: customColors.accentSoftColor }}
-        />
+        <Bug sx={{ fontSize: 20, color: customColors.accentSoftColor }} />
         Сообщить о проблеме
       </DialogTitle>
 

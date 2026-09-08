@@ -11,12 +11,7 @@ import {
   ButtonBase,
   useTheme,
 } from '@mui/material';
-import {
-  Close,
-  PlayArrowRounded,
-  Search,
-  SearchOff,
-} from '@mui/icons-material';
+import { Play, Search, SearchX, X } from '../icons';
 import EmptyState from '../EmptyState';
 import { animeApi } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
@@ -191,7 +186,7 @@ function SearchResultCard({
               justifyContent: 'center',
             }}
           >
-            <PlayArrowRounded
+            <Play
               className="search-play-icon"
               sx={{
                 color: customColors.mutedTextColor,
@@ -342,7 +337,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
               },
             }}
           >
-            <Close sx={{ fontSize: 20 }} />
+            <X sx={{ fontSize: 20 }} />
           </IconButton>
         </Box>
 
@@ -427,7 +422,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
           {!isSearching &&
             searchQuery.length > 0 &&
             searchResults.length === 0 && (
-              <EmptyState icon={<SearchOff />} text="Ничего не найдено" />
+              <EmptyState icon={<SearchX />} text="Ничего не найдено" />
             )}
 
           {searchResults.length > 0 && !isSearching && (

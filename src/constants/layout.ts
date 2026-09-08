@@ -90,6 +90,11 @@ export const EPISODE_CHIP_MIN_WIDTH = 84;
 export const PLAYER_TEAM_AVATAR_SIZE = 32;
 
 /**
+ * Толщина штриха контурных значков
+ */
+export const ICON_STROKE_WIDTH = 1.75;
+
+/**
  * Отступ между конструкцией плеера и содержимым под ней, px
  */
 export const PLAYER_CONTENT_GAP = 64;

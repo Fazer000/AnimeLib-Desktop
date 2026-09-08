@@ -1,7 +1,7 @@
 /* eslint-disable react/require-default-props */
 import React from 'react';
 import { IconButton, Box, useTheme } from '@mui/material';
-import { ArrowBack, Refresh, Home, Search } from '@mui/icons-material';
+import { ArrowLeft, House, RotateCw, Search } from '../icons';
 
 interface NavigationButtonsProps {
   onBack?: () => void;
@@ -16,8 +16,8 @@ interface NavigationButtonsProps {
  *
  * Features:
  * - Back navigation
- * - Refresh
- * - Home
+ * - RotateCw
+ * - House
  */
 function NavigationButtons({
   onBack,
@@ -45,18 +45,18 @@ function NavigationButtons({
           disabled={!canGoBack}
           sx={buttonStyle}
         >
-          <ArrowBack sx={{ fontSize: 20 }} />
+          <ArrowLeft sx={{ fontSize: 20 }} />
         </IconButton>
       )}
 
       {onHome && (
         <IconButton size="small" onClick={onHome} sx={buttonStyle}>
-          <Home sx={{ fontSize: 20 }} />
+          <House sx={{ fontSize: 20 }} />
         </IconButton>
       )}
       {onRefresh && (
         <IconButton size="small" onClick={onRefresh} sx={buttonStyle}>
-          <Refresh sx={{ fontSize: 20 }} />
+          <RotateCw sx={{ fontSize: 20 }} />
         </IconButton>
       )}
       {onSearch && (

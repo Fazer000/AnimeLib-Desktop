@@ -11,7 +11,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { OpenInNewRounded } from '@mui/icons-material';
+import { ExternalLink } from '../icons';
 import DialogCloseButton from '../DialogCloseButton';
 import { DIALOG_TITLE_RIGHT_INSET, UpdateInfo } from '../../../constants';
 import { UpdateStatus } from '../../hooks/useUpdateChecker';
@@ -217,7 +217,7 @@ function UpdateDialog({
       <DialogActions sx={{ px: 3, py: 2 }}>
         <Button
           onClick={onOpenRelease}
-          startIcon={<OpenInNewRounded sx={{ fontSize: 16 }} />}
+          startIcon={<ExternalLink sx={{ fontSize: 16 }} />}
           sx={{
             mr: 'auto',
             textTransform: 'none',

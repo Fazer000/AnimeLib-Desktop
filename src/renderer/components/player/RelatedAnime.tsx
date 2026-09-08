@@ -6,8 +6,8 @@ import {
   IconButton,
   ButtonBase,
 } from '@mui/material';
-import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import type { CustomColors } from '@mui/material/styles';
+import { ChevronLeft, ChevronRight } from '../icons';
 import { RelatedAnime as RelatedAnimeType } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 import { RELATED_WIDTH_CSS } from '../../../constants';

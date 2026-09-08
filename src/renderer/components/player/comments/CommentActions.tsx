@@ -7,14 +7,8 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import {
-  DeleteOutline,
-  EditOutlined,
-  LinkOutlined,
-  MoreHoriz,
-  PersonOffOutlined,
-} from '@mui/icons-material';
 import type { CustomColors } from '@mui/material/styles';
+import { Ellipsis, LinkIcon, Pencil, Trash2, UserX } from '../../icons';
 import { Comment } from '../../../services/player';
 import CommentEditor, { CommentSubmitData } from '../CommentEditor';
 import { DeleteCommentDialog, IgnoreUserDialog } from './dialogs';
@@ -94,7 +88,7 @@ const CommentActions = memo(
               color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
             }}
           >
-            <MoreHoriz sx={{ fontSize: 16 }} />
+            <Ellipsis sx={{ fontSize: 16 }} />
           </IconButton>
         </Box>
 
@@ -112,7 +106,7 @@ const CommentActions = memo(
               }}
               sx={{ gap: 1 }}
             >
-              <EditOutlined sx={{ fontSize: 18 }} />
+              <Pencil sx={{ fontSize: 18 }} />
               Редактировать
             </MenuItem>
           )}
@@ -124,7 +118,7 @@ const CommentActions = memo(
               }}
               sx={{ color: customColors.dangerSoftColor, gap: 1 }}
             >
-              <DeleteOutline sx={{ fontSize: 18 }} />
+              <Trash2 sx={{ fontSize: 18 }} />
               Удалить
             </MenuItem>
           )}
@@ -136,7 +130,7 @@ const CommentActions = memo(
               }}
               sx={{ gap: 1 }}
             >
-              <PersonOffOutlined sx={{ fontSize: 18 }} />
+              <UserX sx={{ fontSize: 18 }} />
               Добавить в игнор-лист
             </MenuItem>
           )}
@@ -147,7 +141,7 @@ const CommentActions = memo(
             }}
             sx={{ gap: 1 }}
           >
-            <LinkOutlined sx={{ fontSize: 18 }} />
+            <LinkIcon sx={{ fontSize: 18 }} />
             Ссылка на комментарий
           </MenuItem>
         </Menu>

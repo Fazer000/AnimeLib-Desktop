@@ -1,10 +1,5 @@
 import { Box, Divider, useTheme } from '@mui/material';
-import {
-  FastForwardOutlined,
-  SkipNextOutlined,
-  SpeedOutlined,
-  SubtitlesOutlined,
-} from '@mui/icons-material';
+import { Captions, FastForward, Gauge, SkipForward } from '../../icons';
 import {
   SkipManager,
   SubtitleTrack,
@@ -82,7 +77,7 @@ function MainPage({
       <NavRow
         icon={
           <Box sx={menuIconBoxSx(customColors.onVideoAccentColor)}>
-            <SpeedOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
+            <Gauge sx={{ fontSize: MENU_ICON_SIZE }} />
           </Box>
         }
         title="Скорость"
@@ -93,7 +88,7 @@ function MainPage({
       <NavRow
         icon={
           <Box sx={menuIconBoxSx(customColors.onVideoAccentColor)}>
-            <FastForwardOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
+            <FastForward sx={{ fontSize: MENU_ICON_SIZE }} />
           </Box>
         }
         title="Перемотка"
@@ -104,7 +99,7 @@ function MainPage({
       <NavRow
         icon={
           <Box sx={menuIconBoxSx(customColors.onVideoAccentColor)}>
-            <SkipNextOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
+            <SkipForward sx={{ fontSize: MENU_ICON_SIZE }} />
           </Box>
         }
         title="Автопропуск"
@@ -115,7 +110,7 @@ function MainPage({
       <NavRow
         icon={
           <Box sx={menuIconBoxSx(customColors.onVideoAccentColor)}>
-            <SubtitlesOutlined sx={{ fontSize: MENU_ICON_SIZE }} />
+            <Captions sx={{ fontSize: MENU_ICON_SIZE }} />
           </Box>
         }
         title="Субтитры"
