@@ -8,6 +8,11 @@
 export const PLAYER_BORDER_RADIUS = 0;
 
 /**
+ * Радиус скругления кадра в полноэкранном режиме (MUI spacing)
+ */
+export const PLAYER_FULLSCREEN_RADIUS = 2;
+
+/**
  * Горизонтальный отступ кадра от краёв области, px
  */
 export const PLAYER_INSET_X = 0;

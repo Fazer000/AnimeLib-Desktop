@@ -315,7 +315,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
               textTransform: 'none',
               fontSize: OFFLINE_FONT.button,
               px: 2,
-              backgroundColor: customColors.dangerColor,
+              backgroundColor: customColors.dangerFillColor,
               color: customColors.onAccentColor,
               '&:hover': { backgroundColor: customColors.dangerHoverColor },
             }}

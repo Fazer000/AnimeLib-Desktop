@@ -43,6 +43,7 @@ import {
 } from '../../services/player';
 import {
   PLAYER_BORDER_RADIUS,
+  PLAYER_FULLSCREEN_RADIUS,
   PLAYER_CENTER_ICON_FONT_SIZE,
   PLAYER_CENTER_ICON_SIZE,
   PLAYER_EPISODES_VISIBLE_BY_DEFAULT,
@@ -783,7 +784,9 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           height: '100%',
           backgroundColor: customColors.primaryColor,
           overflow: 'hidden',
-          borderRadius: PLAYER_BORDER_RADIUS,
+          borderRadius: uiState.isFullscreen
+            ? PLAYER_FULLSCREEN_RADIUS
+            : PLAYER_BORDER_RADIUS,
           cursor: uiState.showControls ? 'default' : 'none',
           transition: `border-radius ${PLAYER_FULLSCREEN_TRANSITION}ms ${PLAYER_FULLSCREEN_EASING}`,
           animation: fullscreenAnimation,

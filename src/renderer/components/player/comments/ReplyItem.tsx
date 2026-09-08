@@ -97,20 +97,21 @@ const ReplyItem = memo(
                 sx={{
                   color: theme.palette.customColors.accentTextColor,
                   fontSize: '0.6875rem',
-                  ml: 'auto',
                 }}
               >
                 {CommentsManager.formatDate(comment.created_at)}
               </Typography>
 
-              <VoteControls
-                count={voteCount}
-                tone={CommentsManager.getVoteTone(voteCount)}
-                userVote={userVotes.get(comment.id)}
-                disabled={isVoting}
-                onVote={(vote) => onVote(comment.id, vote)}
-                variant="compact"
-              />
+              <Box sx={{ ml: 'auto', display: 'flex' }}>
+                <VoteControls
+                  count={voteCount}
+                  tone={CommentsManager.getVoteTone(voteCount)}
+                  userVote={userVotes.get(comment.id)}
+                  disabled={isVoting}
+                  onVote={(vote) => onVote(comment.id, vote)}
+                  variant="compact"
+                />
+              </Box>
             </Box>
 
             <Box

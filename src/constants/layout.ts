@@ -74,6 +74,11 @@ export const COMMENTS_WIDTH_CSS = 'clamp(860px, 66vw, 1400px)';
 export const EPISODE_SLIDER_HEIGHT = 72;
 
 /**
+ * Отступ между конструкцией плеера и содержимым под ней, px
+ */
+export const PLAYER_CONTENT_GAP = 64;
+
+/**
  * Ширина скроллбара страницы плеера, px
  */
 export const SCROLLBAR_WIDTH = 6;

@@ -1,6 +1,7 @@
 import { Theme, createTheme } from '@mui/material';
 import {
   BLACK,
+  DANGER_DARK,
   DANGER_DARK_RGB,
   DANGER_DEEP,
   DANGER_RGB,
@@ -99,6 +100,7 @@ declare module '@mui/material/styles' {
     onVideoSurfaceRgb: string;
     onVideoElevatedRgb: string;
     dangerColor: string;
+    dangerFillColor: string;
     dangerHoverColor: string;
     dangerSoftColor: string;
     successColor: string;
@@ -170,6 +172,7 @@ const DARK_COLORS = {
   accentHoverColor: PRIMARY_DEEP,
   accentQuietColor: DARK_PRIMARY_QUIET,
   dangerColor: DARK_ERROR,
+  dangerFillColor: DANGER_STRONG,
   dangerHoverColor: DANGER_STRONG,
   dangerSoftColor: DANGER_SOFT,
   successColor: DARK_SUCCESS,
@@ -210,6 +213,7 @@ const LIGHT_COLORS = {
   accentHoverColor: PRIMARY_DEEP,
   accentQuietColor: LIGHT_PRIMARY_QUIET,
   dangerColor: LIGHT_ERROR,
+  dangerFillColor: DANGER_DARK,
   dangerHoverColor: DANGER_DEEP,
   dangerSoftColor: LIGHT_ERROR,
   successColor: LIGHT_SUCCESS,

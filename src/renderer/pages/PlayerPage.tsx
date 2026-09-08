@@ -21,10 +21,12 @@ import {
   DEFAULT_VIDEO_ASPECT_RATIO,
   MIN_VIDEO_AREA_HEIGHT,
   PLAYER_BORDER_RADIUS,
+  EPISODE_SLIDER_HEIGHT,
+  PLAYER_CONTENT_GAP,
   SIDEBAR_WIDTH_CSS,
   TOOLBAR_HEIGHT,
 } from '../../constants';
-import { getFittedWidth, getFittedHeight } from '../utils/videoHelpers';
+import { getFittedWidth, getPlayerRowHeight } from '../utils/videoHelpers';
 import { buildAnimePageUrl } from '../utils/urlHelpers';
 import { usePersistedFlag } from '../hooks/usePersistedFlag';
 import { useFullscreenState } from '../hooks/useFullscreenState';
@@ -503,7 +505,6 @@ function PlayerPageRefactored({
       >
         <Box
           sx={{
-            height: `calc(100vh - ${TOOLBAR_HEIGHT}px)`,
             display: 'flex',
             flexDirection: 'column',
             position: 'relative',
@@ -546,7 +547,12 @@ function PlayerPageRefactored({
 
           <Box
             sx={{
-              flex: 1,
+              flexShrink: 0,
+              height: getPlayerRowHeight(
+                DEFAULT_VIDEO_ASPECT_RATIO,
+                sidebarCollapsed ? '0px' : SIDEBAR_WIDTH_CSS,
+                TOOLBAR_HEIGHT + EPISODE_SLIDER_HEIGHT,
+              ),
               display: 'flex',
               overflow: 'hidden',
               position: 'relative',
@@ -726,11 +732,8 @@ function PlayerPageRefactored({
               sx={{
                 position: 'relative',
                 zIndex: 2,
-                alignSelf: 'flex-start',
-                height: getFittedHeight(
-                  DEFAULT_VIDEO_ASPECT_RATIO,
-                  SIDEBAR_WIDTH_CSS,
-                ),
+                alignSelf: 'stretch',
+                height: '100%',
               }}
             >
               <PlayerSidebar
@@ -745,7 +748,14 @@ function PlayerPageRefactored({
             </Box>
           </Box>
 
-          <Box sx={{ position: 'relative', zIndex: 3, flexShrink: 0, mb: 1 }}>
+          <Box
+            sx={{
+              position: 'relative',
+              zIndex: 3,
+              flexShrink: 0,
+              mb: `${PLAYER_CONTENT_GAP}px`,
+            }}
+          >
             <EpisodeSlider
               episodes={episodes}
               currentEpisodeIndex={currentEpisodeIndex}

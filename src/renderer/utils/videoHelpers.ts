@@ -1,4 +1,8 @@
-import { PLAYER_INSET_X, PLAYER_INSET_Y } from '../../constants';
+import {
+  PLAYER_INSET_X,
+  PLAYER_INSET_Y,
+  SCROLLBAR_WIDTH,
+} from '../../constants';
 import {
   QUALITY_FHD,
   INFO_BRIGHT,
@@ -13,6 +17,22 @@ import {
 export function getFittedWidth(aspectRatio: number): string {
   const ratio = aspectRatio.toFixed(4);
   return `min(calc(100cqw - ${PLAYER_INSET_X}px), calc((100cqh - ${PLAYER_INSET_Y}px) * ${ratio}))`;
+}
+
+/**
+ * Возвращает CSS-высоту ряда «кадр и сайдбар»: её задаёт кадр,
+ * пока хватает окна по высоте
+ */
+export function getPlayerRowHeight(
+  aspectRatio: number,
+  sidebarWidth: string,
+  reservedHeight: number,
+): string {
+  const ratio = aspectRatio.toFixed(4);
+  const byWidth = `calc((100vw - ${sidebarWidth} - ${SCROLLBAR_WIDTH}px) / ${ratio})`;
+  const byHeight = `calc(100vh - ${reservedHeight}px)`;
+
+  return `min(${byWidth}, ${byHeight})`;
 }
 
 /**

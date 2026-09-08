@@ -4,6 +4,7 @@ import {
   formatTime,
   getQualityLevel,
   getQualityTagFromResolution,
+  getPlayerRowHeight,
   getQualityTagColor,
   loadFromStorage,
   saveToStorage,
@@ -101,5 +102,25 @@ describe('loadFromStorage / saveToStorage', () => {
     localStorage.setItem('broken', '{не json');
 
     expect(loadFromStorage('broken', 'fallback')).toBe('fallback');
+  });
+});
+
+describe('getPlayerRowHeight', () => {
+  it('высоту задаёт кадр, пока хватает окна', () => {
+    const height = getPlayerRowHeight(16 / 9, '280px', 110);
+
+    expect(height).toBe(
+      'min(calc((100vw - 280px - 6px) / 1.7778), calc(100vh - 110px))',
+    );
+  });
+
+  it('резиновая ширина сайдбара подставляется как есть', () => {
+    const height = getPlayerRowHeight(16 / 9, 'clamp(280px, 17vw, 320px)', 110);
+
+    expect(height).toContain('100vw - clamp(280px, 17vw, 320px)');
+  });
+
+  it('другое соотношение меняет делитель', () => {
+    expect(getPlayerRowHeight(4 / 3, '0px', 0)).toContain('/ 1.3333)');
   });
 });
