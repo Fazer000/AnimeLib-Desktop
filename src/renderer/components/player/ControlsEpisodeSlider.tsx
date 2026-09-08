@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Box, Button, Typography, useTheme } from '@mui/material';
 import { BookmarkRounded } from '@mui/icons-material';
+import { EPISODE_CHIP_MIN_WIDTH } from '../../../constants';
 
 interface Episode {
   id: number;
@@ -216,44 +217,31 @@ function ControlsEpisodeSlider({
               sx={{
                 padding: '8px 12px',
                 mx: 1.25,
-                minWidth: '100px',
-                borderRadius: 10,
+                minWidth: `${EPISODE_CHIP_MIN_WIDTH}px`,
+                borderRadius: '6px',
                 cursor: 'pointer',
                 flex: episodes.length > 6 ? '1' : 'none',
-                backgroundColor: 'rgba(20, 20, 20, 0.45)',
+                backgroundColor: isSelected
+                  ? theme.palette.customColors.secondaryColor
+                  : `rgba(${theme.palette.customColors.onVideoSurfaceRgb}, 0.45)`,
                 border: isSelected
-                  ? `1px solid ${theme.palette.customColors.onVideoAccentColor}`
-                  : '1px solid rgba(116, 116, 128, 0.33)',
+                  ? `1px solid ${theme.palette.customColors.secondaryColor}`
+                  : `1px solid rgba(${theme.palette.customColors.neutralRgb}, 0.33)`,
                 color: isSelected
-                  ? theme.palette.customColors.onVideoAccentColor
+                  ? theme.palette.customColors.onAccentColor
                   : theme.palette.customColors.onVideoColor,
-                textAlign: 'left',
+                textAlign: 'center',
                 position: 'relative',
                 overflow: 'hidden',
                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                 '&:hover': {
                   backgroundColor: isSelected
-                    ? 'rgba(124, 58, 237, 0.07)'
-                    : 'rgba(55, 55, 55, 0.52)',
+                    ? theme.palette.customColors.accentHoverColor
+                    : `rgba(${theme.palette.customColors.onVideoElevatedRgb}, 0.52)`,
                 },
                 '&:active': {
                   transform: 'translateY(0px) scale(0.96)',
                   transition: 'all 0.1s ease',
-                },
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: isSelected
-                    ? 'linear-gradient(135deg, rgba(124, 58, 237, 0.2), transparent)'
-                    : 'transparent',
-                  borderRadius: 10,
-                  opacity: isSelected ? 1 : 0,
-                  transition: 'opacity 0.2s ease',
-                  zIndex: -1,
                 },
               }}
             >
@@ -270,7 +258,9 @@ function ControlsEpisodeSlider({
                   <BookmarkRounded
                     sx={{
                       fontSize: '0.9rem',
-                      color: theme.palette.customColors.secondaryColor,
+                      color: isSelected
+                        ? theme.palette.customColors.onAccentColor
+                        : theme.palette.customColors.secondaryColor,
                     }}
                   />
                 )}
@@ -279,14 +269,14 @@ function ControlsEpisodeSlider({
                   sx={{
                     fontWeight: 'bold',
                     color: isSelected
-                      ? theme.palette.customColors.secondaryColor
+                      ? theme.palette.customColors.onAccentColor
                       : theme.palette.customColors.onVideoColor,
                     textTransform: 'none',
                     fontSize: '0.84rem',
                     textWrap: 'nowrap',
                   }}
                 >
-                  {episode.number} эпизод
+                  {episode.number}
                 </Typography>
               </Box>
             </Button>

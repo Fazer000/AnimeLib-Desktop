@@ -7,14 +7,19 @@ import {
 } from '@mui/icons-material';
 import type { CustomColors } from '@mui/material/styles';
 import { Episode } from '../../api/animeApi';
-import { EPISODE_SLIDER_HEIGHT } from '../../../constants';
+import {
+  EPISODE_CHIP_MARGIN_BOTTOM,
+  EPISODE_CHIP_MARGIN_TOP,
+  EPISODE_CHIP_MIN_WIDTH,
+  EPISODE_SLIDER_HEIGHT,
+} from '../../../constants';
 
 const sliderButtonSx = (colors: CustomColors) => ({
   flexShrink: 0,
   width: 32,
   height: 32,
-  mt: 1.25,
-  mb: 2,
+  mt: EPISODE_CHIP_MARGIN_TOP,
+  mb: EPISODE_CHIP_MARGIN_BOTTOM,
   color: colors.accentSoftColor,
   backgroundColor: colors.primaryColor,
   border: `1px solid ${colors.lineColor}`,
@@ -273,41 +278,28 @@ function EpisodeSliderRefactored({
                 }}
                 sx={{
                   flex: episodes.length > 6 ? '1' : 'none',
-                  minWidth: '100px',
-                  borderRadius: 10,
-                  backgroundColor: theme.palette.primary.main,
+                  minWidth: `${EPISODE_CHIP_MIN_WIDTH}px`,
+                  borderRadius: '6px',
+                  backgroundColor: isSelected
+                    ? theme.palette.customColors.secondaryColor
+                    : theme.palette.primary.main,
                   border: isSelected
-                    ? `1px solid ${theme.palette.customColors.accentSoftColor}`
+                    ? `1px solid ${theme.palette.customColors.secondaryColor}`
                     : `1px solid ${theme.palette.customColors.lineColor}`,
                   cursor: 'pointer',
                   position: 'relative',
                   overflow: 'hidden',
                   transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  mt: 1.25,
-                  mb: 2,
+                  mt: EPISODE_CHIP_MARGIN_TOP,
+                  mb: EPISODE_CHIP_MARGIN_BOTTOM,
                   '&:hover': {
                     backgroundColor: isSelected
-                      ? `rgba(${theme.palette.customColors.accentRgb}, 0.2)`
+                      ? theme.palette.customColors.accentHoverColor
                       : `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.08)`,
                   },
                   '&:active': {
                     transform: 'scale(0.96)',
                     transition: 'all 0.1s ease',
-                  },
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: isSelected
-                      ? `linear-gradient(135deg, rgba(${theme.palette.customColors.accentRgb}, 0.13), transparent)`
-                      : 'transparent',
-                    borderRadius: 10,
-                    opacity: isSelected ? 1 : 0,
-                    transition: 'opacity 0.2s ease',
-                    zIndex: -1,
                   },
                 }}
               >
@@ -327,7 +319,9 @@ function EpisodeSliderRefactored({
                     <BookmarkRounded
                       sx={{
                         fontSize: '0.9rem',
-                        color: theme.palette.customColors.secondaryColor,
+                        color: isSelected
+                          ? theme.palette.customColors.onAccentColor
+                          : theme.palette.customColors.secondaryColor,
                       }}
                     />
                   )}
@@ -336,14 +330,14 @@ function EpisodeSliderRefactored({
                     sx={{
                       fontWeight: 'bold',
                       color: isSelected
-                        ? theme.palette.customColors.secondaryColor
+                        ? theme.palette.customColors.onAccentColor
                         : theme.palette.customColors.primaryTextColor,
                       textTransform: 'none',
                       fontSize: '0.84rem',
                       textWrap: 'nowrap',
                     }}
                   >
-                    {episode.number} эпизод
+                    {episode.number}
                   </Typography>
                 </Box>
               </Button>

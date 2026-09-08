@@ -11,7 +11,13 @@ import {
   ButtonBase,
   useTheme,
 } from '@mui/material';
-import { Close, Search, PlayArrowRounded } from '@mui/icons-material';
+import {
+  Close,
+  PlayArrowRounded,
+  Search,
+  SearchOff,
+} from '@mui/icons-material';
+import EmptyState from '../EmptyState';
 import { animeApi } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 
@@ -147,7 +153,7 @@ function SearchResultCard({
           display: 'flex',
           alignItems: 'center',
           flexShrink: 0,
-          borderLeft: '1px solid rgb(49, 49, 49)',
+          borderLeft: `1px solid ${customColors.lineColor}`,
         }}
       >
         <ButtonBase
@@ -155,12 +161,24 @@ function SearchResultCard({
             e.stopPropagation();
             onPlayerClick();
           }}
+          aria-label="Открыть в плеере"
           sx={{
             height: '100%',
             paddingInline: 2,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            transition: 'background-color 0.18s ease',
+            '&:hover': {
+              backgroundColor: customColors.accentQuietColor,
+              '& .search-play-icon': {
+                color: customColors.accentSoftColor,
+                transform: 'scale(1.2)',
+              },
+            },
+            '&:active .search-play-icon': {
+              transform: 'scale(0.94)',
+            },
           }}
         >
           <Box
@@ -174,9 +192,12 @@ function SearchResultCard({
             }}
           >
             <PlayArrowRounded
+              className="search-play-icon"
               sx={{
-                color: customColors.dialogTextColor,
+                color: customColors.mutedTextColor,
                 fontSize: 24,
+                transition:
+                  'color 0.18s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
               }}
             />
           </Box>
@@ -261,9 +282,10 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
         sx={{
           width: '90%',
           maxWidth: 800,
-          backgroundColor: customColors.elevatedSurfaceColor,
+          backgroundColor: customColors.dialogColor,
+          border: `1px solid ${customColors.lineColor}`,
           borderRadius: 2,
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
           outline: 'none',
           maxHeight: 'calc(100vh - 120px)',
           display: 'flex',
@@ -273,7 +295,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
         <Box
           sx={{
             padding: 1,
-            borderBottom: `1px solid ${customColors.mutedColor}`,
+            borderBottom: `1px solid ${customColors.lineColor}`,
             display: 'flex',
             alignItems: 'center',
             gap: 1.5,
@@ -326,8 +348,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
 
         <Box
           sx={{
-            borderBottom: `1px solid ${customColors.mutedColor}`,
-            backgroundColor: customColors.panelColor,
+            borderBottom: `1px solid ${customColors.lineColor}`,
           }}
         >
           <Tabs
@@ -345,12 +366,12 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
             sx={{
               minHeight: 40,
               '& .MuiTabs-indicator': {
-                backgroundColor: customColors.secondaryColor,
+                backgroundColor: customColors.accentSoftColor,
                 height: 3,
                 borderRadius: '3px 3px 0 0',
               },
               '& .MuiTab-root': {
-                color: customColors.mutedTextColor,
+                color: customColors.accentTextColor,
                 textTransform: 'none',
                 fontSize: '13px',
                 minHeight: 40,
@@ -359,8 +380,7 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
                 fontFamily: 'Open Sans, sans-serif',
                 transition: 'color 200ms',
                 '&.Mui-selected': {
-                  color: customColors.dialogTextColor,
-                  fontWeight: 600,
+                  color: customColors.accentSoftColor,
                 },
                 '&:hover': {
                   color: customColors.dialogTextColor,
@@ -401,31 +421,13 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
           )}
 
           {!isSearching && searchQuery.length === 0 && (
-            <Box
-              sx={{
-                textAlign: 'center',
-                padding: 4,
-                color: customColors.mutedTextColor,
-              }}
-            >
-              <Typography variant="body2">
-                Начните вводить для поиска
-              </Typography>
-            </Box>
+            <EmptyState icon={<Search />} text="Начните вводить для поиска" />
           )}
 
           {!isSearching &&
             searchQuery.length > 0 &&
             searchResults.length === 0 && (
-              <Box
-                sx={{
-                  textAlign: 'center',
-                  padding: 4,
-                  color: customColors.mutedTextColor,
-                }}
-              >
-                <Typography variant="body2">Ничего не найдено</Typography>
-              </Box>
+              <EmptyState icon={<SearchOff />} text="Ничего не найдено" />
             )}
 
           {searchResults.length > 0 && !isSearching && (

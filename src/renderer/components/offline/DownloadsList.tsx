@@ -28,7 +28,7 @@ import {
 } from '../../../constants';
 import { offlineStore } from '../../services/offline';
 import DialogCloseButton from '../DialogCloseButton';
-import EmptyState from './EmptyState';
+import EmptyState from '../EmptyState';
 import useDownloadSpeed from '../../hooks/useDownloadSpeed';
 import {
   formatEta,

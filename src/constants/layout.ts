@@ -71,7 +71,18 @@ export const COMMENTS_WIDTH_CSS = 'clamp(860px, 66vw, 1400px)';
 /**
  * Высота полосы эпизодов, px
  */
-export const EPISODE_SLIDER_HEIGHT = 72;
+export const EPISODE_SLIDER_HEIGHT = 74;
+
+/**
+ * Отступы чипа эпизода сверху и снизу (MUI spacing)
+ */
+export const EPISODE_CHIP_MARGIN_TOP = 3;
+export const EPISODE_CHIP_MARGIN_BOTTOM = 2;
+
+/**
+ * Минимальная ширина чипа эпизода, px
+ */
+export const EPISODE_CHIP_MIN_WIDTH = 84;
 
 /**
  * Отступ между конструкцией плеера и содержимым под ней, px
@@ -141,9 +152,10 @@ export const OFFLINE_FONT = {
 } as const;
 
 /**
- * Размер иконки пустого состояния вкладки, px
+ * Пустое состояние: размер иконки, px, и кегль подписи
  */
-export const OFFLINE_EMPTY_ICON_SIZE = 44;
+export const EMPTY_STATE_ICON_SIZE = 44;
+export const EMPTY_STATE_FONT_SIZE = '0.9rem';
 
 /**
  * Размеры иконок менеджера загрузок, px

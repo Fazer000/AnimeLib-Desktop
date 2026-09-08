@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
-import { OFFLINE_EMPTY_ICON_SIZE, OFFLINE_FONT } from '../../../constants';
+import { EMPTY_STATE_FONT_SIZE, EMPTY_STATE_ICON_SIZE } from '../../constants';
 
 interface EmptyStateProps {
   icon: ReactNode;
@@ -26,7 +26,7 @@ function EmptyState({ icon, text }: EmptyStateProps) {
         px: 4,
         color: customColors.accentTextColor,
         '& .MuiSvgIcon-root': {
-          fontSize: OFFLINE_EMPTY_ICON_SIZE,
+          fontSize: EMPTY_STATE_ICON_SIZE,
           opacity: 0.45,
         },
       }}
@@ -35,7 +35,7 @@ function EmptyState({ icon, text }: EmptyStateProps) {
 
       <Typography
         sx={{
-          fontSize: OFFLINE_FONT.caption,
+          fontSize: EMPTY_STATE_FONT_SIZE,
           color: customColors.accentTextColor,
           textAlign: 'center',
           maxWidth: 380,

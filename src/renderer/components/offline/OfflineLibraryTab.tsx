@@ -39,7 +39,7 @@ import {
 } from '../../services/offline';
 import { formatSize, sumSize } from '../../utils/offlineFormat';
 import DialogCloseButton from '../DialogCloseButton';
-import EmptyState from './EmptyState';
+import EmptyState from '../EmptyState';
 
 interface OfflineLibraryTabProps {
   anime: OfflineAnime[];
