@@ -14,6 +14,7 @@ import { Player } from '../../api/animeApi';
 import { PlayerSelectionManager } from '../../services/player/PlayerSelectionManager';
 import { SIDEBAR_WIDTH_CSS, PLAYER_TYPE_KODIK } from '../../../constants';
 import { getQualityTagColor } from '../../utils/videoHelpers';
+import TeamAvatar from './TeamAvatar';
 import ControlTooltip from './ControlTooltip';
 import HotkeysDialog from './HotkeysDialog';
 
@@ -286,6 +287,7 @@ function PlayerSidebarRefactored({
               display: 'flex',
               flexDirection: 'column',
               gap: 0,
+              px: 1,
               mt: 0.25,
             }}
           >
@@ -310,38 +312,51 @@ function PlayerSidebarRefactored({
                   }}
                   sx={{
                     width: '100%',
-                    height: '40px',
+                    minHeight: '44px',
                     gap: 1,
-                    justifyContent: 'space-between',
+                    px: 1,
+                    justifyContent: 'flex-start',
                     alignItems: 'center',
+                    textTransform: 'none',
+                    borderRadius: '4px',
+                    border: `1px solid ${
+                      isSelected
+                        ? theme.palette.customColors.lineColor
+                        : 'transparent'
+                    }`,
+                    backgroundColor: isSelected
+                      ? theme.palette.customColors.raisedColor
+                      : 'transparent',
+                    '&:hover': {
+                      backgroundColor: isSelected
+                        ? theme.palette.customColors.raisedColor
+                        : `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.06)`,
+                    },
                     '&:active': {
                       transform: 'scale(0.96)',
                       transition: 'all 0.1s ease',
                     },
                   }}
                 >
+                  <TeamAvatar
+                    name={player.team.name}
+                    coverUrl={player.team.cover?.thumbnail}
+                  />
+
                   <Typography
                     variant="body2"
                     sx={{
-                      padding: '6px 12px',
-                      borderRadius: 2,
-                      width: '100%',
+                      flex: 1,
                       textAlign: 'left',
                       fontWeight: 500,
                       color: isSelected
-                        ? theme.palette.customColors.secondaryTextColor
+                        ? theme.palette.customColors.accentSoftColor
                         : theme.palette.customColors.primaryTextColor,
                       fontSize: '0.8125rem',
                       minWidth: 0,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
-                      backgroundColor: isSelected
-                        ? 'rgba(116, 116, 128, .1)'
-                        : 'transparent',
-                      '&:hover': {
-                        backgroundColor: 'rgba(116, 116, 128, .1)',
-                      },
                     }}
                   >
                     {player.team.name}
@@ -359,9 +374,9 @@ function PlayerSidebarRefactored({
                       <Box
                         sx={{
                           color: theme.palette.customColors.primaryTextColor,
-                          backgroundColor: 'rgba(116, 116, 128, 0.24)',
+                          backgroundColor: `rgba(${theme.palette.customColors.neutralRgb}, 0.24)`,
                           padding: '2px 8px',
-                          borderRadius: 2,
+                          borderRadius: '3px',
                           fontSize: '0.625rem',
                           fontWeight: 700,
                           letterSpacing: '0.03em',
@@ -376,7 +391,7 @@ function PlayerSidebarRefactored({
                         sx={{
                           color: getQualityTagColor(qualityTag),
                           padding: '2px 8px',
-                          borderRadius: 2,
+                          borderRadius: '3px',
                           fontSize: '0.625rem',
                           fontWeight: 700,
                           border: `1px solid ${getQualityTagColor(qualityTag)}59`,

@@ -557,6 +557,7 @@ function PlayerPageRefactored({
               overflow: 'hidden',
               position: 'relative',
               zIndex: 1,
+              borderBottom: `1px solid ${customColors.lineColor}`,
               containerType: 'size',
             }}
           >

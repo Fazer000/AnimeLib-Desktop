@@ -85,6 +85,11 @@ export const EPISODE_CHIP_MARGIN_BOTTOM = 2;
 export const EPISODE_CHIP_MIN_WIDTH = 84;
 
 /**
+ * Размер логотипа команды озвучки в сайдбаре, px
+ */
+export const PLAYER_TEAM_AVATAR_SIZE = 32;
+
+/**
  * Отступ между конструкцией плеера и содержимым под ней, px
  */
 export const PLAYER_CONTENT_GAP = 64;
