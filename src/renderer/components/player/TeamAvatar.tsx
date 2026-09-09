@@ -21,7 +21,7 @@ function TeamAvatar({ name, coverUrl }: TeamAvatarProps) {
         width: PLAYER_TEAM_AVATAR_SIZE,
         height: PLAYER_TEAM_AVATAR_SIZE,
         flexShrink: 0,
-        borderRadius: '50%',
+        borderRadius: '6px',
         overflow: 'hidden',
         display: 'flex',
         alignItems: 'center',

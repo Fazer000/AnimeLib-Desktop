@@ -10,12 +10,17 @@ import type { CustomColors } from '@mui/material/styles';
 import { ChevronLeft, ChevronRight } from '../icons';
 import { RelatedAnime as RelatedAnimeType } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
-import { RELATED_WIDTH_CSS } from '../../../constants';
+import {
+  RELATED_ARROW_SIZE,
+  RELATED_ROW_GAP,
+  RELATED_ROW_PADDING,
+  RELATED_WIDTH_CSS,
+} from '../../../constants';
 
 const scrollButtonSx = (colors: CustomColors) => ({
   flexShrink: 0,
-  width: 40,
-  height: 40,
+  width: RELATED_ARROW_SIZE,
+  height: RELATED_ARROW_SIZE,
   color: colors.primaryTextColor,
   backgroundColor: colors.primaryColor,
   border: `1px solid ${colors.lineColor}`,
@@ -273,7 +278,7 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
       <Box
         sx={{
           marginBottom: 2,
-          paddingLeft: 2,
+          paddingLeft: `${RELATED_ROW_PADDING + RELATED_ARROW_SIZE + RELATED_ROW_GAP}px`,
         }}
       >
         <Typography
@@ -288,7 +293,14 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
         </Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: `${RELATED_ROW_GAP}px`,
+          px: `${RELATED_ROW_PADDING}px`,
+        }}
+      >
         <IconButton
           onClick={() => scroll('left')}
           aria-label="Предыдущие"

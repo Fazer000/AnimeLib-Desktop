@@ -257,6 +257,7 @@ function ControlsEpisodeSlider({
                 {hasBookmark && (
                   <Bookmark
                     sx={{
+                      fill: 'currentColor',
                       fontSize: '0.9rem',
                       color: isSelected
                         ? theme.palette.customColors.onAccentColor

@@ -63,6 +63,13 @@ export const SIDEBAR_WIDTH = SIDEBAR_MIN_WIDTH;
 export const RELATED_WIDTH_CSS = 'clamp(1200px, 96vw, 2000px)';
 
 /**
+ * Стрелка прокрутки связанного: размер и зазор до ленты, px
+ */
+export const RELATED_ARROW_SIZE = 40;
+export const RELATED_ROW_PADDING = 16;
+export const RELATED_ROW_GAP = 8;
+
+/**
  * Резиновая ширина комментариев: нижняя граница держит читаемую строку,
  * верхняя не даёт строке уйти за сотню знаков
  */

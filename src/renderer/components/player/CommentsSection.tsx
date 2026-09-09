@@ -142,12 +142,19 @@ const CommentsSection = memo(
                 onClick={() => setSettingsOpen(true)}
                 startIcon={<SlidersHorizontal sx={{ fontSize: 18 }} />}
                 sx={{
-                  color: theme.palette.customColors.accentTextColor,
+                  color: theme.palette.customColors.primaryTextColor,
                   backgroundColor: theme.palette.customColors.mutedColor,
+                  border: `1px solid rgba(${theme.palette.customColors.onSurfaceRgb}, 0.19)`,
                   borderRadius: 2,
                   textTransform: 'none',
                   fontSize: '0.875rem',
                   px: 1.5,
+                  transition:
+                    'border-color 0.15s ease, background-color 0.15s ease',
+                  '&:hover': {
+                    backgroundColor: theme.palette.customColors.mutedColor,
+                    borderColor: `rgba(${theme.palette.customColors.accentRgb}, 0.31)`,
+                  },
                 }}
               >
                 Настройки

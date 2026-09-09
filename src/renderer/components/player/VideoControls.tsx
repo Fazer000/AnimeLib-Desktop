@@ -47,11 +47,13 @@ const ICON_SX = { fontSize: `${PLAYER_CONTROL_ICON_SIZE}px` };
 
 const cornerButtonSx = (colors: CustomColors, active: boolean) => ({
   padding: 0.75,
-  color: active ? colors.onVideoAccentColor : colors.onVideoMutedColor,
-  transition: 'color 0.18s ease',
+  borderRadius: 2,
+  color: active ? colors.onVideoAccentColor : colors.whiteColor,
+  transition: 'all 0.2s ease',
   '&:hover': {
-    color: active ? colors.onVideoAccentColor : colors.onVideoColor,
-    backgroundColor: 'transparent',
+    backgroundColor: `rgba(${colors.onSurfaceRgb}, 0.1)`,
+    transform: 'scale(1.1)',
+    color: colors.onVideoAccentColor,
   },
 });
 
@@ -275,7 +277,7 @@ function VideoControls({
     border: '1px solid rgba(116, 116, 128, 0.33)',
     color: theme.palette.customColors.onVideoColor,
     padding: 1,
-    borderRadius: 4,
+    borderRadius: '8px',
     '&:hover': {
       backgroundColor: 'rgba(55, 55, 55, 0.52)',
     },
@@ -384,11 +386,11 @@ function VideoControls({
               onSkipSegment();
             }}
             sx={{
-              backgroundColor: 'rgba(20, 20, 20, 0.45)',
-              border: '1px solid rgba(116, 116, 128, 0.33)',
+              backgroundColor: `rgba(${theme.palette.customColors.onVideoSurfaceRgb}, 0.45)`,
+              border: `1px solid rgba(${theme.palette.customColors.neutralRgb}, 0.33)`,
               color: theme.palette.customColors.onVideoColor,
               padding: '10px 20px',
-              borderRadius: 2,
+              borderRadius: '8px',
               cursor: 'pointer',
               fontSize: '14px',
               fontWeight: 500,
@@ -396,7 +398,7 @@ function VideoControls({
               py: 0.5,
               transition: 'all 0.2s ease',
               '&:hover': {
-                backgroundColor: 'rgba(116, 116, 128, 0.3)',
+                backgroundColor: `rgba(${theme.palette.customColors.neutralRgb}, 0.3)`,
               },
               '&:active': {
                 transform: 'scale(0.96)',
@@ -574,7 +576,12 @@ function VideoControls({
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  <Bookmark sx={ICON_SX} />
+                  <Bookmark
+                    sx={{
+                      ...ICON_SX,
+                      fill: hasBookmark ? 'currentColor' : 'none',
+                    }}
+                  />
                 </IconButton>
               </ControlTooltip>
             )}
