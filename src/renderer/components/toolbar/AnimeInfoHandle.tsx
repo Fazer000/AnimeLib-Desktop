@@ -1,46 +1,34 @@
 import React from 'react';
-import { Box } from '@mui/material';
-import { ChevronDown } from '../icons';
-import { WHITE } from '../../theme/palette';
+import { Box, useTheme } from '@mui/material';
+import { ANIME_HANDLE_HEIGHT, ANIME_HANDLE_WIDTH } from '../../../constants';
 
 interface AnimeInfoHandleProps {
+  top: number;
   hidden: boolean;
 }
 
 /**
- * Язычок-подсказка, обозначающий зону вызова карточки аниме
+ * Полоска на нижней границе шапки, обозначающая зону вызова карточки аниме
  */
-function AnimeInfoHandle({ hidden }: AnimeInfoHandleProps) {
+function AnimeInfoHandle({ top, hidden }: AnimeInfoHandleProps) {
+  const { customColors } = useTheme().palette;
+
   return (
     <Box
       sx={{
         position: 'absolute',
-        top: 0,
+        top,
         left: '50%',
         transform: 'translateX(-50%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 46,
-        height: 22,
-        borderRadius: '0 0 50% 50% / 0 0 100% 100%',
-        backgroundColor: 'rgba(124, 58, 237, 0.85)',
-        border: '1px solid rgba(124, 58, 237, 0.5)',
-        borderTop: 'none',
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.45)',
+        width: ANIME_HANDLE_WIDTH,
+        height: ANIME_HANDLE_HEIGHT,
+        borderRadius: `${ANIME_HANDLE_HEIGHT}px`,
+        backgroundColor: customColors.secondaryColor,
         pointerEvents: 'none',
         opacity: hidden ? 0 : 1,
         transition: 'opacity 0.2s ease',
       }}
-    >
-      <ChevronDown
-        sx={{
-          fontSize: 16,
-          color: WHITE,
-          mt: -0.25,
-        }}
-      />
-    </Box>
+    />
   );
 }
 

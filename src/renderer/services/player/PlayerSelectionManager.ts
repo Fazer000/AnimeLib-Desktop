@@ -274,6 +274,24 @@ export class PlayerSelectionManager {
   }
 
   /**
+   * Фильтрует плееры по подстроке в названии озвучки
+   */
+  public static filterPlayersByQuery(
+    players: Player[],
+    query: string,
+  ): Player[] {
+    const needle = query.trim().toLowerCase();
+
+    if (!needle) {
+      return players;
+    }
+
+    return players.filter((player) =>
+      (player.team?.name || '').toLowerCase().includes(needle),
+    );
+  }
+
+  /**
    * Clear all preferences
    */
   public clearPreferences(): void {

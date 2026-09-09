@@ -3,6 +3,12 @@ import { Box, Typography, CircularProgress, useTheme } from '@mui/material';
 import { Star } from '../icons';
 import { animeApi, AnimeInfo } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
+import {
+  ANIME_CARD_COVER_HEIGHT,
+  ANIME_CARD_COVER_WIDTH,
+  ANIME_CARD_MAX_WIDTH,
+  ANIME_CARD_MIN_WIDTH,
+} from '../../../constants';
 
 import { createLogger } from '../../../shared/logger';
 
@@ -10,6 +16,7 @@ const log = createLogger('AnimeInfoCard');
 
 interface AnimeInfoCardProps {
   animeId: string;
+  topOffset: number;
   isVisible: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
@@ -17,8 +24,12 @@ interface AnimeInfoCardProps {
   onClick?: () => void;
 }
 
+/**
+ * Карточка аниме, выезжающая из-под шапки приложения
+ */
 function AnimeInfoCard({
   animeId,
+  topOffset,
   isVisible,
   onMouseEnter,
   onMouseLeave,
@@ -48,271 +59,225 @@ function AnimeInfoCard({
     loadAnimeInfo();
   }, [isVisible, animeId, animeInfo]);
 
-  if (!isVisible) return null;
-  if (loading || !animeInfo) {
+  if (!animeInfo && !loading) return null;
+
+  const panelSx = {
+    position: 'fixed' as const,
+    top: topOffset,
+    left: 0,
+    right: 0,
+    zIndex: 1200,
+    backgroundColor: customColors.headerColor,
+    borderBottom: `1px solid ${customColors.lineColor}`,
+    transform: isVisible ? 'translateY(0)' : 'translateY(-100%)',
+    transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+    pointerEvents: isVisible ? ('auto' as const) : ('none' as const),
+  };
+
+  if (!animeInfo) {
     return (
       <Box
         sx={{
-          position: 'fixed',
-          top: 40,
-          left: 0,
-          right: 0,
-          zIndex: 9999,
+          ...panelSx,
           display: 'flex',
           justifyContent: 'center',
-          pointerEvents: 'none',
+          alignItems: 'center',
+          minHeight: ANIME_CARD_COVER_HEIGHT,
         }}
       >
-        <Box
-          sx={{
-            width: 320,
-            backgroundColor: `rgba(${customColors.headerRgb}, 0.92)`,
-            backdropFilter: 'blur(10px)',
-            borderRadius: 2,
-            padding: 3,
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
-            border: `1px solid rgba(${customColors.neutralRgb}, 0.2)`,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <CircularProgress
-            size={30}
-            sx={{ color: customColors.accentSoftColor }}
-          />
-        </Box>
+        <CircularProgress
+          size={30}
+          sx={{ color: customColors.accentSoftColor }}
+        />
       </Box>
     );
   }
 
   return (
     <Box
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       sx={{
-        position: 'fixed',
-        top: 50,
-        left: 0,
-        right: 0,
-        zIndex: 9999,
+        ...panelSx,
         display: 'flex',
         justifyContent: 'center',
-        pointerEvents: 'none',
-        animation: 'fadeInDown 0.2s ease-out',
-        '@keyframes fadeInDown': {
-          '0%': {
-            opacity: 0,
-            transform: 'translateY(-10px)',
-          },
-          '100%': {
-            opacity: 1,
-            transform: 'translateY(0)',
-          },
-        },
+        padding: 1.5,
       }}
     >
       <Box
         onClick={onClick}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
         sx={{
-          width: 'fit-content',
-          minWidth: '25vw',
-          maxWidth: '50vw',
-          pointerEvents: 'auto',
-          backgroundColor: `rgba(${customColors.headerRgb}, 0.92)`,
-          backdropFilter: 'blur(10px)',
-          border: `1px solid rgba(${customColors.neutralRgb}, 0.35)`,
+          display: 'flex',
+          gap: 3,
+          alignItems: 'center',
+          minWidth: ANIME_CARD_MIN_WIDTH,
+          maxWidth: ANIME_CARD_MAX_WIDTH,
+          padding: 1,
           borderRadius: 2,
-          padding: 2.5,
+          border: '1px solid transparent',
           cursor: onClick ? 'pointer' : 'default',
           transition: 'background-color 0.2s ease, border-color 0.2s ease',
           '&:hover': onClick
             ? {
-                backgroundColor: customColors.headerColor,
-                borderColor: `rgba(${customColors.accentRgb}, 0.4)`,
+                backgroundColor: `rgba(${customColors.accentRgb}, 0.14)`,
+                borderColor: `rgba(${customColors.accentRgb}, 0.5)`,
               }
             : undefined,
         }}
       >
         <Box
           sx={{
-            display: 'flex',
-            gap: 3,
-            justifyContent: 'center',
-            alignItems: 'center',
+            width: ANIME_CARD_COVER_WIDTH,
+            height: ANIME_CARD_COVER_HEIGHT,
+            borderRadius: 2,
+            overflow: 'hidden',
+            flexShrink: 0,
+            border: `1px solid ${customColors.lineColor}`,
           }}
         >
-          <Box
+          <img
+            src={coverUrl || animeInfo.cover.default}
+            alt={animeInfo.rus_name || animeInfo.name}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+        </Box>
+
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1,
+            minWidth: 0,
+            justifyContent: 'center',
+          }}
+        >
+          <Typography
+            variant="h5"
             sx={{
-              width: 120,
-              height: 180,
-              borderRadius: 2,
+              color: customColors.dialogTextColor,
+              fontWeight: 600,
+              fontSize: '1.5rem',
+              lineHeight: 1.2,
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: 2,
               overflow: 'hidden',
-              flexShrink: 0,
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
             }}
           >
-            <img
-              src={coverUrl || animeInfo.cover.default}
-              alt={animeInfo.rus_name || animeInfo.name}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-              }}
-            />
-          </Box>
+            {animeInfo.rus_name || animeInfo.name}
+          </Typography>
 
           <Box
             sx={{
               display: 'flex',
-              flexDirection: 'row',
-              gap: 1.5,
-              minWidth: 0,
+              gap: 2,
+              flexWrap: 'wrap',
+              alignItems: 'center',
             }}
           >
-            <Box
+            <Typography
               sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 1,
-                minWidth: 0,
-                justifyContent: 'center',
+                color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
+                fontSize: '0.875rem',
               }}
             >
-              <Typography
-                variant="h5"
-                sx={{
-                  color: customColors.dialogTextColor,
-                  fontWeight: 600,
-                  fontSize: '1.5rem',
-                  lineHeight: 1.2,
-                  display: '-webkit-box',
-                  WebkitBoxOrient: 'vertical',
-                  WebkitLineClamp: 2,
-                  overflow: 'hidden',
-                }}
-              >
-                {animeInfo.rus_name || animeInfo.name}
-              </Typography>
+              {animeInfo.type.label}
+            </Typography>
 
-              <Box
-                sx={{
-                  display: 'flex',
-                  gap: 2,
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                }}
-              >
+            <Box
+              sx={{
+                width: 4,
+                height: 4,
+                borderRadius: '50%',
+                backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
+              }}
+            />
+
+            <Typography
+              sx={{
+                color:
+                  animeInfo.status.id === 2
+                    ? customColors.successColor
+                    : customColors.warningColor,
+                fontSize: '0.875rem',
+                fontWeight: 500,
+              }}
+            >
+              {animeInfo.status.label}
+            </Typography>
+
+            <Box
+              sx={{
+                width: 4,
+                height: 4,
+                borderRadius: '50%',
+                backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
+              }}
+            />
+
+            <Typography
+              sx={{
+                color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
+                fontSize: '0.875rem',
+              }}
+            >
+              {animeInfo.releaseDateString}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Star sx={{ color: customColors.warningColor, fontSize: 20 }} />
+            <Typography
+              sx={{
+                color: customColors.dialogTextColor,
+                fontSize: '1.125rem',
+                fontWeight: 600,
+              }}
+            >
+              {animeInfo.rating.averageFormated}
+            </Typography>
+            <Typography
+              sx={{
+                color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
+                fontSize: '0.875rem',
+              }}
+            >
+              {animeInfo.rating.votesFormated}
+            </Typography>
+            {animeInfo.ageRestriction && (
+              <>
                 <Box
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5,
+                    width: 4,
+                    height: 4,
+                    borderRadius: '50%',
+                    backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
+                  }}
+                />
+                <Box
+                  sx={{
+                    padding: '2px 8px',
+                    backgroundColor: `rgba(${customColors.dangerRgb}, 0.2)`,
+                    border: `1px solid rgba(${customColors.dangerRgb}, 0.4)`,
+                    borderRadius: 1,
                   }}
                 >
                   <Typography
                     sx={{
-                      color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
-                      fontSize: '0.875rem',
+                      color: customColors.dangerColor,
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
                     }}
                   >
-                    {animeInfo.type.label}
+                    {animeInfo.ageRestriction.label}
                   </Typography>
                 </Box>
-
-                <Box
-                  sx={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: '50%',
-                    backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
-                  }}
-                />
-
-                <Typography
-                  sx={{
-                    color:
-                      animeInfo.status.id === 2
-                        ? customColors.successColor
-                        : customColors.warningColor,
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                  }}
-                >
-                  {animeInfo.status.label}
-                </Typography>
-
-                <Box
-                  sx={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: '50%',
-                    backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
-                  }}
-                />
-
-                <Typography
-                  sx={{
-                    color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
-                    fontSize: '0.875rem',
-                  }}
-                >
-                  {animeInfo.releaseDateString}
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Star sx={{ color: customColors.warningColor, fontSize: 20 }} />
-                <Typography
-                  sx={{
-                    color: customColors.dialogTextColor,
-                    fontSize: '1.125rem',
-                    fontWeight: 600,
-                  }}
-                >
-                  {animeInfo.rating.averageFormated}
-                </Typography>
-                <Typography
-                  sx={{
-                    color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
-                    fontSize: '0.875rem',
-                  }}
-                >
-                  {animeInfo.rating.votesFormated}
-                </Typography>
-                {animeInfo.ageRestriction && (
-                  <>
-                    <Box
-                      sx={{
-                        width: 4,
-                        height: 4,
-                        borderRadius: '50%',
-                        backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
-                      }}
-                    />
-                    <Box
-                      sx={{
-                        padding: '2px 8px',
-                        backgroundColor: `rgba(${customColors.dangerRgb}, 0.2)`,
-                        border: `1px solid rgba(${customColors.dangerRgb}, 0.4)`,
-                        borderRadius: 1,
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          color: customColors.dangerColor,
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                        }}
-                      >
-                        {animeInfo.ageRestriction.label}
-                      </Typography>
-                    </Box>
-                  </>
-                )}
-              </Box>
-            </Box>
+              </>
+            )}
           </Box>
         </Box>
       </Box>

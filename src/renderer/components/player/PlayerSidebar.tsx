@@ -8,11 +8,18 @@ import {
   useTheme,
   Tabs,
   Tab,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
-import { Keyboard } from '../icons';
+import { Keyboard, Search, X } from '../icons';
 import { Player } from '../../api/animeApi';
 import { PlayerSelectionManager } from '../../services/player/PlayerSelectionManager';
-import { SIDEBAR_WIDTH_CSS, PLAYER_TYPE_KODIK } from '../../../constants';
+import {
+  SIDEBAR_WIDTH_CSS,
+  PLAYER_TYPE_KODIK,
+  SIDEBAR_SEARCH_HEIGHT,
+  SIDEBAR_SEARCH_ICON_SIZE,
+} from '../../../constants';
 import { getQualityTagColor } from '../../utils/videoHelpers';
 import TeamAvatar from './TeamAvatar';
 import ControlTooltip from './ControlTooltip';
@@ -42,10 +49,16 @@ function PlayerSidebarRefactored({
 }: PlayerSidebarProps) {
   const theme = useTheme();
   const [hotkeysOpen, setHotkeysOpen] = useState<boolean>(false);
+  const [query, setQuery] = useState<string>('');
 
   const groupedPlayers = PlayerSelectionManager.groupPlayersByType(players);
   const sortedPlayerTypes =
     PlayerSelectionManager.getSortedPlayerTypes(groupedPlayers);
+
+  const visiblePlayers = PlayerSelectionManager.filterPlayersByQuery(
+    groupedPlayers[selectedPlayerType] || [],
+    query,
+  );
 
   const currentTabIndex = sortedPlayerTypes.indexOf(selectedPlayerType);
   const tabValue = currentTabIndex >= 0 ? currentTabIndex : 0;
@@ -233,6 +246,60 @@ function PlayerSidebarRefactored({
             ))}
           </Tabs>
         </Box>
+
+        <Box sx={{ px: 1, pt: 1, pb: 1 }}>
+          <TextField
+            size="small"
+            fullWidth
+            value={query}
+            placeholder="Поиск озвучки"
+            onChange={(event) => setQuery(event.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search
+                    sx={{
+                      fontSize: SIDEBAR_SEARCH_ICON_SIZE,
+                      color: `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.45)`,
+                    }}
+                  />
+                </InputAdornment>
+              ),
+              endAdornment: query ? (
+                <InputAdornment position="end">
+                  <IconButton
+                    size="small"
+                    aria-label="Очистить поиск"
+                    onClick={() => setQuery('')}
+                    sx={{ p: 0.25 }}
+                  >
+                    <X sx={{ fontSize: SIDEBAR_SEARCH_ICON_SIZE }} />
+                  </IconButton>
+                </InputAdornment>
+              ) : null,
+            }}
+            sx={{
+              '& .MuiInputBase-root': {
+                height: SIDEBAR_SEARCH_HEIGHT,
+                fontSize: '0.8125rem',
+                borderRadius: '6px',
+                color: theme.palette.customColors.primaryTextColor,
+              },
+              '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+                borderColor: theme.palette.customColors.borderColor,
+              },
+              '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline':
+                {
+                  borderColor: theme.palette.customColors.accentSoftColor,
+                },
+              '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+                {
+                  borderColor: theme.palette.customColors.accentSoftColor,
+                  borderWidth: 1,
+                },
+            }}
+          />
+        </Box>
       </Box>
       <Box
         sx={{
@@ -281,7 +348,7 @@ function PlayerSidebarRefactored({
           </Box>
         )}
 
-        {selectedPlayerType && groupedPlayers[selectedPlayerType] && (
+        {selectedPlayerType && visiblePlayers.length > 0 && (
           <Box
             sx={{
               display: 'flex',
@@ -291,7 +358,7 @@ function PlayerSidebarRefactored({
               mt: 0.25,
             }}
           >
-            {groupedPlayers[selectedPlayerType].map((player) => {
+            {visiblePlayers.map((player) => {
               const maxQuality = PlayerSelectionManager.getMaxQuality(player);
               const qualityTag =
                 PlayerSelectionManager.getQualityTag(maxQuality) ||
@@ -404,6 +471,27 @@ function PlayerSidebarRefactored({
                 </Button>
               );
             })}
+          </Box>
+        )}
+
+        {players.length > 0 && visiblePlayers.length === 0 && !loading && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: 3,
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{
+                color: theme.palette.customColors.accentTextColor,
+                textAlign: 'center',
+              }}
+            >
+              Ничего не найдено
+            </Typography>
           </Box>
         )}
 

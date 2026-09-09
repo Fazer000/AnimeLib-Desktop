@@ -211,3 +211,51 @@ describe('PlayerSelectionManager: качество и вид перевода', 
     expect(PlayerSelectionManager.isSubtitlesOnly(subs('Озвучка'))).toBe(false);
   });
 });
+
+describe('PlayerSelectionManager: поиск озвучки', () => {
+  const list = [
+    player('Animelib', 'AniLibria'),
+    player('Animelib', 'AniDub'),
+    player('Animelib', 'SHIZA Project'),
+  ];
+
+  it('пустой запрос возвращает исходный список', () => {
+    expect(PlayerSelectionManager.filterPlayersByQuery(list, '')).toEqual(list);
+    expect(PlayerSelectionManager.filterPlayersByQuery(list, '   ')).toEqual(
+      list,
+    );
+  });
+
+  it('подстрока ищется без учёта регистра и краевых пробелов', () => {
+    const found = PlayerSelectionManager.filterPlayersByQuery(list, '  ShIzA ');
+
+    expect(found.map((item) => item.team.name)).toEqual(['SHIZA Project']);
+  });
+
+  it('совпадение по началу названия отдаёт все подходящие озвучки', () => {
+    const found = PlayerSelectionManager.filterPlayersByQuery(list, 'ani');
+
+    expect(found.map((item) => item.team.name)).toEqual([
+      'AniLibria',
+      'AniDub',
+    ]);
+  });
+
+  it('отсутствие совпадений даёт пустой список', () => {
+    expect(PlayerSelectionManager.filterPlayersByQuery(list, 'нет')).toEqual(
+      [],
+    );
+  });
+
+  it('плеер без названия команды не ломает поиск', () => {
+    const broken = [
+      { id: 1, player: 'Animelib', team: {} },
+    ] as unknown as Parameters<
+      typeof PlayerSelectionManager.filterPlayersByQuery
+    >[0];
+
+    expect(PlayerSelectionManager.filterPlayersByQuery(broken, 'ani')).toEqual(
+      [],
+    );
+  });
+});

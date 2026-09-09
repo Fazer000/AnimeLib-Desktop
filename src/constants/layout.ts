@@ -53,6 +53,56 @@ export const SIDEBAR_PREFERRED_WIDTH = '17vw';
 export const SIDEBAR_WIDTH_CSS = `clamp(${SIDEBAR_MIN_WIDTH}px, ${SIDEBAR_PREFERRED_WIDTH}, ${SIDEBAR_MAX_WIDTH}px)`;
 
 /**
+ * Ширина полоски-язычка карточки аниме в шапке, px
+ */
+export const ANIME_HANDLE_WIDTH = 54;
+
+/**
+ * Толщина полоски-язычка карточки аниме, px
+ */
+export const ANIME_HANDLE_HEIGHT = 5;
+
+/**
+ * Ширина зоны наведения, вызывающей карточку аниме, px
+ */
+export const ANIME_HANDLE_HOVER_WIDTH = 180;
+
+/**
+ * Насколько зона наведения выступает ниже шапки, px
+ */
+export const ANIME_HANDLE_HOVER_OVERHANG = 40;
+
+/**
+ * Нижняя граница ширины карточки аниме
+ */
+export const ANIME_CARD_MIN_WIDTH = '25vw';
+
+/**
+ * Верхняя граница ширины карточки аниме
+ */
+export const ANIME_CARD_MAX_WIDTH = '50vw';
+
+/**
+ * Ширина обложки в карточке аниме, px
+ */
+export const ANIME_CARD_COVER_WIDTH = 100;
+
+/**
+ * Высота обложки в карточке аниме, px
+ */
+export const ANIME_CARD_COVER_HEIGHT = 150;
+
+/**
+ * Высота поля поиска озвучек в сайдбаре, px
+ */
+export const SIDEBAR_SEARCH_HEIGHT = 32;
+
+/**
+ * Кегль иконок в поле поиска озвучек, px
+ */
+export const SIDEBAR_SEARCH_ICON_SIZE = 16;
+
+/**
  * Ширина сайдбара для расчёта минимума окна (нижняя граница clamp), px
  */
 export const SIDEBAR_WIDTH = SIDEBAR_MIN_WIDTH;

@@ -8,6 +8,11 @@ import AnimeInfoCard from './toolbar/AnimeInfoCard';
 import AnimeInfoHandle from './toolbar/AnimeInfoHandle';
 import SearchModal from './toolbar/SearchModal';
 import { buildAnimePageUrl } from '../utils/urlHelpers';
+import {
+  ANIME_HANDLE_HEIGHT,
+  ANIME_HANDLE_HOVER_OVERHANG,
+  ANIME_HANDLE_HOVER_WIDTH,
+} from '../../constants';
 
 import { createLogger } from '../../shared/logger';
 
@@ -222,23 +227,27 @@ function ToolbarRefactored({
           onMouseLeave={handleHideAnimeInfo}
           sx={{
             position: 'fixed',
-            top: 32,
-            left: 0,
-            right: 0,
-            height: 190,
-            zIndex: 999,
-            margin: '0 auto',
-            width: 480,
-            pointerEvents: 'auto',
+            top: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: ANIME_HANDLE_HOVER_WIDTH,
+            height: height + ANIME_HANDLE_HOVER_OVERHANG,
+            zIndex: 1400,
+            WebkitAppRegion: 'no-drag',
+            appRegion: 'no-drag',
           }}
         >
-          <AnimeInfoHandle hidden={showAnimeInfo || hideAnimeHandle} />
+          <AnimeInfoHandle
+            top={height - ANIME_HANDLE_HEIGHT / 2}
+            hidden={showAnimeInfo || hideAnimeHandle}
+          />
         </Box>
       )}
 
       {animeId && (
         <AnimeInfoCard
           animeId={animeId}
+          topOffset={height}
           isVisible={showAnimeInfo}
           onMouseEnter={handleShowAnimeInfo}
           onMouseLeave={handleHideAnimeInfo}
