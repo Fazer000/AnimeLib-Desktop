@@ -87,6 +87,23 @@ export const SUBTITLES_STORAGE_KEY = 'animeLibSubtitlesSettings';
 /**
  * Доступные масштабы шрифта субтитров
  */
+/**
+ * Шкала времени перемотки: шаг, потолок и цена деления, сек
+ */
+/**
+ * Ширина меню настроек, px
+ */
+export const SETTINGS_MENU_WIDTH = 300;
+
+/**
+ * Боковой отступ содержимого меню настроек (MUI spacing)
+ */
+export const SETTINGS_MENU_PADDING_X = 2.5;
+
+export const SKIP_TIME_STEP = 5;
+export const SKIP_TIME_MAX = 300;
+export const SKIP_TIME_MARK_STEP = 60;
+
 export const SUBTITLES_FONT_SCALES = [0.75, 1, 1.25, 1.5, 2];
 
 /**

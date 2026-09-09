@@ -1,7 +1,6 @@
-import { Box, useTheme } from '@mui/material';
-import { Gauge } from '../../icons';
-import { OptionRow, PageHeader } from './rows';
-import { MENU_ICON_SIZE } from './styles';
+import { Box } from '@mui/material';
+import { PageHeader } from './rows';
+import SettingSlider from './SettingSlider';
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
@@ -13,34 +12,25 @@ interface SpeedPageProps {
 
 /** Выбор скорости воспроизведения. */
 function SpeedPage({ playbackRate, onSelect, onBack }: SpeedPageProps) {
-  const { customColors } = useTheme().palette;
+  const index = Math.max(0, SPEEDS.indexOf(playbackRate));
+
   return (
     <Box>
       <PageHeader title="Скорость" onBack={onBack} />
 
-      {SPEEDS.map((speed) => {
-        const selected = speed === playbackRate;
-
-        return (
-          <OptionRow
-            key={speed}
-            label={`${speed}x`}
-            selected={selected}
-            onSelect={() => onSelect(speed)}
-            leading={
-              <Gauge
-                sx={{
-                  fontSize: MENU_ICON_SIZE,
-                  color: selected
-                    ? customColors.onVideoAccentColor
-                    : customColors.onVideoMutedColor,
-                  opacity: 0.7,
-                }}
-              />
-            }
-          />
-        );
-      })}
+      <SettingSlider
+        label="Текущая"
+        valueLabel={`${SPEEDS[index]}x`}
+        value={index}
+        min={0}
+        max={SPEEDS.length - 1}
+        step={1}
+        marks={SPEEDS.map((speed, position) => ({
+          value: position,
+          label: `${speed}x`,
+        }))}
+        onChange={(next) => onSelect(SPEEDS[next])}
+      />
     </Box>
   );
 }

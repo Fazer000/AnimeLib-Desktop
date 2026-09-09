@@ -4,10 +4,10 @@ import { SWITCH_SKIP_SX } from './styles';
 import type { AutoSkipSettings } from './types';
 
 const TOGGLES: Array<{ key: keyof AutoSkipSettings; title: string }> = [
-  { key: 'skipOpenings', title: 'Пропускать опенинги' },
-  { key: 'skipEndings', title: 'Пропускать эндинги' },
-  { key: 'skipCompilations', title: 'Пропускать компиляции' },
-  { key: 'skipSplashScreens', title: 'Пропускать заставки' },
+  { key: 'skipOpenings', title: 'Опенинги' },
+  { key: 'skipEndings', title: 'Эндинги' },
+  { key: 'skipCompilations', title: 'Компиляции' },
+  { key: 'skipSplashScreens', title: 'Заставки' },
 ];
 
 interface AutoSkipPageProps {

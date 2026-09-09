@@ -1,10 +1,12 @@
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box } from '@mui/material';
 import { SkipManager } from '../../../services/player';
-import { ChipGroup, PageHeader } from './rows';
-import { CHIP_QUARTER_SX, CHIP_THIRD_SX } from './styles';
-
-const MINUTES = [0, 1, 2, 3, 4, 5];
-const SECONDS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+import { PageHeader } from './rows';
+import SettingSlider from './SettingSlider';
+import {
+  SKIP_TIME_MARK_STEP,
+  SKIP_TIME_MAX,
+  SKIP_TIME_STEP,
+} from '../../../../constants';
 
 interface SkipPageProps {
   skipManager: SkipManager;
@@ -12,75 +14,34 @@ interface SkipPageProps {
   onBack: () => void;
 }
 
+const MARKS = Array.from(
+  { length: SKIP_TIME_MAX / SKIP_TIME_MARK_STEP + 1 },
+  (unused, index) => {
+    const value = index * SKIP_TIME_MARK_STEP;
+
+    return { value, label: value === 0 ? '0' : `${value / 60} мин` };
+  },
+);
+
 /** Настройка шага перемотки. */
 function SkipPage({ skipManager, onSkipTimeChange, onBack }: SkipPageProps) {
-  const { customColors } = useTheme().palette;
   return (
     <Box>
       <PageHeader title="Время перемотки" onBack={onBack} />
 
-      <Box
-        sx={{
-          px: 1.5,
-          py: 0.5,
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+      <SettingSlider
+        label="Шаг"
+        valueLabel={skipManager.formatSkipTime()}
+        value={skipManager.getSkipTime()}
+        min={0}
+        max={SKIP_TIME_MAX}
+        step={SKIP_TIME_STEP}
+        marks={MARKS}
+        onChange={(next) => {
+          skipManager.setSkipTime(next);
+          onSkipTimeChange(next);
         }}
-      >
-        <ChipGroup
-          label="Минуты"
-          options={MINUTES}
-          getKey={(min) => min}
-          getLabel={(min) => min}
-          isSelected={(min) => skipManager.getMinutes() === min}
-          onSelect={(min) => {
-            skipManager.setMinutes(min);
-            onSkipTimeChange(skipManager.getSkipTime());
-          }}
-          chipSx={CHIP_THIRD_SX}
-          wrap
-          mb={1}
-        />
-      </Box>
-
-      <Box sx={{ px: 1.5, py: 0.5 }}>
-        <ChipGroup
-          label="Секунды"
-          options={SECONDS}
-          getKey={(sec) => sec}
-          getLabel={(sec) => sec}
-          isSelected={(sec) => skipManager.getSeconds() === sec}
-          onSelect={(sec) => {
-            skipManager.setSeconds(sec);
-            onSkipTimeChange(skipManager.getSkipTime());
-          }}
-          chipSx={CHIP_QUARTER_SX}
-          wrap
-          mb={1}
-        />
-      </Box>
-
-      <Box
-        sx={{
-          mx: 1.5,
-          mb: 1,
-          backgroundColor: 'rgba(124, 58, 237, 0.2)',
-          borderRadius: 1,
-          px: 1.5,
-          py: 1,
-          textAlign: 'center',
-        }}
-      >
-        <Typography
-          variant="body2"
-          sx={{
-            color: customColors.onVideoAccentColor,
-            fontWeight: 600,
-            fontFamily: 'Roboto, sans-serif',
-          }}
-        >
-          {skipManager.formatSkipTime()}
-        </Typography>
-      </Box>
+      />
     </Box>
   );
 }

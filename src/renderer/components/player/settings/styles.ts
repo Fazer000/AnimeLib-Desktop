@@ -5,6 +5,7 @@ import {
   PRIMARY_RGB,
   TEXT_DISABLED,
 } from '../../../theme/palette';
+import { SETTINGS_MENU_PADDING_X } from '../../../../constants';
 
 export const MENU_ICON_SIZE = 20;
 
@@ -17,10 +18,9 @@ export const ROW_SX = {
 
 const MENU_ITEM_BASE = {
   color: 'white',
-  fontFamily: 'Roboto, sans-serif',
   fontSize: '0.875rem',
   py: 0.75,
-  px: 1.5,
+  px: SETTINGS_MENU_PADDING_X,
   minHeight: 'auto',
 };
 
@@ -65,7 +65,7 @@ export const CHECK_ICON_SX = { fontSize: 16, color: DARK_PRIMARY_ACCENT };
 export const HEADER_SX = {
   display: 'flex',
   alignItems: 'center',
-  px: 1.5,
+  px: SETTINGS_MENU_PADDING_X,
   py: 0.75,
   borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
 };
@@ -82,7 +82,6 @@ export const BACK_BUTTON_SX = {
 
 export const HEADER_TITLE_SX = {
   color: 'white',
-  fontFamily: 'Roboto, sans-serif',
   fontWeight: 500,
   fontSize: '0.875rem',
 };
@@ -135,7 +134,6 @@ export const menuIconBoxSx = (color: string) => ({
   borderRadius: 1,
   border: `1px solid ${color}59`,
   color,
-  fontFamily: 'Roboto, sans-serif',
   fontSize: '0.6875rem',
   fontWeight: 700,
   lineHeight: 1,
@@ -147,7 +145,6 @@ export const qualityTagSx = (color: string) => ({
   px: 0.75,
   py: '2px',
   borderRadius: 1,
-  fontFamily: 'Roboto, sans-serif',
   fontSize: '0.625rem',
   fontWeight: 700,
   color,
@@ -175,7 +172,6 @@ const makeChipSx =
     color: isSelected ? DARK_PRIMARY_ACCENT : 'rgba(255, 255, 255, 0.7)',
     fontWeight: isSelected ? 600 : 400,
     fontSize,
-    fontFamily: 'Roboto, sans-serif',
     transition: 'all 0.15s ease',
     '&:hover': {
       backgroundColor: isSelected
@@ -185,15 +181,3 @@ const makeChipSx =
   });
 
 export const CHIP_SX = makeChipSx('1 1 auto', 1, '0.8125rem');
-
-export const CHIP_THIRD_SX = makeChipSx(
-  '0 0 calc(33.333% - 4px)',
-  1,
-  '0.875rem',
-);
-
-export const CHIP_QUARTER_SX = makeChipSx(
-  '0 0 calc(25% - 4px)',
-  0.5,
-  '0.875rem',
-);

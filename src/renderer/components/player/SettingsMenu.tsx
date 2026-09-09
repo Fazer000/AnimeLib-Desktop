@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
+import type { CustomColors } from '@mui/material/styles';
 import {
   SkipManager,
   SubtitleTrack,
   SubtitlesSettings,
 } from '../../services/player';
 import { SubtitleStyleSettings } from '../../utils/subtitleHelpers';
-import { SUBTITLES_DEFAULT_SETTINGS } from '../../../constants';
+import {
+  SETTINGS_MENU_WIDTH,
+  SUBTITLES_DEFAULT_SETTINGS,
+} from '../../../constants';
 import MainPage from './settings/MainPage';
 import QualityPage from './settings/QualityPage';
 import SpeedPage from './settings/SpeedPage';
@@ -31,21 +35,20 @@ const BACKDROP_SX = {
   zIndex: 1999,
 };
 
-const panelSx = (showEpisodes: boolean) => ({
+const panelSx = (showEpisodes: boolean, colors: CustomColors) => ({
   position: 'absolute',
   bottom: showEpisodes ? 120 : 70,
   right: 16,
   zIndex: 2000,
   py: 1,
   transition: 'bottom 0.3s ease-in-out',
-  backgroundColor: 'rgba(20, 20, 20, 0.68)',
-  border: '1px solid rgba(116, 116, 128, 0.33)',
-  color: 'white',
-  minWidth: 200,
-  maxWidth: 250,
-  borderRadius: 2,
+  backgroundColor: `rgba(${colors.onVideoSurfaceRgb}, 0.82)`,
+  border: `1px solid rgba(${colors.neutralRgb}, 0.33)`,
+  color: colors.onVideoColor,
+  width: SETTINGS_MENU_WIDTH,
+  borderRadius: '8px',
   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-  backdropFilter: 'blur(2px)',
+  backdropFilter: 'blur(10px)',
   animation: 'menuFadeIn 0.1s ease-out',
   '@keyframes menuFadeIn': {
     '0%': { opacity: 0, transform: 'translateY(10px) scale(0.95)' },
@@ -101,6 +104,7 @@ function SettingsMenu({
   onSubtitleTrackChange,
   onSubtitleSettingsChange,
 }: SettingsMenuProps) {
+  const { customColors } = useTheme().palette;
   const [currentPage, setCurrentPage] = useState<MenuPage>('main');
 
   const closeMenu = () => {
@@ -123,7 +127,7 @@ function SettingsMenu({
       />
 
       <Box
-        sx={panelSx(showEpisodes)}
+        sx={panelSx(showEpisodes, customColors)}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
         {currentPage === 'main' && (
@@ -158,10 +162,7 @@ function SettingsMenu({
         {currentPage === 'speed' && (
           <SpeedPage
             playbackRate={playbackRate}
-            onSelect={(rate) => {
-              onPlaybackRateChange(rate);
-              closeMenu();
-            }}
+            onSelect={onPlaybackRateChange}
             onBack={backToMain}
           />
         )}
