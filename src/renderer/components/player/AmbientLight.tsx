@@ -1,7 +1,15 @@
 import React, { useEffect, useRef, memo } from 'react';
 import { Box } from '@mui/material';
 import { AmbientLightManager } from '../../services/player';
-import type { AmbientColor, AmbientColors } from '../../services/player';
+import {
+  AMBIENT_FADE_MS,
+  AMBIENT_IDLE_OPACITY,
+  AMBIENT_OPACITY,
+  AMBIENT_SOURCE_HEIGHT,
+  AMBIENT_SOURCE_MARGIN,
+  AMBIENT_SOURCE_WIDTH,
+} from '../../../constants';
+import { getOverscanBox } from '../../utils/ambientFrame';
 
 interface AmbientLightProps {
   videoRef:
@@ -12,110 +20,48 @@ interface AmbientLightProps {
   enabled: boolean;
 }
 
-const GRADIENT_STEPS = 8;
+const OVERSCAN = getOverscanBox(
+  AMBIENT_SOURCE_WIDTH,
+  AMBIENT_SOURCE_HEIGHT,
+  AMBIENT_SOURCE_MARGIN,
+);
 
-const BASE_SX = {
+const CANVAS_SX = {
   position: 'absolute' as const,
-  transition: 'background 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-};
-
-const TOP_SX = {
-  ...BASE_SX,
-  top: 0,
-  left: 0,
-  right: 0,
-  height: '300px',
-  filter: 'blur(60px)',
-  opacity: 0.6,
-};
-
-const BOTTOM_SX = {
-  ...BASE_SX,
-  bottom: 0,
-  left: 0,
-  right: 0,
-  height: '350px',
-  filter: 'blur(60px)',
-  opacity: 0.65,
-};
-
-const LEFT_SX = {
-  ...BASE_SX,
-  top: 0,
-  bottom: 0,
-  left: 0,
-  width: '40%',
-  filter: 'blur(50px)',
-  opacity: 0.6,
-};
-
-const RIGHT_SX = {
-  ...BASE_SX,
-  top: 0,
-  bottom: 0,
-  right: 0,
-  width: '40%',
-  filter: 'blur(50px)',
-  opacity: 0.6,
-};
-
-/** Растягивает цвет в многоступенчатый градиент с квадратичным спадом прозрачности. */
-const buildStops = (color: AmbientColor): string => {
-  const points: string[] = [];
-
-  for (let i = 0; i <= GRADIENT_STEPS; i += 1) {
-    const position = (i / GRADIENT_STEPS) * 100;
-    const opacity = (1 - i / GRADIENT_STEPS) ** 2.5;
-    points.push(
-      `rgba(${color.r}, ${color.g}, ${color.b}, ${opacity.toFixed(3)}) ${position.toFixed(1)}%`,
-    );
-  }
-
-  return points.join(', ');
+  ...OVERSCAN,
+  opacity: AMBIENT_OPACITY,
 };
 
 /**
- * Подсветка по краям видео. Цвета пишутся напрямую в style, минуя состояние React,
- * чтобы обновления десять раз в секунду не перерисовывали дерево.
+ * Подсветка по краям видео: кадр отражается в буфер 64×36,
+ * а свечение даёт растяжение битмапа средствами композитора
  */
 const AmbientLight = memo(
   ({ videoRef, isPlaying, isFullscreen, enabled }: AmbientLightProps) => {
     const managerRef = useRef<AmbientLightManager | null>(null);
-    const topRef = useRef<HTMLDivElement | null>(null);
-    const bottomRef = useRef<HTMLDivElement | null>(null);
-    const leftRef = useRef<HTMLDivElement | null>(null);
-    const rightRef = useRef<HTMLDivElement | null>(null);
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const hidden = isFullscreen || !enabled;
 
     useEffect(() => {
-      const manager = new AmbientLightManager();
-      managerRef.current = manager;
+      if (hidden || !canvasRef.current) {
+        return undefined;
+      }
 
-      manager.setOnColorsUpdate((colors: AmbientColors) => {
-        if (topRef.current) {
-          topRef.current.style.background = `radial-gradient(ellipse 120% 80% at 50% 0%, ${buildStops(colors.top)})`;
-        }
-        if (bottomRef.current) {
-          bottomRef.current.style.background = `radial-gradient(ellipse 120% 80% at 50% 100%, ${buildStops(colors.bottom)})`;
-        }
-        if (leftRef.current) {
-          leftRef.current.style.background = `linear-gradient(to right, ${buildStops(colors.left)})`;
-        }
-        if (rightRef.current) {
-          rightRef.current.style.background = `linear-gradient(to left, ${buildStops(colors.right)})`;
-        }
-      });
+      const manager = new AmbientLightManager();
+      manager.attach(canvasRef.current);
+      managerRef.current = manager;
 
       return () => {
         manager.dispose();
         managerRef.current = null;
       };
-    }, []);
+    }, [hidden]);
 
     useEffect(() => {
       const video = videoRef.current;
       const manager = managerRef.current;
 
-      if (!video || !manager || isFullscreen || !enabled) {
+      if (!video || !manager || hidden) {
         manager?.stop();
         manager?.reset();
         return undefined;
@@ -124,9 +70,9 @@ const AmbientLight = memo(
       manager.start(video, isPlaying);
 
       return () => manager.stop();
-    }, [videoRef, isPlaying, isFullscreen, enabled]);
+    }, [videoRef, isPlaying, hidden]);
 
-    if (isFullscreen || !enabled) {
+    if (hidden) {
       return null;
     }
 
@@ -134,26 +80,17 @@ const AmbientLight = memo(
       <Box
         sx={{
           position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          width: '100%',
-          height: '100%',
+          inset: 0,
           pointerEvents: 'none',
           zIndex: -1,
-          opacity: isPlaying ? 1 : 0.3,
-          transition: 'opacity 0.8s ease',
-          overflow: 'visible',
+          opacity: isPlaying ? 1 : AMBIENT_IDLE_OPACITY,
+          transition: `opacity ${AMBIENT_FADE_MS}ms ease`,
           mixBlendMode: 'screen',
           backfaceVisibility: 'hidden',
           transform: 'translateZ(0)',
         }}
       >
-        <Box ref={topRef} sx={TOP_SX} />
-        <Box ref={bottomRef} sx={BOTTOM_SX} />
-        <Box ref={leftRef} sx={LEFT_SX} />
-        <Box ref={rightRef} sx={RIGHT_SX} />
+        <Box component="canvas" ref={canvasRef} sx={CANVAS_SX} />
       </Box>
     );
   },

@@ -102,14 +102,14 @@ function VolumeControl({
             onToggleMute();
           }}
           sx={{
-            color: 'white',
+            color: customColors.whiteColor,
             padding: 0.5,
             borderRadius: 2,
             position: 'relative',
             '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.1)`,
               transform: 'scale(1.15)',
-              color: customColors.onVideoColor,
+              color: customColors.onVideoAccentColor,
             },
             '&:active': {
               transform: 'scale(0.95)',

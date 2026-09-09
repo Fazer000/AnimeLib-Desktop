@@ -15,7 +15,9 @@ import { Keyboard, Search, X } from '../icons';
 import { Player } from '../../api/animeApi';
 import { PlayerSelectionManager } from '../../services/player/PlayerSelectionManager';
 import {
-  SIDEBAR_WIDTH_CSS,
+  SIDEBAR_WIDTH_VAR,
+  SIDEBAR_TRANSITION,
+  SIDEBAR_EASING,
   PLAYER_TYPE_KODIK,
   SIDEBAR_SEARCH_HEIGHT,
   SIDEBAR_SEARCH_ICON_SIZE,
@@ -74,7 +76,7 @@ function PlayerSidebarRefactored({
     <Box
       sx={{
         position: 'relative',
-        width: isCollapsed ? '0px' : SIDEBAR_WIDTH_CSS,
+        width: SIDEBAR_WIDTH_VAR,
         height: '100%',
         overflow: 'hidden',
         display: 'flex',
@@ -83,7 +85,7 @@ function PlayerSidebarRefactored({
         borderLeft: isCollapsed
           ? 'none'
           : `1px solid ${theme.palette.customColors.lineColor}`,
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: `border-color ${SIDEBAR_TRANSITION}ms ${SIDEBAR_EASING}`,
       }}
     >
       <Box

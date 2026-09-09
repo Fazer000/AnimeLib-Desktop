@@ -53,6 +53,23 @@ export const SIDEBAR_PREFERRED_WIDTH = '17vw';
 export const SIDEBAR_WIDTH_CSS = `clamp(${SIDEBAR_MIN_WIDTH}px, ${SIDEBAR_PREFERRED_WIDTH}, ${SIDEBAR_MAX_WIDTH}px)`;
 
 /**
+ * Свойство, хранящее текущую ширину сайдбара. Зарегистрировано в App.css
+ * как <length>, поэтому анимируется, а вместе с ним и всё, что от него считается
+ */
+export const SIDEBAR_WIDTH_PROPERTY = '--player-sidebar-width';
+
+/**
+ * Ссылка на текущую ширину сайдбара для расчётов вёрстки
+ */
+export const SIDEBAR_WIDTH_VAR = `var(${SIDEBAR_WIDTH_PROPERTY})`;
+
+/**
+ * Длительность и кривая сворачивания сайдбара
+ */
+export const SIDEBAR_TRANSITION = 300;
+export const SIDEBAR_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
+
+/**
  * Ширина полоски-язычка карточки аниме в шапке, px
  */
 export const ANIME_HANDLE_WIDTH = 54;

@@ -53,7 +53,6 @@ export const PLAYER_FULLSCREEN_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 export const PLAYER_EPISODES_VISIBLE_BY_DEFAULT = true;
 
 /**
- * Соо/**
  * Соотношение сторон видео по умолчанию (до загрузки реального)
  */
 export const DEFAULT_VIDEO_ASPECT_RATIO = 16 / 9;
@@ -223,3 +222,48 @@ export const COMMENTS_SETTINGS_DEFAULTS = {
  */
 export const PLAYER_EDGE_BUTTON_SIZE = 42;
 export const PLAYER_EDGE_BUTTON_RADIUS = 14;
+
+/**
+ * Размер буфера, в который отражается кадр для подсветки, px
+ */
+export const AMBIENT_SOURCE_WIDTH = 64;
+export const AMBIENT_SOURCE_HEIGHT = 36;
+
+/**
+ * Размытие и насыщенность считаются по буферу, а не по растянутому слою
+ */
+export const AMBIENT_SOURCE_BLUR = 3;
+export const AMBIENT_SOURCE_SATURATION = 1.6;
+
+/**
+ * Минимальный промежуток между отражениями кадра, мс
+ */
+export const AMBIENT_FRAME_INTERVAL_MS = 50;
+
+/**
+ * Сколько стандартных отклонений нужно гауссиану, чтобы погаснуть
+ */
+export const AMBIENT_FADE_SIGMA = 3;
+
+/**
+ * Поле буфера вокруг кадра, px. Задаёт ширину кольца свечения и обязано
+ * вмещать затухание размытия, иначе кромка свечения обрывается
+ */
+export const AMBIENT_SOURCE_MARGIN = AMBIENT_SOURCE_BLUR * AMBIENT_FADE_SIGMA;
+
+/**
+ * Запас на отрисовку свечения за пределами слоя, px. Заведомо больше кольца,
+ * чтобы слой не создавал прокрутку страницы и при этом ничего не обрезал
+ */
+export const AMBIENT_CLIP_MARGIN = 512;
+
+/**
+ * Непрозрачность свечения при воспроизведении и на паузе
+ */
+export const AMBIENT_OPACITY = 0.85;
+export const AMBIENT_IDLE_OPACITY = 0.35;
+
+/**
+ * Длительность угасания свечения на паузе, мс
+ */
+export const AMBIENT_FADE_MS = 800;

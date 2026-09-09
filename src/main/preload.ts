@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import type {
+  ConnectivityProbeResult,
   DownloadRequest,
   DownloadTask,
   OfflineDirectoryResult,
@@ -137,7 +138,7 @@ const electronHandler = {
     offlineOpenDirectory: () => {
       ipcRenderer.send('offline-open-directory');
     },
-    offlineCheckConnection: async (): Promise<boolean> =>
+    offlineCheckConnection: async (): Promise<ConnectivityProbeResult> =>
       ipcRenderer.invoke('offline-check-connection'),
     offlineVerify: async (): Promise<number> =>
       ipcRenderer.invoke('offline-verify'),

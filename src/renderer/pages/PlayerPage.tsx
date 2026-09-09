@@ -18,12 +18,17 @@ import DownloadManagerDialog from '../components/offline/DownloadManagerDialog';
 import { PlayerSelectionManager, BookmarkManager } from '../services/player';
 import { progressStore } from '../services/offline';
 import {
+  AMBIENT_CLIP_MARGIN,
   DEFAULT_VIDEO_ASPECT_RATIO,
   MIN_VIDEO_AREA_HEIGHT,
   PLAYER_BORDER_RADIUS,
   EPISODE_SLIDER_HEIGHT,
   PLAYER_CONTENT_GAP,
   SIDEBAR_WIDTH_CSS,
+  SIDEBAR_WIDTH_PROPERTY,
+  SIDEBAR_WIDTH_VAR,
+  SIDEBAR_TRANSITION,
+  SIDEBAR_EASING,
   TOOLBAR_HEIGHT,
 } from '../../constants';
 import { getFittedWidth, getPlayerRowHeight } from '../utils/videoHelpers';
@@ -72,6 +77,12 @@ function PlayerPageRefactored({
 }: PlayerPageProps) {
   const { customColors } = useTheme().palette;
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
+
+  const playerRowHeight = getPlayerRowHeight(
+    DEFAULT_VIDEO_ASPECT_RATIO,
+    SIDEBAR_WIDTH_VAR,
+    TOOLBAR_HEIGHT + EPISODE_SLIDER_HEIGHT,
+  );
 
   const [currentAnimeId] = useState<string>(animeId);
 
@@ -500,7 +511,8 @@ function PlayerPageRefactored({
           flex: 1,
           position: 'relative',
           marginTop: `${TOOLBAR_HEIGHT}px`,
-          overflow: offlineMode ? 'hidden' : 'auto',
+          overflowY: offlineMode ? 'hidden' : 'auto',
+          overflowX: 'hidden',
         }}
       >
         <Box
@@ -509,6 +521,10 @@ function PlayerPageRefactored({
             flexDirection: 'column',
             position: 'relative',
             isolation: 'isolate',
+            [SIDEBAR_WIDTH_PROPERTY]: sidebarCollapsed
+              ? '0px'
+              : SIDEBAR_WIDTH_CSS,
+            transition: `${SIDEBAR_WIDTH_PROPERTY} ${SIDEBAR_TRANSITION}ms ${SIDEBAR_EASING}`,
           }}
         >
           {videoPlayerRef.current?.videoRef && (
@@ -517,9 +533,11 @@ function PlayerPageRefactored({
                 position: 'absolute',
                 top: 0,
                 left: 0,
-                right: sidebarCollapsed ? 0 : SIDEBAR_WIDTH_CSS,
-                bottom: 0,
+                right: SIDEBAR_WIDTH_VAR,
+                height: playerRowHeight,
                 pointerEvents: 'none',
+                overflow: 'clip',
+                overflowClipMargin: `${AMBIENT_CLIP_MARGIN}px`,
                 zIndex: 0,
                 display: 'flex',
                 justifyContent: 'center',
@@ -548,11 +566,7 @@ function PlayerPageRefactored({
           <Box
             sx={{
               flexShrink: 0,
-              height: getPlayerRowHeight(
-                DEFAULT_VIDEO_ASPECT_RATIO,
-                sidebarCollapsed ? '0px' : SIDEBAR_WIDTH_CSS,
-                TOOLBAR_HEIGHT + EPISODE_SLIDER_HEIGHT,
-              ),
+              height: playerRowHeight,
               display: 'flex',
               overflow: 'hidden',
               position: 'relative',
@@ -567,7 +581,7 @@ function PlayerPageRefactored({
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'relative',
-                width: `calc(100% - ${SIDEBAR_WIDTH_CSS})`,
+                width: `calc(100% - ${SIDEBAR_WIDTH_VAR})`,
                 height: '100%',
                 minHeight: `${MIN_VIDEO_AREA_HEIGHT}px`,
                 justifyContent: 'flex-start',

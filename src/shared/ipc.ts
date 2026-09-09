@@ -4,6 +4,7 @@
  * поэтому расхождение между вызовом и обработчиком ловится компилятором.
  */
 import type {
+  ConnectivityProbeResult,
   DownloadRequest,
   DownloadTask,
   OfflineDirectoryResult,
@@ -91,7 +92,10 @@ export interface IpcInvokeMap {
     request: void;
     response: OfflineDirectoryResult;
   };
-  'offline-check-connection': { request: void; response: boolean };
+  'offline-check-connection': {
+    request: void;
+    response: ConnectivityProbeResult;
+  };
   'offline-verify': { request: void; response: number };
   'offline-resume': { request: ResumeDownloadsPayload; response: number };
   'offline-free-space': { request: void; response: number };

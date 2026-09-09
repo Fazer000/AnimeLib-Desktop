@@ -2,10 +2,12 @@
  * IPC обработчики оффлайн-библиотеки
  */
 import https from 'https';
+import type { ClientRequest } from 'http';
 import { BrowserWindow, dialog, shell } from 'electron';
 import {
   CONNECTIVITY_CHECK_TIMEOUT_MS,
   CONNECTIVITY_PROBE_URL,
+  ConnectivityProbeResult,
   DownloadRequest,
   OfflineDirectoryResult,
   OfflineRemovalEvent,
@@ -23,6 +25,50 @@ export {
   registerOfflineProtocol,
   registerOfflineSchemes,
 } from './offlineProtocol';
+
+/**
+ * Опрашивает сайт и различает ошибку сети и истёкшее ожидание.
+ * Дедлайн стоит поверх запроса, поэтому зависший DNS его не растягивает.
+ */
+const probeConnection = (): Promise<ConnectivityProbeResult> =>
+  new Promise((resolve) => {
+    let settled = false;
+    let request: ClientRequest | null = null;
+    let deadline: ReturnType<typeof setTimeout> | null = null;
+
+    const finish = (result: ConnectivityProbeResult): void => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+
+      if (deadline) {
+        clearTimeout(deadline);
+      }
+
+      request?.destroy();
+      log.debug('Probe result:', result.reason, result.ok);
+      resolve(result);
+    };
+
+    deadline = setTimeout(
+      () => finish({ ok: false, reason: 'timeout' }),
+      CONNECTIVITY_CHECK_TIMEOUT_MS,
+    );
+
+    request = https.get(CONNECTIVITY_PROBE_URL, (response) => {
+      response.resume();
+
+      const ok = (response.statusCode || 500) < 500;
+
+      finish({ ok, reason: ok ? 'ok' : 'network' });
+    });
+
+    request.on('error', () => finish({ ok: false, reason: 'network' }));
+    request.end();
+  });
+
 /**
  * Собирает снимок состояния для renderer
  */
@@ -171,24 +217,7 @@ export const registerOfflineHandlers = (
     shell.openPath(offlineLibrary.getDownloadsPath());
   });
 
-  handleIpc(
-    'offline-check-connection',
-    async () =>
-      new Promise<boolean>((resolve) => {
-        const request = https.get(CONNECTIVITY_PROBE_URL, (response) => {
-          response.resume();
-          resolve((response.statusCode || 500) < 500);
-        });
-
-        request.setTimeout(CONNECTIVITY_CHECK_TIMEOUT_MS, () => {
-          request.destroy();
-          resolve(false);
-        });
-
-        request.on('error', () => resolve(false));
-        request.end();
-      }),
-  );
+  handleIpc('offline-check-connection', async () => probeConnection());
 
   log.debug('Handlers registered');
 };

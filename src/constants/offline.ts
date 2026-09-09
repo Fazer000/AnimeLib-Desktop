@@ -57,8 +57,36 @@ export const CONNECTIVITY_CHECK_INTERVAL_MS = 30000;
 
 export const CONNECTIVITY_CHECK_TIMEOUT_MS = 6000;
 
+/**
+ * Потолок ожидания пробы на путях, блокирующих интерфейс
+ */
+export const CONNECTIVITY_FAST_DEADLINE_MS = 3000;
+
+/**
+ * Срок годности последнего вердикта о связи
+ */
+export const CONNECTIVITY_STATUS_TTL_MS = 10000;
+
+/**
+ * Сколько таймаутов подряд нужно, чтобы признать связь потерянной
+ */
+export const CONNECTIVITY_TIMEOUT_FAILURES = 2;
+
 export const CONNECTIVITY_PROBE_URL =
   'https://api.cdnlibs.org/api/anime?limit=1';
+
+/**
+ * Исход пробы: ответ сайта, ошибка сети либо истёкшее ожидание
+ */
+export type ConnectivityReason = 'ok' | 'network' | 'timeout';
+
+/**
+ * Результат пробы связи с сайтом
+ */
+export interface ConnectivityProbeResult {
+  ok: boolean;
+  reason: ConnectivityReason;
+}
 
 export type DownloadStatus =
   | 'queued'

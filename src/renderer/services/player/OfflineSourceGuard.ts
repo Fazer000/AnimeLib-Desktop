@@ -3,7 +3,7 @@
  */
 import { parseOfflineFileName } from '../../../constants';
 import { offlineStore } from '../offline';
-import { checkConnection } from '../../utils/connectivity';
+import { checkConnection } from '../connectivity';
 
 import { createLogger } from '../../../shared/logger';
 

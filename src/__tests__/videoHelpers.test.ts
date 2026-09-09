@@ -9,6 +9,7 @@ import {
   loadFromStorage,
   saveToStorage,
 } from '../renderer/utils/videoHelpers';
+import { SIDEBAR_WIDTH_VAR } from '../constants';
 
 describe('formatTime', () => {
   it('форматирует секунды как M:SS', () => {
@@ -118,6 +119,12 @@ describe('getPlayerRowHeight', () => {
     const height = getPlayerRowHeight(16 / 9, 'clamp(280px, 17vw, 320px)', 110);
 
     expect(height).toContain('100vw - clamp(280px, 17vw, 320px)');
+  });
+
+  it('анимируемая ширина сайдбара подставляется как ссылка на свойство', () => {
+    const height = getPlayerRowHeight(16 / 9, SIDEBAR_WIDTH_VAR, 110);
+
+    expect(height).toContain(`100vw - ${SIDEBAR_WIDTH_VAR}`);
   });
 
   it('другое соотношение меняет делитель', () => {

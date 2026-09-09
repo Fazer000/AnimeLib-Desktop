@@ -26,7 +26,7 @@ import useOnlineStatus from './hooks/useOnlineStatus';
 import useProgressSync from './hooks/useProgressSync';
 import useOfflineLibrary from './hooks/useOfflineLibrary';
 import { offlineCatalog } from './services/offline';
-import { checkConnection } from './utils/connectivity';
+import { checkConnectionFast } from './services/connectivity';
 
 import { createLogger } from '../shared/logger';
 import { createAppTheme } from './theme/appTheme';
@@ -149,7 +149,7 @@ function App() {
 
   const handlePlayFromLibrary = useCallback(
     async (id: string, episodeId?: number) => {
-      if (await checkConnection()) {
+      if (await checkConnectionFast()) {
         log.debug('Opening online player from library:', id, episodeId);
         setOfflineTarget(null);
         handlePlayerButtonClick(buildAnimePageUrl(id), id, episodeId);
