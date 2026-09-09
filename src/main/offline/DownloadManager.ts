@@ -474,6 +474,7 @@ class DownloadManager {
 
       const subtitles = await this.downloadSubtitles(request);
       const coverFileName = await this.downloadCover(request);
+      const teamLogoFileName = await this.downloadTeamLogo(request);
 
       const episode: OfflineEpisode = {
         episodeId: request.episodeId,
@@ -484,6 +485,7 @@ class DownloadManager {
         playerType: request.playerType,
         teamId: request.teamId,
         teamName: request.teamName,
+        teamLogoFileName,
         translationTypeId: request.translationTypeId,
         translationLabel: request.translationLabel,
         quality: request.quality,
@@ -696,6 +698,27 @@ class DownloadManager {
     const outcome = await this.downloadFile(
       DownloadManager.createSilentItem(request),
       request.coverUrl,
+      target,
+    );
+
+    return outcome === 'completed' ? fileName : '';
+  }
+
+  /**
+   * Скачивает логотип озвучки, если его ещё нет
+   */
+  private async downloadTeamLogo(request: DownloadRequest): Promise<string> {
+    const existing = offlineLibrary.getTeamLogoFileName(request.teamId);
+
+    if (existing || !request.teamLogoUrl) {
+      return existing;
+    }
+
+    const fileName = `${randomUUID()}.img`;
+    const target = offlineLibrary.resolveFile(fileName);
+    const outcome = await this.downloadFile(
+      DownloadManager.createSilentItem(request),
+      request.teamLogoUrl,
       target,
     );
 

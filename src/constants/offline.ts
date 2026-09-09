@@ -101,6 +101,7 @@ export interface DownloadRequest {
   playerType: string;
   teamId: number;
   teamName: string;
+  teamLogoUrl: string;
   translationTypeId: number;
   translationLabel: string;
   quality: string;
@@ -143,6 +144,7 @@ export interface OfflineEpisode {
   playerType: string;
   teamId: number;
   teamName: string;
+  teamLogoFileName: string;
   translationTypeId: number;
   translationLabel: string;
   quality: string;
@@ -249,6 +251,12 @@ export interface OfflineSnapshot {
  */
 export const buildOfflineUrl = (fileName: string): string =>
   `${OFFLINE_SCHEME}://${OFFLINE_MEDIA_HOST}/${fileName}`;
+
+/**
+ * Проверяет, ведёт ли ссылка на локальный файл библиотеки
+ */
+export const isOfflineUrl = (url: string): boolean =>
+  url.startsWith(`${OFFLINE_SCHEME}://`);
 
 /**
  * Извлекает имя файла из ссылки протокола

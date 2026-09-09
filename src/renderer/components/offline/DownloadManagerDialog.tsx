@@ -503,6 +503,7 @@ function DownloadManagerDialog({
         playerType: player.player,
         teamId: player.team.id,
         teamName: player.team.name,
+        teamLogoUrl: player.team.cover?.thumbnail || '',
         translationTypeId: player.translation_type?.id ?? 0,
         translationLabel: player.translation_type?.label || '',
         quality,

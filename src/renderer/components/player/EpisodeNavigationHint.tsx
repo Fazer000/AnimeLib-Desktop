@@ -135,8 +135,9 @@ function EpisodeNavigationHint({
                   fontWeight: 500,
                   textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
                   backgroundColor: `rgba(${customColors.onVideoSurfaceRgb}, 0.45)`,
+                  border: `1px solid rgba(${customColors.neutralRgb}, 0.33)`,
                   padding: '4px 12px',
-                  borderRadius: 4,
+                  borderRadius: '6px',
                   whiteSpace: 'nowrap',
                 }}
               >
@@ -200,8 +201,9 @@ function EpisodeNavigationHint({
                   fontWeight: 500,
                   textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
                   backgroundColor: `rgba(${customColors.onVideoSurfaceRgb}, 0.45)`,
+                  border: `1px solid rgba(${customColors.neutralRgb}, 0.33)`,
                   padding: '4px 12px',
-                  borderRadius: 4,
+                  borderRadius: '6px',
                   whiteSpace: 'nowrap',
                 }}
               >

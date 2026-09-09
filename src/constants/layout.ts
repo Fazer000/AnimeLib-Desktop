@@ -152,6 +152,11 @@ export const EPISODE_CHIP_MIN_WIDTH = 'clamp(52px, 5.5vw, 84px)';
 export const EPISODE_CHIP_FONT = '0.95rem';
 
 /**
+ * Увеличение карточки связанного при наведении
+ */
+export const RELATED_CARD_HOVER_SCALE = 1.03;
+
+/**
  * Кегль значка закладки в ленте эпизодов
  */
 export const EPISODE_CHIP_ICON_FONT = '1rem';

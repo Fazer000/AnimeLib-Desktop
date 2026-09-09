@@ -12,6 +12,7 @@ import { RelatedAnime as RelatedAnimeType } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 import {
   RELATED_ARROW_SIZE,
+  RELATED_CARD_HOVER_SCALE,
   RELATED_ROW_GAP,
   RELATED_ROW_PADDING,
   RELATED_WIDTH_CSS,
@@ -75,8 +76,14 @@ function RelatedAnimeCard({
         justifyContent: 'flex-start',
         cursor: isAnime ? 'pointer' : 'not-allowed',
         opacity: isAnime ? 1 : 0.5,
+        transition:
+          'transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease',
         '&:hover': isAnime
-          ? {}
+          ? {
+              transform: `scale(${RELATED_CARD_HOVER_SCALE})`,
+              backgroundColor: `rgba(${theme.palette.customColors.accentRgb}, 0.14)`,
+              borderColor: `rgba(${theme.palette.customColors.accentRgb}, 0.5)`,
+            }
           : {
               opacity: 0.5,
             },
@@ -268,97 +275,105 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
     <Box
       sx={{
         width: '100%',
-        maxWidth: RELATED_WIDTH_CSS,
-        marginX: 'auto',
         marginTop: 4,
         marginBottom: 4,
-        position: 'relative',
+        paddingY: 3,
+        borderTop: `1px solid ${theme.palette.customColors.borderColor}`,
+        borderBottom: `1px solid ${theme.palette.customColors.borderColor}`,
       }}
     >
       <Box
         sx={{
-          marginBottom: 2,
-          paddingLeft: `${RELATED_ROW_PADDING + RELATED_ARROW_SIZE + RELATED_ROW_GAP}px`,
+          width: '100%',
+          maxWidth: RELATED_WIDTH_CSS,
+          marginX: 'auto',
+          position: 'relative',
         }}
       >
-        <Typography
-          sx={{
-            fontSize: '1.5rem',
-            fontWeight: 600,
-            color: theme.palette.customColors.primaryTextColor,
-            fontFamily: 'Open Sans, sans-serif',
-          }}
-        >
-          Связанное
-        </Typography>
-      </Box>
-
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: `${RELATED_ROW_GAP}px`,
-          px: `${RELATED_ROW_PADDING}px`,
-        }}
-      >
-        <IconButton
-          onClick={() => scroll('left')}
-          aria-label="Предыдущие"
-          sx={{
-            ...scrollButtonSx(theme.palette.customColors),
-            visibility: canScrollLeft ? 'visible' : 'hidden',
-          }}
-        >
-          <ChevronLeft sx={{ fontSize: 24 }} />
-        </IconButton>
-
         <Box
-          ref={scrollContainerRef}
-          onScroll={updateScrollButtons}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
           sx={{
-            flex: 1,
-            minWidth: 0,
-            display: 'flex',
-            gap: 2.5,
-            overflowX: 'auto',
-            overflowY: 'hidden',
-            scrollbarWidth: 'none',
-            '&::-webkit-scrollbar': {
-              display: 'none',
-            },
-            paddingTop: 1,
-            paddingBottom: 1,
-            cursor: isDragging ? 'grabbing' : 'grab',
-            userSelect: isDragging ? 'none' : 'auto',
-            scrollBehavior: 'smooth',
+            marginBottom: 2,
+            paddingLeft: `${RELATED_ROW_PADDING + RELATED_ARROW_SIZE + RELATED_ROW_GAP}px`,
           }}
         >
-          {relatedAnime
-            .filter((item) => item && item.media && item.media.id)
-            .map((item) => (
-              <RelatedAnimeCard
-                key={item.media.id}
-                item={item}
-                onClick={() => onAnimeClick(item.media.slug_url)}
-                isDragMoving={dragMoved}
-              />
-            ))}
+          <Typography
+            sx={{
+              fontSize: '1.5rem',
+              fontWeight: 600,
+              color: theme.palette.customColors.primaryTextColor,
+              fontFamily: 'Open Sans, sans-serif',
+            }}
+          >
+            Связанное
+          </Typography>
         </Box>
 
-        <IconButton
-          onClick={() => scroll('right')}
-          aria-label="Следующие"
+        <Box
           sx={{
-            ...scrollButtonSx(theme.palette.customColors),
-            visibility: canScrollRight ? 'visible' : 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            gap: `${RELATED_ROW_GAP}px`,
+            px: `${RELATED_ROW_PADDING}px`,
           }}
         >
-          <ChevronRight sx={{ fontSize: 24 }} />
-        </IconButton>
+          <IconButton
+            onClick={() => scroll('left')}
+            aria-label="Предыдущие"
+            sx={{
+              ...scrollButtonSx(theme.palette.customColors),
+              visibility: canScrollLeft ? 'visible' : 'hidden',
+            }}
+          >
+            <ChevronLeft sx={{ fontSize: 24 }} />
+          </IconButton>
+
+          <Box
+            ref={scrollContainerRef}
+            onScroll={updateScrollButtons}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              display: 'flex',
+              gap: 2.5,
+              overflowX: 'auto',
+              overflowY: 'hidden',
+              scrollbarWidth: 'none',
+              '&::-webkit-scrollbar': {
+                display: 'none',
+              },
+              padding: 1,
+              cursor: isDragging ? 'grabbing' : 'grab',
+              userSelect: isDragging ? 'none' : 'auto',
+              scrollBehavior: 'smooth',
+            }}
+          >
+            {relatedAnime
+              .filter((item) => item && item.media && item.media.id)
+              .map((item) => (
+                <RelatedAnimeCard
+                  key={item.media.id}
+                  item={item}
+                  onClick={() => onAnimeClick(item.media.slug_url)}
+                  isDragMoving={dragMoved}
+                />
+              ))}
+          </Box>
+
+          <IconButton
+            onClick={() => scroll('right')}
+            aria-label="Следующие"
+            sx={{
+              ...scrollButtonSx(theme.palette.customColors),
+              visibility: canScrollRight ? 'visible' : 'hidden',
+            }}
+          >
+            <ChevronRight sx={{ fontSize: 24 }} />
+          </IconButton>
+        </Box>
       </Box>
     </Box>
   );

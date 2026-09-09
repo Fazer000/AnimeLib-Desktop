@@ -37,6 +37,10 @@ const toPlayer = (items: OfflineEpisode[]): Player => {
     new Set(items.map((entry) => parseInt(entry.quality, 10)).filter(Boolean)),
   ).sort((a, b) => b - a);
 
+  const teamLogoUrl = item.teamLogoFileName
+    ? buildOfflineUrl(item.teamLogoFileName)
+    : '';
+
   return {
     id: item.playerId,
     episode_id: item.episodeId,
@@ -51,7 +55,12 @@ const toPlayer = (items: OfflineEpisode[]): Player => {
       slug_url: '',
       model: 'team',
       name: item.teamName,
-      cover: { filename: null, thumbnail: '', default: '', md: '' },
+      cover: {
+        filename: null,
+        thumbnail: teamLogoUrl,
+        default: teamLogoUrl,
+        md: teamLogoUrl,
+      },
       stats: [],
     },
     created_at: item.createdAt,

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import LruCache from '../utils/LruCache';
+import { isOfflineUrl } from '../../constants';
 
 import { createLogger } from '../../shared/logger';
 
@@ -69,6 +70,11 @@ function useImageWithReferer(imageUrl: string | undefined): string {
   useEffect(() => {
     if (!imageUrl) {
       setBlobUrl('');
+      return undefined;
+    }
+
+    if (isOfflineUrl(imageUrl)) {
+      setBlobUrl(imageUrl);
       return undefined;
     }
 

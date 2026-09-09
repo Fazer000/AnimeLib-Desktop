@@ -97,6 +97,7 @@ declare module '@mui/material/styles' {
     onVideoColor: string;
     onVideoAccentColor: string;
     onVideoMutedColor: string;
+    onVideoRgb: string;
     onVideoSurfaceRgb: string;
     onVideoElevatedRgb: string;
     dangerColor: string;
@@ -138,6 +139,7 @@ const SHARED = {
   onVideoColor: DARK_ON_SURFACE,
   onVideoAccentColor: DARK_PRIMARY_ACCENT,
   onVideoMutedColor: DARK_TEXT_ACCENT,
+  onVideoRgb: DARK_ON_SURFACE_RGB,
   onVideoSurfaceRgb: DARK_SURFACE_RGB,
   onVideoElevatedRgb: DARK_SURFACE_CONTAINER_HIGHEST_RGB,
   whiteColor: WHITE,

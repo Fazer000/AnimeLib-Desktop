@@ -14,6 +14,7 @@ import {
   OfflineAnimeMeta,
   OfflineEpisode,
 } from '../../constants';
+import { collectTeamLogoFileNames, findTeamLogoFileName } from './teamLogos';
 
 import { createLogger } from '../../shared/logger';
 
@@ -80,6 +81,16 @@ class OfflineLibrary {
       }
 
       entry.episodes.forEach((episode) => {
+        if (
+          episode.teamLogoFileName &&
+          !this.hasFile(episode.teamLogoFileName)
+        ) {
+          // eslint-disable-next-line no-param-reassign
+          episode.teamLogoFileName = '';
+        }
+      });
+
+      entry.episodes.forEach((episode) => {
         // eslint-disable-next-line no-param-reassign
         episode.subtitles = episode.subtitles.filter((subtitle) =>
           this.hasFile(subtitle.fileName),
@@ -123,6 +134,10 @@ class OfflineLibrary {
 
         if (episode.playlistFileName) {
           known.add(episode.playlistFileName);
+        }
+
+        if (episode.teamLogoFileName) {
+          known.add(episode.teamLogoFileName);
         }
 
         episode.subtitles.forEach((subtitle) => known.add(subtitle.fileName));
@@ -231,6 +246,8 @@ class OfflineLibrary {
         episode.subtitles.forEach((subtitle) => names.add(subtitle.fileName));
       });
     });
+
+    collectTeamLogoFileNames(this.anime).forEach((name) => names.add(name));
 
     return Array.from(names).filter((name) => this.hasFile(name));
   }
@@ -595,6 +612,15 @@ class OfflineLibrary {
     return (
       this.anime.find((item) => item.animeId === animeId)?.coverFileName || ''
     );
+  }
+
+  /**
+   * Возвращает имя файла логотипа озвучки, если он уже скачан
+   */
+  public getTeamLogoFileName(teamId: number): string {
+    const fileName = findTeamLogoFileName(this.anime, teamId);
+
+    return fileName && this.hasFile(fileName) ? fileName : '';
   }
 }
 

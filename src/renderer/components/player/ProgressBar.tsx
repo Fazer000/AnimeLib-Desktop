@@ -60,27 +60,27 @@ const TRACK_SX = {
   },
 };
 
-const SEGMENT_BG_SX = {
+const segmentBgSx = (colors: CustomColors) => ({
   position: 'absolute',
   top: 0,
   left: 0,
   right: 0,
   height: '100%',
-  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+  backgroundColor: `rgba(${colors.onVideoRgb}, 0.3)`,
   borderRadius: 10,
   backdropFilter: 'blur(10px)',
-};
+});
 
-const SEGMENT_BUFFERED_SX = {
+const segmentBufferedSx = (colors: CustomColors) => ({
   position: 'absolute',
   top: 0,
   left: 0,
   height: '100%',
   width: 0,
-  backgroundColor: 'rgba(255, 255, 255, 0.25)',
+  backgroundColor: `rgba(${colors.onVideoRgb}, 0.5)`,
   borderRadius: 10,
   transition: 'width 0.3s ease',
-};
+});
 
 const HOVER_MARKER_SX = {
   position: 'absolute',
@@ -421,13 +421,13 @@ function ProgressBar({
                 minWidth: 0,
               }}
             >
-              <Box sx={SEGMENT_BG_SX} />
+              <Box sx={segmentBgSx(customColors)} />
 
               <Box
                 ref={(el: HTMLDivElement | null) => {
                   bufferedRefs.current[index] = el;
                 }}
-                sx={SEGMENT_BUFFERED_SX}
+                sx={segmentBufferedSx(customColors)}
               />
 
               <Box

@@ -30,6 +30,7 @@ const episode = (patch: Record<string, unknown> = {}): OfflineEpisode => ({
   playerType: 'Animelib',
   teamId: 7,
   teamName: 'Team',
+  teamLogoFileName: '',
   translationTypeId: 1,
   translationLabel: 'Озвучка',
   quality: '720p',

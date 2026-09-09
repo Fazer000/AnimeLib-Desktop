@@ -500,7 +500,7 @@ function PlayerPageRefactored({
           flex: 1,
           position: 'relative',
           marginTop: `${TOOLBAR_HEIGHT}px`,
-          overflow: 'auto',
+          overflow: offlineMode ? 'hidden' : 'auto',
         }}
       >
         <Box
@@ -754,7 +754,7 @@ function PlayerPageRefactored({
               position: 'relative',
               zIndex: 3,
               flexShrink: 0,
-              mb: `${PLAYER_CONTENT_GAP}px`,
+              mb: offlineMode ? 0 : `${PLAYER_CONTENT_GAP}px`,
             }}
           >
             <EpisodeSlider
@@ -782,10 +782,12 @@ function PlayerPageRefactored({
           />
         )}
 
-        <ScrollToTopButton
-          threshold={400}
-          scrollContainerId="player-page-scroll-container"
-        />
+        {!offlineMode && (
+          <ScrollToTopButton
+            threshold={400}
+            scrollContainerId="player-page-scroll-container"
+          />
+        )}
       </Box>
 
       <DownloadManagerDialog
