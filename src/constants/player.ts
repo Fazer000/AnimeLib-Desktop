@@ -59,14 +59,69 @@ export const PLAYER_EPISODES_VISIBLE_BY_DEFAULT = true;
 export const DEFAULT_VIDEO_ASPECT_RATIO = 16 / 9;
 
 /**
- * Размер центральной иконки плей/пауза, px
+ * Размер центральной иконки плей/пауза, считается от высоты кадра
  */
-export const PLAYER_CENTER_ICON_SIZE = 180;
+export const PLAYER_CENTER_ICON_SIZE = 'clamp(70px, 20cqh, 180px)';
 
 /**
- * Размер глифа центральной иконки плей/пауза, px
+ * Размер глифа центральной иконки плей/пауза, считается от высоты кадра
  */
-export const PLAYER_CENTER_ICON_FONT_SIZE = 124;
+export const PLAYER_CENTER_ICON_FONT_SIZE = 'clamp(48px, 14cqh, 124px)';
+
+/**
+ * Оптический сдвиг глифа плей вправо, доля его кегля
+ */
+export const PLAYER_PLAY_GLYPH_OFFSET = '0.065em';
+
+/**
+ * Отступ надписи над видео от верхнего края кадра
+ */
+export const PLAYER_INFO_TOP = 'clamp(6px, 1.8cqh, 16px)';
+
+/**
+ * Предельная ширина надписи над видео
+ */
+export const PLAYER_INFO_MAX_WIDTH = '70cqw';
+
+/**
+ * Кегль названия аниме над видео
+ */
+export const PLAYER_TITLE_FONT = 'clamp(0.95rem, 2.7cqh, 1.5rem)';
+
+/**
+ * Кегль строки эпизода и озвучки над видео
+ */
+export const PLAYER_SUBTITLE_FONT = 'clamp(0.7rem, 1.7cqh, 0.9rem)';
+
+/**
+ * Кегль строки рейтинга и года над видео
+ */
+export const PLAYER_META_FONT = 'clamp(0.68rem, 1.6cqh, 0.85rem)';
+
+/**
+ * Отступ меню настроек от краёв кадра, px
+ */
+export const SETTINGS_MENU_MARGIN = 16;
+
+/**
+ * Ширина зоны наведения для переключения эпизода
+ */
+export const EPISODE_HINT_AREA_WIDTH = 'max(10%, 132px)';
+
+/**
+ * Размер кнопки переключения эпизода, считается от высоты кадра
+ */
+export const EPISODE_HINT_BUTTON_SIZE = 'clamp(40px, 6.7cqh, 60px)';
+
+/**
+ * Размер стрелки переключения эпизода, считается от высоты кадра
+ */
+export const EPISODE_HINT_ICON_SIZE = 'clamp(24px, 4cqh, 36px)';
+
+/**
+ * Кегль подписи под кнопкой переключения эпизода
+ */
+export const EPISODE_HINT_FONT = 'clamp(11px, 1.6cqh, 14px)';
 
 /**
  * Доля просмотра, после которой серия отмечается просмотренной

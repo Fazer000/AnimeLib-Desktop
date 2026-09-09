@@ -1,6 +1,12 @@
 import React from 'react';
 import { Box, IconButton, Typography, useTheme } from '@mui/material';
 import { ChevronLeft, ChevronRight } from '../icons';
+import {
+  EPISODE_HINT_AREA_WIDTH,
+  EPISODE_HINT_BUTTON_SIZE,
+  EPISODE_HINT_FONT,
+  EPISODE_HINT_ICON_SIZE,
+} from '../../../constants';
 
 interface EpisodeNavigationHintProps {
   currentEpisodeIndex: number;
@@ -44,11 +50,13 @@ function EpisodeNavigationHint({
     }
   };
 
+  const { customColors } = theme.palette;
+
   const areaStyle = {
     position: 'absolute' as const,
     top: 0,
     bottom: 0,
-    width: '20%',
+    width: EPISODE_HINT_AREA_WIDTH,
     display: 'flex',
     alignItems: 'center',
     zIndex: 800,
@@ -58,14 +66,14 @@ function EpisodeNavigationHint({
 
   const buttonStyle = {
     cursor: showControls ? 'pointer' : 'none',
-    backgroundColor: 'rgba(20, 20, 20, 0.45)',
-    border: '1px solid rgba(116, 116, 128, 0.33)',
-    color: theme.palette.customColors.onVideoColor,
-    width: 60,
-    height: 60,
+    backgroundColor: `rgba(${customColors.onVideoSurfaceRgb}, 0.45)`,
+    border: `1px solid rgba(${customColors.neutralRgb}, 0.33)`,
+    color: customColors.onVideoColor,
+    width: EPISODE_HINT_BUTTON_SIZE,
+    height: EPISODE_HINT_BUTTON_SIZE,
     transition: 'all 0.3s ease',
     '&:hover': {
-      backgroundColor: 'rgba(55, 55, 55, 0.52)',
+      backgroundColor: `rgba(${customColors.neutralRgb}, 0.3)`,
     },
     '&:active': {
       transform: 'scale(0.95)',
@@ -84,7 +92,7 @@ function EpisodeNavigationHint({
             position: 'absolute',
             top: 0,
             bottom: 0,
-            width: '10%',
+            width: EPISODE_HINT_AREA_WIDTH,
             overflow: 'hidden',
             '&::before': {
               content: '""',
@@ -117,16 +125,16 @@ function EpisodeNavigationHint({
             }}
           >
             <IconButton sx={buttonStyle} onClick={handlePreviousClick}>
-              <ChevronLeft sx={{ fontSize: 36 }} />
+              <ChevronLeft sx={{ fontSize: EPISODE_HINT_ICON_SIZE }} />
             </IconButton>
             {previousEpisode && (
               <Typography
                 sx={{
-                  color: theme.palette.customColors.onVideoColor,
-                  fontSize: '14px',
+                  color: customColors.onVideoColor,
+                  fontSize: EPISODE_HINT_FONT,
                   fontWeight: 500,
                   textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
-                  backgroundColor: 'rgba(20, 20, 20, 0.45)',
+                  backgroundColor: `rgba(${customColors.onVideoSurfaceRgb}, 0.45)`,
                   padding: '4px 12px',
                   borderRadius: 4,
                   whiteSpace: 'nowrap',
@@ -149,7 +157,7 @@ function EpisodeNavigationHint({
             position: 'absolute',
             top: 0,
             bottom: 0,
-            width: '10%',
+            width: EPISODE_HINT_AREA_WIDTH,
             overflow: 'hidden',
             '&::before': {
               content: '""',
@@ -182,16 +190,16 @@ function EpisodeNavigationHint({
             }}
           >
             <IconButton sx={buttonStyle} onClick={handleNextClick}>
-              <ChevronRight sx={{ fontSize: 36 }} />
+              <ChevronRight sx={{ fontSize: EPISODE_HINT_ICON_SIZE }} />
             </IconButton>
             {nextEpisode && (
               <Typography
                 sx={{
-                  color: theme.palette.customColors.onVideoColor,
-                  fontSize: '14px',
+                  color: customColors.onVideoColor,
+                  fontSize: EPISODE_HINT_FONT,
                   fontWeight: 500,
                   textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
-                  backgroundColor: 'rgba(20, 20, 20, 0.45)',
+                  backgroundColor: `rgba(${customColors.onVideoSurfaceRgb}, 0.45)`,
                   padding: '4px 12px',
                   borderRadius: 4,
                   whiteSpace: 'nowrap',

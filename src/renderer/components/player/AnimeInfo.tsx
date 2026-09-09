@@ -1,6 +1,13 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { AnimeInfo } from '../../api/animeApi';
+import {
+  PLAYER_INFO_MAX_WIDTH,
+  PLAYER_INFO_TOP,
+  PLAYER_META_FONT,
+  PLAYER_SUBTITLE_FONT,
+  PLAYER_TITLE_FONT,
+} from '../../../constants';
 
 interface AnimeInfoProps {
   animeInfo: AnimeInfo | null;
@@ -38,10 +45,11 @@ function AnimeInfoComponent({
     <Box
       sx={{
         position: 'absolute',
-        top: 16,
+        top: PLAYER_INFO_TOP,
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 900,
+        maxWidth: PLAYER_INFO_MAX_WIDTH,
         textAlign: 'center',
         opacity: show ? 1 : 0,
         transition: 'opacity 0.3s ease',
@@ -52,7 +60,12 @@ function AnimeInfoComponent({
         sx={{
           color: 'white',
           fontWeight: 600,
-          fontSize: '1.5rem',
+          fontSize: PLAYER_TITLE_FONT,
+          lineHeight: 1.25,
+          display: '-webkit-box',
+          WebkitBoxOrient: 'vertical',
+          WebkitLineClamp: 2,
+          overflow: 'hidden',
           textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
           mb: 1,
         }}
@@ -65,7 +78,7 @@ function AnimeInfoComponent({
           variant="body2"
           sx={{
             color: 'rgba(255, 255, 255, 0.9)',
-            fontSize: '0.9rem',
+            fontSize: PLAYER_SUBTITLE_FONT,
             textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
             mb: 0.5,
           }}
@@ -91,7 +104,7 @@ function AnimeInfoComponent({
           variant="body2"
           sx={{
             color: 'rgba(255, 255, 255, 0.9)',
-            fontSize: '0.85rem',
+            fontSize: PLAYER_META_FONT,
             textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
           }}
         >

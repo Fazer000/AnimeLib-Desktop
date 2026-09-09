@@ -83,14 +83,19 @@ export const ANIME_CARD_MIN_WIDTH = '25vw';
 export const ANIME_CARD_MAX_WIDTH = '50vw';
 
 /**
- * Ширина обложки в карточке аниме, px
+ * Ширина обложки в карточке аниме
  */
-export const ANIME_CARD_COVER_WIDTH = 100;
+export const ANIME_CARD_COVER_WIDTH = 'clamp(64px, 6vw, 100px)';
 
 /**
- * Высота обложки в карточке аниме, px
+ * Высота обложки в карточке аниме
  */
-export const ANIME_CARD_COVER_HEIGHT = 150;
+export const ANIME_CARD_COVER_HEIGHT = 'clamp(96px, 9vw, 150px)';
+
+/**
+ * Кегль названия аниме в карточке
+ */
+export const ANIME_CARD_TITLE_FONT = 'clamp(1rem, 1.5vw, 1.5rem)';
 
 /**
  * Высота поля поиска озвучек в сайдбаре, px
@@ -139,7 +144,17 @@ export const EPISODE_CHIP_MARGIN_BOTTOM = 2;
 /**
  * Минимальная ширина чипа эпизода, px
  */
-export const EPISODE_CHIP_MIN_WIDTH = 84;
+export const EPISODE_CHIP_MIN_WIDTH = 'clamp(52px, 5.5vw, 84px)';
+
+/**
+ * Кегль номера эпизода в ленте
+ */
+export const EPISODE_CHIP_FONT = '0.95rem';
+
+/**
+ * Кегль значка закладки в ленте эпизодов
+ */
+export const EPISODE_CHIP_ICON_FONT = '1rem';
 
 /**
  * Размер логотипа команды озвучки в сайдбаре, px
@@ -162,10 +177,10 @@ export const PLAYER_CONTENT_GAP = 64;
 export const SCROLLBAR_WIDTH = 6;
 
 /**
- * Минимальный размер видео, помещающегося целиком (360p), px
+ * Минимальный размер видео, помещающегося целиком (480p), px
  */
-export const MIN_VIDEO_WIDTH = 640;
-export const MIN_VIDEO_HEIGHT = 360;
+export const MIN_VIDEO_WIDTH = 854;
+export const MIN_VIDEO_HEIGHT = 480;
 
 /**
  * Минимальная высота области видео, px

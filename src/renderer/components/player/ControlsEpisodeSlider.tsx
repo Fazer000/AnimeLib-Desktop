@@ -1,7 +1,11 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Box, Button, Typography, useTheme } from '@mui/material';
 import { Bookmark } from '../icons';
-import { EPISODE_CHIP_MIN_WIDTH } from '../../../constants';
+import {
+  EPISODE_CHIP_FONT,
+  EPISODE_CHIP_ICON_FONT,
+  EPISODE_CHIP_MIN_WIDTH,
+} from '../../../constants';
 
 interface Episode {
   id: number;
@@ -217,7 +221,7 @@ function ControlsEpisodeSlider({
               sx={{
                 padding: '8px 12px',
                 mx: 1.25,
-                minWidth: `${EPISODE_CHIP_MIN_WIDTH}px`,
+                minWidth: EPISODE_CHIP_MIN_WIDTH,
                 borderRadius: '6px',
                 cursor: 'pointer',
                 flex: episodes.length > 6 ? '1' : 'none',
@@ -258,7 +262,7 @@ function ControlsEpisodeSlider({
                   <Bookmark
                     sx={{
                       fill: 'currentColor',
-                      fontSize: '0.9rem',
+                      fontSize: EPISODE_CHIP_ICON_FONT,
                       color: isSelected
                         ? theme.palette.customColors.onAccentColor
                         : theme.palette.customColors.secondaryColor,
@@ -273,7 +277,7 @@ function ControlsEpisodeSlider({
                       ? theme.palette.customColors.onAccentColor
                       : theme.palette.customColors.onVideoColor,
                     textTransform: 'none',
-                    fontSize: '0.84rem',
+                    fontSize: EPISODE_CHIP_FONT,
                     textWrap: 'nowrap',
                   }}
                 >

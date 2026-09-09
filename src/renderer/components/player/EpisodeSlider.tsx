@@ -4,6 +4,8 @@ import type { CustomColors } from '@mui/material/styles';
 import { Bookmark, ChevronLeft, ChevronRight } from '../icons';
 import { Episode } from '../../api/animeApi';
 import {
+  EPISODE_CHIP_FONT,
+  EPISODE_CHIP_ICON_FONT,
   EPISODE_CHIP_MARGIN_BOTTOM,
   EPISODE_CHIP_MARGIN_TOP,
   EPISODE_CHIP_MIN_WIDTH,
@@ -274,7 +276,7 @@ function EpisodeSliderRefactored({
                 }}
                 sx={{
                   flex: episodes.length > 6 ? '1' : 'none',
-                  minWidth: `${EPISODE_CHIP_MIN_WIDTH}px`,
+                  minWidth: EPISODE_CHIP_MIN_WIDTH,
                   borderRadius: '6px',
                   backgroundColor: isSelected
                     ? theme.palette.customColors.secondaryColor
@@ -315,7 +317,7 @@ function EpisodeSliderRefactored({
                     <Bookmark
                       sx={{
                         fill: 'currentColor',
-                        fontSize: '0.9rem',
+                        fontSize: EPISODE_CHIP_ICON_FONT,
                         color: isSelected
                           ? theme.palette.customColors.onAccentColor
                           : theme.palette.customColors.secondaryColor,
@@ -330,7 +332,7 @@ function EpisodeSliderRefactored({
                         ? theme.palette.customColors.onAccentColor
                         : theme.palette.customColors.primaryTextColor,
                       textTransform: 'none',
-                      fontSize: '0.84rem',
+                      fontSize: EPISODE_CHIP_FONT,
                       textWrap: 'nowrap',
                     }}
                   >

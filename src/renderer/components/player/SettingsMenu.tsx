@@ -8,6 +8,7 @@ import {
 } from '../../services/player';
 import { SubtitleStyleSettings } from '../../utils/subtitleHelpers';
 import {
+  SETTINGS_MENU_MARGIN,
   SETTINGS_MENU_WIDTH,
   SUBTITLES_DEFAULT_SETTINGS,
 } from '../../../constants';
@@ -35,26 +36,32 @@ const BACKDROP_SX = {
   zIndex: 1999,
 };
 
-const panelSx = (showEpisodes: boolean, colors: CustomColors) => ({
-  position: 'absolute',
-  bottom: showEpisodes ? 120 : 70,
-  right: 16,
-  zIndex: 2000,
-  py: 1,
-  transition: 'bottom 0.3s ease-in-out',
-  backgroundColor: `rgba(${colors.onVideoSurfaceRgb}, 0.82)`,
-  border: `1px solid rgba(${colors.neutralRgb}, 0.33)`,
-  color: colors.onVideoColor,
-  width: SETTINGS_MENU_WIDTH,
-  borderRadius: '8px',
-  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-  backdropFilter: 'blur(10px)',
-  animation: 'menuFadeIn 0.1s ease-out',
-  '@keyframes menuFadeIn': {
-    '0%': { opacity: 0, transform: 'translateY(10px) scale(0.95)' },
-    '100%': { opacity: 1, transform: 'translateY(0) scale(1)' },
-  },
-});
+const panelSx = (showEpisodes: boolean, colors: CustomColors) => {
+  const bottom = showEpisodes ? 120 : 70;
+
+  return {
+    position: 'absolute',
+    bottom,
+    right: SETTINGS_MENU_MARGIN,
+    zIndex: 2000,
+    py: 1,
+    transition: 'bottom 0.3s ease-in-out',
+    backgroundColor: `rgba(${colors.onVideoSurfaceRgb}, 0.82)`,
+    border: `1px solid rgba(${colors.neutralRgb}, 0.33)`,
+    color: colors.onVideoColor,
+    width: `min(${SETTINGS_MENU_WIDTH}px, calc(100cqw - ${SETTINGS_MENU_MARGIN * 2}px))`,
+    maxHeight: `calc(100cqh - ${bottom + SETTINGS_MENU_MARGIN}px)`,
+    overflowY: 'auto',
+    borderRadius: '8px',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+    backdropFilter: 'blur(10px)',
+    animation: 'menuFadeIn 0.1s ease-out',
+    '@keyframes menuFadeIn': {
+      '0%': { opacity: 0, transform: 'translateY(10px) scale(0.95)' },
+      '100%': { opacity: 1, transform: 'translateY(0) scale(1)' },
+    },
+  };
+};
 
 interface SettingsMenuProps {
   anchorEl: HTMLElement | null;

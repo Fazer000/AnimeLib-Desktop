@@ -46,6 +46,7 @@ import {
   PLAYER_FULLSCREEN_RADIUS,
   PLAYER_CENTER_ICON_FONT_SIZE,
   PLAYER_CENTER_ICON_SIZE,
+  PLAYER_PLAY_GLYPH_OFFSET,
   PLAYER_EPISODES_VISIBLE_BY_DEFAULT,
   PLAYER_FULLSCREEN_EASING,
   PLAYER_FULLSCREEN_TRANSITION,
@@ -782,6 +783,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           position: 'relative',
           width: '100%',
           height: '100%',
+          containerType: 'size',
           backgroundColor: customColors.primaryColor,
           overflow: 'hidden',
           borderRadius: uiState.isFullscreen
@@ -926,7 +928,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               sx={{
                 fontSize: PLAYER_CENTER_ICON_FONT_SIZE,
                 color: 'white',
-                marginLeft: '8px',
+                marginLeft: PLAYER_PLAY_GLYPH_OFFSET,
                 filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))',
               }}
             />
@@ -988,7 +990,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
                   sx={{
                     fontSize: PLAYER_CENTER_ICON_FONT_SIZE,
                     color: 'white',
-                    marginLeft: '8px',
+                    marginLeft: PLAYER_PLAY_GLYPH_OFFSET,
                     filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))',
                   }}
                 />

@@ -8,6 +8,7 @@ import {
   ANIME_CARD_COVER_WIDTH,
   ANIME_CARD_MAX_WIDTH,
   ANIME_CARD_MIN_WIDTH,
+  ANIME_CARD_TITLE_FONT,
 } from '../../../constants';
 
 import { createLogger } from '../../../shared/logger';
@@ -160,7 +161,7 @@ function AnimeInfoCard({
             sx={{
               color: customColors.dialogTextColor,
               fontWeight: 600,
-              fontSize: '1.5rem',
+              fontSize: ANIME_CARD_TITLE_FONT,
               lineHeight: 1.2,
               display: '-webkit-box',
               WebkitBoxOrient: 'vertical',
