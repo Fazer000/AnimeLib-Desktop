@@ -24,6 +24,9 @@ import {
   PLAYER_BORDER_RADIUS,
   EPISODE_SLIDER_HEIGHT,
   PLAYER_CONTENT_GAP,
+  PLAYER_COVER_DIM_OPACITY,
+  PLAYER_SHEET_OFFSET,
+  PLAYER_SHEET_RADIUS,
   SIDEBAR_WIDTH_CSS,
   SIDEBAR_WIDTH_PROPERTY,
   SIDEBAR_WIDTH_VAR,
@@ -31,7 +34,11 @@ import {
   SIDEBAR_EASING,
   TOOLBAR_HEIGHT,
 } from '../../constants';
-import { getFittedWidth, getPlayerRowHeight } from '../utils/videoHelpers';
+import {
+  getCoverRange,
+  getFittedWidth,
+  getPlayerRowHeight,
+} from '../utils/videoHelpers';
 import { buildAnimePageUrl } from '../utils/urlHelpers';
 import { usePersistedFlag } from '../hooks/usePersistedFlag';
 import { useFullscreenState } from '../hooks/useFullscreenState';
@@ -82,6 +89,11 @@ function PlayerPageRefactored({
     DEFAULT_VIDEO_ASPECT_RATIO,
     SIDEBAR_WIDTH_VAR,
     TOOLBAR_HEIGHT + EPISODE_SLIDER_HEIGHT,
+  );
+
+  const coverRange = getCoverRange(
+    PLAYER_CONTENT_GAP + PLAYER_SHEET_OFFSET,
+    `${playerRowHeight} + ${EPISODE_SLIDER_HEIGHT}px`,
   );
 
   const [currentAnimeId] = useState<string>(animeId);
@@ -519,7 +531,9 @@ function PlayerPageRefactored({
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            position: 'relative',
+            position: 'sticky',
+            top: 0,
+            zIndex: 0,
             isolation: 'isolate',
             [SIDEBAR_WIDTH_PROPERTY]: sidebarCollapsed
               ? '0px'
@@ -778,22 +792,58 @@ function PlayerPageRefactored({
               bookmarkedEpisodeId={bookmarkedEpisodeId}
             />
           </Box>
+
+          {!offlineMode && (
+            <Box
+              aria-hidden
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 4,
+                pointerEvents: 'none',
+                backgroundColor: customColors.blackColor,
+                animation: 'playerCoverDim linear both',
+                animationTimeline: 'scroll(nearest block)',
+                animationRange: `${coverRange.start} ${coverRange.end}`,
+                '@keyframes playerCoverDim': {
+                  from: { opacity: 0 },
+                  to: { opacity: PLAYER_COVER_DIM_OPACITY },
+                },
+              }}
+            />
+          )}
         </Box>
 
-        {!offlineMode && relatedAnime.length > 0 && (
-          <RelatedAnime
-            key={currentAnimeId}
-            relatedAnime={relatedAnime}
-            onAnimeClick={handleRelatedAnimeClick}
-          />
-        )}
+        {!offlineMode && (
+          <Box
+            sx={{
+              position: 'relative',
+              zIndex: 1,
+              display: 'flow-root',
+              minHeight: `calc(100vh - ${TOOLBAR_HEIGHT}px)`,
+              marginTop: `${PLAYER_SHEET_OFFSET}px`,
+              backgroundColor: customColors.pageColor,
+              borderTop: `1px solid ${customColors.borderColor}`,
+              borderTopLeftRadius: PLAYER_SHEET_RADIUS,
+              borderTopRightRadius: PLAYER_SHEET_RADIUS,
+            }}
+          >
+            {relatedAnime.length > 0 && (
+              <RelatedAnime
+                key={currentAnimeId}
+                relatedAnime={relatedAnime}
+                onAnimeClick={handleRelatedAnimeClick}
+              />
+            )}
 
-        {!offlineMode && selectedEpisode && (
-          <CommentsSection
-            episodeId={selectedEpisode.id}
-            animeSlug={currentAnimeId}
-            scrollContainerId="player-page-scroll-container"
-          />
+            {selectedEpisode && (
+              <CommentsSection
+                episodeId={selectedEpisode.id}
+                animeSlug={currentAnimeId}
+                scrollContainerId="player-page-scroll-container"
+              />
+            )}
+          </Box>
         )}
 
         {!offlineMode && (

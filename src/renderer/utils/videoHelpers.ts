@@ -36,6 +36,17 @@ export function getPlayerRowHeight(
 }
 
 /**
+ * Возвращает отрезок прокрутки, на котором лист страницы наезжает
+ * на закреплённый блок: от касания его нижней кромки до полного перекрытия
+ */
+export function getCoverRange(
+  gap: number,
+  pinnedHeight: string,
+): { start: string; end: string } {
+  return { start: `${gap}px`, end: `calc(${gap}px + ${pinnedHeight})` };
+}
+
+/**
  * Возвращает CSS-высоту вписанного видео для контейнера-строки,
  * где рядом расположен сайдбар заданной ширины (container-type: size)
  */

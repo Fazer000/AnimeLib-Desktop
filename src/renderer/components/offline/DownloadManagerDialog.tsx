@@ -638,7 +638,7 @@ function DownloadManagerDialog({
         )}
 
         {tab === 1 && (
-          <Box sx={{ pt: 2 }}>
+          <Box>
             <DownloadsList tasks={snapshot.tasks} />
           </Box>
         )}

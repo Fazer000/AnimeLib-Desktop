@@ -13,10 +13,13 @@ import useImageWithReferer from '../../hooks/useImageWithReferer';
 import {
   RELATED_ARROW_SIZE,
   RELATED_CARD_HOVER_SCALE,
+  RELATED_EDGE_FADE,
   RELATED_ROW_GAP,
   RELATED_ROW_PADDING,
   RELATED_WIDTH_CSS,
 } from '../../../constants';
+import { buildEdgeFadeMask } from '../../utils/edgeFade';
+import { BLACK } from '../../theme/palette';
 
 const scrollButtonSx = (colors: CustomColors) => ({
   flexShrink: 0,
@@ -275,11 +278,8 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
     <Box
       sx={{
         width: '100%',
-        marginTop: 4,
         marginBottom: 4,
         paddingY: 3,
-        borderTop: `1px solid ${theme.palette.customColors.borderColor}`,
-        borderBottom: `1px solid ${theme.palette.customColors.borderColor}`,
       }}
     >
       <Box
@@ -349,6 +349,12 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
               cursor: isDragging ? 'grabbing' : 'grab',
               userSelect: isDragging ? 'none' : 'auto',
               scrollBehavior: 'smooth',
+              maskImage: buildEdgeFadeMask(
+                canScrollLeft,
+                canScrollRight,
+                RELATED_EDGE_FADE,
+                BLACK,
+              ),
             }}
           >
             {relatedAnime

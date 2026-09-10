@@ -96,7 +96,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
   }
 
   return (
-    <Box>
+    <Box sx={{ pt: 2 }}>
       <Box
         sx={{
           display: 'flex',

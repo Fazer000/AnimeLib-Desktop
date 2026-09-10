@@ -4,6 +4,7 @@ import {
   formatTime,
   getQualityLevel,
   getQualityTagFromResolution,
+  getCoverRange,
   getPlayerRowHeight,
   getQualityTagColor,
   loadFromStorage,
@@ -129,5 +130,23 @@ describe('getPlayerRowHeight', () => {
 
   it('другое соотношение меняет делитель', () => {
     expect(getPlayerRowHeight(4 / 3, '0px', 0)).toContain('/ 1.3333)');
+  });
+});
+
+describe('getCoverRange', () => {
+  it('наезд начинается, когда лист проходит зазор под блоком', () => {
+    expect(getCoverRange(64, '500px').start).toBe('64px');
+  });
+
+  it('наезд заканчивается на зазоре плюс высоте блока', () => {
+    expect(getCoverRange(64, '500px').end).toBe('calc(64px + 500px)');
+  });
+
+  it('высота блока подставляется выражением как есть', () => {
+    const range = getCoverRange(0, 'min(calc(100vw / 1.7778), 100vh) + 74px');
+
+    expect(range.end).toBe(
+      'calc(0px + min(calc(100vw / 1.7778), 100vh) + 74px)',
+    );
   });
 });

@@ -267,3 +267,18 @@ export const AMBIENT_IDLE_OPACITY = 0.35;
  * Длительность угасания свечения на паузе, мс
  */
 export const AMBIENT_FADE_MS = 800;
+
+/**
+ * Затемнение плеера в момент, когда лист страницы закрывает его целиком
+ */
+export const PLAYER_COVER_DIM_OPACITY = 0.55;
+
+/**
+ * Скругление верхних углов листа, наезжающего на плеер, px
+ */
+export const PLAYER_SHEET_RADIUS = 16;
+
+/**
+ * Зазор между слайдером эпизодов и кромкой листа, px
+ */
+export const PLAYER_SHEET_OFFSET = 32;

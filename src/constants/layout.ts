@@ -281,3 +281,8 @@ export const OFFLINE_COVER = { width: 72, height: 100 } as const;
  * и «Продолжить» занимали одинаковое место и не сдвигали шеврон
  */
 export const OFFLINE_LIBRARY_ACTION_WIDTH = 160;
+
+/**
+ * Ширина затухания карусели связанного у края со скрытыми карточками, px
+ */
+export const RELATED_EDGE_FADE = 56;
