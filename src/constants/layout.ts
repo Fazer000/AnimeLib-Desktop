@@ -153,6 +153,11 @@ export const COMMENTS_WIDTH_CSS = 'clamp(860px, 66vw, 1400px)';
 export const EPISODE_SLIDER_HEIGHT = 74;
 
 /**
+ * Запас под слайдером эпизодов, когда высоту ряда плеера ограничивает окно, px
+ */
+export const PLAYER_SLIDER_BOTTOM_GAP = 24;
+
+/**
  * Отступы чипа эпизода сверху и снизу (MUI spacing)
  */
 export const EPISODE_CHIP_MARGIN_TOP = 3;
@@ -219,7 +224,10 @@ export const MIN_WINDOW_WIDTH =
  * Минимальная высота окна, при которой видео 360p помещается целиком, px
  */
 export const MIN_WINDOW_HEIGHT =
-  MIN_VIDEO_AREA_HEIGHT + TOOLBAR_HEIGHT + EPISODE_SLIDER_HEIGHT;
+  MIN_VIDEO_AREA_HEIGHT +
+  TOOLBAR_HEIGHT +
+  EPISODE_SLIDER_HEIGHT +
+  PLAYER_SLIDER_BOTTOM_GAP;
 
 /**
  * Размеры диалога менеджера загрузок
