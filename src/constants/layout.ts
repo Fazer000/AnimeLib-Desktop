@@ -23,11 +23,37 @@ export const FLOATING_BUTTONS_BOTTOM = FLOATING_BUTTONS_LEFT;
  * Панель быстрых закладок, примыкающая к кнопке
  */
 export const BOOKMARKS_PANEL_WIDTH = 320;
-export const BOOKMARKS_PANEL_MAX_HEIGHT = 420;
 export const BOOKMARKS_PANEL_RADIUS = 10;
 export const BOOKMARKS_PANEL_DURATION_MS = 300;
 export const BOOKMARKS_PANEL_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 export const BOOKMARKS_COVER = { width: 44, height: 62 } as const;
+
+/**
+ * Отступы строки закладки сверху и снизу, px
+ */
+export const BOOKMARKS_ROW_PADDING = 6;
+
+/**
+ * Отступы списка закладок сверху и снизу, px
+ */
+export const BOOKMARKS_LIST_PADDING = 6;
+
+/**
+ * Высота строки закладки: обложка со своими отступами, px
+ */
+export const BOOKMARKS_ROW_HEIGHT =
+  BOOKMARKS_COVER.height + BOOKMARKS_ROW_PADDING * 2;
+
+/**
+ * Сколько строк показывается целиком, без обрезанной снизу
+ */
+export const BOOKMARKS_VISIBLE_ROWS = 5;
+
+/**
+ * Высота панели закладок кратна строке, поэтому последняя не обрезается
+ */
+export const BOOKMARKS_PANEL_MAX_HEIGHT =
+  BOOKMARKS_LIST_PADDING * 2 + BOOKMARKS_ROW_HEIGHT * BOOKMARKS_VISIBLE_ROWS;
 
 /**
  * Матовая поверхность краевых кнопок и панели закладок
@@ -293,7 +319,7 @@ export const OFFLINE_ICON = {
 /**
  * Размер обложки в библиотеке, px
  */
-export const OFFLINE_COVER = { width: 72, height: 100 } as const;
+export const OFFLINE_COVER = { width: 90, height: 125 } as const;
 
 /**
  * Ширина кнопки действия в библиотеке. Задана явно, чтобы «Смотреть»

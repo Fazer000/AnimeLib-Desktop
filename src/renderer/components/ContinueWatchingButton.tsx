@@ -13,6 +13,8 @@ import { BookmarkItem } from '../api/animeApi';
 import EdgeActionButton from './EdgeActionButton';
 import {
   BOOKMARKS_COVER,
+  BOOKMARKS_LIST_PADDING,
+  BOOKMARKS_ROW_PADDING,
   BOOKMARKS_PANEL_DURATION_MS,
   BOOKMARKS_PANEL_MAX_HEIGHT,
   BOOKMARKS_PANEL_RADIUS,
@@ -52,7 +54,7 @@ const paperSx = (colors: CustomColors) => ({
 const rowSx = (colors: CustomColors) => ({
   gap: 1.25,
   px: 1.5,
-  py: 0.75,
+  py: `${BOOKMARKS_ROW_PADDING}px`,
   '&:hover': { backgroundColor: colors.accentQuietColor },
 });
 
@@ -237,7 +239,7 @@ function ContinueWatchingButton({
           TransitionProps={{ onExited: () => setAttached(false) }}
           slotProps={{
             paper: { sx: paperSx(customColors) },
-            list: { sx: { py: 0.75 } },
+            list: { sx: { py: `${BOOKMARKS_LIST_PADDING}px` } },
           }}
         >
           {showOffline

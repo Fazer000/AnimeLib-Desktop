@@ -61,8 +61,6 @@ function AnimeInfoCard({
     loadAnimeInfo();
   }, [isVisible, animeId, animeInfo]);
 
-  if (!animeInfo && !loading) return null;
-
   const panelSx = {
     position: 'fixed' as const,
     top: topOffset,
@@ -87,10 +85,12 @@ function AnimeInfoCard({
           alignItems: 'center',
         }}
       >
-        <CircularProgress
-          size={30}
-          sx={{ color: customColors.accentSoftColor }}
-        />
+        {loading && (
+          <CircularProgress
+            size={30}
+            sx={{ color: customColors.accentSoftColor }}
+          />
+        )}
       </Box>
     );
   }
