@@ -362,3 +362,8 @@ export const EPISODE_JUMP_INPUT_WIDTH = 72;
  * Размер круглых кнопок слайдера эпизодов и распорки напротив кнопки поиска, px
  */
 export const EPISODE_SLIDER_BUTTON_SIZE = 32;
+
+/**
+ * Ширина затухания слайдера эпизодов у края со скрытыми сериями, px
+ */
+export const EPISODE_SLIDER_EDGE_FADE = 56;

@@ -4,6 +4,8 @@ import type { CustomColors } from '@mui/material/styles';
 import { Bookmark, ChevronLeft, ChevronRight } from '../icons';
 import { Episode } from '../../api/animeApi';
 import EpisodeJumpField from './EpisodeJumpField';
+import { buildEdgeFadeMask } from '../../utils/edgeFade';
+import { BLACK } from '../../theme/palette';
 import {
   EPISODE_CHIP_FONT,
   EPISODE_CHIP_ICON_FONT,
@@ -11,6 +13,7 @@ import {
   EPISODE_CHIP_MARGIN_TOP,
   EPISODE_CHIP_MIN_WIDTH,
   EPISODE_SLIDER_BUTTON_SIZE,
+  EPISODE_SLIDER_EDGE_FADE,
   EPISODE_SLIDER_HEIGHT,
 } from '../../../constants';
 
@@ -310,6 +313,12 @@ function EpisodeSliderRefactored({
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
             scrollBehavior: 'smooth',
+            maskImage: buildEdgeFadeMask(
+              canScrollLeft,
+              canScrollRight,
+              EPISODE_SLIDER_EDGE_FADE,
+              BLACK,
+            ),
           }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
