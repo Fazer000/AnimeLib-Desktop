@@ -59,6 +59,27 @@ export function getFittedHeight(
 }
 
 /**
+ * Возвращает положение и ширину сегмента на шкале в процентах длительности
+ */
+export function getSegmentBounds(
+  start: number,
+  end: number,
+  duration: number,
+): { left: number; width: number } {
+  if (!Number.isFinite(duration) || duration <= 0) {
+    return { left: 0, width: 0 };
+  }
+
+  const from = Math.min(Math.max(start, 0), duration);
+  const to = Math.min(Math.max(end, 0), duration);
+
+  return {
+    left: (from / duration) * 100,
+    width: (Math.max(to - from, 0) / duration) * 100,
+  };
+}
+
+/**
  * Форматирует время в формат MM:SS
  */
 export function formatTime(time: number): string {

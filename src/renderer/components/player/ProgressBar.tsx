@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { Box, Slider, useTheme } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
-import { formatTime } from '../../utils/videoHelpers';
+import { formatTime, getSegmentBounds } from '../../utils/videoHelpers';
 import { ThumbnailManager, PlaybackTimeStore } from '../../services/player';
 import ThumbnailPreview from './ThumbnailPreview';
 import { WHITE_SHORT } from '../../theme/palette';
@@ -36,9 +36,11 @@ interface ProgressBarProps {
   thumbnailManager?: ThumbnailManager | null;
 }
 
+const SEGMENT_GAP = 3;
+
 const ROOT_SX = {
   position: 'relative',
-  px: 0.5,
+  mx: 0.5,
   height: 16,
   display: 'flex',
   alignItems: 'center',
@@ -48,11 +50,9 @@ const TRACK_SX = {
   position: 'absolute',
   top: '50%',
   transform: 'translateY(-50%)',
-  left: 4,
-  right: 4,
+  left: 0,
+  right: 0,
   height: 5,
-  display: 'flex',
-  gap: '3px',
   transition: 'height 0.2s ease',
   overflow: 'hidden',
   '&:hover': {
@@ -208,6 +208,7 @@ function ProgressBar({
 
   const progressRefs = useRef<(HTMLDivElement | null)[]>([]);
   const bufferedRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const sliderRef = useRef<HTMLSpanElement | null>(null);
 
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [isThumbnailLoading, setIsThumbnailLoading] = useState(false);
@@ -264,8 +265,15 @@ function ProgressBar({
   const segmentsRef = useRef(segments);
   segmentsRef.current = segments;
 
+  const needsSlider = hoverTime !== null || isDragging;
   const needsSliderRef = useRef(false);
-  needsSliderRef.current = hoverTime !== null || isDragging;
+  needsSliderRef.current = needsSlider;
+
+  useEffect(() => {
+    if (needsSlider && dragTimeRef.current === null) {
+      setSliderTime(timeStore.getCurrentTime());
+    }
+  }, [needsSlider, timeStore]);
 
   useEffect(() => {
     const paint = (currentTime: number, buffered: number) => {
@@ -390,35 +398,26 @@ function ProgressBar({
     <Box sx={ROOT_SX}>
       <Box sx={TRACK_SX}>
         {segments.map((segment, index) => {
-          const segmentDuration = segment.end - segment.start;
+          const bounds = getSegmentBounds(segment.start, segment.end, duration);
 
-          if (segmentDuration <= 0 || duration <= 0) {
+          if (bounds.width <= 0) {
             return null;
           }
-
-          let segmentWidth = (segmentDuration / duration) * 100;
-
-          if (index === segments.length - 1) {
-            const previousWidths = segments
-              .slice(0, index)
-              .reduce((sum, seg) => {
-                const dur = seg.end - seg.start;
-                return sum + (dur / duration) * 100;
-              }, 0);
-            segmentWidth = Math.max(0.1, 100 - previousWidths);
-          }
-
-          segmentWidth = Math.max(0, Math.min(100, segmentWidth));
 
           return (
             <Box
               key={`segment-${segment.start}-${segment.end}`}
               sx={{
-                position: 'relative',
-                width: `${segmentWidth}%`,
+                position: 'absolute',
+                top: 0,
+                left: `${bounds.left}%`,
+                width: `${bounds.width}%`,
                 height: '100%',
-                flexShrink: 1,
-                minWidth: 0,
+                boxSizing: 'border-box',
+                borderRight:
+                  index === segments.length - 1
+                    ? 'none'
+                    : `${SEGMENT_GAP}px solid transparent`,
               }}
             >
               <Box sx={segmentBgSx(customColors)} />
@@ -452,6 +451,7 @@ function ProgressBar({
       </Box>
 
       <Slider
+        ref={sliderRef}
         value={dragTime !== null ? dragTime : sliderTime}
         min={0}
         max={duration || 100}
@@ -492,6 +492,14 @@ function ProgressBar({
           setSliderTime(time);
 
           onSeek(time);
+
+          const focused = document.activeElement;
+          if (
+            focused instanceof HTMLElement &&
+            sliderRef.current?.contains(focused)
+          ) {
+            focused.blur();
+          }
         }}
         onMouseMove={(event: React.MouseEvent) => {
           if (duration > 0) {

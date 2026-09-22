@@ -11,6 +11,7 @@ export interface VideoState {
   isMuted: boolean;
   playbackRate: number;
   isBuffering: boolean;
+  isPictureInPicture: boolean;
 }
 
 export interface VideoStateConfig {
@@ -51,6 +52,7 @@ export class VideoStateManager {
       isMuted: VideoStateManager.loadFromStorage('videoMuted', false),
       playbackRate: VideoStateManager.loadFromStorage('videoPlaybackRate', 1),
       isBuffering: false,
+      isPictureInPicture: false,
     };
   }
 
@@ -73,6 +75,16 @@ export class VideoStateManager {
     this.addListener('loadedmetadata', () => this.handleLoadedMetadata());
     this.addListener('waiting', () => this.handleWaiting());
     this.addListener('canplay', () => this.handleCanPlay());
+    this.addListener('enterpictureinpicture', () =>
+      this.updateState({ isPictureInPicture: true }),
+    );
+    this.addListener('leavepictureinpicture', () =>
+      this.updateState({ isPictureInPicture: false }),
+    );
+
+    this.updateState({
+      isPictureInPicture: document.pictureInPictureElement === videoElement,
+    });
 
     log.debug('Attached to video element');
   }

@@ -15,7 +15,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { Pause, Play } from '../icons';
+import { Pause, PictureInPicture2, Play } from '../icons';
 import {
   Player,
   KodikVideoLinks,
@@ -51,6 +51,7 @@ import {
   PLAYER_FULLSCREEN_EASING,
   PLAYER_FULLSCREEN_TRANSITION,
   SUBTITLES_DEFAULT_SETTINGS,
+  PLAYER_PIP_ICON_SIZE,
 } from '../../../constants';
 import { getSiteOrigin } from '../../utils/urlHelpers';
 import { useMediaSession } from './hooks/useMediaSession';
@@ -203,6 +204,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       isMuted: false,
       playbackRate: 1,
       isBuffering: false,
+      isPictureInPicture: false,
     });
 
     const [timeStore] = useState(() => new PlaybackTimeStore());
@@ -844,6 +846,27 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         >
           <track kind="captions" />
         </video>
+
+        {videoState.isPictureInPicture && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: BLACK_SHORT,
+              pointerEvents: 'none',
+            }}
+          >
+            <PictureInPicture2
+              sx={{
+                fontSize: PLAYER_PIP_ICON_SIZE,
+                color: `rgba(${customColors.onVideoRgb}, 0.35)`,
+              }}
+            />
+          </Box>
+        )}
 
         <SubtitlesOverlay
           cues={subtitleCues}

@@ -275,3 +275,8 @@ export const PLAYER_SHEET_RADIUS = 16;
  * Зазор между слайдером эпизодов и кромкой листа, px
  */
 export const PLAYER_SHEET_OFFSET = 32;
+
+/**
+ * Размер значка на месте видео в режиме «картинка в картинке», px
+ */
+export const PLAYER_PIP_ICON_SIZE = 64;

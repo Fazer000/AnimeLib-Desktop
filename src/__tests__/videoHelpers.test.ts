@@ -5,6 +5,7 @@ import {
   getQualityLevel,
   getQualityTagFromResolution,
   getCoverRange,
+  getSegmentBounds,
   getPlayerRowHeight,
   getQualityTagColor,
   loadFromStorage,
@@ -148,5 +149,27 @@ describe('getCoverRange', () => {
     expect(range.end).toBe(
       'calc(0px + min(calc(100vw / 1.7778), 100vh) + 74px)',
     );
+  });
+});
+
+describe('getSegmentBounds', () => {
+  it('сегмент в середине занимает свою долю длительности', () => {
+    expect(getSegmentBounds(30, 60, 120)).toEqual({ left: 25, width: 25 });
+  });
+
+  it('сегмент во всю длительность занимает всю шкалу', () => {
+    expect(getSegmentBounds(0, 120, 120)).toEqual({ left: 0, width: 100 });
+  });
+
+  it('выход за длительность обрезается', () => {
+    expect(getSegmentBounds(-10, 300, 120)).toEqual({ left: 0, width: 100 });
+  });
+
+  it('пустой сегмент не получает ширины', () => {
+    expect(getSegmentBounds(60, 60, 120).width).toBe(0);
+  });
+
+  it('без длительности шкала пустая', () => {
+    expect(getSegmentBounds(0, 10, 0)).toEqual({ left: 0, width: 0 });
   });
 });
