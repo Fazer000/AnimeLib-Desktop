@@ -3,19 +3,21 @@ import { Box, Button, IconButton, Typography, useTheme } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
 import { Bookmark, ChevronLeft, ChevronRight } from '../icons';
 import { Episode } from '../../api/animeApi';
+import EpisodeJumpField from './EpisodeJumpField';
 import {
   EPISODE_CHIP_FONT,
   EPISODE_CHIP_ICON_FONT,
   EPISODE_CHIP_MARGIN_BOTTOM,
   EPISODE_CHIP_MARGIN_TOP,
   EPISODE_CHIP_MIN_WIDTH,
+  EPISODE_SLIDER_BUTTON_SIZE,
   EPISODE_SLIDER_HEIGHT,
 } from '../../../constants';
 
 const sliderButtonSx = (colors: CustomColors) => ({
   flexShrink: 0,
-  width: 32,
-  height: 32,
+  width: EPISODE_SLIDER_BUTTON_SIZE,
+  height: EPISODE_SLIDER_BUTTON_SIZE,
   mt: EPISODE_CHIP_MARGIN_TOP,
   mb: EPISODE_CHIP_MARGIN_BOTTOM,
   color: colors.accentSoftColor,
@@ -53,35 +55,57 @@ function EpisodeSliderRefactored({
 
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
 
   const checkScrollState = useCallback(() => {
     if (scrollRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
       setCanScrollLeft(scrollLeft > 0);
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+      setIsOverflowing(scrollWidth > clientWidth + 1);
     }
   }, []);
 
-  const scrollToActiveEpisode = useCallback(
+  const scrollToEpisode = useCallback(
     // eslint-disable-next-line no-undef
-    (behavior: ScrollBehavior = 'smooth') => {
+    (index: number, behavior: ScrollBehavior = 'smooth') => {
       if (!scrollRef.current) return;
       const container = scrollRef.current;
-      const activeButton =
-        container.querySelectorAll<HTMLElement>('.episode-button')[
-          currentEpisodeIndex
-        ];
-      if (!activeButton) return;
+      const button =
+        container.querySelectorAll<HTMLElement>('.episode-button')[index];
+      if (!button) return;
 
-      const containerWidth = container.clientWidth;
-      const buttonLeft = activeButton.offsetLeft;
-      const buttonWidth = activeButton.offsetWidth;
-      const targetScroll = buttonLeft - containerWidth / 2 + buttonWidth / 2;
+      const targetScroll =
+        button.offsetLeft - container.clientWidth / 2 + button.offsetWidth / 2;
 
       container.scrollTo({ left: targetScroll, behavior });
       setTimeout(checkScrollState, 300);
     },
-    [currentEpisodeIndex, checkScrollState],
+    [checkScrollState],
+  );
+
+  const scrollToActiveEpisode = useCallback(
+    // eslint-disable-next-line no-undef
+    (behavior: ScrollBehavior = 'smooth') =>
+      scrollToEpisode(currentEpisodeIndex, behavior),
+    [currentEpisodeIndex, scrollToEpisode],
+  );
+
+  const handlePreview = useCallback(
+    (index: number | null) => {
+      setPreviewIndex(index);
+      scrollToEpisode(index ?? currentEpisodeIndex);
+    },
+    [currentEpisodeIndex, scrollToEpisode],
+  );
+
+  const handleJump = useCallback(
+    (index: number) => {
+      setPreviewIndex(null);
+      onEpisodeSelect(index);
+    },
+    [onEpisodeSelect],
   );
 
   const handleScroll = useCallback(
@@ -171,6 +195,31 @@ function EpisodeSliderRefactored({
     scrollToActiveEpisode('smooth');
   }, [currentEpisodeIndex, scrollToActiveEpisode]);
 
+  const anchorRef = useRef<number>(currentEpisodeIndex);
+  anchorRef.current = previewIndex ?? currentEpisodeIndex;
+
+  const scrollToEpisodeRef = useRef(scrollToEpisode);
+  scrollToEpisodeRef.current = scrollToEpisode;
+
+  useEffect(() => {
+    const element = scrollRef.current;
+    if (!element) return undefined;
+
+    let lastWidth = element.clientWidth;
+
+    const observer = new ResizeObserver(() => {
+      checkScrollState();
+
+      if (element.clientWidth !== lastWidth) {
+        lastWidth = element.clientWidth;
+        scrollToEpisodeRef.current(anchorRef.current, 'instant');
+      }
+    });
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [checkScrollState, episodes.length]);
+
   useEffect(() => {
     const element = scrollRef.current;
     if (!element) return undefined;
@@ -224,6 +273,14 @@ function EpisodeSliderRefactored({
           px: 1,
         }}
       >
+        {isOverflowing && (
+          <EpisodeJumpField
+            episodes={episodes}
+            onPreview={handlePreview}
+            onSelect={handleJump}
+          />
+        )}
+
         <IconButton
           onClick={() => handleScroll('left')}
           aria-label="Предыдущие эпизоды"
@@ -238,6 +295,7 @@ function EpisodeSliderRefactored({
         <Box
           ref={scrollRef}
           sx={{
+            position: 'relative',
             flex: 1,
             minWidth: 0,
             display: 'flex',
@@ -261,6 +319,7 @@ function EpisodeSliderRefactored({
         >
           {episodes.map((episode, index) => {
             const isSelected = index === currentEpisodeIndex;
+            const isPreview = index === previewIndex && !isSelected;
             const hasBookmark = episode.id === bookmarkedEpisodeId;
 
             return (
@@ -284,6 +343,12 @@ function EpisodeSliderRefactored({
                   border: isSelected
                     ? `1px solid ${theme.palette.customColors.secondaryColor}`
                     : `1px solid ${theme.palette.customColors.lineColor}`,
+                  ...(isPreview
+                    ? {
+                        backgroundColor: `rgba(${theme.palette.customColors.accentRgb}, 0.22)`,
+                        borderColor: theme.palette.customColors.accentSoftColor,
+                      }
+                    : {}),
                   cursor: 'pointer',
                   position: 'relative',
                   overflow: 'hidden',
@@ -354,6 +419,10 @@ function EpisodeSliderRefactored({
         >
           <ChevronRight />
         </IconButton>
+
+        {isOverflowing && (
+          <Box sx={{ width: EPISODE_SLIDER_BUTTON_SIZE, flexShrink: 0 }} />
+        )}
       </Box>
     </Box>
   );

@@ -352,3 +352,13 @@ export const RELATED_COVER_WIDTH = Math.round((RELATED_CARD_HEIGHT * 2) / 3);
  * Сколько строк названия помещается в карточке связанного
  */
 export const RELATED_TITLE_LINES = 4;
+
+/**
+ * Ширина раскрытого поля перехода к серии, px
+ */
+export const EPISODE_JUMP_INPUT_WIDTH = 72;
+
+/**
+ * Размер круглых кнопок слайдера эпизодов и распорки напротив кнопки поиска, px
+ */
+export const EPISODE_SLIDER_BUTTON_SIZE = 32;
