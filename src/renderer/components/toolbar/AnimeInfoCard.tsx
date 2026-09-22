@@ -5,6 +5,7 @@ import { animeApi, AnimeInfo } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 import {
   ANIME_CARD_COVER_HEIGHT,
+  ANIME_CARD_PANEL_HEIGHT,
   ANIME_CARD_COVER_WIDTH,
   ANIME_CARD_MAX_WIDTH,
   ANIME_CARD_MIN_WIDTH,
@@ -68,6 +69,7 @@ function AnimeInfoCard({
     left: 0,
     right: 0,
     zIndex: 1200,
+    minHeight: ANIME_CARD_PANEL_HEIGHT,
     backgroundColor: customColors.headerColor,
     borderBottom: `1px solid ${customColors.lineColor}`,
     transform: isVisible ? 'translateY(0)' : 'translateY(-100%)',
@@ -83,7 +85,6 @@ function AnimeInfoCard({
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          minHeight: ANIME_CARD_COVER_HEIGHT,
         }}
       >
         <CircularProgress

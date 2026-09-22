@@ -115,6 +115,17 @@ export const ANIME_CARD_COVER_HEIGHT = 'clamp(96px, 9vw, 150px)';
 export const ANIME_CARD_TITLE_FONT = 'clamp(1rem, 1.5vw, 1.5rem)';
 
 /**
+ * Обрамление обложки в карточке аниме: внешний и внутренний отступы и рамка, px
+ */
+export const ANIME_CARD_FRAME_HEIGHT = 42;
+
+/**
+ * Высота шторки карточки. Одна для загрузки и для готовых данных,
+ * иначе шторка подпрыгивает, когда данные приходят
+ */
+export const ANIME_CARD_PANEL_HEIGHT = `calc(${ANIME_CARD_COVER_HEIGHT} + ${ANIME_CARD_FRAME_HEIGHT}px)`;
+
+/**
  * Высота поля поиска озвучек в сайдбаре, px
  */
 export const SIDEBAR_SEARCH_HEIGHT = 32;
