@@ -12,7 +12,12 @@ import { RelatedAnime as RelatedAnimeType } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 import {
   RELATED_ARROW_SIZE,
+  RELATED_CARD_GAP,
+  RELATED_CARD_HEIGHT,
   RELATED_CARD_HOVER_SCALE,
+  RELATED_CARD_WIDTH,
+  RELATED_COVER_WIDTH,
+  RELATED_TITLE_LINES,
   RELATED_EDGE_FADE,
   RELATED_ROW_GAP,
   RELATED_ROW_PADDING,
@@ -67,9 +72,9 @@ function RelatedAnimeCard({
       onClick={handleClick}
       disableRipple={isDragMoving}
       sx={{
-        minWidth: 400,
-        maxWidth: 400,
-        height: 140,
+        minWidth: RELATED_CARD_WIDTH,
+        maxWidth: RELATED_CARD_WIDTH,
+        height: RELATED_CARD_HEIGHT,
         display: 'flex',
         backgroundColor: theme.palette.customColors.primaryColor,
         border: `1px solid ${theme.palette.customColors.lineColor}`,
@@ -94,7 +99,7 @@ function RelatedAnimeCard({
     >
       <Box
         sx={{
-          width: 100,
+          width: RELATED_COVER_WIDTH,
           height: '100%',
           flexShrink: 0,
           position: 'relative',
@@ -145,7 +150,7 @@ function RelatedAnimeCard({
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               display: '-webkit-box',
-              WebkitLineClamp: 2,
+              WebkitLineClamp: RELATED_TITLE_LINES,
               WebkitBoxOrient: 'vertical',
               lineHeight: 1.3,
               marginBottom: 1,
@@ -208,7 +213,7 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollContainerRef.current) return;
 
-    const scrollAmount = 420;
+    const scrollAmount = RELATED_CARD_WIDTH + RELATED_CARD_GAP;
     const newScrollLeft =
       direction === 'left'
         ? scrollContainerRef.current.scrollLeft - scrollAmount
@@ -338,7 +343,7 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
               flex: 1,
               minWidth: 0,
               display: 'flex',
-              gap: 2.5,
+              gap: `${RELATED_CARD_GAP}px`,
               overflowX: 'auto',
               overflowY: 'hidden',
               scrollbarWidth: 'none',

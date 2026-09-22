@@ -331,3 +331,24 @@ export const OFFLINE_LIBRARY_ACTION_WIDTH = 160;
  * Ширина затухания карусели связанного у края со скрытыми карточками, px
  */
 export const RELATED_EDGE_FADE = 56;
+
+/**
+ * Размеры карточки связанного, px
+ */
+export const RELATED_CARD_WIDTH = 440;
+export const RELATED_CARD_HEIGHT = 180;
+
+/**
+ * Зазор между карточками связанного, px. Вместе с шириной задаёт шаг прокрутки
+ */
+export const RELATED_CARD_GAP = 20;
+
+/**
+ * Ширина обложки связанного: во всю высоту карточки в пропорции постера 2:3, px
+ */
+export const RELATED_COVER_WIDTH = Math.round((RELATED_CARD_HEIGHT * 2) / 3);
+
+/**
+ * Сколько строк названия помещается в карточке связанного
+ */
+export const RELATED_TITLE_LINES = 4;
