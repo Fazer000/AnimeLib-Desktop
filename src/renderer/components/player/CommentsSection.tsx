@@ -191,27 +191,7 @@ const CommentsSection = memo(
                     },
                   }}
                   MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        backgroundColor:
-                          theme.palette.customColors.primaryColor,
-                        borderRadius: 2,
-                        marginTop: 1,
-                        '& .MuiMenuItem-root': {
-                          color: theme.palette.customColors.primaryTextColor,
-                          fontSize: '0.875rem',
-                          '&:hover': {
-                            backgroundColor: `rgba(${theme.palette.customColors.accentRgb}, 0.13)`,
-                          },
-                          '&.Mui-selected': {
-                            backgroundColor: `rgba(${theme.palette.customColors.accentRgb}, 0.19)`,
-                            '&:hover': {
-                              backgroundColor: `rgba(${theme.palette.customColors.accentRgb}, 0.25)`,
-                            },
-                          },
-                        },
-                      },
-                    },
+                    PaperProps: { sx: { marginTop: 1 } },
                   }}
                 >
                   <MenuItem value="popular">Популярные</MenuItem>
@@ -250,7 +230,6 @@ const CommentsSection = memo(
                 sortOption={commentsSortOption}
                 shouldLoad={shouldLoadComments}
                 highlightNew={commentsSettings.highlightNew}
-                collapseFromLevel={commentsSettings.collapseFromLevel}
               />
             </Box>
           )}

@@ -23,7 +23,6 @@ interface CommentsProps {
   sortOption: string;
   shouldLoad?: boolean;
   highlightNew: boolean;
-  collapseFromLevel: number;
 }
 
 /**
@@ -35,7 +34,6 @@ function Comments({
   sortOption,
   shouldLoad = true,
   highlightNew,
-  collapseFromLevel,
 }: CommentsProps) {
   const theme = useTheme();
   const {
@@ -59,7 +57,6 @@ function Comments({
     sortOption,
     shouldLoad,
     highlightNew,
-    collapseFromLevel,
   });
 
   const accentColor = theme.palette.customColors.accentTextColor;

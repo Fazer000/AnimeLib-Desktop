@@ -22,7 +22,7 @@ const makeComment = (
 });
 
 describe('CommentsManager.buildTree', () => {
-  it('раскладывает плоский список ответов по веткам', () => {
+  it('складывает все ответы ветки одним уровнем', () => {
     const roots = [makeComment(1, 'root')];
     const replies = [
       makeComment(2, 'a', { parent_comment: 1, root_id: 1 }),
@@ -32,9 +32,23 @@ describe('CommentsManager.buildTree', () => {
     const tree = CommentsManager.buildTree(roots, replies);
 
     expect(tree).toHaveLength(1);
-    expect(tree[0].replies).toHaveLength(1);
-    expect(tree[0].replies![0].id).toBe(2);
-    expect(tree[0].replies![0].replies![0].id).toBe(3);
+    expect(tree[0].replies!.map((reply) => reply.id)).toEqual([2, 3]);
+    expect(tree[0].replies![1].replies).toHaveLength(0);
+  });
+
+  it('ответ на ответ помнит адресата, а не корень ветки', () => {
+    const roots = [makeComment(1, 'root')];
+    const replies = [
+      makeComment(2, 'a', { parent_comment: 1, root_id: 1 }),
+      makeComment(3, 'b', { parent_comment: 2, root_id: 1 }),
+    ];
+
+    const [tree] = CommentsManager.buildTree(roots, replies);
+
+    expect(tree.replies!.map((reply) => reply.parentUser)).toEqual([
+      'root',
+      'a',
+    ]);
   });
 
   it('подставляет имя автора родителя для подписи «в ответ»', () => {

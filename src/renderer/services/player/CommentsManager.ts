@@ -106,13 +106,16 @@ export class CommentsManager {
   }
 
   /**
-   * Собирает дерево комментариев произвольной вложенности
+   * Собирает комментарии одним уровнем ответов: каждый ответ попадает
+   * к корневому комментарию, а имя адресата сохраняется в parentUser
    */
   public static buildTree(
     rootComments: Comment[],
     repliesData: Comment[],
   ): Comment[] {
     const nodes = new Map<number, Comment>();
+    const rootIds = new Set(rootComments.map((comment) => comment.id));
+    const rootOf = new Map<number, Comment>();
 
     [...rootComments, ...repliesData].forEach((comment) => {
       nodes.set(comment.id, { ...comment, replies: [] });
@@ -128,8 +131,20 @@ export class CommentsManager {
 
         if (!node || !parent || parent.id === node.id) return;
 
+        const byRootId = nodes.get(reply.root_id ?? -1);
+        let root = parent;
+
+        if (!rootIds.has(parent.id)) {
+          root =
+            rootOf.get(parent.id) ??
+            (byRootId && rootIds.has(byRootId.id) ? byRootId : parent);
+        }
+
+        if (root.id === node.id) return;
+
         node.parentUser = parent.user.username;
-        parent.replies!.push(node);
+        rootOf.set(node.id, root);
+        root.replies!.push(node);
       });
 
     return rootComments

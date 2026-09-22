@@ -203,18 +203,11 @@ export const COMMENTS_SETTINGS_STORAGE_KEY = 'animeLibCommentsSettings';
 export const COMMENTS_LAST_SEEN_PREFIX = 'animeLibCommentsSeen:';
 
 /**
- * Границы уровня автосворачивания веток
- */
-export const COMMENTS_COLLAPSE_MIN_LEVEL = 1;
-export const COMMENTS_COLLAPSE_MAX_LEVEL = 10;
-
-/**
  * Настройки комментариев по умолчанию
  */
 export const COMMENTS_SETTINGS_DEFAULTS = {
   disabled: false,
   highlightNew: false,
-  collapseFromLevel: COMMENTS_COLLAPSE_MAX_LEVEL,
 };
 
 /**

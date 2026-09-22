@@ -120,19 +120,13 @@ const CommentItem = memo(
             <CommentActions comment={comment} controls={replyControls} />
 
             {comment.replies && comment.replies.length > 0 && (
-              <RepliesThread
-                count={countReplies(comment.replies)}
-                spacing={2}
-                level={1}
-                collapseFromLevel={replyControls.collapseFromLevel}
-              >
+              <RepliesThread count={countReplies(comment.replies)} spacing={2}>
                 {comment.replies.map((reply) => (
                   <ReplyItem
                     key={reply.id}
                     comment={reply}
                     isVoting={isVoting}
                     onVote={onVote}
-                    level={1}
                     userVotes={userVotes}
                     replyControls={replyControls}
                   />

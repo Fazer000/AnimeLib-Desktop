@@ -19,22 +19,14 @@ export function countReplies(comments: Comment[]): number {
 interface RepliesThreadProps {
   count: number;
   spacing: number;
-  level: number;
-  collapseFromLevel: number;
   children: React.ReactNode;
 }
 
 /** Сворачиваемая ветка ответов: полоска слева служит переключателем. */
 const RepliesThread = memo(
-  ({
-    count,
-    spacing,
-    level,
-    collapseFromLevel,
-    children,
-  }: RepliesThreadProps) => {
+  ({ count, spacing, children }: RepliesThreadProps) => {
     const { customColors } = useTheme().palette;
-    const [collapsed, setCollapsed] = useState(level >= collapseFromLevel);
+    const [collapsed, setCollapsed] = useState(false);
     const countLabel = count > 99 ? '99+' : String(count);
     const pillWidth = countLabel.length > 2 ? 28 : 20;
 

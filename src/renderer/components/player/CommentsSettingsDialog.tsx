@@ -1,22 +1,16 @@
 import {
-  Box,
   Checkbox,
   Dialog,
   DialogContent,
   DialogTitle,
   Divider,
   FormControlLabel,
-  Slider,
   Typography,
   useTheme,
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
 import DialogCloseButton from '../DialogCloseButton';
-import {
-  DIALOG_TITLE_RIGHT_INSET,
-  COMMENTS_COLLAPSE_MAX_LEVEL,
-  COMMENTS_COLLAPSE_MIN_LEVEL,
-} from '../../../constants';
+import { DIALOG_TITLE_RIGHT_INSET } from '../../../constants';
 import { CommentsSettings } from '../../hooks/useCommentsSettings';
 
 const checkboxSx = (colors: CustomColors) => ({
@@ -115,50 +109,6 @@ function CommentsSettingsDialog({
             </Typography>
           }
         />
-
-        <Divider
-          sx={{
-            borderColor: `rgba(${customColors.onSurfaceRgb}, 0.08)`,
-            my: 0.5,
-          }}
-        />
-
-        <Box sx={{ pt: 1.5 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              mb: 0.5,
-            }}
-          >
-            <Typography
-              sx={{ color: `rgba(${customColors.onSurfaceRgb}, 0.85)` }}
-            >
-              Сворачивать вложенные комментарии
-            </Typography>
-            <Typography
-              sx={{
-                color: `rgba(${customColors.onSurfaceRgb}, 0.95)`,
-                fontWeight: 700,
-              }}
-            >
-              {settings.collapseFromLevel >= COMMENTS_COLLAPSE_MAX_LEVEL
-                ? 'никогда'
-                : `с ${settings.collapseFromLevel} ур.`}
-            </Typography>
-          </Box>
-          <Slider
-            value={settings.collapseFromLevel}
-            min={COMMENTS_COLLAPSE_MIN_LEVEL}
-            max={COMMENTS_COLLAPSE_MAX_LEVEL}
-            step={1}
-            onChange={(_, value) =>
-              onChange({ collapseFromLevel: value as number })
-            }
-            sx={{ color: customColors.secondaryColor }}
-          />
-        </Box>
       </DialogContent>
     </Dialog>
   );

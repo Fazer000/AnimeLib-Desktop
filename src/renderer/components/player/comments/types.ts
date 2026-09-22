@@ -5,7 +5,6 @@ export interface ReplyControls {
   animeSlug: string;
   onCopyLink: (commentId: number) => void;
   onIgnore: (userId: number | string, comment: string) => Promise<void>;
-  collapseFromLevel: number;
   newSince: number;
   replyingTo: number | null;
   currentUserId: string | null;

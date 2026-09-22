@@ -389,6 +389,33 @@ export function createAppTheme(scheme: ColorSchemeName): Theme {
           },
         },
       },
+      MuiMenu: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: customColors.primaryColor,
+            backgroundImage: 'none',
+            border: `1px solid ${customColors.lineColor}`,
+            borderRadius: 8,
+          },
+        },
+      },
+      MuiMenuItem: {
+        styleOverrides: {
+          root: {
+            color: customColors.primaryTextColor,
+            fontSize: '0.875rem',
+            '&:hover': {
+              backgroundColor: `rgba(${customColors.accentRgb}, 0.13)`,
+            },
+            '&.Mui-selected': {
+              backgroundColor: `rgba(${customColors.accentRgb}, 0.19)`,
+              '&:hover': {
+                backgroundColor: `rgba(${customColors.accentRgb}, 0.25)`,
+              },
+            },
+          },
+        },
+      },
     },
   });
 }

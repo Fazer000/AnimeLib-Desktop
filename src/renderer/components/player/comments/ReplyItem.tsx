@@ -5,28 +5,19 @@ import CommentText from '../CommentText';
 import CommentActions from './CommentActions';
 import CommentAvatar from './CommentAvatar';
 import VoteControls from './VoteControls';
-import RepliesThread, { countReplies } from './RepliesThread';
 import type { ReplyControls } from './types';
 
 interface ReplyItemProps {
   comment: Comment;
   isVoting: boolean;
   onVote: (commentId: number, vote: 0 | 1) => void;
-  level: number;
   userVotes: Map<number, 0 | 1>;
   replyControls: ReplyControls;
 }
 
 /** Вложенный ответ: компактная версия карточки комментария. */
 const ReplyItem = memo(
-  ({
-    comment,
-    isVoting,
-    onVote,
-    level = 1,
-    userVotes,
-    replyControls,
-  }: ReplyItemProps) => {
+  ({ comment, isVoting, onVote, userVotes, replyControls }: ReplyItemProps) => {
     const theme = useTheme();
     const voteCount = CommentsManager.getVoteCount(comment);
     const isNew =
@@ -93,14 +84,23 @@ const ReplyItem = memo(
                 </>
               )}
 
-              <Typography
+              <Box
                 sx={{
-                  color: theme.palette.customColors.accentTextColor,
-                  fontSize: '0.6875rem',
+                  backgroundColor: `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.06)`,
+                  padding: '2px 8px',
+                  borderRadius: 1,
                 }}
               >
-                {CommentsManager.formatDate(comment.created_at)}
-              </Typography>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.accentTextColor,
+                    fontSize: '0.6875rem',
+                    fontWeight: 500,
+                  }}
+                >
+                  {CommentsManager.formatDate(comment.created_at)}
+                </Typography>
+              </Box>
 
               <Box sx={{ ml: 'auto', display: 'flex' }}>
                 <VoteControls
@@ -126,27 +126,6 @@ const ReplyItem = memo(
             </Box>
 
             <CommentActions comment={comment} controls={replyControls} />
-
-            {comment.replies && comment.replies.length > 0 && (
-              <RepliesThread
-                count={countReplies(comment.replies)}
-                spacing={1}
-                level={level + 1}
-                collapseFromLevel={replyControls.collapseFromLevel}
-              >
-                {comment.replies.map((reply) => (
-                  <ReplyItem
-                    key={reply.id}
-                    comment={reply}
-                    isVoting={isVoting}
-                    onVote={onVote}
-                    level={level + 1}
-                    userVotes={userVotes}
-                    replyControls={replyControls}
-                  />
-                ))}
-              </RepliesThread>
-            )}
           </Box>
         </Box>
       </Box>

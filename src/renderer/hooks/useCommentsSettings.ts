@@ -11,7 +11,6 @@ const log = createLogger('useCommentsSettings');
 export interface CommentsSettings {
   disabled: boolean;
   highlightNew: boolean;
-  collapseFromLevel: number;
 }
 
 /**

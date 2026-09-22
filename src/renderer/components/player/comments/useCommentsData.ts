@@ -76,7 +76,6 @@ interface UseCommentsDataOptions {
   sortOption: string;
   shouldLoad: boolean;
   highlightNew: boolean;
-  collapseFromLevel: number;
 }
 
 /**
@@ -89,7 +88,6 @@ export function useCommentsData({
   sortOption,
   shouldLoad,
   highlightNew,
-  collapseFromLevel,
 }: UseCommentsDataOptions) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [displayCount, setDisplayCount] = useState<number>(PAGE_SIZE);
@@ -261,7 +259,6 @@ export function useCommentsData({
       animeSlug,
       onCopyLink: handleCopyLink,
       onIgnore: handleIgnore,
-      collapseFromLevel,
       newSince,
       replyingTo,
       currentUserId,
@@ -277,7 +274,6 @@ export function useCommentsData({
       animeSlug,
       handleCopyLink,
       handleIgnore,
-      collapseFromLevel,
       newSince,
       replyingTo,
       currentUserId,
