@@ -8,7 +8,10 @@ import {
 } from '../../services/player';
 import { SubtitleStyleSettings } from '../../utils/subtitleHelpers';
 import {
+  SETTINGS_MENU_EASING,
   SETTINGS_MENU_MARGIN,
+  SETTINGS_MENU_SLIDE_PX,
+  SETTINGS_MENU_TRANSITION_MS,
   SETTINGS_MENU_WIDTH,
   SUBTITLES_DEFAULT_SETTINGS,
 } from '../../../constants';
@@ -19,12 +22,38 @@ import SkipPage from './settings/SkipPage';
 import AutoSkipPage from './settings/AutoSkipPage';
 import SubtitlesPage from './settings/SubtitlesPage';
 import type { AutoSkipSettings, MenuPage } from './settings/types';
+import {
+  SLIDE_BACK,
+  SLIDE_FORWARD,
+  getMenuDirection,
+  getPageAnimationName,
+} from './settings/navigation';
+import type { MenuDirection } from './settings/navigation';
+import useContentHeight from '../../hooks/useContentHeight';
 
 const DEFAULT_AUTO_SKIP: AutoSkipSettings = {
   skipOpenings: false,
   skipEndings: false,
   skipCompilations: false,
   skipSplashScreens: false,
+};
+
+const HEIGHT_SX = {
+  overflow: 'hidden',
+  transition: `height ${SETTINGS_MENU_TRANSITION_MS}ms ${SETTINGS_MENU_EASING}`,
+  '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+};
+
+const PAGE_KEYFRAMES_SX = {
+  [`@keyframes ${SLIDE_FORWARD}`]: {
+    from: { opacity: 0, transform: `translateX(${SETTINGS_MENU_SLIDE_PX}px)` },
+    to: { opacity: 1, transform: 'none' },
+  },
+  [`@keyframes ${SLIDE_BACK}`]: {
+    from: { opacity: 0, transform: `translateX(-${SETTINGS_MENU_SLIDE_PX}px)` },
+    to: { opacity: 1, transform: 'none' },
+  },
+  '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
 };
 
 const BACKDROP_SX = {
@@ -113,13 +142,23 @@ function SettingsMenu({
 }: SettingsMenuProps) {
   const { customColors } = useTheme().palette;
   const [currentPage, setCurrentPage] = useState<MenuPage>('main');
+  const [direction, setDirection] = useState<MenuDirection>('none');
+  const [measureRef, contentHeight] = useContentHeight();
+
+  const navigate = (page: MenuPage) => {
+    setDirection(getMenuDirection(page));
+    setCurrentPage(page);
+  };
 
   const closeMenu = () => {
     onClose();
+    setDirection('none');
     setCurrentPage('main');
   };
 
-  const backToMain = () => setCurrentPage('main');
+  const backToMain = () => navigate('main');
+
+  const animationName = getPageAnimationName(direction);
 
   if (!anchorEl) return null;
 
@@ -137,68 +176,82 @@ function SettingsMenu({
         sx={panelSx(showEpisodes, customColors)}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
-        {currentPage === 'main' && (
-          <MainPage
-            qualityOptions={qualityOptions}
-            selectedQuality={selectedQuality}
-            playbackRate={playbackRate}
-            skipManager={skipManager}
-            autoSkipSettings={autoSkipSettings}
-            subtitleTracks={subtitleTracks}
-            subtitleSettings={subtitleSettings}
-            autoplayEnabled={autoplayEnabled}
-            ambientLightEnabled={ambientLightEnabled}
-            onNavigate={setCurrentPage}
-            onAutoplayChange={onAutoplayChange}
-            onAmbientLightChange={onAmbientLightChange}
-          />
-        )}
+        <Box sx={{ ...HEIGHT_SX, height: contentHeight ?? 'auto' }}>
+          <Box ref={measureRef}>
+            <Box
+              key={currentPage}
+              sx={{
+                ...PAGE_KEYFRAMES_SX,
+                animation: animationName
+                  ? `${animationName} ${SETTINGS_MENU_TRANSITION_MS}ms ${SETTINGS_MENU_EASING}`
+                  : 'none',
+              }}
+            >
+              {currentPage === 'main' && (
+                <MainPage
+                  qualityOptions={qualityOptions}
+                  selectedQuality={selectedQuality}
+                  playbackRate={playbackRate}
+                  skipManager={skipManager}
+                  autoSkipSettings={autoSkipSettings}
+                  subtitleTracks={subtitleTracks}
+                  subtitleSettings={subtitleSettings}
+                  autoplayEnabled={autoplayEnabled}
+                  ambientLightEnabled={ambientLightEnabled}
+                  onNavigate={navigate}
+                  onAutoplayChange={onAutoplayChange}
+                  onAmbientLightChange={onAmbientLightChange}
+                />
+              )}
 
-        {currentPage === 'quality' && (
-          <QualityPage
-            options={qualityOptions}
-            selected={selectedQuality}
-            onSelect={(quality) => {
-              onQualityChange(quality);
-              closeMenu();
-            }}
-            onBack={backToMain}
-          />
-        )}
+              {currentPage === 'quality' && (
+                <QualityPage
+                  options={qualityOptions}
+                  selected={selectedQuality}
+                  onSelect={(quality) => {
+                    onQualityChange(quality);
+                    closeMenu();
+                  }}
+                  onBack={backToMain}
+                />
+              )}
 
-        {currentPage === 'speed' && (
-          <SpeedPage
-            playbackRate={playbackRate}
-            onSelect={onPlaybackRateChange}
-            onBack={backToMain}
-          />
-        )}
+              {currentPage === 'speed' && (
+                <SpeedPage
+                  playbackRate={playbackRate}
+                  onSelect={onPlaybackRateChange}
+                  onBack={backToMain}
+                />
+              )}
 
-        {currentPage === 'skip' && (
-          <SkipPage
-            skipManager={skipManager}
-            onSkipTimeChange={onSkipTimeChange}
-            onBack={backToMain}
-          />
-        )}
+              {currentPage === 'skip' && (
+                <SkipPage
+                  skipManager={skipManager}
+                  onSkipTimeChange={onSkipTimeChange}
+                  onBack={backToMain}
+                />
+              )}
 
-        {currentPage === 'autoSkip' && (
-          <AutoSkipPage
-            settings={autoSkipSettings}
-            onChange={onAutoSkipChange}
-            onBack={backToMain}
-          />
-        )}
+              {currentPage === 'autoSkip' && (
+                <AutoSkipPage
+                  settings={autoSkipSettings}
+                  onChange={onAutoSkipChange}
+                  onBack={backToMain}
+                />
+              )}
 
-        {currentPage === 'subtitles' && (
-          <SubtitlesPage
-            tracks={subtitleTracks}
-            settings={subtitleSettings}
-            onTrackChange={onSubtitleTrackChange}
-            onSettingsChange={onSubtitleSettingsChange}
-            onBack={backToMain}
-          />
-        )}
+              {currentPage === 'subtitles' && (
+                <SubtitlesPage
+                  tracks={subtitleTracks}
+                  settings={subtitleSettings}
+                  onTrackChange={onSubtitleTrackChange}
+                  onSettingsChange={onSubtitleSettingsChange}
+                  onBack={backToMain}
+                />
+              )}
+            </Box>
+          </Box>
+        </Box>
       </Box>
     </>
   );

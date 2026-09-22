@@ -280,3 +280,10 @@ export const PLAYER_SHEET_OFFSET = 32;
  * Размер значка на месте видео в режиме «картинка в картинке», px
  */
 export const PLAYER_PIP_ICON_SIZE = 64;
+
+/**
+ * Переход между страницами меню настроек: длительность, кривая и сдвиг страницы
+ */
+export const SETTINGS_MENU_TRANSITION_MS = 200;
+export const SETTINGS_MENU_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
+export const SETTINGS_MENU_SLIDE_PX = 16;
