@@ -5,6 +5,7 @@ import {
   ArrowDownToLine as LucideArrowDownToLine,
   ArrowLeft as LucideArrowLeft,
   ArrowUp as LucideArrowUp,
+  ArrowUpDown as LucideArrowUpDown,
   AudioLines as LucideAudioLines,
   Bold as LucideBold,
   Bookmark as LucideBookmark,
@@ -78,6 +79,7 @@ export const ArrowDown = adapt(LucideArrowDown);
 export const ArrowDownToLine = adapt(LucideArrowDownToLine);
 export const ArrowLeft = adapt(LucideArrowLeft);
 export const ArrowUp = adapt(LucideArrowUp);
+export const ArrowUpDown = adapt(LucideArrowUpDown);
 export const AudioLines = adapt(LucideAudioLines);
 export const Bold = adapt(LucideBold);
 export const Bookmark = adapt(LucideBookmark);

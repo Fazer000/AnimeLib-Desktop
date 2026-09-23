@@ -1,6 +1,8 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Box, Button, Typography, useTheme } from '@mui/material';
 import { Bookmark } from '../icons';
+import EpisodeStatusBadge from './EpisodeStatusBadge';
+import useHorizontalWheelScroll from '../../hooks/useHorizontalWheelScroll';
 import {
   EPISODE_CHIP_FONT,
   EPISODE_CHIP_ICON_FONT,
@@ -11,7 +13,25 @@ interface Episode {
   id: number;
   number: string;
   name: string;
+  status?: { abbr: string | null; label: string } | null;
 }
+
+/**
+ * Гасит ближайший клик после перетаскивания, где бы ни отпустили кнопку,
+ * иначе он дойдёт до плеера и переключит паузу
+ */
+const suppressNextClick = (): void => {
+  const swallow = (event: MouseEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
+  };
+
+  window.addEventListener('click', swallow, { capture: true, once: true });
+  setTimeout(
+    () => window.removeEventListener('click', swallow, { capture: true }),
+    0,
+  );
+};
 
 interface EpisodeCarouselProps {
   episodes: Episode[];
@@ -41,9 +61,8 @@ function ControlsEpisodeSlider({
     },
   );
 
-  const [isWheelScrolling, setIsWheelScrolling] = useState<boolean>(false);
-
   const [dragMoved, setDragMoved] = useState<boolean>(false);
+  const movedRef = useRef<boolean>(false);
 
   const scrollToActiveEpisode = useCallback(
     // eslint-disable-next-line no-undef
@@ -88,6 +107,15 @@ function ControlsEpisodeSlider({
     (e.currentTarget as HTMLElement).style.cursor = 'grabbing';
     (e.currentTarget as HTMLElement).style.userSelect = 'none';
     (e.currentTarget as HTMLElement).style.scrollBehavior = 'auto';
+
+    movedRef.current = false;
+    window.addEventListener(
+      'mouseup',
+      () => {
+        if (movedRef.current) suppressNextClick();
+      },
+      { capture: true, once: true },
+    );
   }, []);
 
   const handleMouseMove = useCallback(
@@ -100,6 +128,7 @@ function ControlsEpisodeSlider({
 
       if (Math.abs(walk) > 5) {
         setDragMoved(true);
+        movedRef.current = true;
       }
     },
     [isDragging, dragStart],
@@ -134,38 +163,7 @@ function ControlsEpisodeSlider({
     [dragMoved, onEpisodeSelect],
   );
 
-  useEffect(() => {
-    const element = scrollRef.current;
-    if (!element) return undefined;
-
-    const handleNativeWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (isWheelScrolling) return;
-
-      setIsWheelScrolling(true);
-
-      const scrollAmount = e.deltaY > 0 ? 120 : -120;
-      const currentScroll = element.scrollLeft;
-      const newScroll = currentScroll + scrollAmount;
-
-      element.scrollTo({
-        left: newScroll,
-        behavior: 'smooth',
-      });
-
-      setTimeout(() => {
-        setIsWheelScrolling(false);
-      }, 150);
-    };
-
-    element.addEventListener('wheel', handleNativeWheel, { passive: false });
-
-    return () => {
-      element.removeEventListener('wheel', handleNativeWheel);
-    };
-  }, [isWheelScrolling]);
+  useHorizontalWheelScroll(scrollRef, episodes.length > 0);
 
   if (!episodes || episodes.length === 0) {
     return null;
@@ -187,6 +185,8 @@ function ControlsEpisodeSlider({
         background: 'linear-gradient(transparent, rgba(0, 0, 0, 0.7))',
         zIndex: 999,
       }}
+      onClick={(e: React.MouseEvent) => e.stopPropagation()}
+      onDoubleClick={(e: React.MouseEvent) => e.stopPropagation()}
     >
       <Box
         ref={scrollRef}
@@ -283,6 +283,7 @@ function ControlsEpisodeSlider({
                 >
                   {episode.number}
                 </Typography>
+                <EpisodeStatusBadge status={episode.status} />
               </Box>
             </Button>
           );

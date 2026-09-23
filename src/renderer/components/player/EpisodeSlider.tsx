@@ -4,6 +4,8 @@ import type { CustomColors } from '@mui/material/styles';
 import { Bookmark, ChevronLeft, ChevronRight } from '../icons';
 import { Episode } from '../../api/animeApi';
 import EpisodeJumpField from './EpisodeJumpField';
+import EpisodeStatusBadge from './EpisodeStatusBadge';
+import useHorizontalWheelScroll from '../../hooks/useHorizontalWheelScroll';
 import { buildEdgeFadeMask } from '../../utils/edgeFade';
 import { BLACK } from '../../theme/palette';
 import {
@@ -53,8 +55,6 @@ function EpisodeSliderRefactored({
       scrollLeft: 0,
     },
   );
-
-  const [isWheelScrolling, setIsWheelScrolling] = useState<boolean>(false);
 
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -223,39 +223,7 @@ function EpisodeSliderRefactored({
     return () => observer.disconnect();
   }, [checkScrollState, episodes.length]);
 
-  useEffect(() => {
-    const element = scrollRef.current;
-    if (!element) return undefined;
-
-    const handleNativeWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (isWheelScrolling) return;
-
-      setIsWheelScrolling(true);
-
-      const scrollAmount = e.deltaY > 0 ? 150 : -150;
-      const currentScroll = element.scrollLeft;
-      const newScroll = currentScroll + scrollAmount;
-
-      element.scrollTo({
-        left: newScroll,
-        behavior: 'smooth',
-      });
-
-      setTimeout(() => {
-        setIsWheelScrolling(false);
-        checkScrollState();
-      }, 200);
-    };
-
-    element.addEventListener('wheel', handleNativeWheel, { passive: false });
-
-    return () => {
-      element.removeEventListener('wheel', handleNativeWheel);
-    };
-  }, [isWheelScrolling, checkScrollState]);
+  useHorizontalWheelScroll(scrollRef, episodes.length > 0);
 
   if (episodes.length === 0) {
     return null;
@@ -412,6 +380,7 @@ function EpisodeSliderRefactored({
                   >
                     {episode.number}
                   </Typography>
+                  <EpisodeStatusBadge status={episode.status} />
                 </Box>
               </Button>
             );

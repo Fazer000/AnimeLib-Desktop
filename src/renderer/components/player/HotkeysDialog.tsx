@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
-import { ArrowDown, ArrowUp, Keyboard, Mouse } from '../icons';
+import { ArrowDown, ArrowUp, ArrowUpDown, Keyboard, Mouse } from '../icons';
 import DialogCloseButton from '../DialogCloseButton';
 import {
   DIALOG_TITLE_RIGHT_INSET,
@@ -41,6 +41,7 @@ const keySx = (customColors: CustomColors) => ({
 const WHEEL_ARROWS = {
   wheelUp: ArrowUp,
   wheelDown: ArrowDown,
+  wheel: ArrowUpDown,
 };
 
 /**
@@ -62,6 +63,11 @@ function WheelKey({ iconKey }: { iconKey: HotkeyIconKey }) {
         gap: 0.25,
       }}
     >
+      {iconKey.prefix && (
+        <Box component="span" sx={{ mr: 0.25 }}>
+          {iconKey.prefix}
+        </Box>
+      )}
       <Mouse sx={{ fontSize: 13 }} />
       <Arrow sx={{ fontSize: 10 }} />
     </Box>

@@ -367,3 +367,10 @@ export const EPISODE_SLIDER_BUTTON_SIZE = 32;
  * Ширина затухания слайдера эпизодов у края со скрытыми сериями, px
  */
 export const EPISODE_SLIDER_EDGE_FADE = 56;
+
+/**
+ * Прокрутка лент серий колесом: множитель сдвига колеса и пауза, после которой
+ * цель прокрутки снова берётся из текущего положения ленты, мс
+ */
+export const SLIDER_WHEEL_SCROLL_MULTIPLIER = 3;
+export const SLIDER_WHEEL_IDLE_MS = 200;
