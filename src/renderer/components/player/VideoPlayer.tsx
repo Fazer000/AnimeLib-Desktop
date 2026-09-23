@@ -58,6 +58,7 @@ import { getSiteOrigin } from '../../utils/urlHelpers';
 import { useMediaSession } from './hooks/useMediaSession';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 import { buildMediaMetadata } from '../../utils/mediaMetadata';
+import { useWheelVolume } from './hooks/useWheelVolume';
 import { useFullscreenPhase } from './hooks/useFullscreenPhase';
 import { usePlayerSegments } from './hooks/usePlayerSegments';
 import { useNextEpisodeFlow } from './hooks/useNextEpisodeFlow';
@@ -600,6 +601,18 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const handleVolumeChange = useCallback((vol: number) => {
       controllerRef.current?.getStateManager().setVolume(vol);
     }, []);
+
+    useWheelVolume({
+      containerRef,
+      enabled: uiState.isFullscreen,
+      volume: videoState.volume,
+      isMuted: videoState.isMuted,
+      onVolumeChange: handleVolumeChange,
+      onActivity: () => {
+        uiStateManager.showPlayerControls();
+        uiStateManager.startAutoHide(isPlayingRef.current);
+      },
+    });
 
     const handleToggleMute = useCallback(() => {
       controllerRef.current?.getStateManager().toggleMute();

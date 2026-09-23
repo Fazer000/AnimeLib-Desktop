@@ -9,13 +9,14 @@ import {
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
-import { Keyboard } from '../icons';
+import { ArrowDown, ArrowUp, Keyboard, Mouse } from '../icons';
 import DialogCloseButton from '../DialogCloseButton';
 import {
   DIALOG_TITLE_RIGHT_INSET,
   HOTKEY_GROUPS,
   HOTKEY_LAYOUT_HINT,
   HotkeyGroup,
+  HotkeyIconKey,
 } from '../../../constants';
 
 interface HotkeysDialogProps {
@@ -36,6 +37,36 @@ const keySx = (customColors: CustomColors) => ({
   backgroundColor: alpha(customColors.dialogTextColor, 0.06),
   whiteSpace: 'nowrap',
 });
+
+const WHEEL_ARROWS = {
+  wheelUp: ArrowUp,
+  wheelDown: ArrowDown,
+};
+
+/**
+ * Клавиша-значок колеса мыши: мышь и направление прокрутки
+ */
+function WheelKey({ iconKey }: { iconKey: HotkeyIconKey }) {
+  const { customColors } = useTheme().palette;
+  const Arrow = WHEEL_ARROWS[iconKey.icon];
+
+  return (
+    <Box
+      role="img"
+      aria-label={iconKey.label}
+      title={iconKey.label}
+      sx={{
+        ...keySx(customColors),
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0.25,
+      }}
+    >
+      <Mouse sx={{ fontSize: 13 }} />
+      <Arrow sx={{ fontSize: 10 }} />
+    </Box>
+  );
+}
 
 /**
  * Колонка одной группы сочетаний
@@ -78,11 +109,15 @@ function HotkeyColumn({ group }: { group: HotkeyGroup }) {
           </Typography>
 
           <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
-            {item.keys.map((key) => (
-              <Box key={key} sx={keySx(customColors)}>
-                {key}
-              </Box>
-            ))}
+            {item.keys.map((key) =>
+              typeof key === 'string' ? (
+                <Box key={key} sx={keySx(customColors)}>
+                  {key}
+                </Box>
+              ) : (
+                <WheelKey key={key.icon} iconKey={key} />
+              ),
+            )}
           </Box>
         </Box>
       ))}

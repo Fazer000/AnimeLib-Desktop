@@ -165,6 +165,7 @@ function SettingsMenu({
   return (
     <>
       <Box
+        data-wheel-volume-ignore="true"
         sx={BACKDROP_SX}
         onClick={(e: React.MouseEvent) => {
           e.stopPropagation();
@@ -173,6 +174,7 @@ function SettingsMenu({
       />
 
       <Box
+        data-wheel-volume-ignore="true"
         sx={panelSx(showEpisodes, customColors)}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >

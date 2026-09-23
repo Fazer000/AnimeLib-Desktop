@@ -287,3 +287,15 @@ export const PLAYER_PIP_ICON_SIZE = 64;
 export const SETTINGS_MENU_TRANSITION_MS = 200;
 export const SETTINGS_MENU_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
 export const SETTINGS_MENU_SLIDE_PX = 16;
+
+/**
+ * Громкость колесом мыши в полноэкранном режиме: шаг и прокрутка на один шаг, px
+ */
+export const VOLUME_WHEEL_STEP = 0.1;
+export const VOLUME_WHEEL_THRESHOLD = 100;
+
+/**
+ * Селектор элементов с атрибутом data-wheel-volume-ignore: над ними колесо
+ * прокручивает сам элемент, а не громкость
+ */
+export const WHEEL_VOLUME_IGNORE_SELECTOR = '[data-wheel-volume-ignore]';

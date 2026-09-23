@@ -35,6 +35,7 @@ import {
   Maximize as LucideMaximize,
   Minimize as LucideMinimize,
   Minus as LucideMinus,
+  Mouse as LucideMouse,
   Pause as LucidePause,
   Pencil as LucidePencil,
   PictureInPicture2 as LucidePictureInPicture2,
@@ -107,6 +108,7 @@ export const ListVideo = adapt(LucideListVideo);
 export const Maximize = adapt(LucideMaximize);
 export const Minimize = adapt(LucideMinimize);
 export const Minus = adapt(LucideMinus);
+export const Mouse = adapt(LucideMouse);
 export const Pause = adapt(LucidePause);
 export const Pencil = adapt(LucidePencil);
 export const PictureInPicture2 = adapt(LucidePictureInPicture2);

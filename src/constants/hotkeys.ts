@@ -3,10 +3,23 @@
  */
 
 /**
+ * Клавиша-значок: действие колеса мыши с подписью для подсказки
+ */
+export interface HotkeyIconKey {
+  icon: 'wheelUp' | 'wheelDown';
+  label: string;
+}
+
+/**
+ * Клавиша: текст на клавише либо значок
+ */
+export type HotkeyKey = string | HotkeyIconKey;
+
+/**
  * Одно сочетание: подпись действия и варианты клавиш
  */
 export interface HotkeyItem {
-  keys: string[];
+  keys: HotkeyKey[];
   label: string;
 }
 
@@ -39,8 +52,26 @@ export const HOTKEY_GROUPS: readonly HotkeyGroup[] = [
   {
     title: 'Звук',
     items: [
-      { keys: ['↑'], label: 'Громче на 10%' },
-      { keys: ['↓'], label: 'Тише на 10%' },
+      {
+        keys: [
+          '↑',
+          {
+            icon: 'wheelUp',
+            label: 'Колесо мыши вверх, в полноэкранном режиме',
+          },
+        ],
+        label: 'Громче на 10%',
+      },
+      {
+        keys: [
+          '↓',
+          {
+            icon: 'wheelDown',
+            label: 'Колесо мыши вниз, в полноэкранном режиме',
+          },
+        ],
+        label: 'Тише на 10%',
+      },
       { keys: ['M'], label: 'Выключить звук' },
     ],
   },
