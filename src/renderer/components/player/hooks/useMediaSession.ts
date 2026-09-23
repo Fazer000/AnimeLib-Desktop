@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import type { MediaCardMetadata } from '../../../utils/mediaMetadata';
 
 interface UseMediaSessionOptions {
   isPlaying: boolean;
@@ -7,6 +8,7 @@ interface UseMediaSessionOptions {
   onTogglePlay: () => void;
   onEpisodeSelect: (index: number) => void;
   onEpisodeSelectWithAutoplay?: (index: number) => void;
+  metadata?: MediaCardMetadata | null;
 }
 
 /** Связывает системные медиа-кнопки с плеером. */
@@ -17,6 +19,7 @@ export function useMediaSession({
   onTogglePlay,
   onEpisodeSelect,
   onEpisodeSelectWithAutoplay,
+  metadata = null,
 }: UseMediaSessionOptions): void {
   useEffect(() => {
     if (!('mediaSession' in navigator)) return undefined;
@@ -51,6 +54,23 @@ export function useMediaSession({
     onEpisodeSelect,
     onEpisodeSelectWithAutoplay,
   ]);
+
+  useEffect(() => {
+    if (
+      !('mediaSession' in navigator) ||
+      typeof MediaMetadata === 'undefined'
+    ) {
+      return undefined;
+    }
+
+    navigator.mediaSession.metadata = metadata
+      ? new MediaMetadata(metadata)
+      : null;
+
+    return () => {
+      navigator.mediaSession.metadata = null;
+    };
+  }, [metadata]);
 
   useEffect(() => {
     if (!('mediaSession' in navigator)) return;

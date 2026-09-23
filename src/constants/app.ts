@@ -46,6 +46,12 @@ export const PLAYER_PROTOCOL_PREFIX = 'anime-lib-player://';
 export const APP_AUTHOR = 'Fazer';
 
 /**
+ * Идентификатор приложения в Windows. Берётся из appId сборки: по нему система
+ * находит ярлык установщика и показывает имя и значок в медиакарточке и уведомлениях
+ */
+export const APP_USER_MODEL_ID = packageJson.build.appId;
+
+/**
  * Полная информация о приложении
  */
 export const APP_INFO = {

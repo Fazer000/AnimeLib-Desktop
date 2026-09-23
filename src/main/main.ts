@@ -41,6 +41,7 @@ import {
 } from './windowState';
 import {
   APP_NAME,
+  APP_USER_MODEL_ID,
   APP_VERSION,
   MIN_WINDOW_HEIGHT,
   MIN_WINDOW_WIDTH,
@@ -655,6 +656,10 @@ const applyPerformanceOptimizations = (): void => {
 };
 
 applyPerformanceOptimizations();
+
+if (process.platform === 'win32') {
+  app.setAppUserModelId(APP_USER_MODEL_ID);
+}
 registerOfflineSchemes();
 
 app.on('window-all-closed', () => {

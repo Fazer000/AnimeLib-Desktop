@@ -5,6 +5,7 @@ import React, {
   useCallback,
   forwardRef,
   useImperativeHandle,
+  useMemo,
 } from 'react';
 import 'shaka-player/dist/controls.css';
 import {
@@ -55,6 +56,8 @@ import {
 } from '../../../constants';
 import { getSiteOrigin } from '../../utils/urlHelpers';
 import { useMediaSession } from './hooks/useMediaSession';
+import useImageWithReferer from '../../hooks/useImageWithReferer';
+import { buildMediaMetadata } from '../../utils/mediaMetadata';
 import { useFullscreenPhase } from './hooks/useFullscreenPhase';
 import { usePlayerSegments } from './hooks/usePlayerSegments';
 import { useNextEpisodeFlow } from './hooks/useNextEpisodeFlow';
@@ -761,13 +764,42 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     const handleControlsMouseLeave = useCallback(() => {}, []);
 
+    const coverUrl = useImageWithReferer(animeInfo?.cover?.default);
+
+    const mediaMetadata = useMemo(
+      () =>
+        animeInfo
+          ? buildMediaMetadata({
+              title: animeInfo.rus_name || animeInfo.name,
+              episodeNumber: episodes[currentEpisodeIndex]?.number ?? '',
+              episodeName,
+              teamName: selectedPlayer?.team.name ?? '',
+              artworkUrl: coverUrl,
+            })
+          : null,
+      [
+        animeInfo,
+        episodes,
+        currentEpisodeIndex,
+        episodeName,
+        selectedPlayer,
+        coverUrl,
+      ],
+    );
+
+    const handleMediaTogglePlay = useCallback(() => {
+      uiStateManager.showPlayPauseIcon();
+      handleTogglePlay();
+    }, [uiStateManager, handleTogglePlay]);
+
     useMediaSession({
       isPlaying: videoState.isPlaying,
       currentEpisodeIndex,
       episodeCount: episodes.length,
-      onTogglePlay: handleTogglePlay,
+      onTogglePlay: handleMediaTogglePlay,
       onEpisodeSelect,
       onEpisodeSelectWithAutoplay,
+      metadata: mediaMetadata,
     });
 
     const showInitialPlayButton =
