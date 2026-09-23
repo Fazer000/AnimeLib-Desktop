@@ -28,6 +28,7 @@ import SubtitlesOverlay from './SubtitlesOverlay';
 import AnimeInfoComponent from './AnimeInfo';
 import EpisodeNavigationHint from './EpisodeNavigationHint';
 import NextEpisodeNotification from './NextEpisodeNotification';
+import AmbientLight from './AmbientLight';
 import {
   SkipManager,
   VideoPlayerController,
@@ -833,6 +834,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           containerType: 'size',
           backgroundColor: customColors.primaryColor,
           overflow: 'hidden',
+          isolation: 'isolate',
           borderRadius: uiState.isFullscreen
             ? PLAYER_FULLSCREEN_RADIUS
             : PLAYER_BORDER_RADIUS,
@@ -874,6 +876,27 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           selectedPlayer={selectedPlayer || null}
         />
 
+        {ambientLightEnabled && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: -1,
+              overflow: 'hidden',
+              isolation: 'isolate',
+              backgroundColor: BLACK_SHORT,
+              pointerEvents: 'none',
+            }}
+          >
+            <AmbientLight
+              videoRef={videoRef}
+              isPlaying={videoState.isPlaying}
+              isFullscreen={false}
+              enabled
+            />
+          </Box>
+        )}
+
         <video
           ref={videoRef}
           preload="metadata"
@@ -884,7 +907,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             height: '100%',
             display: 'block',
             visibility: 'visible',
-            backgroundColor: BLACK_SHORT,
+            backgroundColor: ambientLightEnabled ? 'transparent' : BLACK_SHORT,
             cursor: 'inherit',
             objectFit: 'contain',
           }}

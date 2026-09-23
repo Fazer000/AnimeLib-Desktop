@@ -4,10 +4,13 @@ import { Search } from '../icons';
 import { Episode } from '../../api/animeApi';
 import { findEpisodeIndex } from '../../utils/episodeLookup';
 import {
+  EPISODE_CHIP_FONT,
   EPISODE_CHIP_MARGIN_BOTTOM,
   EPISODE_CHIP_MARGIN_TOP,
   EPISODE_JUMP_INPUT_WIDTH,
-  EPISODE_SLIDER_BUTTON_SIZE,
+  EPISODE_SEARCH_DIVIDER_GAP,
+  EPISODE_SEARCH_DIVIDER_HEIGHT,
+  EPISODE_SEARCH_SIZE,
 } from '../../../constants';
 
 interface EpisodeJumpFieldProps {
@@ -100,8 +103,8 @@ function EpisodeJumpField({
         onClick={toggle}
         sx={{
           flexShrink: 0,
-          width: EPISODE_SLIDER_BUTTON_SIZE,
-          height: EPISODE_SLIDER_BUTTON_SIZE,
+          width: EPISODE_SEARCH_SIZE,
+          height: EPISODE_SEARCH_SIZE,
           mt: EPISODE_CHIP_MARGIN_TOP,
           mb: EPISODE_CHIP_MARGIN_BOTTOM,
           borderRadius: '6px',
@@ -113,7 +116,7 @@ function EpisodeJumpField({
           },
         }}
       >
-        <Search sx={{ fontSize: 18 }} />
+        <Search sx={{ fontSize: 22 }} />
       </IconButton>
 
       <InputBase
@@ -135,7 +138,7 @@ function EpisodeJumpField({
         sx={{
           width: open ? EPISODE_JUMP_INPUT_WIDTH : 0,
           ml: open ? 1 : 0,
-          height: 32,
+          height: EPISODE_SEARCH_SIZE,
           mt: EPISODE_CHIP_MARGIN_TOP,
           mb: EPISODE_CHIP_MARGIN_BOTTOM,
           opacity: open ? 1 : 0,
@@ -145,7 +148,8 @@ function EpisodeJumpField({
           borderRadius: '6px',
           backgroundColor: customColors.primaryColor,
           color: customColors.primaryTextColor,
-          fontSize: '0.875rem',
+          fontSize: EPISODE_CHIP_FONT,
+          fontWeight: 700,
           transition:
             'width 0.2s ease, margin 0.2s ease, opacity 0.2s ease, border-color 0.15s ease',
           '&.Mui-focused': {
@@ -155,6 +159,16 @@ function EpisodeJumpField({
             textAlign: 'center',
             padding: 0,
           },
+        }}
+      />
+
+      <Box
+        sx={{
+          flexShrink: 0,
+          width: '1px',
+          height: EPISODE_SEARCH_DIVIDER_HEIGHT,
+          ml: `${EPISODE_SEARCH_DIVIDER_GAP}px`,
+          backgroundColor: customColors.lineColor,
         }}
       />
     </Box>

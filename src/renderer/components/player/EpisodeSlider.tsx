@@ -14,6 +14,7 @@ import {
   EPISODE_CHIP_MARGIN_BOTTOM,
   EPISODE_CHIP_MARGIN_TOP,
   EPISODE_CHIP_MIN_WIDTH,
+  EPISODE_SEARCH_BLOCK_WIDTH,
   EPISODE_SLIDER_BUTTON_SIZE,
   EPISODE_SLIDER_EDGE_FADE,
   EPISODE_SLIDER_HEIGHT,
@@ -399,7 +400,7 @@ function EpisodeSliderRefactored({
         </IconButton>
 
         {isOverflowing && (
-          <Box sx={{ width: EPISODE_SLIDER_BUTTON_SIZE, flexShrink: 0 }} />
+          <Box sx={{ width: EPISODE_SEARCH_BLOCK_WIDTH, flexShrink: 0 }} />
         )}
       </Box>
     </Box>

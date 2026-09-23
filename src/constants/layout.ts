@@ -356,10 +356,27 @@ export const RELATED_TITLE_LINES = 4;
 /**
  * Ширина раскрытого поля перехода к серии, px
  */
-export const EPISODE_JUMP_INPUT_WIDTH = 72;
+export const EPISODE_JUMP_INPUT_WIDTH = 80;
 
 /**
- * Размер круглых кнопок слайдера эпизодов и распорки напротив кнопки поиска, px
+ * Сторона кнопки поиска и высота поля перехода к серии: по высоте чипа эпизода, px
+ */
+export const EPISODE_SEARCH_SIZE = 44;
+
+/**
+ * Отступ разделителя от блока поиска и высота разделителя, px
+ */
+export const EPISODE_SEARCH_DIVIDER_GAP = 8;
+export const EPISODE_SEARCH_DIVIDER_HEIGHT = 28;
+
+/**
+ * Ширина закрытого блока поиска с разделителем: распорка справа повторяет её
+ */
+export const EPISODE_SEARCH_BLOCK_WIDTH =
+  EPISODE_SEARCH_SIZE + EPISODE_SEARCH_DIVIDER_GAP + 1;
+
+/**
+ * Размер круглых кнопок слайдера эпизодов, px
  */
 export const EPISODE_SLIDER_BUTTON_SIZE = 32;
 
