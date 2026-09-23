@@ -6,6 +6,7 @@ export interface ReplyControls {
   onCopyLink: (commentId: number) => void;
   onIgnore: (userId: number | string, comment: string) => Promise<void>;
   newSince: number;
+  showLoginStreaks: boolean;
   replyingTo: number | null;
   currentUserId: string | null;
   onReplyStart: (commentId: number) => void;

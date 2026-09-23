@@ -26,7 +26,7 @@ function CommentAvatar({
         width: size,
         height: size,
         flexShrink: 0,
-        borderRadius: '50%',
+        borderRadius: '25%',
         backgroundColor: theme.palette.customColors.secondaryColor,
         display: 'flex',
         alignItems: 'center',

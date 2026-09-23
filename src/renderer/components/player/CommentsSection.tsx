@@ -230,6 +230,7 @@ const CommentsSection = memo(
                 sortOption={commentsSortOption}
                 shouldLoad={shouldLoadComments}
                 highlightNew={commentsSettings.highlightNew}
+                showLoginStreaks={commentsSettings.showLoginStreaks}
               />
             </Box>
           )}

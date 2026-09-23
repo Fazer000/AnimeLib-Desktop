@@ -208,6 +208,7 @@ export const COMMENTS_LAST_SEEN_PREFIX = 'animeLibCommentsSeen:';
 export const COMMENTS_SETTINGS_DEFAULTS = {
   disabled: false,
   highlightNew: false,
+  showLoginStreaks: true,
 };
 
 /**
@@ -299,3 +300,46 @@ export const VOLUME_WHEEL_THRESHOLD = 100;
  * прокручивает сам элемент, а не громкость
  */
 export const WHEEL_VOLUME_IGNORE_SELECTOR = '[data-wheel-volume-ignore]';
+
+/**
+ * Уровень серии ежедневных входов по её длине
+ */
+export type LoginStreakTier =
+  | 'week'
+  | 'month'
+  | 'season'
+  | 'halfyear'
+  | 'year'
+  | 'legend';
+
+/**
+ * Серия входов показывается в комментариях с этой длины, дней
+ */
+export const LOGIN_STREAK_MIN_DAYS = 4;
+
+/**
+ * Верхние границы уровней серии входов, дней. Длиннее последней — легенда
+ */
+export const LOGIN_STREAK_TIER_LIMITS: ReadonlyArray<
+  readonly [number, LoginStreakTier]
+> = [
+  [7, 'week'],
+  [30, 'month'],
+  [90, 'season'],
+  [180, 'halfyear'],
+  [365, 'year'],
+];
+
+/**
+ * Стиль значка серии по умолчанию для каждой темы
+ */
+export const LOGIN_STREAK_DEFAULT_STYLES = {
+  light: 'light-orange',
+  dark: 'dark-ember',
+} as const;
+
+/**
+ * Размер значка серии входов, px
+ */
+export const LOGIN_STREAK_BADGE_WIDTH = 26;
+export const LOGIN_STREAK_BADGE_HEIGHT = 28;

@@ -5,6 +5,7 @@ import CommentText from '../CommentText';
 import CommentActions from './CommentActions';
 import CommentAvatar from './CommentAvatar';
 import VoteControls from './VoteControls';
+import LoginStreakBadge from './LoginStreakBadge';
 import type { ReplyControls } from './types';
 
 interface ReplyItemProps {
@@ -61,6 +62,13 @@ const ReplyItem = memo(
               >
                 {comment.user.username}
               </Typography>
+
+              {replyControls.showLoginStreaks && (
+                <LoginStreakBadge
+                  streak={comment.user.login_streak}
+                  preferences={comment.user.login_streak_preferences}
+                />
+              )}
 
               {comment.parentUser && (
                 <>

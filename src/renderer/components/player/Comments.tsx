@@ -23,6 +23,7 @@ interface CommentsProps {
   sortOption: string;
   shouldLoad?: boolean;
   highlightNew: boolean;
+  showLoginStreaks: boolean;
 }
 
 /**
@@ -34,6 +35,7 @@ function Comments({
   sortOption,
   shouldLoad = true,
   highlightNew,
+  showLoginStreaks,
 }: CommentsProps) {
   const theme = useTheme();
   const {
@@ -57,6 +59,7 @@ function Comments({
     sortOption,
     shouldLoad,
     highlightNew,
+    showLoginStreaks,
   });
 
   const accentColor = theme.palette.customColors.accentTextColor;

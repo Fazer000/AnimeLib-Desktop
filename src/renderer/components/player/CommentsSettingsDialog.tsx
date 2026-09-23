@@ -109,6 +109,32 @@ function CommentsSettingsDialog({
             </Typography>
           }
         />
+
+        <Divider
+          sx={{
+            borderColor: `rgba(${customColors.onSurfaceRgb}, 0.08)`,
+            my: 0.5,
+          }}
+        />
+
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={settings.showLoginStreaks}
+              onChange={(event) =>
+                onChange({ showLoginStreaks: event.target.checked })
+              }
+              sx={checkboxSx(customColors)}
+            />
+          }
+          label={
+            <Typography
+              sx={{ color: `rgba(${customColors.onSurfaceRgb}, 0.85)` }}
+            >
+              Показывать значки серий входов
+            </Typography>
+          }
+        />
       </DialogContent>
     </Dialog>
   );

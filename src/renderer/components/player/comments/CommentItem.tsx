@@ -5,6 +5,7 @@ import CommentText from '../CommentText';
 import CommentActions from './CommentActions';
 import CommentAvatar from './CommentAvatar';
 import VoteControls from './VoteControls';
+import LoginStreakBadge from './LoginStreakBadge';
 import RepliesThread, { countReplies } from './RepliesThread';
 import ReplyItem from './ReplyItem';
 import type { ReplyControls } from './types';
@@ -77,6 +78,13 @@ const CommentItem = memo(
               >
                 {comment.user.username}
               </Typography>
+
+              {replyControls.showLoginStreaks && (
+                <LoginStreakBadge
+                  streak={comment.user.login_streak}
+                  preferences={comment.user.login_streak_preferences}
+                />
+              )}
 
               <Box
                 sx={{

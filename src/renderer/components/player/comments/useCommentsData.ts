@@ -76,6 +76,7 @@ interface UseCommentsDataOptions {
   sortOption: string;
   shouldLoad: boolean;
   highlightNew: boolean;
+  showLoginStreaks: boolean;
 }
 
 /**
@@ -88,6 +89,7 @@ export function useCommentsData({
   sortOption,
   shouldLoad,
   highlightNew,
+  showLoginStreaks,
 }: UseCommentsDataOptions) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [displayCount, setDisplayCount] = useState<number>(PAGE_SIZE);
@@ -260,6 +262,7 @@ export function useCommentsData({
       onCopyLink: handleCopyLink,
       onIgnore: handleIgnore,
       newSince,
+      showLoginStreaks,
       replyingTo,
       currentUserId,
       onReplyStart: (commentId: number) =>
@@ -275,6 +278,7 @@ export function useCommentsData({
       handleCopyLink,
       handleIgnore,
       newSince,
+      showLoginStreaks,
       replyingTo,
       currentUserId,
       handleReplySubmit,

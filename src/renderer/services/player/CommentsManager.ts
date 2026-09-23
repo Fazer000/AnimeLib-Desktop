@@ -1,6 +1,10 @@
 import { animeApi } from '../../api/animeApi';
 
 import { createLogger } from '../../../shared/logger';
+import type {
+  LoginStreakInfo,
+  LoginStreakPreferences,
+} from '../../utils/loginStreak';
 
 const log = createLogger('CommentsManager');
 
@@ -20,6 +24,8 @@ export interface Comment {
     premium: {
       enabled: boolean;
     };
+    login_streak?: LoginStreakInfo | null;
+    login_streak_preferences?: LoginStreakPreferences | null;
   };
   votes: {
     up: number;
