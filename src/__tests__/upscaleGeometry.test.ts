@@ -1,5 +1,4 @@
 import {
-  clampSplit,
   getCanvasPixelSize,
   getContainRect,
 } from '../renderer/utils/upscaleGeometry';
@@ -47,15 +46,6 @@ describe('getCanvasPixelSize', () => {
       width: 1,
       height: 1,
     });
-  });
-});
-
-describe('clampSplit', () => {
-  it('держит черту в пределах кадра', () => {
-    expect(clampSplit(-0.2)).toBe(0);
-    expect(clampSplit(1.4)).toBe(1);
-    expect(clampSplit(0.3)).toBe(0.3);
-    expect(clampSplit(Number.NaN)).toBe(0.5);
   });
 });
 

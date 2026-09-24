@@ -4,6 +4,7 @@ import { Bell, BellRing } from '../icons';
 import type { AnimeSubscriptionsState } from '../../hooks/useAnimeSubscriptions';
 import AnimeSubscriptionDialog from './AnimeSubscriptionDialog';
 import { cardActionAccentSx, cardActionButtonSx } from './cardActionStyles';
+import { useCardPopupClose } from './cardPopup';
 
 interface SubscriptionButtonProps {
   state: AnimeSubscriptionsState;
@@ -15,6 +16,7 @@ interface SubscriptionButtonProps {
 function SubscriptionButton({ state }: SubscriptionButtonProps) {
   const { customColors } = useTheme().palette;
   const [open, setOpen] = useState<boolean>(false);
+  const notifyPopupClosed = useCardPopupClose();
   const subscribed = state.subscriptions.length > 0;
 
   return (
@@ -36,7 +38,10 @@ function SubscriptionButton({ state }: SubscriptionButtonProps) {
         teams={state.teams}
         subscriptions={state.subscriptions}
         onSave={state.save}
-        onClose={() => setOpen(false)}
+        onClose={() => {
+          setOpen(false);
+          notifyPopupClosed();
+        }}
       />
     </>
   );

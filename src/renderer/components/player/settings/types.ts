@@ -1,5 +1,8 @@
+import type { UpscaleMode, UpscalePreset } from '../../../../constants';
+
 export type MenuPage =
   | 'main'
+  | 'upscale'
   | 'quality'
   | 'speed'
   | 'skip'
@@ -7,10 +10,13 @@ export type MenuPage =
   | 'subtitles';
 
 export interface UpscaleControls {
-  enabled: boolean;
-  compare: boolean;
-  onEnabledChange: (enabled: boolean) => void;
-  onCompareChange: (compare: boolean) => void;
+  supported: boolean;
+  mode: UpscaleMode;
+  activePreset: UpscalePreset | null;
+  failed: boolean;
+  showStats: boolean;
+  onModeChange: (mode: UpscaleMode) => void;
+  onShowStatsChange: (show: boolean) => void;
 }
 
 export interface AutoSkipSettings {

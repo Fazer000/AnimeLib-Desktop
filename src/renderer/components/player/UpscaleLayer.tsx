@@ -1,18 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
-import { ChevronsLeftRight } from '../icons';
 import { UpscaleRenderer, UpscaleStats } from '../../services/player';
 import {
-  clampSplit,
   getCanvasPixelSize,
   getContainRect,
   Rect,
 } from '../../utils/upscaleGeometry';
 import { formatUpscaleStats } from '../../utils/upscaleStats';
 import {
-  UPSCALE_COMPARE_HIT_WIDTH,
-  UPSCALE_COMPARE_KNOB_SIZE,
   UPSCALE_HUD_BOTTOM,
+  UPSCALE_RESIZE_SETTLE_MS,
+  UpscalePreset,
 } from '../../../constants';
 import { createLogger } from '../../../shared/logger';
 
@@ -24,30 +22,35 @@ interface UpscaleLayerProps {
   videoRef:
     | React.RefObject<HTMLVideoElement | null>
     | { current: HTMLVideoElement | null };
-  enabled: boolean;
-  compare: boolean;
+  preset: UpscalePreset | null;
+  showStats: boolean;
+  onStats: (stats: UpscaleStats) => void;
+  onFailure: () => void;
 }
 
 /**
- * Опытный слой Anime4K поверх кадра: холст WebGPU, черта сравнения
- * и замер времени кадра. Без WebGPU или при ошибке чтения кадра не рисуется
+ * Слой улучшения картинки поверх кадра: холст WebGPU, черта сравнения
+ * и замер нагрузки. Без уровня, WebGPU или доступа к кадрам не рисуется
  */
-function UpscaleLayer({ videoRef, enabled, compare }: UpscaleLayerProps) {
+function UpscaleLayer({
+  videoRef,
+  preset,
+  showStats,
+  onStats,
+  onFailure,
+}: UpscaleLayerProps) {
   const { customColors } = useTheme().palette;
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const frameRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rendererRef = useRef<UpscaleRenderer | null>(null);
   const [rect, setRect] = useState<Rect>(EMPTY_RECT);
-  const [split, setSplit] = useState<number>(0.5);
   const [stats, setStats] = useState<UpscaleStats | null>(null);
-  const [failed, setFailed] = useState<boolean>(false);
+  const statsHandlerRef = useRef(onStats);
+  const failureHandlerRef = useRef(onFailure);
+  statsHandlerRef.current = onStats;
+  failureHandlerRef.current = onFailure;
 
-  const active = enabled && !failed && UpscaleRenderer.isSupported();
-
-  useEffect(() => {
-    if (!enabled) setFailed(false);
-  }, [enabled]);
+  const active = preset !== null && UpscaleRenderer.isSupported();
 
   useEffect(() => {
     const video = videoRef.current;
@@ -55,14 +58,17 @@ function UpscaleLayer({ videoRef, enabled, compare }: UpscaleLayerProps) {
     if (!active || !video || !canvas) return undefined;
 
     const renderer = new UpscaleRenderer({
-      onStats: setStats,
-      onError: () => setFailed(true),
+      onStats: (next) => {
+        setStats(next);
+        statsHandlerRef.current(next);
+      },
+      onError: () => failureHandlerRef.current(),
     });
     rendererRef.current = renderer;
 
     renderer.start(video, canvas).catch((error) => {
       log.error('Upscale start failed:', error);
-      setFailed(true);
+      failureHandlerRef.current();
     });
 
     return () => {
@@ -100,24 +106,34 @@ function UpscaleLayer({ videoRef, enabled, compare }: UpscaleLayerProps) {
     };
   }, [active, videoRef]);
 
+  const sizedRef = useRef<boolean>(false);
+
   useEffect(() => {
-    if (!active || !rect.width) return;
-    rendererRef.current?.resize(
-      getCanvasPixelSize(rect, window.devicePixelRatio),
-    );
+    sizedRef.current = false;
+  }, [active]);
+
+  useEffect(() => {
+    if (!active || !rect.width) return undefined;
+
+    const apply = () => {
+      sizedRef.current = true;
+      rendererRef.current?.resize(
+        getCanvasPixelSize(rect, window.devicePixelRatio),
+      );
+    };
+
+    if (!sizedRef.current) {
+      apply();
+      return undefined;
+    }
+
+    const timer = window.setTimeout(apply, UPSCALE_RESIZE_SETTLE_MS);
+    return () => window.clearTimeout(timer);
   }, [active, rect]);
 
   useEffect(() => {
-    rendererRef.current?.setSplit(compare ? split : 1);
-  }, [active, compare, split]);
-
-  const moveSplit = (clientX: number) => {
-    const frame = frameRef.current?.getBoundingClientRect();
-    if (!frame?.width) return;
-    setSplit(clampSplit((clientX - frame.left) / frame.width));
-  };
-
-  const stop = (event: React.SyntheticEvent) => event.stopPropagation();
+    if (preset) rendererRef.current?.setPreset(preset);
+  }, [active, preset]);
 
   if (!active) return null;
 
@@ -137,7 +153,6 @@ function UpscaleLayer({ videoRef, enabled, compare }: UpscaleLayerProps) {
       sx={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
     >
       <Box
-        ref={frameRef}
         sx={{
           position: 'absolute',
           left: rect.x,
@@ -151,93 +166,7 @@ function UpscaleLayer({ videoRef, enabled, compare }: UpscaleLayerProps) {
           style={{ display: 'block', width: '100%', height: '100%' }}
         />
 
-        {compare && (
-          <Box
-            role="slider"
-            aria-label="Черта сравнения"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(split * 100)}
-            onPointerDown={(event) => {
-              event.stopPropagation();
-              event.currentTarget.setPointerCapture(event.pointerId);
-              moveSplit(event.clientX);
-            }}
-            onPointerMove={(event) => {
-              if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-                moveSplit(event.clientX);
-              }
-            }}
-            onClick={stop}
-            onDoubleClick={stop}
-            onMouseDown={stop}
-            sx={{
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              left: `${split * 100}%`,
-              width: UPSCALE_COMPARE_HIT_WIDTH,
-              transform: 'translateX(-50%)',
-              pointerEvents: 'auto',
-              cursor: 'ew-resize',
-              touchAction: 'none',
-            }}
-          >
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 0,
-                bottom: 0,
-                left: '50%',
-                width: 2,
-                transform: 'translateX(-50%)',
-                backgroundColor: customColors.onVideoColor,
-              }}
-            />
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                width: UPSCALE_COMPARE_KNOB_SIZE,
-                height: UPSCALE_COMPARE_KNOB_SIZE,
-                transform: 'translate(-50%, -50%)',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: customColors.onVideoColor,
-                color: `rgb(${customColors.onVideoSurfaceRgb})`,
-              }}
-            >
-              <ChevronsLeftRight sx={{ fontSize: 18 }} />
-            </Box>
-            <Typography
-              sx={{
-                ...tagSx,
-                position: 'absolute',
-                top: `calc(50% - ${UPSCALE_COMPARE_KNOB_SIZE}px)`,
-                right: '100%',
-                mr: 1,
-              }}
-            >
-              Anime4K
-            </Typography>
-            <Typography
-              sx={{
-                ...tagSx,
-                position: 'absolute',
-                top: `calc(50% - ${UPSCALE_COMPARE_KNOB_SIZE}px)`,
-                left: '100%',
-                ml: 1,
-              }}
-            >
-              Оригинал
-            </Typography>
-          </Box>
-        )}
-
-        {stats && (
+        {showStats && stats && (
           <Typography
             sx={{
               ...tagSx,

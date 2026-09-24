@@ -278,15 +278,65 @@ export const UPSCALE_FRAME_BUDGET_MS = 1000 / 60;
 export const UPSCALE_STATS_INTERVAL = 30;
 
 /**
- * Ширина зоны захвата черты сравнения и размер её ручки, px
- */
-export const UPSCALE_COMPARE_HIT_WIDTH = 24;
-export const UPSCALE_COMPARE_KNOB_SIZE = 30;
-
-/**
  * Отступ плашки замера от низа кадра: над панелью управления, px
  */
 export const UPSCALE_HUD_BOTTOM = 84;
+
+/**
+ * Пауза после последнего изменения размера кадра, после которой цепочка
+ * пересобирается. До этого холст растягивает прежний кадр, мс
+ */
+export const UPSCALE_RESIZE_SETTLE_MS = 200;
+
+/**
+ * Уровень улучшения картинки: от лёгкого к максимальному
+ */
+export type UpscalePreset = 'fast' | 'balanced' | 'quality';
+
+/**
+ * Режим улучшения картинки: выключено, авто или выбранный уровень
+ */
+export type UpscaleMode = 'off' | 'auto' | UpscalePreset;
+
+/**
+ * Уровни от лёгкого к максимальному: порядок понижения в «Авто»
+ */
+export const UPSCALE_PRESETS: readonly UpscalePreset[] = [
+  'fast',
+  'balanced',
+  'quality',
+];
+
+/**
+ * Режимы в порядке показа в меню
+ */
+export const UPSCALE_MODES: readonly UpscaleMode[] = [
+  'off',
+  'auto',
+  ...UPSCALE_PRESETS,
+];
+
+/**
+ * С какого уровня «Авто» начинает, пока не знает видеокарту
+ */
+export const UPSCALE_AUTO_START_PRESET: UpscalePreset = 'quality';
+
+/**
+ * Первые кадры после сборки цепочки не замеряются: прогрев шейдеров
+ */
+export const UPSCALE_WARMUP_FRAMES = 15;
+
+/**
+ * «Авто» считает окно замера плохим, если кадр дольше этой доли бюджета
+ * или бюджет превышен у такой доли кадров
+ */
+export const UPSCALE_AUTO_HEADROOM = 0.8;
+export const UPSCALE_AUTO_OVER_BUDGET_SHARE = 0.1;
+
+/**
+ * Сколько плохих окон подряд нужно «Авто», чтобы понизить уровень
+ */
+export const UPSCALE_AUTO_BAD_WINDOWS = 2;
 
 /**
  * Затемнение плеера в момент, когда лист страницы закрывает его целиком

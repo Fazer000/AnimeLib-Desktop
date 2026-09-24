@@ -19,7 +19,6 @@ import {
   ChevronLeft as LucideChevronLeft,
   ChevronRight as LucideChevronRight,
   ChevronUp as LucideChevronUp,
-  ChevronsLeftRight as LucideChevronsLeftRight,
   ChevronsRight as LucideChevronsRight,
   CloudDownload as LucideCloudDownload,
   CloudOff as LucideCloudOff,
@@ -53,6 +52,7 @@ import {
   Settings as LucideSettings,
   SkipForward as LucideSkipForward,
   SlidersHorizontal as LucideSlidersHorizontal,
+  Sparkles as LucideSparkles,
   Star as LucideStar,
   Strikethrough as LucideStrikethrough,
   Trash2 as LucideTrash2,
@@ -97,7 +97,6 @@ export const ChevronDown = adapt(LucideChevronDown);
 export const ChevronLeft = adapt(LucideChevronLeft);
 export const ChevronRight = adapt(LucideChevronRight);
 export const ChevronUp = adapt(LucideChevronUp);
-export const ChevronsLeftRight = adapt(LucideChevronsLeftRight);
 export const ChevronsRight = adapt(LucideChevronsRight);
 export const CloudDownload = adapt(LucideCloudDownload);
 export const CloudOff = adapt(LucideCloudOff);
@@ -131,6 +130,7 @@ export const Send = adapt(LucideSend);
 export const Settings = adapt(LucideSettings);
 export const SkipForward = adapt(LucideSkipForward);
 export const SlidersHorizontal = adapt(LucideSlidersHorizontal);
+export const Sparkles = adapt(LucideSparkles);
 export const Star = adapt(LucideStar);
 export const Strikethrough = adapt(LucideStrikethrough);
 export const Trash2 = adapt(LucideTrash2);

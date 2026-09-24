@@ -1,17 +1,23 @@
 /// <reference types="@webgpu/types" />
 /* eslint-disable no-undef, no-bitwise */
 /**
- * Апскейл кадров видео шейдерами Anime4K на WebGPU. Слева от черты
- * сравнения — обработанный кадр, справа — исходный
+ * Апскейл кадров видео шейдерами Anime4K на WebGPU
  */
 import {
   UPSCALE_FRAME_BUDGET_MS,
   UPSCALE_FRAME_WINDOW,
   UPSCALE_STATS_INTERVAL,
+  UPSCALE_WARMUP_FRAMES,
+  UpscalePreset,
 } from '../../../constants';
 import FrameTimeMeter from '../../utils/FrameTimeMeter';
 import type { PixelSize } from '../../utils/upscaleGeometry';
 import { createLogger } from '../../../shared/logger';
+import {
+  Anime4KPipelineList,
+  createAnime4KChain,
+  loadAnime4K,
+} from './anime4kChains';
 
 const log = createLogger('UpscaleRenderer');
 
@@ -35,22 +41,12 @@ fn vert_main(@builtin(vertex_index) index: u32) -> VertexOutput {
 
 @group(0) @binding(0) var frameSampler: sampler;
 @group(0) @binding(1) var processed: texture_2d<f32>;
-@group(0) @binding(2) var original: texture_2d<f32>;
-@group(0) @binding(3) var<uniform> split: vec4f;
 
 @fragment
 fn frag_main(@location(0) uv: vec2f) -> @location(0) vec4f {
-  let enhanced = textureSample(processed, frameSampler, uv);
-  let source = textureSample(original, frameSampler, uv);
-  return vec4f(select(source.rgb, enhanced.rgb, uv.x < split.x), 1.0);
+  return vec4f(textureSample(processed, frameSampler, uv).rgb, 1.0);
 }
 `;
-
-const loadAnime4K = () => import('anime4k-webgpu-async');
-
-type Anime4KModule = Awaited<ReturnType<typeof loadAnime4K>>;
-
-type Anime4KPipelineList = Parameters<Anime4KModule['recordPipelineList']>[1];
 
 type FrameCallbackVideo = HTMLVideoElement & {
   requestVideoFrameCallback: (callback: () => void) => number;
@@ -58,6 +54,7 @@ type FrameCallbackVideo = HTMLVideoElement & {
 };
 
 export interface UpscaleStats {
+  preset: UpscalePreset;
   frameTimeMs: number;
   overBudgetShare: number;
   sourceSize: PixelSize;
@@ -82,8 +79,6 @@ export default class UpscaleRenderer {
 
   private sampler: GPUSampler | null = null;
 
-  private splitBuffer: GPUBuffer | null = null;
-
   private inputTexture: GPUTexture | null = null;
 
   private pipelines: Anime4KPipelineList = [];
@@ -96,7 +91,9 @@ export default class UpscaleRenderer {
 
   private targetSize: PixelSize = { width: 0, height: 0 };
 
-  private split: number = 1;
+  private preset: UpscalePreset = 'balanced';
+
+  private warmupLeft: number = 0;
 
   private frameHandle: number | null = null;
 
@@ -164,17 +161,12 @@ export default class UpscaleRenderer {
       magFilter: 'linear',
       minFilter: 'linear',
     });
-    this.splitBuffer = device.createBuffer({
-      size: 16,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
 
     this.device = device;
     this.context = context;
     this.canvas = canvas;
     this.video = video as FrameCallbackVideo;
     this.applyCanvasSize();
-    this.writeSplit();
 
     this.video.addEventListener('seeked', this.requestRedraw);
     this.scheduleFrame();
@@ -199,12 +191,13 @@ export default class UpscaleRenderer {
   }
 
   /**
-   * Положение черты сравнения в долях ширины; 1 — весь кадр обработан
+   * Меняет уровень улучшения; цепочка перестраивается на следующем кадре
    */
-  public setSplit(split: number): void {
-    this.split = split;
-    this.writeSplit();
-    if (this.video?.paused) this.requestRedraw();
+  public setPreset(preset: UpscalePreset): void {
+    if (preset === this.preset) return;
+
+    this.preset = preset;
+    this.requestRedraw();
   }
 
   /**
@@ -219,7 +212,6 @@ export default class UpscaleRenderer {
     this.video?.removeEventListener('seeked', this.requestRedraw);
 
     this.inputTexture?.destroy();
-    this.splitBuffer?.destroy();
     this.context?.unconfigure();
     this.device?.destroy();
 
@@ -240,14 +232,6 @@ export default class UpscaleRenderer {
   private async watchDeviceLoss(device: GPUDevice): Promise<void> {
     const info = await device.lost;
     if (!this.disposed) log.warn('GPU device lost:', info.message);
-  }
-
-  private writeSplit(): void {
-    this.device?.queue.writeBuffer(
-      this.splitBuffer as GPUBuffer,
-      0,
-      new Float32Array([this.split, 0, 0, 0]),
-    );
   }
 
   private scheduleFrame(): void {
@@ -289,7 +273,7 @@ export default class UpscaleRenderer {
     const { video } = this;
     if (!video) return false;
 
-    const key = `${video.videoWidth}x${video.videoHeight}>${this.targetSize.width}x${this.targetSize.height}`;
+    const key = `${this.preset}:${video.videoWidth}x${video.videoHeight}>${this.targetSize.width}x${this.targetSize.height}`;
     if (key === this.pipelineKey) return true;
     if (this.building) return false;
 
@@ -304,12 +288,12 @@ export default class UpscaleRenderer {
   }
 
   private async buildPipelines(key: string): Promise<void> {
-    const { device, video, presentPipeline, sampler, splitBuffer } = this;
-    if (!device || !video || !presentPipeline || !sampler || !splitBuffer) {
+    const { device, video, presentPipeline, sampler } = this;
+    if (!device || !video || !presentPipeline || !sampler) {
       return;
     }
 
-    const { ModeA } = await loadAnime4K();
+    const lib = await loadAnime4K();
     if (this.disposed) return;
 
     const nativeDimensions = {
@@ -324,7 +308,7 @@ export default class UpscaleRenderer {
         GPUTextureUsage.COPY_DST |
         GPUTextureUsage.RENDER_ATTACHMENT,
     });
-    const mode = new ModeA({
+    const chain = createAnime4KChain(lib, this.preset, {
       device,
       inputTexture: input,
       nativeDimensions,
@@ -333,18 +317,18 @@ export default class UpscaleRenderer {
 
     this.inputTexture?.destroy();
     this.inputTexture = input;
-    this.pipelines = [mode];
+    this.pipelines = [chain];
     this.bindGroup = device.createBindGroup({
       layout: presentPipeline.getBindGroupLayout(0),
       entries: [
         { binding: 0, resource: sampler },
-        { binding: 1, resource: mode.getOutputTexture().createView() },
-        { binding: 2, resource: input.createView() },
-        { binding: 3, resource: { buffer: splitBuffer } },
+        { binding: 1, resource: chain.getOutputTexture().createView() },
       ],
     });
     this.pipelineKey = key;
     this.meter.reset();
+    this.framesSinceStats = 0;
+    this.warmupLeft = UPSCALE_WARMUP_FRAMES;
     log.debug('Pipeline built:', key);
   }
 
@@ -411,12 +395,18 @@ export default class UpscaleRenderer {
   }
 
   private recordFrameTime(ms: number): void {
+    if (this.warmupLeft > 0) {
+      this.warmupLeft -= 1;
+      return;
+    }
+
     this.meter.push(ms);
     this.framesSinceStats += 1;
     if (this.framesSinceStats < UPSCALE_STATS_INTERVAL || !this.video) return;
 
     this.framesSinceStats = 0;
     this.onStats?.({
+      preset: this.preset,
       frameTimeMs: this.meter.average(),
       overBudgetShare: this.meter.overBudgetShare(UPSCALE_FRAME_BUDGET_MS),
       sourceSize: {

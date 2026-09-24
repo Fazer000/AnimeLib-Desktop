@@ -31,7 +31,7 @@ import NextEpisodeNotification from './NextEpisodeNotification';
 import AmbientLight from './AmbientLight';
 import UpscaleLayer from './UpscaleLayer';
 import type { UpscaleControls } from './settings/types';
-import { usePersistedFlag } from '../../hooks/usePersistedFlag';
+import { useUpscaleSettings } from '../../hooks/useUpscaleSettings';
 import {
   SkipManager,
   VideoPlayerController,
@@ -225,25 +225,25 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const [hasStartedPlayback, setHasStartedPlayback] =
       useState<boolean>(false);
 
-    const [upscaleEnabled, setUpscaleEnabled] = usePersistedFlag(
-      'playerUpscaleEnabled',
-      false,
-    );
-    const [upscaleCompare, setUpscaleCompare] = usePersistedFlag(
-      'playerUpscaleCompare',
-      false,
-    );
-    const upscaleControls = useMemo<UpscaleControls | null>(
-      () =>
-        UpscaleRenderer.isSupported()
-          ? {
-              enabled: upscaleEnabled,
-              compare: upscaleCompare,
-              onEnabledChange: setUpscaleEnabled,
-              onCompareChange: setUpscaleCompare,
-            }
-          : null,
-      [upscaleEnabled, upscaleCompare, setUpscaleEnabled, setUpscaleCompare],
+    const upscale = useUpscaleSettings();
+    const upscaleControls = useMemo<UpscaleControls>(
+      () => ({
+        supported: UpscaleRenderer.isSupported(),
+        mode: upscale.mode,
+        activePreset: upscale.activePreset,
+        failed: upscale.failed,
+        showStats: upscale.showStats,
+        onModeChange: upscale.setMode,
+        onShowStatsChange: upscale.setShowStats,
+      }),
+      [
+        upscale.mode,
+        upscale.activePreset,
+        upscale.failed,
+        upscale.showStats,
+        upscale.setMode,
+        upscale.setShowStats,
+      ],
     );
 
     const [qualityOptions, setQualityOptions] = useState<QualityOption[]>([]);
@@ -942,8 +942,14 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
         <UpscaleLayer
           videoRef={videoRef}
-          enabled={upscaleEnabled && !videoState.isPictureInPicture}
-          compare={upscaleCompare}
+          preset={
+            upscale.failed || videoState.isPictureInPicture
+              ? null
+              : upscale.activePreset
+          }
+          showStats={upscale.showStats}
+          onStats={upscale.reportStats}
+          onFailure={upscale.reportFailure}
         />
 
         {videoState.isPictureInPicture && (

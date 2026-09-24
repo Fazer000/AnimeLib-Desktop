@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Box, Typography, CircularProgress, useTheme } from '@mui/material';
 import { animeApi, AnimeInfo } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 import AnimeCardActions from './AnimeCardActions';
 import AnimeRatingButton from './AnimeRatingButton';
+import { CardPopupProvider } from './cardPopup';
+import { isPointInRect, PointLike } from '../../utils/pointInRect';
 import {
   ANIME_CARD_COVER_HEIGHT,
   ANIME_CARD_PANEL_HEIGHT,
@@ -42,7 +44,38 @@ function AnimeInfoCard({
   const [animeInfo, setAnimeInfo] = useState<AnimeInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const pointerRef = useRef<PointLike | null>(null);
+
   const coverUrl = useImageWithReferer(animeInfo?.cover?.default);
+
+  useEffect(() => {
+    if (!isVisible) return undefined;
+
+    const remember = (event: PointerEvent) => {
+      pointerRef.current = { x: event.clientX, y: event.clientY };
+    };
+
+    document.addEventListener('pointermove', remember, true);
+    document.addEventListener('pointerdown', remember, true);
+
+    return () => {
+      document.removeEventListener('pointermove', remember, true);
+      document.removeEventListener('pointerdown', remember, true);
+    };
+  }, [isVisible]);
+
+  const handlePopupClose = useCallback(() => {
+    requestAnimationFrame(() => {
+      const panel = panelRef.current;
+      if (
+        panel &&
+        !isPointInRect(pointerRef.current, panel.getBoundingClientRect())
+      ) {
+        onMouseLeave();
+      }
+    });
+  }, [onMouseLeave]);
 
   useEffect(() => {
     if (!isVisible || !animeId || animeInfo) return;
@@ -97,187 +130,190 @@ function AnimeInfoCard({
   }
 
   return (
-    <Box
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      sx={{
-        ...panelSx,
-        display: 'flex',
-        justifyContent: 'center',
-        padding: 1.5,
-      }}
-    >
+    <CardPopupProvider value={handlePopupClose}>
       <Box
-        onClick={onClick}
+        ref={panelRef}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
         sx={{
+          ...panelSx,
           display: 'flex',
-          gap: 3,
-          alignItems: 'center',
-          minWidth: ANIME_CARD_MIN_WIDTH,
-          maxWidth: ANIME_CARD_MAX_WIDTH,
-          padding: 1,
-          borderRadius: 2,
-          border: '1px solid transparent',
-          cursor: onClick ? 'pointer' : 'default',
-          transition: 'background-color 0.2s ease, border-color 0.2s ease',
-          '&:hover:not(:has([data-card-actions]:hover))': onClick
-            ? {
-                backgroundColor: `rgba(${customColors.accentRgb}, 0.14)`,
-                borderColor: `rgba(${customColors.accentRgb}, 0.5)`,
-              }
-            : undefined,
+          justifyContent: 'center',
+          padding: 1.5,
         }}
       >
         <Box
-          sx={{
-            width: ANIME_CARD_COVER_WIDTH,
-            height: ANIME_CARD_COVER_HEIGHT,
-            borderRadius: 2,
-            overflow: 'hidden',
-            flexShrink: 0,
-            border: `1px solid ${customColors.lineColor}`,
-          }}
-        >
-          <img
-            src={coverUrl || animeInfo.cover.default}
-            alt={animeInfo.rus_name || animeInfo.name}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
-        </Box>
-
-        <Box
+          onClick={onClick}
           sx={{
             display: 'flex',
-            flexDirection: 'column',
-            gap: 1,
-            minWidth: 0,
-            justifyContent: 'center',
+            gap: 3,
+            alignItems: 'center',
+            minWidth: ANIME_CARD_MIN_WIDTH,
+            maxWidth: ANIME_CARD_MAX_WIDTH,
+            padding: 1,
+            borderRadius: 2,
+            border: '1px solid transparent',
+            cursor: onClick ? 'pointer' : 'default',
+            transition: 'background-color 0.2s ease, border-color 0.2s ease',
+            '&:hover:not(:has([data-card-actions]:hover))': onClick
+              ? {
+                  backgroundColor: `rgba(${customColors.accentRgb}, 0.14)`,
+                  borderColor: `rgba(${customColors.accentRgb}, 0.5)`,
+                }
+              : undefined,
           }}
         >
-          <Typography
-            variant="h5"
+          <Box
             sx={{
-              color: customColors.dialogTextColor,
-              fontWeight: 600,
-              fontSize: ANIME_CARD_TITLE_FONT,
-              lineHeight: 1.2,
-              display: '-webkit-box',
-              WebkitBoxOrient: 'vertical',
-              WebkitLineClamp: 2,
+              width: ANIME_CARD_COVER_WIDTH,
+              height: ANIME_CARD_COVER_HEIGHT,
+              borderRadius: 2,
               overflow: 'hidden',
+              flexShrink: 0,
+              border: `1px solid ${customColors.lineColor}`,
             }}
           >
-            {animeInfo.rus_name || animeInfo.name}
-          </Typography>
+            <img
+              src={coverUrl || animeInfo.cover.default}
+              alt={animeInfo.rus_name || animeInfo.name}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          </Box>
 
           <Box
             sx={{
               display: 'flex',
-              gap: 2,
-              flexWrap: 'wrap',
-              alignItems: 'center',
+              flexDirection: 'column',
+              gap: 1,
+              minWidth: 0,
+              justifyContent: 'center',
             }}
           >
             <Typography
+              variant="h5"
               sx={{
-                color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
-                fontSize: '0.875rem',
+                color: customColors.dialogTextColor,
+                fontWeight: 600,
+                fontSize: ANIME_CARD_TITLE_FONT,
+                lineHeight: 1.2,
+                display: '-webkit-box',
+                WebkitBoxOrient: 'vertical',
+                WebkitLineClamp: 2,
+                overflow: 'hidden',
               }}
             >
-              {animeInfo.type.label}
+              {animeInfo.rus_name || animeInfo.name}
             </Typography>
 
             <Box
               sx={{
-                width: 4,
-                height: 4,
-                borderRadius: '50%',
-                backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
-              }}
-            />
-
-            <Typography
-              sx={{
-                color:
-                  animeInfo.status.id === 2
-                    ? customColors.successColor
-                    : customColors.warningColor,
-                fontSize: '0.875rem',
-                fontWeight: 500,
+                display: 'flex',
+                gap: 2,
+                flexWrap: 'wrap',
+                alignItems: 'center',
               }}
             >
-              {animeInfo.status.label}
-            </Typography>
+              <Typography
+                sx={{
+                  color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
+                  fontSize: '0.875rem',
+                }}
+              >
+                {animeInfo.type.label}
+              </Typography>
 
-            <Box
-              sx={{
-                width: 4,
-                height: 4,
-                borderRadius: '50%',
-                backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
-              }}
-            />
+              <Box
+                sx={{
+                  width: 4,
+                  height: 4,
+                  borderRadius: '50%',
+                  backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
+                }}
+              />
 
-            <Typography
-              sx={{
-                color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
-                fontSize: '0.875rem',
-              }}
-            >
-              {animeInfo.releaseDateString}
-            </Typography>
-          </Box>
+              <Typography
+                sx={{
+                  color:
+                    animeInfo.status.id === 2
+                      ? customColors.successColor
+                      : customColors.warningColor,
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                }}
+              >
+                {animeInfo.status.label}
+              </Typography>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <AnimeRatingButton
-              animeId={animeInfo.id}
-              rating={animeInfo.rating}
-              onRated={(rating) =>
-                setAnimeInfo((current) =>
-                  current ? { ...current, rating } : current,
-                )
-              }
-            />
-            {animeInfo.ageRestriction && (
-              <>
-                <Box
-                  sx={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: '50%',
-                    backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
-                  }}
-                />
-                <Box
-                  sx={{
-                    padding: '2px 8px',
-                    backgroundColor: `rgba(${customColors.dangerRgb}, 0.2)`,
-                    border: `1px solid rgba(${customColors.dangerRgb}, 0.4)`,
-                    borderRadius: 1,
-                  }}
-                >
-                  <Typography
+              <Box
+                sx={{
+                  width: 4,
+                  height: 4,
+                  borderRadius: '50%',
+                  backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
+                }}
+              />
+
+              <Typography
+                sx={{
+                  color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
+                  fontSize: '0.875rem',
+                }}
+              >
+                {animeInfo.releaseDateString}
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <AnimeRatingButton
+                animeId={animeInfo.id}
+                rating={animeInfo.rating}
+                onRated={(rating) =>
+                  setAnimeInfo((current) =>
+                    current ? { ...current, rating } : current,
+                  )
+                }
+              />
+              {animeInfo.ageRestriction && (
+                <>
+                  <Box
                     sx={{
-                      color: customColors.dangerColor,
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
+                      width: 4,
+                      height: 4,
+                      borderRadius: '50%',
+                      backgroundColor: `rgba(${customColors.onSurfaceRgb}, 0.3)`,
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      padding: '2px 8px',
+                      backgroundColor: `rgba(${customColors.dangerRgb}, 0.2)`,
+                      border: `1px solid rgba(${customColors.dangerRgb}, 0.4)`,
+                      borderRadius: 1,
                     }}
                   >
-                    {animeInfo.ageRestriction.label}
-                  </Typography>
-                </Box>
-              </>
-            )}
-          </Box>
+                    <Typography
+                      sx={{
+                        color: customColors.dangerColor,
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {animeInfo.ageRestriction.label}
+                    </Typography>
+                  </Box>
+                </>
+              )}
+            </Box>
 
-          <AnimeCardActions animeInfo={animeInfo} active={isVisible} />
+            <AnimeCardActions animeInfo={animeInfo} active={isVisible} />
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </CardPopupProvider>
   );
 }
 

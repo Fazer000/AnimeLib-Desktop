@@ -1,8 +1,11 @@
 /**
- * Подпись замера апскейла для плашки поверх кадра
+ * Подпись замера нагрузки для плашки поверх кадра
  */
+import type { UpscalePreset } from '../../constants';
+import { getUpscaleModeLabel } from './upscaleMode';
 
 export interface UpscaleStatsLike {
+  preset: UpscalePreset;
   frameTimeMs: number;
   overBudgetShare: number;
   sourceSize: { width: number; height: number };
@@ -10,15 +13,15 @@ export interface UpscaleStatsLike {
 }
 
 /**
- * «Anime4K A · 1920×1080 → 2400×1350 · ≈2.8 мс · сверх 60 Гц 0%»
+ * «Среднее · 1920×1080 → 2400×1350 · 2.8 мс · пропуски 0%»
  */
 export function formatUpscaleStats(stats: UpscaleStatsLike): string {
   const { sourceSize, targetSize } = stats;
 
   return [
-    'Anime4K A',
+    getUpscaleModeLabel(stats.preset),
     `${sourceSize.width}×${sourceSize.height} → ${targetSize.width}×${targetSize.height}`,
-    `≈${stats.frameTimeMs.toFixed(1)} мс`,
-    `сверх 60 Гц ${Math.round(stats.overBudgetShare * 100)}%`,
+    `${stats.frameTimeMs.toFixed(1)} мс`,
+    `пропуски ${Math.round(stats.overBudgetShare * 100)}%`,
   ].join(' · ');
 }

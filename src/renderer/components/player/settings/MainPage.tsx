@@ -1,5 +1,11 @@
 import { Box, Divider, useTheme } from '@mui/material';
-import { Captions, FastForward, Gauge, SkipForward } from '../../icons';
+import {
+  Captions,
+  FastForward,
+  Gauge,
+  SkipForward,
+  Sparkles,
+} from '../../icons';
 import {
   SkipManager,
   SubtitleTrack,
@@ -9,6 +15,7 @@ import {
   getQualityTagColor,
   getQualityTagFromResolution,
 } from '../../../utils/videoHelpers';
+import { formatUpscaleSummary } from '../../../utils/upscaleMode';
 import { NavRow, ToggleRow } from './rows';
 import { MENU_ICON_SIZE, menuIconBoxSx } from './styles';
 import type { AutoSkipSettings, MenuPage, UpscaleControls } from './types';
@@ -76,6 +83,27 @@ function MainPage({
         onClick={() => onNavigate('quality')}
       />
 
+      {upscaleControls && (
+        <NavRow
+          icon={
+            <Box sx={menuIconBoxSx(customColors.onVideoAccentColor)}>
+              <Sparkles sx={{ fontSize: MENU_ICON_SIZE }} />
+            </Box>
+          }
+          title="Повышение качества"
+          value={
+            upscaleControls.supported
+              ? formatUpscaleSummary(
+                  upscaleControls.mode,
+                  upscaleControls.activePreset,
+                  upscaleControls.failed,
+                )
+              : 'Недоступно'
+          }
+          onClick={() => onNavigate('upscale')}
+        />
+      )}
+
       <NavRow
         icon={
           <Box sx={menuIconBoxSx(customColors.onVideoAccentColor)}>
@@ -134,22 +162,6 @@ function MainPage({
         checked={ambientLightEnabled}
         onChange={(checked) => onAmbientLightChange?.(checked)}
       />
-
-      {upscaleControls && (
-        <ToggleRow
-          title="Anime4K (тест)"
-          checked={upscaleControls.enabled}
-          onChange={upscaleControls.onEnabledChange}
-        />
-      )}
-
-      {upscaleControls?.enabled && (
-        <ToggleRow
-          title="Сравнение"
-          checked={upscaleControls.compare}
-          onChange={upscaleControls.onCompareChange}
-        />
-      )}
     </Box>
   );
 }

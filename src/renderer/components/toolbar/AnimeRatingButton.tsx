@@ -4,6 +4,7 @@ import { Star } from '../icons';
 import { animeApi, AnimeRating } from '../../api/animeApi';
 import { RATING_USER_BADGE, WHITE } from '../../theme/palette';
 import AnimeRatingDialog from './AnimeRatingDialog';
+import { useCardPopupClose } from './cardPopup';
 
 interface AnimeRatingButtonProps {
   animeId: number;
@@ -22,6 +23,7 @@ function AnimeRatingButton({
 }: AnimeRatingButtonProps) {
   const { customColors } = useTheme().palette;
   const [open, setOpen] = useState<boolean>(false);
+  const notifyPopupClosed = useCardPopupClose();
   const authorized = Boolean(animeApi.getCurrentUserId());
 
   const content = (
@@ -106,7 +108,10 @@ function AnimeRatingButton({
         animeId={animeId}
         userVote={rating.user}
         onRated={onRated}
-        onClose={() => setOpen(false)}
+        onClose={() => {
+          setOpen(false);
+          notifyPopupClosed();
+        }}
       />
     </Box>
   );

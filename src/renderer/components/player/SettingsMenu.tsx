@@ -21,6 +21,7 @@ import SpeedPage from './settings/SpeedPage';
 import SkipPage from './settings/SkipPage';
 import AutoSkipPage from './settings/AutoSkipPage';
 import SubtitlesPage from './settings/SubtitlesPage';
+import UpscalePage from './settings/UpscalePage';
 import type {
   AutoSkipSettings,
   MenuPage,
@@ -211,6 +212,10 @@ function SettingsMenu({
                   onAmbientLightChange={onAmbientLightChange}
                   upscaleControls={upscaleControls}
                 />
+              )}
+
+              {currentPage === 'upscale' && upscaleControls && (
+                <UpscalePage controls={upscaleControls} onBack={backToMain} />
               )}
 
               {currentPage === 'quality' && (

@@ -56,12 +56,3 @@ export function getCanvasPixelSize(
     height: Math.max(1, Math.round(rect.height * ratio)),
   };
 }
-
-/**
- * Положение черты сравнения в долях ширины кадра
- */
-export function clampSplit(value: number): number {
-  if (Number.isNaN(value)) return 0.5;
-
-  return Math.min(1, Math.max(0, value));
-}

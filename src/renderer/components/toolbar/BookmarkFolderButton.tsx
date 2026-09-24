@@ -14,6 +14,7 @@ import { Bookmark, Check, ChevronDown, Plus } from '../icons';
 import { BOOKMARK_STATUS_PLANNED } from '../../../constants';
 import type { AnimeBookmarkFolderState } from '../../hooks/useAnimeBookmarkFolder';
 import { cardActionButtonSx } from './cardActionStyles';
+import { useCardPopupClose } from './cardPopup';
 
 interface BookmarkFolderButtonProps {
   state: AnimeBookmarkFolderState;
@@ -42,7 +43,12 @@ function BookmarkFolderButton({ state }: BookmarkFolderButtonProps) {
   const accent = current?.color || customColors.accentSoftColor;
   const baseSx = cardActionButtonSx(customColors);
 
-  const close = () => setOpen(false);
+  const notifyPopupClosed = useCardPopupClose();
+
+  const close = () => {
+    setOpen(false);
+    notifyPopupClosed();
+  };
 
   const handleMainClick = () => {
     if (bookmark) setOpen(true);

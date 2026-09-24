@@ -148,9 +148,10 @@ interface OptionRowProps {
   leading?: React.ReactNode;
   highlightSelected?: boolean;
   noWrapLabel?: boolean;
+  description?: string;
 }
 
-/** Пункт списка выбора с галочкой у активного. */
+/** Пункт списка выбора с галочкой у активного и пояснением под названием. */
 export function OptionRow({
   label,
   selected,
@@ -158,6 +159,7 @@ export function OptionRow({
   leading = null,
   highlightSelected = true,
   noWrapLabel = false,
+  description = '',
 }: OptionRowProps) {
   return (
     <MenuItem
@@ -170,13 +172,23 @@ export function OptionRow({
     >
       <Box sx={ROW_SX}>
         {leading}
-        <Typography
-          variant="body2"
-          noWrap={noWrapLabel}
-          sx={{ flex: 1, fontWeight: selected ? 600 : 500 }}
-        >
-          {label}
-        </Typography>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography
+            variant="body2"
+            noWrap={noWrapLabel}
+            sx={{ fontWeight: selected ? 600 : 500 }}
+          >
+            {label}
+          </Typography>
+          {description && (
+            <Typography
+              variant="caption"
+              sx={{ ...CAPTION_BLOCK_SX, whiteSpace: 'normal' }}
+            >
+              {description}
+            </Typography>
+          )}
+        </Box>
         {selected && <Check sx={CHECK_ICON_SX} />}
       </Box>
     </MenuItem>
@@ -187,6 +199,7 @@ OptionRow.defaultProps = {
   leading: null,
   highlightSelected: true,
   noWrapLabel: false,
+  description: '',
 };
 
 interface ChipGroupProps<T> {
