@@ -35,6 +35,8 @@ interface EpisodeSelectionListProps {
   playersByEpisode: Record<number, Player[]>;
   kodikQualities: KodikQualityMap;
   loadingIds: number[];
+  failedIds: number[];
+  onRetry: (episodeId: number) => void;
   qualityByEpisode: Record<number, string>;
   downloadedIds: number[];
   downloadedEpisodes: Record<number, DownloadedEpisodeInfo>;
@@ -163,6 +165,8 @@ function EpisodeSelectionList({
   playersByEpisode,
   kodikQualities,
   loadingIds,
+  failedIds,
+  onRetry,
   qualityByEpisode,
   downloadedIds,
   downloadedEpisodes,
@@ -271,6 +275,7 @@ function EpisodeSelectionList({
         {episodes.map((episode) => {
           const isSelected = selectedIds.includes(episode.id);
           const isLoading = loadingIds.includes(episode.id);
+          const isFailed = !isLoading && failedIds.includes(episode.id);
           const qualities = getEpisodeQualities(
             playersByEpisode[episode.id],
             teamName,
@@ -392,16 +397,41 @@ function EpisodeSelectionList({
                 />
               )}
 
-              {isSelected && !isLoading && qualities.length === 0 && (
+              {isSelected && isFailed && (
                 <Typography
+                  component="button"
+                  type="button"
+                  onClick={(event: React.MouseEvent) => {
+                    event.stopPropagation();
+                    onRetry(episode.id);
+                  }}
                   sx={{
                     fontSize: OFFLINE_FONT.hint,
-                    color: customColors.dangerColor,
+                    color: customColors.warningColor,
+                    background: 'none',
+                    border: 'none',
+                    p: 0,
+                    cursor: 'pointer',
+                    '&:hover': { textDecoration: 'underline' },
                   }}
                 >
-                  нет озвучки
+                  не загрузилось · повторить
                 </Typography>
               )}
+
+              {isSelected &&
+                !isLoading &&
+                !isFailed &&
+                qualities.length === 0 && (
+                  <Typography
+                    sx={{
+                      fontSize: OFFLINE_FONT.hint,
+                      color: customColors.dangerColor,
+                    }}
+                  >
+                    нет озвучки
+                  </Typography>
+                )}
 
               {isSelected && !isLoading && qualities.length > 0 && (
                 <FormControl size="small" sx={{ width: 132, flexShrink: 0 }}>

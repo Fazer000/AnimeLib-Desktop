@@ -7,6 +7,11 @@ import {
   resolveProgressStatus,
 } from '../utils/bookmarkFolders';
 import type { AnimeSubscriptionItem } from '../utils/animeSubscriptions';
+import {
+  RateLimitCooldown,
+  RateLimitInfo,
+  withRateLimitRetry,
+} from '../utils/rateLimitRetry';
 
 const log = createLogger('AnimeAPI');
 
@@ -17,6 +22,22 @@ const errorResponse = (
   if (!isAxiosError(error) || !error.response) return undefined;
   return { status: error.response.status, data: error.response.data };
 };
+
+/** Признак ответа 429 и пауза, которую просит сервер. */
+const inspectRateLimit = (error: unknown): RateLimitInfo => {
+  if (!isAxiosError(error) || error.response?.status !== 429) {
+    return { limited: false };
+  }
+
+  const retryAfter = error.response.headers?.['retry-after'];
+  return {
+    limited: true,
+    retryAfter: typeof retryAfter === 'string' ? retryAfter : null,
+  };
+};
+
+/** Общая пауза запросов к API после ответа 429. */
+const apiCooldown = new RateLimitCooldown();
 
 /** Отрезок, который плеер умеет пропускать. */
 export interface TimeCode {
@@ -417,7 +438,11 @@ export const animeApi = {
   getEpisodePlayers: async (episodeId: number): Promise<EpisodeResponse> => {
     log.debug('Loading players for episode_id:', episodeId);
 
-    const response = await animeApiClient.get(`/episodes/${episodeId}`);
+    const response = await withRateLimitRetry(
+      () => animeApiClient.get(`/episodes/${episodeId}`),
+      inspectRateLimit,
+      { cooldown: apiCooldown },
+    );
     log.debug('Players loaded:', response.data);
 
     return response.data;

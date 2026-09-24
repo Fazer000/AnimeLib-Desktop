@@ -39,6 +39,11 @@ export const OFFLINE_ESTIMATED_EPISODE_FALLBACK_BYTES = 250 * 1024 * 1024;
 
 export const OFFLINE_HLS_SEGMENT_RETRIES = 3;
 
+/**
+ * Сколько серий менеджер загрузок опрашивает об озвучках одновременно
+ */
+export const OFFLINE_PLAYERS_CONCURRENCY = 4;
+
 export const OFFLINE_HLS_STATE_SUFFIX = '.part.json';
 
 export const OFFLINE_PARALLEL_CONNECTIONS = 8;

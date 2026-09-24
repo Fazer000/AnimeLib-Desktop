@@ -44,12 +44,14 @@ import {
   OFFLINE_DOWNLOADABLE_PLAYERS,
   OFFLINE_FONT,
   OFFLINE_MIN_FREE_SPACE_BYTES,
+  OFFLINE_PLAYERS_CONCURRENCY,
   DIALOG_TITLE_RIGHT_INSET,
   OFFLINE_FOOTER_HEIGHT,
   OFFLINE_ICON,
   OFFLINE_TAB_HEIGHT,
 } from '../../../constants';
 import { getSiteOrigin } from '../../utils/urlHelpers';
+import TaskQueue from '../../utils/TaskQueue';
 
 import { createLogger } from '../../../shared/logger';
 
@@ -137,6 +139,7 @@ function DownloadManagerDialog({
     Record<number, Record<string, Array<{ src: string }>>>
   >({});
   const [loadingIds, setLoadingIds] = useState<number[]>([]);
+  const [failedIds, setFailedIds] = useState<number[]>([]);
   const [qualityByEpisode, setQualityByEpisode] = useState<
     Record<number, string>
   >({});
@@ -153,6 +156,7 @@ function DownloadManagerDialog({
     requests: DownloadRequest[];
   } | null>(null);
   const lastToggledRef = useRef<number | null>(null);
+  const playersQueueRef = useRef(new TaskQueue(OFFLINE_PLAYERS_CONCURRENCY));
 
   useEffect(() => {
     if (!open || !animeId || animeInfo) {
@@ -338,17 +342,20 @@ function DownloadManagerDialog({
 
   const loadEpisodePlayers = async (episodeId: number) => {
     setLoadingIds((prev) => [...prev, episodeId]);
+    setFailedIds((prev) => prev.filter((id) => id !== episodeId));
 
     try {
-      const response = await animeApi.getEpisodePlayers(episodeId);
-      setPlayersByEpisode((prev) => ({
-        ...prev,
-        [episodeId]: response.data.players,
-      }));
-      await loadKodikQualities(response.data.players);
+      await playersQueueRef.current.run(async () => {
+        const response = await animeApi.getEpisodePlayers(episodeId);
+        setPlayersByEpisode((prev) => ({
+          ...prev,
+          [episodeId]: response.data.players,
+        }));
+        await loadKodikQualities(response.data.players);
+      });
     } catch (error) {
       log.error('Players load failed:', episodeId, error);
-      setPlayersByEpisode((prev) => ({ ...prev, [episodeId]: [] }));
+      setFailedIds((prev) => [...prev, episodeId]);
     } finally {
       setLoadingIds((prev) => prev.filter((id) => id !== episodeId));
     }
@@ -608,6 +615,8 @@ function DownloadManagerDialog({
             playersByEpisode={playersByEpisode}
             kodikQualities={kodikQualities}
             loadingIds={loadingIds}
+            failedIds={failedIds}
+            onRetry={loadEpisodePlayers}
             qualityByEpisode={qualityByEpisode}
             downloadedIds={downloadedIds}
             downloadedEpisodes={downloadedEpisodes}

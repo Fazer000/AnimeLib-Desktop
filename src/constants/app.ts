@@ -63,3 +63,11 @@ export const APP_INFO = {
   repository: APP_REPOSITORY,
   author: APP_AUTHOR,
 } as const;
+
+/**
+ * Повторы запроса к API при ответе 429: число попыток и границы паузы, мс.
+ * Сайт блокирует примерно на 30 с, попыток хватает пережить блокировку дважды
+ */
+export const API_RATE_LIMIT_RETRIES = 6;
+export const API_RATE_LIMIT_BASE_DELAY_MS = 2000;
+export const API_RATE_LIMIT_MAX_DELAY_MS = 30000;
