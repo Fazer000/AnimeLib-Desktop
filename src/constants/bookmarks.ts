@@ -1,0 +1,41 @@
+/**
+ * Константы папок закладок, подписок на выход серий и оценок тайтла
+ */
+
+/**
+ * Идентификатор сайта аниме в поле site_ids папок
+ */
+export const ANIME_SITE_ID = 5;
+
+/**
+ * Папка «Смотрю»: в неё попадает тайтл при первом сохранении прогресса
+ */
+export const BOOKMARK_STATUS_WATCHING = 21;
+
+/**
+ * Папка «Запланировано»: в неё кнопка добавляет тайтл без закладки
+ */
+export const BOOKMARK_STATUS_PLANNED = 22;
+
+/**
+ * Типы перевода в подписках на выход серий
+ */
+export const TRANSLATION_TYPE_SUBTITLES = 1;
+export const TRANSLATION_TYPE_VOICE = 2;
+
+/**
+ * team_id «Любая команда» в подписке
+ */
+export const SUBSCRIPTION_ANY_TEAM = 0;
+
+/**
+ * branch_id команды: оба типа перевода, только субтитры, только озвучка
+ */
+export const TEAM_BRANCH_BOTH = 0;
+export const TEAM_BRANCH_SUBTITLES = 1;
+export const TEAM_BRANCH_VOICE = 2;
+
+/**
+ * Число звёзд в оценке тайтла
+ */
+export const RATING_MAX_SCORE = 10;

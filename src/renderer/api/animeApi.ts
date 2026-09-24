@@ -1,6 +1,12 @@
 import axios, { isAxiosError } from 'axios';
 
 import { createLogger } from '../../shared/logger';
+import { BOOKMARK_STATUS_WATCHING } from '../../constants';
+import {
+  filterAnimeFolders,
+  resolveProgressStatus,
+} from '../utils/bookmarkFolders';
+import type { AnimeSubscriptionItem } from '../utils/animeSubscriptions';
 
 const log = createLogger('AnimeAPI');
 
@@ -168,6 +174,14 @@ export interface KodikVideoLinks {
   };
 }
 
+export interface AnimeRating {
+  average: string;
+  averageFormated: string;
+  votes: number;
+  votesFormated: string;
+  user: number;
+}
+
 export interface AnimeInfo {
   id: number;
   name: string;
@@ -193,13 +207,7 @@ export interface AnimeInfo {
   };
   close_view: number;
   releaseDate: string;
-  rating: {
-    average: string;
-    averageFormated: string;
-    votes: number;
-    votesFormated: string;
-    user: number;
-  };
+  rating: AnimeRating;
   is_licensed: boolean;
   status: {
     id: number;
@@ -235,6 +243,21 @@ export interface AnimeBookmark {
 export interface AnimeBookmarkResponse {
   data: AnimeBookmark | null;
 }
+
+export interface BookmarkFolder {
+  id: number;
+  name: string;
+  color?: string | null;
+  site_ids?: number[] | null;
+}
+
+export interface AnimeTeam {
+  id: number;
+  name: string;
+  details?: { branch_id?: number | null } | null;
+}
+
+export type AnimeSubscription = AnimeSubscriptionItem;
 
 export interface BookmarkItem {
   animeSlugUrl: string;
@@ -324,6 +347,25 @@ const animeApiClient = axios.create({
   baseURL: 'https://api.cdnlibs.org/api',
   timeout: 10000,
 });
+
+/**
+ * Текущая папка тайтла; null — закладки нет или её не удалось прочитать
+ */
+const fetchBookmarkStatus = async (
+  animeSlugUrl: string,
+): Promise<number | null> => {
+  try {
+    const response = await animeApiClient.get(
+      `/anime/${animeSlugUrl}/bookmark`,
+    );
+    return response.data?.data?.status ?? null;
+  } catch (error) {
+    if (errorResponse(error)?.status !== 404) {
+      log.warn('Failed to read bookmark status:', error);
+    }
+    return null;
+  }
+};
 
 animeApiClient.interceptors.request.use((config) => {
   const token = getBearerToken();
@@ -453,13 +495,17 @@ export const animeApi = {
       item_number: string;
     },
   ): Promise<{ success: boolean }> => {
+    const status = resolveProgressStatus(
+      await fetchBookmarkStatus(animeSlugUrl),
+    );
+
     try {
       const response = await animeApiClient.post('/bookmarks', {
         media_type: 'anime',
         media_slug: animeSlugUrl,
         bookmark: {
           item_id: episodeId,
-          status: 21,
+          status,
           progress: timecode,
         },
         meta,
@@ -468,7 +514,7 @@ export const animeApi = {
       return { success: true };
     } catch (error) {
       log.error(
-        'Ошибка при сохранении закладки (status 21), пробуем с другим статусом:',
+        'Ошибка при сохранении закладки, пробуем создать её заново:',
         error,
       );
 
@@ -477,7 +523,7 @@ export const animeApi = {
           media_type: 'anime',
           media_slug: animeSlugUrl,
           bookmark: {
-            status: 21,
+            status,
           },
           meta: {},
         });
@@ -486,7 +532,7 @@ export const animeApi = {
           media_slug: animeSlugUrl,
           bookmark: {
             item_id: episodeId,
-            status: 21,
+            status,
             progress: timecode,
           },
           meta,
@@ -521,6 +567,100 @@ export const animeApi = {
   },
 
   /**
+   * Ставит, меняет или удаляет (score = 0) оценку тайтла
+   */
+  rateAnime: async (animeId: number, score: number): Promise<AnimeRating> => {
+    const response = await animeApiClient.post('/anime/rate', {
+      score,
+      rateable_id: animeId,
+      rateable_type: 'anime',
+    });
+    return response.data.data;
+  },
+
+  /**
+   * Папки закладок аниме текущего пользователя
+   */
+  getBookmarkFolders: async (): Promise<BookmarkFolder[]> => {
+    const userId = getUserId();
+    if (!userId) {
+      return [];
+    }
+
+    const response = await animeApiClient.get(`/bookmarks/folder/${userId}`);
+    return filterAnimeFolders<BookmarkFolder>(response.data?.data);
+  },
+
+  /**
+   * Создаёт папку закладок
+   */
+  createBookmarkFolder: async (name: string): Promise<BookmarkFolder> => {
+    const response = await animeApiClient.post('/bookmarks/folder', { name });
+    return response.data.data;
+  },
+
+  /**
+   * Переносит тайтл в папку; закладка создаётся, если её не было
+   */
+  setBookmarkFolder: async (
+    animeSlugUrl: string,
+    status: number,
+  ): Promise<AnimeBookmark | null> => {
+    const response = await animeApiClient.post('/bookmarks', {
+      media_type: 'anime',
+      media_slug: animeSlugUrl,
+      bookmark: { status },
+      meta: {},
+    });
+    return response.data?.data ?? null;
+  },
+
+  /**
+   * Убирает тайтл из списков
+   */
+  deleteBookmark: async (bookmarkId: number): Promise<void> => {
+    await animeApiClient.delete(`/bookmarks/${bookmarkId}`, {
+      params: { media_type: 'anime' },
+    });
+  },
+
+  /**
+   * Команды перевода тайтла для подписки на выход серий
+   */
+  getAnimeTeams: async (animeSlugUrl: string): Promise<AnimeTeam[]> => {
+    const response = await animeApiClient.get(
+      `/anime/${animeSlugUrl}?fields[]=teams`,
+    );
+    return response.data?.data?.teams ?? [];
+  },
+
+  /**
+   * Подписки пользователя на выход серий тайтла
+   */
+  getAnimeSubscriptions: async (
+    animeSlugUrl: string,
+  ): Promise<AnimeSubscription[]> => {
+    const response = await animeApiClient.get(
+      `/anime/${animeSlugUrl}/subscriptions`,
+    );
+    return response.data?.data ?? [];
+  },
+
+  /**
+   * Заменяет подписки на выход серий; пустой список снимает все
+   */
+  saveAnimeSubscriptions: async (
+    animeId: number,
+    items: AnimeSubscription[],
+  ): Promise<AnimeSubscription[]> => {
+    const response = await animeApiClient.post(
+      `/anime/${animeId}/subscriptions`,
+      { items },
+    );
+    return response.data?.data ?? items;
+  },
+
+  /**
    * Возвращает закладки со статусом «Смотрю», от свежих к старым
    */
   getWatchingBookmarks: async (limit: number = 50): Promise<BookmarkItem[]> => {
@@ -531,7 +671,7 @@ export const animeApi = {
       }
 
       const response = await statsApiClient.get(
-        `/bookmarks?page=1&user_id=${userId}&status=21&sort_by=updated_at&sort_type=desc`,
+        `/bookmarks?page=1&user_id=${userId}&status=${BOOKMARK_STATUS_WATCHING}&sort_by=updated_at&sort_type=desc`,
       );
 
       const items = response.data?.data;

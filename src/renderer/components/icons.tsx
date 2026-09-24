@@ -7,6 +7,8 @@ import {
   ArrowUp as LucideArrowUp,
   ArrowUpDown as LucideArrowUpDown,
   AudioLines as LucideAudioLines,
+  Bell as LucideBell,
+  BellRing as LucideBellRing,
   Bold as LucideBold,
   Bookmark as LucideBookmark,
   Bug as LucideBug,
@@ -39,6 +41,7 @@ import {
   Mouse as LucideMouse,
   Pause as LucidePause,
   Pencil as LucidePencil,
+  Plus as LucidePlus,
   PictureInPicture2 as LucidePictureInPicture2,
   Play as LucidePlay,
   Quote as LucideQuote,
@@ -81,6 +84,8 @@ export const ArrowLeft = adapt(LucideArrowLeft);
 export const ArrowUp = adapt(LucideArrowUp);
 export const ArrowUpDown = adapt(LucideArrowUpDown);
 export const AudioLines = adapt(LucideAudioLines);
+export const Bell = adapt(LucideBell);
+export const BellRing = adapt(LucideBellRing);
 export const Bold = adapt(LucideBold);
 export const Bookmark = adapt(LucideBookmark);
 export const Bug = adapt(LucideBug);
@@ -113,6 +118,7 @@ export const Minus = adapt(LucideMinus);
 export const Mouse = adapt(LucideMouse);
 export const Pause = adapt(LucidePause);
 export const Pencil = adapt(LucidePencil);
+export const Plus = adapt(LucidePlus);
 export const PictureInPicture2 = adapt(LucidePictureInPicture2);
 export const Play = adapt(LucidePlay);
 export const Quote = adapt(LucideQuote);

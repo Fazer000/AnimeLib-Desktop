@@ -9,3 +9,4 @@ export * from './update';
 export * from './report';
 export * from './hotkeys';
 export * from './offline';
+export * from './bookmarks';

@@ -128,12 +128,12 @@ export const ANIME_CARD_MAX_WIDTH = '50vw';
 /**
  * Ширина обложки в карточке аниме
  */
-export const ANIME_CARD_COVER_WIDTH = 'clamp(64px, 6vw, 100px)';
+export const ANIME_CARD_COVER_WIDTH = 'clamp(100px, 7.4vw, 127px)';
 
 /**
  * Высота обложки в карточке аниме
  */
-export const ANIME_CARD_COVER_HEIGHT = 'clamp(96px, 9vw, 150px)';
+export const ANIME_CARD_COVER_HEIGHT = 'clamp(150px, 11.1vw, 190px)';
 
 /**
  * Кегль названия аниме в карточке

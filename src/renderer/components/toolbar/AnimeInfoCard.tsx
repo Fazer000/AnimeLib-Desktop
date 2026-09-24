@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, CircularProgress, useTheme } from '@mui/material';
-import { Star } from '../icons';
 import { animeApi, AnimeInfo } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
+import AnimeCardActions from './AnimeCardActions';
+import AnimeRatingButton from './AnimeRatingButton';
 import {
   ANIME_CARD_COVER_HEIGHT,
   ANIME_CARD_PANEL_HEIGHT,
@@ -119,7 +120,7 @@ function AnimeInfoCard({
           border: '1px solid transparent',
           cursor: onClick ? 'pointer' : 'default',
           transition: 'background-color 0.2s ease, border-color 0.2s ease',
-          '&:hover': onClick
+          '&:hover:not(:has([data-card-actions]:hover))': onClick
             ? {
                 backgroundColor: `rgba(${customColors.accentRgb}, 0.14)`,
                 borderColor: `rgba(${customColors.accentRgb}, 0.5)`,
@@ -232,24 +233,15 @@ function AnimeInfoCard({
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Star sx={{ color: customColors.warningColor, fontSize: 20 }} />
-            <Typography
-              sx={{
-                color: customColors.dialogTextColor,
-                fontSize: '1.125rem',
-                fontWeight: 600,
-              }}
-            >
-              {animeInfo.rating.averageFormated}
-            </Typography>
-            <Typography
-              sx={{
-                color: `rgba(${customColors.onSurfaceRgb}, 0.5)`,
-                fontSize: '0.875rem',
-              }}
-            >
-              {animeInfo.rating.votesFormated}
-            </Typography>
+            <AnimeRatingButton
+              animeId={animeInfo.id}
+              rating={animeInfo.rating}
+              onRated={(rating) =>
+                setAnimeInfo((current) =>
+                  current ? { ...current, rating } : current,
+                )
+              }
+            />
             {animeInfo.ageRestriction && (
               <>
                 <Box
@@ -281,6 +273,8 @@ function AnimeInfoCard({
               </>
             )}
           </Box>
+
+          <AnimeCardActions animeInfo={animeInfo} active={isVisible} />
         </Box>
       </Box>
     </Box>

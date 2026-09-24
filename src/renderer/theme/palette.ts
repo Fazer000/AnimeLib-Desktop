@@ -53,6 +53,9 @@ export const DANGER_BRIGHT = '#EF4444';
 export const DANGER_STRONG = '#D32F2F';
 export const DANGER_DEEP = '#B91C1C';
 
+/** Плашка собственной оценки тайтла, как на сайте. */
+export const RATING_USER_BADGE = '#3BB33B';
+
 /** Информационные акценты. */
 export const INFO = '#2196F3';
 export const INFO_DEEP = '#1976D2';
