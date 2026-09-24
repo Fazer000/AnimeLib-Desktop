@@ -29,6 +29,9 @@ import AnimeInfoComponent from './AnimeInfo';
 import EpisodeNavigationHint from './EpisodeNavigationHint';
 import NextEpisodeNotification from './NextEpisodeNotification';
 import AmbientLight from './AmbientLight';
+import UpscaleLayer from './UpscaleLayer';
+import type { UpscaleControls } from './settings/types';
+import { usePersistedFlag } from '../../hooks/usePersistedFlag';
 import {
   SkipManager,
   VideoPlayerController,
@@ -42,6 +45,7 @@ import {
   TimeCodeSegment,
   SubtitleTrack,
   SubtitlesSettings,
+  UpscaleRenderer,
 } from '../../services/player';
 import {
   PLAYER_BORDER_RADIUS,
@@ -220,6 +224,27 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     const [hasStartedPlayback, setHasStartedPlayback] =
       useState<boolean>(false);
+
+    const [upscaleEnabled, setUpscaleEnabled] = usePersistedFlag(
+      'playerUpscaleEnabled',
+      false,
+    );
+    const [upscaleCompare, setUpscaleCompare] = usePersistedFlag(
+      'playerUpscaleCompare',
+      false,
+    );
+    const upscaleControls = useMemo<UpscaleControls | null>(
+      () =>
+        UpscaleRenderer.isSupported()
+          ? {
+              enabled: upscaleEnabled,
+              compare: upscaleCompare,
+              onEnabledChange: setUpscaleEnabled,
+              onCompareChange: setUpscaleCompare,
+            }
+          : null,
+      [upscaleEnabled, upscaleCompare, setUpscaleEnabled, setUpscaleCompare],
+    );
 
     const [qualityOptions, setQualityOptions] = useState<QualityOption[]>([]);
     const [selectedQuality, setSelectedQuality] = useState<string>('');
@@ -915,6 +940,12 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           <track kind="captions" />
         </video>
 
+        <UpscaleLayer
+          videoRef={videoRef}
+          enabled={upscaleEnabled && !videoState.isPictureInPicture}
+          compare={upscaleCompare}
+        />
+
         {videoState.isPictureInPicture && (
           <Box
             sx={{
@@ -1145,6 +1176,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             autoplayEnabled={autoplayEnabled}
             ambientLightEnabled={ambientLightEnabled}
             onAmbientLightChange={onAmbientLightChange}
+            upscaleControls={upscaleControls}
             onAutoplayChange={onAutoplayChange}
             timecode={timecode}
             currentSegment={currentSegment}

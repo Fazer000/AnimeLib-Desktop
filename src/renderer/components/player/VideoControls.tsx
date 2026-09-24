@@ -18,6 +18,7 @@ import VolumeControl from './VolumeControl';
 import ControlsEpisodeSlider from './ControlsEpisodeSlider';
 import ControlTooltip from './ControlTooltip';
 import SettingsMenu from './SettingsMenu';
+import type { UpscaleControls } from './settings/types';
 import {
   SkipManager,
   ThumbnailManager,
@@ -84,6 +85,7 @@ interface VideoControlsProps {
   autoplayEnabled?: boolean;
   ambientLightEnabled?: boolean;
   onAmbientLightChange?: (enabled: boolean) => void;
+  upscaleControls?: UpscaleControls | null;
   onAutoplayChange?: (enabled: boolean) => void;
   showEpisodes?: boolean;
   onShowEpisodesChange?: (show: boolean) => void;
@@ -195,6 +197,7 @@ function VideoControls({
   autoplayEnabled = false,
   ambientLightEnabled = true,
   onAmbientLightChange,
+  upscaleControls = null,
   onAutoplayChange,
   timecode = [],
   currentSegment,
@@ -716,6 +719,7 @@ function VideoControls({
         onAutoSkipChange={onAutoSkipChange}
         ambientLightEnabled={ambientLightEnabled}
         onAmbientLightChange={onAmbientLightChange}
+        upscaleControls={upscaleControls}
         subtitleTracks={subtitleTracks}
         subtitleSettings={subtitleSettings}
         onSubtitleTrackChange={onSubtitleTrackChange}
@@ -746,6 +750,7 @@ VideoControls.defaultProps = {
   thumbnailManager: null,
   ambientLightEnabled: true,
   onAmbientLightChange: undefined,
+  upscaleControls: null,
   subtitleTracks: [],
   subtitleSettings: undefined,
   onSubtitleTrackChange: undefined,

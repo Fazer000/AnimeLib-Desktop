@@ -6,6 +6,13 @@ export type MenuPage =
   | 'autoSkip'
   | 'subtitles';
 
+export interface UpscaleControls {
+  enabled: boolean;
+  compare: boolean;
+  onEnabledChange: (enabled: boolean) => void;
+  onCompareChange: (compare: boolean) => void;
+}
+
 export interface AutoSkipSettings {
   skipOpenings: boolean;
   skipEndings: boolean;

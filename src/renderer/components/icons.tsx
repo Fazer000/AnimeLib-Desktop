@@ -19,6 +19,7 @@ import {
   ChevronLeft as LucideChevronLeft,
   ChevronRight as LucideChevronRight,
   ChevronUp as LucideChevronUp,
+  ChevronsLeftRight as LucideChevronsLeftRight,
   ChevronsRight as LucideChevronsRight,
   CloudDownload as LucideCloudDownload,
   CloudOff as LucideCloudOff,
@@ -96,6 +97,7 @@ export const ChevronDown = adapt(LucideChevronDown);
 export const ChevronLeft = adapt(LucideChevronLeft);
 export const ChevronRight = adapt(LucideChevronRight);
 export const ChevronUp = adapt(LucideChevronUp);
+export const ChevronsLeftRight = adapt(LucideChevronsLeftRight);
 export const ChevronsRight = adapt(LucideChevronsRight);
 export const CloudDownload = adapt(LucideCloudDownload);
 export const CloudOff = adapt(LucideCloudOff);

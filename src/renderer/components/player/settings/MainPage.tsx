@@ -11,7 +11,7 @@ import {
 } from '../../../utils/videoHelpers';
 import { NavRow, ToggleRow } from './rows';
 import { MENU_ICON_SIZE, menuIconBoxSx } from './styles';
-import type { AutoSkipSettings, MenuPage } from './types';
+import type { AutoSkipSettings, MenuPage, UpscaleControls } from './types';
 import {} from '../../../theme/palette';
 
 interface MainPageProps {
@@ -27,6 +27,7 @@ interface MainPageProps {
   onNavigate: (page: MenuPage) => void;
   onAutoplayChange?: (enabled: boolean) => void;
   onAmbientLightChange?: (enabled: boolean) => void;
+  upscaleControls?: UpscaleControls | null;
 }
 
 /** Возвращает подпись активной дорожки субтитров. */
@@ -54,6 +55,7 @@ function MainPage({
   onNavigate,
   onAutoplayChange,
   onAmbientLightChange,
+  upscaleControls,
 }: MainPageProps) {
   const { customColors } = useTheme().palette;
   const qualityTag = getQualityTagFromResolution(selectedQuality);
@@ -132,6 +134,22 @@ function MainPage({
         checked={ambientLightEnabled}
         onChange={(checked) => onAmbientLightChange?.(checked)}
       />
+
+      {upscaleControls && (
+        <ToggleRow
+          title="Anime4K (тест)"
+          checked={upscaleControls.enabled}
+          onChange={upscaleControls.onEnabledChange}
+        />
+      )}
+
+      {upscaleControls?.enabled && (
+        <ToggleRow
+          title="Сравнение"
+          checked={upscaleControls.compare}
+          onChange={upscaleControls.onCompareChange}
+        />
+      )}
     </Box>
   );
 }
@@ -139,6 +157,7 @@ function MainPage({
 MainPage.defaultProps = {
   onAutoplayChange: undefined,
   onAmbientLightChange: undefined,
+  upscaleControls: null,
 };
 
 export default MainPage;

@@ -263,6 +263,32 @@ export const AMBIENT_IDLE_OPACITY = 0.35;
 export const AMBIENT_FADE_MS = 800;
 
 /**
+ * Окно усреднения времени кадра апскейла, кадров
+ */
+export const UPSCALE_FRAME_WINDOW = 60;
+
+/**
+ * Бюджет кадра апскейла при 60 Гц, мс
+ */
+export const UPSCALE_FRAME_BUDGET_MS = 1000 / 60;
+
+/**
+ * Как часто апскейл сообщает статистику, кадров
+ */
+export const UPSCALE_STATS_INTERVAL = 30;
+
+/**
+ * Ширина зоны захвата черты сравнения и размер её ручки, px
+ */
+export const UPSCALE_COMPARE_HIT_WIDTH = 24;
+export const UPSCALE_COMPARE_KNOB_SIZE = 30;
+
+/**
+ * Отступ плашки замера от низа кадра: над панелью управления, px
+ */
+export const UPSCALE_HUD_BOTTOM = 84;
+
+/**
  * Затемнение плеера в момент, когда лист страницы закрывает его целиком
  */
 export const PLAYER_COVER_DIM_OPACITY = 0.55;

@@ -21,7 +21,11 @@ import SpeedPage from './settings/SpeedPage';
 import SkipPage from './settings/SkipPage';
 import AutoSkipPage from './settings/AutoSkipPage';
 import SubtitlesPage from './settings/SubtitlesPage';
-import type { AutoSkipSettings, MenuPage } from './settings/types';
+import type {
+  AutoSkipSettings,
+  MenuPage,
+  UpscaleControls,
+} from './settings/types';
 import {
   SLIDE_BACK,
   SLIDE_FORWARD,
@@ -107,6 +111,7 @@ interface SettingsMenuProps {
   onAutoplayChange?: (enabled: boolean) => void;
   ambientLightEnabled: boolean;
   onAmbientLightChange?: (enabled: boolean) => void;
+  upscaleControls?: UpscaleControls | null;
   autoSkipSettings?: AutoSkipSettings;
   onAutoSkipChange?: (settings: AutoSkipSettings) => void;
   subtitleTracks?: SubtitleTrack[];
@@ -133,6 +138,7 @@ function SettingsMenu({
   onAutoplayChange,
   ambientLightEnabled,
   onAmbientLightChange,
+  upscaleControls = null,
   autoSkipSettings = DEFAULT_AUTO_SKIP,
   onAutoSkipChange,
   subtitleTracks = [],
@@ -203,6 +209,7 @@ function SettingsMenu({
                   onNavigate={navigate}
                   onAutoplayChange={onAutoplayChange}
                   onAmbientLightChange={onAmbientLightChange}
+                  upscaleControls={upscaleControls}
                 />
               )}
 
@@ -262,6 +269,7 @@ function SettingsMenu({
 SettingsMenu.defaultProps = {
   onAutoplayChange: undefined,
   onAmbientLightChange: undefined,
+  upscaleControls: null,
   autoSkipSettings: DEFAULT_AUTO_SKIP,
   onAutoSkipChange: undefined,
   subtitleTracks: [],

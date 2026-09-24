@@ -66,3 +66,5 @@ export { WatchStatsManager } from './WatchStatsManager';
 
 export { OfflineSourceGuard } from './OfflineSourceGuard';
 export type { OfflineSourceGuardConfig } from './OfflineSourceGuard';
+export { default as UpscaleRenderer } from './UpscaleRenderer';
+export type { UpscaleStats, UpscaleRendererOptions } from './UpscaleRenderer';
