@@ -1,6 +1,7 @@
 /**
  * Отражение кадра в маленький буфер: свечение даёт растяжение битмапа,
- * поэтому размытие считается по буферу, а не по слою во всю область
+ * поэтому размытие считается по буферу, а не по слою во всю область.
+ * На одно видео — одно отражение: все подсветки копируют общий буфер
  */
 import {
   AMBIENT_FRAME_INTERVAL_MS,
@@ -40,93 +41,139 @@ type FrameCallbackVideo = HTMLVideoElement & {
   cancelVideoFrameCallback?: (handle: number) => void;
 };
 
+const PLAYBACK_EVENTS = ['play', 'pause', 'ended'] as const;
+const FRAME_EVENTS = ['seeked', 'loadeddata'] as const;
+
 export default class AmbientLightManager {
-  private canvas: HTMLCanvasElement | null = null;
+  private static readonly shared = new Map<
+    HTMLVideoElement,
+    { manager: AmbientLightManager; users: number }
+  >();
 
-  private ctx: CanvasRenderingContext2D | null = null;
+  private readonly video: FrameCallbackVideo;
 
-  private video: FrameCallbackVideo | null = null;
+  private readonly buffer: HTMLCanvasElement;
+
+  private readonly bufferCtx: CanvasRenderingContext2D | null;
+
+  private readonly targets = new Set<CanvasRenderingContext2D>();
+
+  private readonly usesFrameCallback: boolean;
 
   private handle: number | null = null;
 
-  private usesFrameCallback: boolean = false;
-
   private lastDrawAt: number = 0;
 
-  /**
-   * Привязывает буфер, в который отражается кадр
-   */
-  public attach(canvas: HTMLCanvasElement): void {
-    const ctx = canvas.getContext('2d');
+  private constructor(video: HTMLVideoElement) {
+    this.video = video as FrameCallbackVideo;
+    this.usesFrameCallback =
+      typeof this.video.requestVideoFrameCallback === 'function';
 
-    if (!ctx) {
-      log.error('Failed to get 2D context for ambient canvas');
-      return;
+    this.buffer = document.createElement('canvas');
+    this.buffer.width = BUFFER.width;
+    this.buffer.height = BUFFER.height;
+    this.bufferCtx = this.buffer.getContext('2d');
+
+    if (this.bufferCtx) {
+      this.bufferCtx.filter = buildSourceFilter(
+        AMBIENT_SOURCE_BLUR,
+        AMBIENT_SOURCE_SATURATION,
+      );
+    } else {
+      log.error('Failed to get 2D context for ambient buffer');
     }
 
-    canvas.width = BUFFER.width;
-    canvas.height = BUFFER.height;
-    ctx.filter = buildSourceFilter(
-      AMBIENT_SOURCE_BLUR,
-      AMBIENT_SOURCE_SATURATION,
+    PLAYBACK_EVENTS.forEach((name) =>
+      this.video.addEventListener(name, this.handlePlayback),
     );
-
-    this.canvas = canvas;
-    this.ctx = ctx;
-  }
-
-  /**
-   * Берёт видео под наблюдение и запускает цикл, если оно играет
-   */
-  public start(video: HTMLVideoElement, isPlaying: boolean): void {
-    this.stop();
-
-    const source = video as FrameCallbackVideo;
-
-    this.video = source;
-    this.usesFrameCallback =
-      typeof source.requestVideoFrameCallback === 'function';
-    this.lastDrawAt = 0;
-
-    source.addEventListener('seeked', this.handleFrameChange);
-    source.addEventListener('loadeddata', this.handleFrameChange);
+    FRAME_EVENTS.forEach((name) =>
+      this.video.addEventListener(name, this.handleFrameChange),
+    );
+    this.video.addEventListener('emptied', this.handleSourceReset);
 
     this.draw();
-
-    if (isPlaying) {
-      this.schedule();
-    }
-
+    this.handlePlayback();
     log.debug('Started, frame callback:', this.usesFrameCallback);
   }
 
   /**
-   * Останавливает цикл и отпускает видео
+   * Общее отражение кадра для видео; каждый вызов парный с release
    */
-  public stop(): void {
-    this.cancel();
+  public static acquire(video: HTMLVideoElement): AmbientLightManager {
+    const entry = AmbientLightManager.shared.get(video);
 
-    this.video?.removeEventListener('seeked', this.handleFrameChange);
-    this.video?.removeEventListener('loadeddata', this.handleFrameChange);
-    this.video = null;
+    if (entry) {
+      entry.users += 1;
+      return entry.manager;
+    }
+
+    const manager = new AmbientLightManager(video);
+    AmbientLightManager.shared.set(video, { manager, users: 1 });
+    return manager;
   }
 
   /**
-   * Гасит свечение
+   * Отпускает отражение; последний пользователь его останавливает
    */
-  public reset(): void {
-    const { ctx, canvas } = this;
+  public static release(video: HTMLVideoElement): void {
+    const entry = AmbientLightManager.shared.get(video);
+    if (!entry) return;
 
-    if (ctx && canvas) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    entry.users -= 1;
+    if (entry.users > 0) return;
+
+    AmbientLightManager.shared.delete(video);
+    entry.manager.dispose();
+  }
+
+  /**
+   * Подключает холст подсветки к общему буферу; возвращает отключение
+   */
+  public attach(canvas: HTMLCanvasElement): () => void {
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      log.error('Failed to get 2D context for ambient canvas');
+      return () => {};
     }
+
+    canvas.width = BUFFER.width;
+    canvas.height = BUFFER.height;
+    this.targets.add(ctx);
+    this.copyTo(ctx);
+
+    return () => {
+      this.targets.delete(ctx);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
   }
 
-  public dispose(): void {
-    this.stop();
-    this.canvas = null;
-    this.ctx = null;
+  private dispose(): void {
+    this.cancel();
+    PLAYBACK_EVENTS.forEach((name) =>
+      this.video.removeEventListener(name, this.handlePlayback),
+    );
+    FRAME_EVENTS.forEach((name) =>
+      this.video.removeEventListener(name, this.handleFrameChange),
+    );
+    this.video.removeEventListener('emptied', this.handleSourceReset);
+    this.targets.clear();
   }
+
+  /**
+   * Цикл идёт, только пока видео играет
+   */
+  private handlePlayback = (): void => {
+    if (this.video.paused || this.video.ended) {
+      this.cancel();
+      return;
+    }
+
+    if (this.handle === null) {
+      this.lastDrawAt = 0;
+      this.schedule();
+    }
+  };
 
   /**
    * Отражает текущий кадр вне цикла: перемотка и смена источника
@@ -136,15 +183,21 @@ export default class AmbientLightManager {
   };
 
   /**
-   * Отражает кадр в буфер
+   * Смена источника: свечение прошлого видео гаснет до первого нового кадра
+   */
+  private handleSourceReset = (): void => {
+    this.bufferCtx?.clearRect(0, 0, this.buffer.width, this.buffer.height);
+    this.targets.forEach((ctx) => this.copyTo(ctx));
+  };
+
+  /**
+   * Отражает кадр в буфер и раздаёт его подсветкам
    */
   private draw(): void {
-    const { ctx, canvas, video } = this;
+    const { bufferCtx, buffer, video } = this;
 
     if (
-      !ctx ||
-      !canvas ||
-      !video ||
+      !bufferCtx ||
       video.readyState < READY_HAVE_CURRENT_DATA ||
       !video.videoWidth
     ) {
@@ -152,55 +205,47 @@ export default class AmbientLightManager {
     }
 
     try {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(
+      bufferCtx.clearRect(0, 0, buffer.width, buffer.height);
+      bufferCtx.drawImage(
         video,
         SOURCE_RECT.x,
         SOURCE_RECT.y,
         SOURCE_RECT.width,
         SOURCE_RECT.height,
       );
+      this.targets.forEach((ctx) => this.copyTo(ctx));
     } catch (error) {
       log.error('Frame draw failed:', error);
     }
+  }
+
+  private copyTo(ctx: CanvasRenderingContext2D): void {
+    ctx.clearRect(0, 0, BUFFER.width, BUFFER.height);
+    ctx.drawImage(this.buffer, 0, 0);
   }
 
   /**
    * Шаг цикла: кадры чаще промежутка пропускаются
    */
   private tick = (time: number): void => {
-    const { video } = this;
-
-    if (!video) {
-      this.handle = null;
-      return;
-    }
+    this.handle = null;
 
     if (shouldDrawFrame(time, this.lastDrawAt, AMBIENT_FRAME_INTERVAL_MS)) {
       this.lastDrawAt = time;
       this.draw();
     }
 
-    if (!this.usesFrameCallback && (video.paused || video.ended)) {
-      this.handle = null;
-      return;
+    if (!this.video.paused && !this.video.ended) {
+      this.schedule();
     }
-
-    this.schedule();
   };
 
   /**
    * Ставит следующий шаг: по декодированным кадрам, иначе по кадрам отрисовки
    */
   private schedule(): void {
-    const { video } = this;
-
-    if (!video) {
-      return;
-    }
-
-    if (this.usesFrameCallback && video.requestVideoFrameCallback) {
-      this.handle = video.requestVideoFrameCallback(this.tick);
+    if (this.usesFrameCallback && this.video.requestVideoFrameCallback) {
+      this.handle = this.video.requestVideoFrameCallback(this.tick);
       return;
     }
 
@@ -216,7 +261,7 @@ export default class AmbientLightManager {
     }
 
     if (this.usesFrameCallback) {
-      this.video?.cancelVideoFrameCallback?.(this.handle);
+      this.video.cancelVideoFrameCallback?.(this.handle);
     } else {
       cancelAnimationFrame(this.handle);
     }

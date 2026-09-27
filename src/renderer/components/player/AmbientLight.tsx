@@ -33,44 +33,29 @@ const CANVAS_SX = {
 };
 
 /**
- * Подсветка по краям видео: кадр отражается в буфер 64×36,
+ * Подсветка по краям видео: общий на видео буфер 64×36 копируется в холст,
  * а свечение даёт растяжение битмапа средствами композитора
  */
 const AmbientLight = memo(
   ({ videoRef, isPlaying, isFullscreen, enabled }: AmbientLightProps) => {
-    const managerRef = useRef<AmbientLightManager | null>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const hidden = isFullscreen || !enabled;
 
     useEffect(() => {
-      if (hidden || !canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+
+      if (hidden || !video || !canvas) {
         return undefined;
       }
 
-      const manager = new AmbientLightManager();
-      manager.attach(canvasRef.current);
-      managerRef.current = manager;
+      const detach = AmbientLightManager.acquire(video).attach(canvas);
 
       return () => {
-        manager.dispose();
-        managerRef.current = null;
+        detach();
+        AmbientLightManager.release(video);
       };
-    }, [hidden]);
-
-    useEffect(() => {
-      const video = videoRef.current;
-      const manager = managerRef.current;
-
-      if (!video || !manager || hidden) {
-        manager?.stop();
-        manager?.reset();
-        return undefined;
-      }
-
-      manager.start(video, isPlaying);
-
-      return () => manager.stop();
-    }, [videoRef, isPlaying, hidden]);
+    }, [videoRef, hidden]);
 
     if (hidden) {
       return null;

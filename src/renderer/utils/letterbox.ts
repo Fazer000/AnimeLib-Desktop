@@ -3,6 +3,8 @@
  */
 import type { Rect } from './upscaleGeometry';
 
+const OUTER_BLEED_PX = 1;
+
 /**
  * Есть ли у кадра поля шире порога хотя бы с одной стороны
  */
@@ -22,7 +24,9 @@ export function hasLetterbox(
 
 /**
  * clip-path, оставляющий только поля: весь контейнер минус область кадра.
- * overlapPx заводит поля под край кадра, чтобы на стыке не было щели
+ * overlapPx заводит поля под край кадра, чтобы на стыке не было щели.
+ * Внешний контур вынесен за край контейнера: иначе его сглаживание
+ * даёт тёмную кромку по краю плеера на дробной позиции
  */
 export function getLetterboxClipPath(
   frame: Rect,
@@ -45,5 +49,9 @@ export function getLetterboxClipPath(
   const top = y(rect.y);
   const bottom = y(rect.y + rect.height);
 
-  return `polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ${left} ${top}, ${right} ${top}, ${right} ${bottom}, ${left} ${bottom}, ${left} ${top})`;
+  const out = `${OUTER_BLEED_PX}px`;
+  const near = `-${out}`;
+  const far = `calc(100% + ${out})`;
+
+  return `polygon(evenodd, ${near} ${near}, ${far} ${near}, ${far} ${far}, ${near} ${far}, ${near} ${near}, ${left} ${top}, ${right} ${top}, ${right} ${bottom}, ${left} ${bottom}, ${left} ${top})`;
 }

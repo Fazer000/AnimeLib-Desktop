@@ -190,7 +190,6 @@ function PlayerSidebarRefactored({
                         fontSize: '0.8125rem',
                         fontWeight: tabValue === index ? 600 : 500,
                         textTransform: 'none',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         position: 'relative',
                         zIndex: 1,
                       }}
@@ -207,6 +206,8 @@ function PlayerSidebarRefactored({
                   margin: '0 4px',
                   position: 'relative',
                   overflow: 'hidden',
+                  transition:
+                    'background-color 0.2s ease, color 0.2s ease, transform 0.1s ease',
                   '&.Mui-selected': {
                     color: theme.palette.customColors.secondaryColor,
                     '&::before': {
@@ -216,19 +217,12 @@ function PlayerSidebarRefactored({
                   },
                   '&:hover': {
                     backgroundColor: `rgba(${theme.palette.customColors.accentRgb}, 0.03)`,
-                    transform: 'translateY(-1px)',
                     '&::before': {
                       opacity: 0.3,
-                    },
-                    '& .tab-text': {
-                      '&::after': {
-                        width: '60%',
-                      },
                     },
                   },
                   '&:active': {
                     transform: 'scale(0.96)',
-                    transition: 'all 0.1s ease',
                   },
                   '&::before': {
                     content: '""',
@@ -240,7 +234,7 @@ function PlayerSidebarRefactored({
                     background: `linear-gradient(135deg, rgba(${theme.palette.customColors.accentRgb}, 0.13), rgba(${theme.palette.customColors.accentRgb}, 0.02))`,
                     borderRadius: '8px',
                     opacity: 0,
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transition: 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     zIndex: -1,
                   },
                 }}
@@ -401,9 +395,10 @@ function PlayerSidebarRefactored({
                         ? theme.palette.customColors.raisedColor
                         : `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.06)`,
                     },
+                    transition:
+                      'background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease',
                     '&:active': {
                       transform: 'scale(0.96)',
-                      transition: 'all 0.1s ease',
                     },
                   }}
                 >

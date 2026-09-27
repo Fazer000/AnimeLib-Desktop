@@ -623,8 +623,6 @@ const createWindow = async (): Promise<void> => {
 
 const applyRadicalFix = (): void => {
   const switches = [
-    ['disable-gpu-vsync'],
-    ['disable-frame-rate-limit'],
     ['disable-features', 'CalculateNativeWinOcclusion'],
     ['ignore-gpu-blocklist'],
     ['enable-accelerated-video-decode'],
