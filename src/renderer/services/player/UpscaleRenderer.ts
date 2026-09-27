@@ -11,8 +11,9 @@ import {
   UpscalePreset,
 } from '../../../constants';
 import FrameTimeMeter from '../../utils/FrameTimeMeter';
-import type { PixelSize } from '../../utils/upscaleGeometry';
+import { PixelSize, shouldBypassUpscale } from '../../utils/upscaleGeometry';
 import { createLogger } from '../../../shared/logger';
+import { getFramesPerSecond } from '../../utils/upscaleStats';
 import {
   Anime4KPipelineList,
   createAnime4KChain,
@@ -55,6 +56,8 @@ type FrameCallbackVideo = HTMLVideoElement & {
 
 export interface UpscaleStats {
   preset: UpscalePreset;
+  bypassed: boolean;
+  framesPerSecond: number;
   frameTimeMs: number;
   overBudgetShare: number;
   sourceSize: PixelSize;
@@ -106,6 +109,8 @@ export default class UpscaleRenderer {
 
   private framesSinceStats: number = 0;
 
+  private statsWindowStartedAt: number = 0;
+
   private readonly meter = new FrameTimeMeter(UPSCALE_FRAME_WINDOW);
 
   private readonly onStats?: (stats: UpscaleStats) => void;
@@ -117,6 +122,8 @@ export default class UpscaleRenderer {
   private frameVisible: boolean = false;
 
   private sourceGeneration: number = 0;
+
+  private bypassKey: string = '';
 
   constructor({
     onStats,
@@ -381,6 +388,13 @@ export default class UpscaleRenderer {
       return;
     }
 
+    const sourceSize = { width: video.videoWidth, height: video.videoHeight };
+    if (shouldBypassUpscale(sourceSize, this.targetSize)) {
+      this.reportBypass(sourceSize);
+      return;
+    }
+    this.bypassKey = '';
+
     this.pending = true;
     try {
       if (!(await this.ensurePipelines()) || this.disposed) return;
@@ -428,19 +442,50 @@ export default class UpscaleRenderer {
     }
   }
 
+  /**
+   * Исходник не меньше вывода: кадр не обрабатывается, видно обычное видео.
+   * Сообщает об этом один раз на пару размеров
+   */
+  private reportBypass(sourceSize: PixelSize): void {
+    this.setFrameVisible(false);
+
+    const key = `${this.preset}:${sourceSize.width}x${sourceSize.height}>${this.targetSize.width}x${this.targetSize.height}`;
+    if (key === this.bypassKey) return;
+
+    this.bypassKey = key;
+    this.onStats?.({
+      preset: this.preset,
+      bypassed: true,
+      framesPerSecond: 0,
+      frameTimeMs: 0,
+      overBudgetShare: 0,
+      sourceSize,
+      targetSize: { ...this.targetSize },
+    });
+  }
+
   private recordFrameTime(ms: number): void {
     if (this.warmupLeft > 0) {
       this.warmupLeft -= 1;
       return;
     }
 
+    const now = performance.now();
+    if (this.framesSinceStats === 0) this.statsWindowStartedAt = now;
+
     this.meter.push(ms);
     this.framesSinceStats += 1;
-    if (this.framesSinceStats < UPSCALE_STATS_INTERVAL || !this.video) return;
+    if (this.framesSinceStats <= UPSCALE_STATS_INTERVAL || !this.video) return;
 
+    const framesPerSecond = getFramesPerSecond(
+      this.framesSinceStats - 1,
+      now - this.statsWindowStartedAt,
+    );
     this.framesSinceStats = 0;
     this.onStats?.({
       preset: this.preset,
+      bypassed: false,
+      framesPerSecond,
       frameTimeMs: this.meter.average(),
       overBudgetShare: this.meter.overBudgetShare(UPSCALE_FRAME_BUDGET_MS),
       sourceSize: {

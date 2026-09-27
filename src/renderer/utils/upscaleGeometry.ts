@@ -56,3 +56,14 @@ export function getCanvasPixelSize(
     height: Math.max(1, Math.round(rect.height * ratio)),
   };
 }
+
+/**
+ * Обработка не нужна, если исходник не меньше вывода: увеличивать нечего,
+ * а нейросети в разрешении исходника впустую нагружают видеокарту
+ */
+export function shouldBypassUpscale(
+  source: PixelSize,
+  target: PixelSize,
+): boolean {
+  return source.width >= target.width && source.height >= target.height;
+}

@@ -28,7 +28,7 @@ import SubtitlesOverlay from './SubtitlesOverlay';
 import AnimeInfoComponent from './AnimeInfo';
 import EpisodeNavigationHint from './EpisodeNavigationHint';
 import NextEpisodeNotification from './NextEpisodeNotification';
-import AmbientLight from './AmbientLight';
+import LetterboxGlow from './LetterboxGlow';
 import UpscaleLayer from './UpscaleLayer';
 import type { UpscaleControls } from './settings/types';
 import { useUpscaleSettings } from '../../hooks/useUpscaleSettings';
@@ -58,6 +58,7 @@ import {
   PLAYER_FULLSCREEN_TRANSITION,
   SUBTITLES_DEFAULT_SETTINGS,
   PLAYER_PIP_ICON_SIZE,
+  UPSCALE_COVERED_VIDEO_OPACITY,
 } from '../../../constants';
 import { getSiteOrigin } from '../../utils/urlHelpers';
 import { useMediaSession } from './hooks/useMediaSession';
@@ -226,6 +227,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       useState<boolean>(false);
 
     const upscale = useUpscaleSettings();
+    const [upscaleCovering, setUpscaleCovering] = useState<boolean>(false);
+    const [letterboxActive, setLetterboxActive] = useState<boolean>(false);
     const upscaleControls = useMemo<UpscaleControls>(
       () => ({
         supported: UpscaleRenderer.isSupported(),
@@ -859,7 +862,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           containerType: 'size',
           backgroundColor: customColors.primaryColor,
           overflow: 'hidden',
-          isolation: 'isolate',
+          isolation: letterboxActive ? 'isolate' : 'auto',
           borderRadius: uiState.isFullscreen
             ? PLAYER_FULLSCREEN_RADIUS
             : PLAYER_BORDER_RADIUS,
@@ -902,24 +905,11 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         />
 
         {ambientLightEnabled && (
-          <Box
-            sx={{
-              position: 'absolute',
-              inset: 0,
-              zIndex: -1,
-              overflow: 'hidden',
-              isolation: 'isolate',
-              backgroundColor: BLACK_SHORT,
-              pointerEvents: 'none',
-            }}
-          >
-            <AmbientLight
-              videoRef={videoRef}
-              isPlaying={videoState.isPlaying}
-              isFullscreen={false}
-              enabled
-            />
-          </Box>
+          <LetterboxGlow
+            videoRef={videoRef}
+            isPlaying={videoState.isPlaying}
+            onActiveChange={setLetterboxActive}
+          />
         )}
 
         <video
@@ -932,7 +922,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             height: '100%',
             display: 'block',
             visibility: 'visible',
-            backgroundColor: ambientLightEnabled ? 'transparent' : BLACK_SHORT,
+            backgroundColor: letterboxActive ? 'transparent' : BLACK_SHORT,
+            opacity: upscaleCovering ? UPSCALE_COVERED_VIDEO_OPACITY : 1,
             cursor: 'inherit',
             objectFit: 'contain',
           }}
@@ -950,6 +941,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           showStats={upscale.showStats}
           onStats={upscale.reportStats}
           onFailure={upscale.reportFailure}
+          onFrameVisibilityChange={setUpscaleCovering}
         />
 
         {videoState.isPictureInPicture && (

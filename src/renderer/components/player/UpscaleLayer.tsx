@@ -26,6 +26,7 @@ interface UpscaleLayerProps {
   showStats: boolean;
   onStats: (stats: UpscaleStats) => void;
   onFailure: () => void;
+  onFrameVisibilityChange: (visible: boolean) => void;
 }
 
 /**
@@ -38,6 +39,7 @@ function UpscaleLayer({
   showStats,
   onStats,
   onFailure,
+  onFrameVisibilityChange,
 }: UpscaleLayerProps) {
   const { customColors } = useTheme().palette;
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -46,6 +48,12 @@ function UpscaleLayer({
   const [rect, setRect] = useState<Rect>(EMPTY_RECT);
   const [stats, setStats] = useState<UpscaleStats | null>(null);
   const [frameVisible, setFrameVisible] = useState<boolean>(false);
+  const visibilityHandlerRef = useRef(onFrameVisibilityChange);
+  visibilityHandlerRef.current = onFrameVisibilityChange;
+
+  useEffect(() => {
+    visibilityHandlerRef.current(frameVisible);
+  }, [frameVisible]);
   const statsHandlerRef = useRef(onStats);
   const failureHandlerRef = useRef(onFailure);
   statsHandlerRef.current = onStats;

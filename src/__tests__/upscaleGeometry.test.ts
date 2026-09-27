@@ -1,6 +1,7 @@
 import {
   getCanvasPixelSize,
   getContainRect,
+  shouldBypassUpscale,
 } from '../renderer/utils/upscaleGeometry';
 import FrameTimeMeter from '../renderer/utils/FrameTimeMeter';
 
@@ -46,6 +47,35 @@ describe('getCanvasPixelSize', () => {
       width: 1,
       height: 1,
     });
+  });
+});
+
+describe('shouldBypassUpscale', () => {
+  it('4K на 1440p — обработка не нужна', () => {
+    expect(
+      shouldBypassUpscale(
+        { width: 3840, height: 2160 },
+        { width: 2560, height: 1440 },
+      ),
+    ).toBe(true);
+  });
+
+  it('1080p на 1440p — обрабатывается', () => {
+    expect(
+      shouldBypassUpscale(
+        { width: 1920, height: 1080 },
+        { width: 2560, height: 1440 },
+      ),
+    ).toBe(false);
+  });
+
+  it('вывод больше исходника хотя бы по одной стороне — обрабатывается', () => {
+    expect(
+      shouldBypassUpscale(
+        { width: 1920, height: 1080 },
+        { width: 2231, height: 1000 },
+      ),
+    ).toBe(false);
   });
 });
 

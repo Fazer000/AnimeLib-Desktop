@@ -72,7 +72,7 @@ export function useUpscaleSettings(): UpscaleSettingsState {
 
   const reportStats = useCallback(
     (stats: UpscaleStats) => {
-      if (mode !== 'auto') return;
+      if (mode !== 'auto' || stats.bypassed) return;
 
       const result = evaluateAutoWindow(
         stats,

@@ -263,6 +263,17 @@ export const AMBIENT_IDLE_OPACITY = 0.35;
 export const AMBIENT_FADE_MS = 800;
 
 /**
+ * Поля тоньше этого не подсвечиваются, px
+ */
+export const LETTERBOX_MIN_PX = 2;
+
+/**
+ * На сколько подсветка полей заходит под край кадра: закрывает щель
+ * от округления границы видео до целых пикселей, px
+ */
+export const LETTERBOX_SEAM_OVERLAP_PX = 1;
+
+/**
  * Окно усреднения времени кадра апскейла, кадров
  */
 export const UPSCALE_FRAME_WINDOW = 60;
@@ -287,6 +298,13 @@ export const UPSCALE_HUD_BOTTOM = 84;
  * пересобирается. До этого холст растягивает прежний кадр, мс
  */
 export const UPSCALE_RESIZE_SETTLE_MS = 200;
+
+/**
+ * Непрозрачность видео под кадром улучшения. Меньше единицы — и Chromium
+ * не выводит видео напрямую через видеокарту: драйвер не тратит ресурсы
+ * на VSR невидимого видео, а закрытое холстом видео не рисуется вовсе
+ */
+export const UPSCALE_COVERED_VIDEO_OPACITY = 0.99;
 
 /**
  * Уровень улучшения картинки: от лёгкого к максимальному
