@@ -860,7 +860,9 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           width: '100%',
           height: '100%',
           containerType: 'size',
-          backgroundColor: customColors.primaryColor,
+          backgroundColor: uiState.isFullscreen
+            ? BLACK_SHORT
+            : customColors.primaryColor,
           overflow: 'hidden',
           isolation: letterboxActive ? 'isolate' : 'auto',
           borderRadius: uiState.isFullscreen

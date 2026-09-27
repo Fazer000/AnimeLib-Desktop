@@ -96,10 +96,18 @@ function EpisodeSliderRefactored({
     [currentEpisodeIndex, scrollToEpisode],
   );
 
+  const heldAnchorRef = useRef<number | null>(null);
+  const previewRef = useRef<number | null>(null);
+  previewRef.current = previewIndex;
+  const pickedRef = useRef<boolean>(false);
+
   const handlePreview = useCallback(
-    (index: number | null) => {
+    (index: number | null, scroll: boolean = true) => {
+      const keep = index === null && !scroll && !pickedRef.current;
+      heldAnchorRef.current = keep ? previewRef.current : null;
+      pickedRef.current = false;
       setPreviewIndex(index);
-      scrollToEpisode(index ?? currentEpisodeIndex);
+      if (scroll) scrollToEpisode(index ?? currentEpisodeIndex);
     },
     [currentEpisodeIndex, scrollToEpisode],
   );
@@ -184,6 +192,7 @@ function EpisodeSliderRefactored({
       if (dragMoved) {
         return;
       }
+      pickedRef.current = previewRef.current !== null;
       onEpisodeSelect(index);
     },
     [dragMoved, onEpisodeSelect],
@@ -196,11 +205,13 @@ function EpisodeSliderRefactored({
   }, [episodes, scrollToActiveEpisode]);
 
   useEffect(() => {
+    heldAnchorRef.current = null;
     scrollToActiveEpisode('smooth');
   }, [currentEpisodeIndex, scrollToActiveEpisode]);
 
   const anchorRef = useRef<number>(currentEpisodeIndex);
-  anchorRef.current = previewIndex ?? currentEpisodeIndex;
+  anchorRef.current =
+    previewIndex ?? heldAnchorRef.current ?? currentEpisodeIndex;
 
   const scrollToEpisodeRef = useRef(scrollToEpisode);
   scrollToEpisodeRef.current = scrollToEpisode;

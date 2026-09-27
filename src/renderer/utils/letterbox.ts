@@ -24,9 +24,11 @@ export function hasLetterbox(
 
 /**
  * clip-path, оставляющий только поля: весь контейнер минус область кадра.
- * overlapPx заводит поля под край кадра, чтобы на стыке не было щели.
- * Внешний контур вынесен за край контейнера: иначе его сглаживание
- * даёт тёмную кромку по краю плеера на дробной позиции
+ * Два отдельных контура без соединяющего отрезка: у многоугольника с дыркой
+ * этот отрезок при сглаживании рисуется тонкой линией через поле.
+ * overlapPx заводит поля под край кадра, чтобы на стыке не было щели;
+ * внешний контур вынесен за край контейнера, чтобы по краю плеера
+ * не было тёмной кромки от сглаживания
  */
 export function getLetterboxClipPath(
   frame: Rect,
@@ -34,24 +36,14 @@ export function getLetterboxClipPath(
   containerHeight: number,
   overlapPx: number = 0,
 ): string {
-  const rect = {
-    x: frame.x + overlapPx,
-    y: frame.y + overlapPx,
-    width: Math.max(0, frame.width - overlapPx * 2),
-    height: Math.max(0, frame.height - overlapPx * 2),
-  };
-  const x = (value: number) =>
-    `${((value / containerWidth) * 100).toFixed(3)}%`;
-  const y = (value: number) =>
-    `${((value / containerHeight) * 100).toFixed(3)}%`;
-  const left = x(rect.x);
-  const right = x(rect.x + rect.width);
-  const top = y(rect.y);
-  const bottom = y(rect.y + rect.height);
+  const round = (value: number) => Number(value.toFixed(2));
+  const left = round(frame.x + overlapPx);
+  const top = round(frame.y + overlapPx);
+  const right = round(frame.x + frame.width - overlapPx);
+  const bottom = round(frame.y + frame.height - overlapPx);
+  const near = -OUTER_BLEED_PX;
+  const farX = round(containerWidth + OUTER_BLEED_PX);
+  const farY = round(containerHeight + OUTER_BLEED_PX);
 
-  const out = `${OUTER_BLEED_PX}px`;
-  const near = `-${out}`;
-  const far = `calc(100% + ${out})`;
-
-  return `polygon(evenodd, ${near} ${near}, ${far} ${near}, ${far} ${far}, ${near} ${far}, ${near} ${near}, ${left} ${top}, ${right} ${top}, ${right} ${bottom}, ${left} ${bottom}, ${left} ${top})`;
+  return `path(evenodd, 'M ${near} ${near} H ${farX} V ${farY} H ${near} Z M ${left} ${top} H ${right} V ${bottom} H ${left} Z')`;
 }

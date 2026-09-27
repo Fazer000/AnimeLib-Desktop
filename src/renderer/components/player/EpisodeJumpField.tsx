@@ -15,7 +15,7 @@ import {
 
 interface EpisodeJumpFieldProps {
   episodes: Episode[];
-  onPreview: (index: number | null) => void;
+  onPreview: (index: number | null, scroll?: boolean) => void;
   onSelect: (index: number) => void;
 }
 
@@ -30,6 +30,8 @@ function EpisodeJumpField({
   const { customColors } = useTheme().palette;
   const inputRef = useRef<HTMLInputElement | null>(null);
   const selectingRef = useRef<boolean>(false);
+  const pointerDownRef = useRef<boolean>(false);
+  const closeAfterClickRef = useRef<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
   const [query, setQuery] = useState<string>('');
 
@@ -43,11 +45,49 @@ function EpisodeJumpField({
     }
   }, [open]);
 
-  const close = () => {
+  const close = (scrollBack: boolean = true) => {
+    closeAfterClickRef.current = false;
     setOpen(false);
     setQuery('');
-    onPreview(null);
+    onPreview(null, scrollBack);
     inputRef.current?.blur();
+  };
+
+  const closeRef = useRef(close);
+  closeRef.current = close;
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const handleDown = () => {
+      pointerDownRef.current = true;
+    };
+    const handleUp = () => {
+      pointerDownRef.current = false;
+      if (!closeAfterClickRef.current) return;
+
+      window.setTimeout(() => closeRef.current(false), 0);
+    };
+
+    document.addEventListener('pointerdown', handleDown, true);
+    document.addEventListener('pointerup', handleUp, true);
+
+    return () => {
+      document.removeEventListener('pointerdown', handleDown, true);
+      document.removeEventListener('pointerup', handleUp, true);
+      pointerDownRef.current = false;
+    };
+  }, [open]);
+
+  const handleBlur = () => {
+    if (selectingRef.current) return;
+
+    if (pointerDownRef.current) {
+      closeAfterClickRef.current = true;
+      return;
+    }
+
+    close(false);
   };
 
   const toggle = () => {
@@ -125,9 +165,7 @@ function EpisodeJumpField({
         placeholder="№"
         onChange={(event) => handleChange(event.target.value)}
         onKeyDown={handleKeyDown}
-        onBlur={() => {
-          if (!selectingRef.current) close();
-        }}
+        onBlur={handleBlur}
         slotProps={{
           input: {
             'aria-label': 'Номер серии',

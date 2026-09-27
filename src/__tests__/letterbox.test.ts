@@ -30,7 +30,7 @@ describe('hasLetterbox', () => {
 });
 
 describe('getLetterboxClipPath', () => {
-  it('вырезает область кадра из контейнера', () => {
+  it('внешний контур и вырез под кадр — отдельные контуры', () => {
     expect(
       getLetterboxClipPath(
         { x: 240, y: 0, width: 1440, height: 1080 },
@@ -38,20 +38,20 @@ describe('getLetterboxClipPath', () => {
         1080,
       ),
     ).toBe(
-      'polygon(evenodd, -1px -1px, calc(100% + 1px) -1px, calc(100% + 1px) calc(100% + 1px), -1px calc(100% + 1px), -1px -1px, 12.500% 0.000%, 87.500% 0.000%, 87.500% 100.000%, 12.500% 100.000%, 12.500% 0.000%)',
+      "path(evenodd, 'M -1 -1 H 1921 V 1081 H -1 Z M 240 0 H 1680 V 1080 H 240 Z')",
     );
   });
 
   it('с перекрытием поля заходят под край кадра', () => {
     expect(
       getLetterboxClipPath(
-        { x: 250, y: 0, width: 1500, height: 1000 },
+        { x: 250.5, y: 0, width: 1500, height: 1000 },
         2000,
         1000,
-        10,
+        1,
       ),
     ).toBe(
-      'polygon(evenodd, -1px -1px, calc(100% + 1px) -1px, calc(100% + 1px) calc(100% + 1px), -1px calc(100% + 1px), -1px -1px, 13.000% 1.000%, 87.000% 1.000%, 87.000% 99.000%, 13.000% 99.000%, 13.000% 1.000%)',
+      "path(evenodd, 'M -1 -1 H 2001 V 1001 H -1 Z M 251.5 1 H 1749.5 V 999 H 251.5 Z')",
     );
   });
 });
