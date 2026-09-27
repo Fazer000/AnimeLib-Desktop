@@ -13,6 +13,7 @@ export interface LoadContext {
   hasBookmark: boolean;
   isFromHint: boolean;
   currentTime?: number;
+  wasPlaying?: boolean;
 }
 
 /**
@@ -130,7 +131,7 @@ export class AutoplayManager {
         'Voice change - preserving play state:',
         context.currentTime !== undefined,
       );
-      return context.currentTime !== undefined;
+      return context.wasPlaying ?? context.currentTime !== undefined;
     }
 
     log.debug('Default - no autoplay');

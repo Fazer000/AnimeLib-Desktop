@@ -46,6 +46,7 @@ import {
   SubtitleTrack,
   SubtitlesSettings,
   UpscaleRenderer,
+  AmbientLightManager,
 } from '../../services/player';
 import {
   PLAYER_BORDER_RADIUS,
@@ -59,6 +60,8 @@ import {
   SUBTITLES_DEFAULT_SETTINGS,
   PLAYER_PIP_ICON_SIZE,
   UPSCALE_COVERED_VIDEO_OPACITY,
+  QUALITY_SWITCH_FRAME_TIMEOUT_MS,
+  QUALITY_SWITCH_SPINNER_DELAY_MS,
 } from '../../../constants';
 import { getSiteOrigin } from '../../utils/urlHelpers';
 import { useMediaSession } from './hooks/useMediaSession';
@@ -75,6 +78,7 @@ import {
 } from '../../utils/subtitleHelpers';
 
 import { createLogger } from '../../../shared/logger';
+import { captureVideoFrame, waitForVideoFrame } from '../../utils/videoFrame';
 import { BLACK_SHORT } from '../../theme/palette';
 
 const log = createLogger('VideoPlayer');
@@ -229,6 +233,22 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const upscale = useUpscaleSettings();
     const [upscaleCovering, setUpscaleCovering] = useState<boolean>(false);
     const [letterboxActive, setLetterboxActive] = useState<boolean>(false);
+    const frozenFrameRef = useRef<HTMLCanvasElement | null>(null);
+    const [frameFrozen, setFrameFrozen] = useState<boolean>(false);
+    const [slowSwitch, setSlowSwitch] = useState<boolean>(false);
+
+    useEffect(() => {
+      if (!frameFrozen) {
+        setSlowSwitch(false);
+        return undefined;
+      }
+
+      const timer = window.setTimeout(
+        () => setSlowSwitch(true),
+        QUALITY_SWITCH_SPINNER_DELAY_MS,
+      );
+      return () => window.clearTimeout(timer);
+    }, [frameFrozen]);
     const upscaleControls = useMemo<UpscaleControls>(
       () => ({
         supported: UpscaleRenderer.isSupported(),
@@ -661,7 +681,36 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     const handleQualityChange = useCallback(async (quality: string) => {
       log.debug('Quality changed to:', quality);
-      await controllerRef.current?.changeQuality(quality);
+      const video = videoRef.current;
+      const canvas = frozenFrameRef.current;
+      let frozen = false;
+      let switchTime = 0;
+      let wasPlaying = false;
+
+      const switched = await controllerRef.current?.changeQuality(
+        quality,
+        () => {
+          switchTime = video?.currentTime ?? 0;
+          wasPlaying = Boolean(video && !video.paused);
+          frozen = Boolean(video && canvas && captureVideoFrame(video, canvas));
+          if (frozen && canvas) canvas.style.visibility = 'visible';
+          if (frozen && video) AmbientLightManager.hold(video, true);
+          if (!frozen) log.warn('Quality switch: frame capture failed');
+          setFrameFrozen(frozen);
+        },
+      );
+
+      if (frozen && switched && video) {
+        await waitForVideoFrame(
+          video,
+          switchTime,
+          wasPlaying,
+          QUALITY_SWITCH_FRAME_TIMEOUT_MS,
+        );
+      }
+      if (canvas) canvas.style.visibility = '';
+      if (video) AmbientLightManager.hold(video, false);
+      setFrameFrozen(false);
     }, []);
 
     const handleSkipForward = useCallback((seconds: number) => {
@@ -946,6 +995,19 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           onFrameVisibilityChange={setUpscaleCovering}
         />
 
+        <Box
+          component="canvas"
+          ref={frozenFrameRef}
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            visibility: 'hidden',
+          }}
+        />
+
         {videoState.isPictureInPicture && (
           <Box
             sx={{
@@ -999,26 +1061,28 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           </Box>
         )}
 
-        {(isLoading || videoState.isBuffering) && currentPlayerData && (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'rgba(28, 28, 28, 0.7)',
-              zIndex: 1000,
-              backdropFilter: 'blur(2px)',
-              cursor: 'inherit',
-            }}
-          >
-            <CircularProgress size={50} sx={{ color: 'white' }} />
-          </Box>
-        )}
+        {(isLoading || videoState.isBuffering) &&
+          currentPlayerData &&
+          (!frameFrozen || slowSwitch) && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(28, 28, 28, 0.7)',
+                zIndex: 1000,
+                backdropFilter: 'blur(2px)',
+                cursor: 'inherit',
+              }}
+            >
+              <CircularProgress size={50} sx={{ color: 'white' }} />
+            </Box>
+          )}
 
         {showInitialPlayButton && (
           <Box

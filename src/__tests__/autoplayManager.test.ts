@@ -75,6 +75,22 @@ describe('AutoplayManager.determineAutoplay', () => {
     );
   });
 
+  it('смена озвучки на паузе сохраняет паузу', () => {
+    const manager = new AutoplayManager({ enabled: true });
+    manager.setFirstLoad(false);
+
+    expect(
+      manager.determineAutoplay(
+        context({ isVoiceChange: true, currentTime: 42, wasPlaying: false }),
+      ),
+    ).toBe(false);
+    expect(
+      manager.determineAutoplay(
+        context({ isVoiceChange: true, currentTime: 42, wasPlaying: true }),
+      ),
+    ).toBe(true);
+  });
+
   it('обычная смена серии сама не играет', () => {
     const manager = new AutoplayManager({ enabled: true });
     manager.setFirstLoad(false);

@@ -5,6 +5,7 @@
  */
 import {
   AMBIENT_FRAME_INTERVAL_MS,
+  AMBIENT_SOURCE_RESET_DELAY_MS,
   AMBIENT_SOURCE_BLUR,
   AMBIENT_SOURCE_HEIGHT,
   AMBIENT_SOURCE_MARGIN,
@@ -63,6 +64,10 @@ export default class AmbientLightManager {
   private handle: number | null = null;
 
   private lastDrawAt: number = 0;
+
+  private resetTimer: number = 0;
+
+  private held: boolean = false;
 
   private constructor(video: HTMLVideoElement) {
     this.video = video as FrameCallbackVideo;
@@ -127,6 +132,14 @@ export default class AmbientLightManager {
   }
 
   /**
+   * Замораживает подсветку видео на последнем кадре, пока источник
+   * перезагружается; после снятия заморозки отражает текущий кадр
+   */
+  public static hold(video: HTMLVideoElement, held: boolean): void {
+    AmbientLightManager.shared.get(video)?.manager.setHeld(held);
+  }
+
+  /**
    * Подключает холст подсветки к общему буферу; возвращает отключение
    */
   public attach(canvas: HTMLCanvasElement): () => void {
@@ -157,6 +170,7 @@ export default class AmbientLightManager {
       this.video.removeEventListener(name, this.handleFrameChange),
     );
     this.video.removeEventListener('emptied', this.handleSourceReset);
+    window.clearTimeout(this.resetTimer);
     this.targets.clear();
   }
 
@@ -183,11 +197,23 @@ export default class AmbientLightManager {
   };
 
   /**
-   * Смена источника: свечение прошлого видео гаснет до первого нового кадра
+   * Смена источника: свечение прошлого видео гаснет, если новый кадр
+   * не пришёл за паузу. Быстрая смена качества свечение не гасит
    */
+  private setHeld(held: boolean): void {
+    this.held = held;
+    window.clearTimeout(this.resetTimer);
+    if (!held) this.draw();
+  }
+
   private handleSourceReset = (): void => {
-    this.bufferCtx?.clearRect(0, 0, this.buffer.width, this.buffer.height);
-    this.targets.forEach((ctx) => this.copyTo(ctx));
+    window.clearTimeout(this.resetTimer);
+    if (this.held) return;
+
+    this.resetTimer = window.setTimeout(() => {
+      this.bufferCtx?.clearRect(0, 0, this.buffer.width, this.buffer.height);
+      this.targets.forEach((ctx) => this.copyTo(ctx));
+    }, AMBIENT_SOURCE_RESET_DELAY_MS);
   };
 
   /**
@@ -197,12 +223,15 @@ export default class AmbientLightManager {
     const { bufferCtx, buffer, video } = this;
 
     if (
+      this.held ||
       !bufferCtx ||
       video.readyState < READY_HAVE_CURRENT_DATA ||
       !video.videoWidth
     ) {
       return;
     }
+
+    window.clearTimeout(this.resetTimer);
 
     try {
       bufferCtx.clearRect(0, 0, buffer.width, buffer.height);

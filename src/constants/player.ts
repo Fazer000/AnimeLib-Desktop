@@ -437,3 +437,27 @@ export const LOGIN_STREAK_DEFAULT_STYLES = {
  */
 export const LOGIN_STREAK_BADGE_WIDTH = 26;
 export const LOGIN_STREAK_BADGE_HEIGHT = 28;
+
+/**
+ * Смена качества: сколько ждать заранее подгружаемый источник, прежде чем
+ * переключиться без него, мс
+ */
+export const QUALITY_PRELOAD_TIMEOUT_MS = 4000;
+
+/**
+ * Смена качества: сколько держать застывший кадр до первого кадра нового
+ * источника, мс
+ */
+export const QUALITY_SWITCH_FRAME_TIMEOUT_MS = 3000;
+
+/**
+ * Смена качества: индикатор загрузки поверх застывшего кадра появляется,
+ * только если переключение затянулось, мс
+ */
+export const QUALITY_SWITCH_SPINNER_DELAY_MS = 1500;
+
+/**
+ * Подсветка гаснет при смене источника с задержкой: быстрая смена качества
+ * не должна её гасить, мс
+ */
+export const AMBIENT_SOURCE_RESET_DELAY_MS = 500;

@@ -15,6 +15,9 @@ import { WatchStatsManager } from './WatchStatsManager';
 import { OfflineSourceGuard } from './OfflineSourceGuard';
 
 import { createLogger } from '../../../shared/logger';
+import { classifyPlayerLoad, getResumeTime } from '../../utils/playerLoad';
+import { preloadProgressiveSource } from './sourcePreloader';
+import { OFFLINE_SCHEME, QUALITY_PRELOAD_TIMEOUT_MS } from '../../../constants';
 
 const log = createLogger('VideoPlayerController');
 
@@ -76,13 +79,13 @@ export class VideoPlayerController {
 
   private isInitialLoad: boolean = true;
 
-  private lastLoadedPlayer: Player | null = null;
-
   private lastEpisodeId: number | null = null;
 
   private savedTime: number = 0;
 
   private shouldAutoPlay: boolean = false;
+
+  private qualitySwitchToken: number = 0;
 
   private isNetworkBuffering: boolean = false;
 
@@ -246,47 +249,40 @@ export class VideoPlayerController {
       options.player.player,
     );
 
-    const isSamePlayer =
-      this.lastLoadedPlayer !== null &&
-      this.lastLoadedPlayer.id === options.player.id;
-    const isSameEpisode =
-      this.lastEpisodeId !== null &&
-      options.episodeId !== undefined &&
-      this.lastEpisodeId === options.episodeId;
+    this.qualitySwitchToken += 1;
 
-    const isVoiceChange = !this.isInitialLoad && isSamePlayer && isSameEpisode;
-
-    const isEpisodeChange = !this.isInitialLoad && !isVoiceChange;
+    const loadKind = classifyPlayerLoad({
+      isInitialLoad: this.isInitialLoad,
+      lastEpisodeId: this.lastEpisodeId,
+      episodeId: options.episodeId,
+    });
+    const isVoiceChange = loadKind === 'source';
+    const isEpisodeChange = loadKind === 'episode';
 
     const hasBookmark =
       options.initialTimecode !== undefined && options.initialTimecode > 0;
 
+    const state = this.stateManager.getState();
+    const resumeTime = isVoiceChange ? getResumeTime(state.currentTime) : null;
+    const wasPlaying = isVoiceChange && state.isPlaying;
+
     log.debug('Load context:', {
-      isInitialLoad: this.isInitialLoad,
-      isVoiceChange,
-      isEpisodeChange,
+      loadKind,
       hasBookmark,
       isFromHint: options.isFromHint || false,
-      lastPlayerId: this.lastLoadedPlayer?.id,
-      currentPlayerId: options.player.id,
+      resumeTime,
+      wasPlaying,
       lastEpisodeId: this.lastEpisodeId,
       currentEpisodeId: options.episodeId,
-      isSamePlayer,
-      isSameEpisode,
     });
-
-    let currentTime: number | undefined;
-    if (isVoiceChange && this.videoElement) {
-      const state = this.stateManager.getState();
-      currentTime = state.isPlaying ? state.currentTime : undefined;
-    }
 
     const loadContext = {
       isVoiceChange,
       isEpisodeChange,
       hasBookmark,
       isFromHint: options.isFromHint || false,
-      currentTime,
+      currentTime: resumeTime ?? undefined,
+      wasPlaying,
     };
 
     this.shouldAutoPlay =
@@ -297,23 +293,22 @@ export class VideoPlayerController {
     if (hasBookmark) {
       log.debug('Bookmark timecode provided:', options.initialTimecode);
       this.savedTime = options.initialTimecode!;
-    } else if (isVoiceChange && currentTime !== undefined) {
-      log.debug('Voice change, saving time:', {
-        time: currentTime,
+    } else if (resumeTime !== null) {
+      log.debug('Source change, keeping time:', {
+        time: resumeTime,
         shouldAutoPlay: this.shouldAutoPlay,
       });
-      this.savedTime = currentTime;
+      this.savedTime = resumeTime;
     } else {
       this.savedTime = 0;
-      this.isInitialLoad = false;
     }
+    this.isInitialLoad = false;
 
     if (this.videoElement && !this.videoElement.paused) {
       this.videoElement.pause();
     }
 
     this.currentPlayerData = options;
-    this.lastLoadedPlayer = options.player;
     this.lastEpisodeId = options.episodeId || null;
 
     this.watchStatsManager.setContext(
@@ -405,25 +400,49 @@ export class VideoPlayerController {
   }
 
   /**
-   * Изменяет качество видео
+   * Бесшовно меняет качество: MP4 нового качества заранее подгружается,
+   * пока играет прежнее; перед переключением вызывается beforeSwitch,
+   * чтобы накрыть перезагрузку застывшим кадром
    */
-  async changeQuality(quality: string): Promise<void> {
+  async changeQuality(
+    quality: string,
+    beforeSwitch?: () => void,
+  ): Promise<boolean> {
     log.debug('Changing quality to:', quality);
 
-    const state = this.stateManager.getState();
-    const savedTime = state.currentTime || 0;
-    const wasPlaying = state.isPlaying;
-
     if (!this.qualityManager.setSelectedQuality(quality)) {
-      return;
+      return false;
     }
 
     const qualityOption = this.qualityManager.getSelectedQualityOption();
     if (!qualityOption) {
-      return;
+      return false;
     }
 
-    await this.shakaManager.loadVideo(qualityOption, savedTime, wasPlaying);
+    this.qualitySwitchToken += 1;
+    const token = this.qualitySwitchToken;
+
+    const canPreload =
+      qualityOption.type !== 'hls' &&
+      !qualityOption.src.startsWith(`${OFFLINE_SCHEME}://`);
+
+    if (canPreload) {
+      await preloadProgressiveSource(
+        qualityOption.src,
+        this.stateManager.getState().currentTime || 0,
+        QUALITY_PRELOAD_TIMEOUT_MS,
+      );
+      if (token !== this.qualitySwitchToken) return false;
+    }
+
+    const state = this.stateManager.getState();
+    beforeSwitch?.();
+
+    return this.shakaManager.loadVideo(
+      qualityOption,
+      state.currentTime || 0,
+      state.isPlaying,
+    );
   }
 
   /**
@@ -432,6 +451,7 @@ export class VideoPlayerController {
   clearPlayer(): void {
     log.debug('Clearing player');
 
+    this.qualitySwitchToken += 1;
     this.shakaManager.cancelLoad();
     this.offlineGuard.reset();
 
