@@ -44,6 +44,11 @@ export const OFFLINE_HLS_SEGMENT_RETRIES = 3;
  */
 export const OFFLINE_PLAYERS_CONCURRENCY = 4;
 
+/**
+ * Сколько запросов качеств Kodik идёт одновременно
+ */
+export const OFFLINE_KODIK_CONCURRENCY = 2;
+
 export const OFFLINE_HLS_STATE_SUFFIX = '.part.json';
 
 export const OFFLINE_PARALLEL_CONNECTIONS = 8;

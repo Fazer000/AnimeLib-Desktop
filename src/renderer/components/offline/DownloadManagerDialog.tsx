@@ -44,7 +44,9 @@ import {
   OFFLINE_DOWNLOADABLE_PLAYERS,
   OFFLINE_FONT,
   OFFLINE_MIN_FREE_SPACE_BYTES,
+  OFFLINE_KODIK_CONCURRENCY,
   OFFLINE_PLAYERS_CONCURRENCY,
+  PLAYER_TYPE_KODIK,
   DIALOG_TITLE_RIGHT_INSET,
   OFFLINE_FOOTER_HEIGHT,
   OFFLINE_ICON,
@@ -140,6 +142,8 @@ function DownloadManagerDialog({
   >({});
   const [loadingIds, setLoadingIds] = useState<number[]>([]);
   const [failedIds, setFailedIds] = useState<number[]>([]);
+  const [kodikPending, setKodikPending] = useState<number[]>([]);
+  const [kodikFailed, setKodikFailed] = useState<number[]>([]);
   const [qualityByEpisode, setQualityByEpisode] = useState<
     Record<number, string>
   >({});
@@ -157,6 +161,7 @@ function DownloadManagerDialog({
   } | null>(null);
   const lastToggledRef = useRef<number | null>(null);
   const playersQueueRef = useRef(new TaskQueue(OFFLINE_PLAYERS_CONCURRENCY));
+  const kodikQueueRef = useRef(new TaskQueue(OFFLINE_KODIK_CONCURRENCY));
 
   useEffect(() => {
     if (!open || !animeId || animeInfo) {
@@ -304,41 +309,64 @@ function DownloadManagerDialog({
     setTab(target === 0 && !hasContext ? fallback : target);
   }, [open, hasContext, initialTab]);
 
-  const loadKodikQualities = async (list: Player[]) => {
-    const targets = list.filter(
-      (item) => item.player === 'Kodik' && item.src && !kodikLinks[item.id],
-    );
+  const kodikPlayerOf = (list: Player[] | undefined): Player | undefined => {
+    const player = resolveTeamPlayer(list, teamName);
 
-    // eslint-disable-next-line no-restricted-syntax
-    for (const player of targets) {
-      try {
-        // eslint-disable-next-line no-await-in-loop
-        const response = await animeApi.getKodikVideoLinks(player.src || '');
+    return player?.player === PLAYER_TYPE_KODIK && player.src
+      ? player
+      : undefined;
+  };
 
-        if (!response.success) {
-          // eslint-disable-next-line no-continue
-          continue;
-        }
+  const loadKodikQualities = async (player: Player) => {
+    setKodikPending((prev) => [...prev, player.id]);
 
-        setKodikLinks((prev) => ({ ...prev, [player.id]: response.data }));
-        setKodikQualities((prev) => ({
-          ...prev,
-          [player.id]: Object.keys(response.data).map((item) => `${item}p`),
-        }));
-      } catch (error) {
-        log.error('Kodik links failed:', player.id, error);
-      }
+    try {
+      const response = await kodikQueueRef.current.run(() =>
+        animeApi.getKodikVideoLinks(player.src || ''),
+      );
+      setKodikLinks((prev) => ({ ...prev, [player.id]: response.data }));
+      setKodikQualities((prev) => ({
+        ...prev,
+        [player.id]: Object.keys(response.data).map((item) => `${item}p`),
+      }));
+    } catch (error) {
+      log.error('Kodik links failed:', player.id, error);
+      setKodikFailed((prev) => [...prev, player.id]);
+    } finally {
+      setKodikPending((prev) => prev.filter((id) => id !== player.id));
     }
   };
 
   useEffect(() => {
-    if (!open || players.length === 0) {
-      return;
-    }
+    if (!open) return;
 
-    loadKodikQualities(players);
+    const targets = new Map<number, Player>();
+    [players, ...selectedIds.map((id) => playersByEpisode[id])].forEach(
+      (list) => {
+        const player = kodikPlayerOf(list);
+        if (
+          player &&
+          !kodikQualities[player.id] &&
+          !kodikPending.includes(player.id) &&
+          !kodikFailed.includes(player.id)
+        ) {
+          targets.set(player.id, player);
+        }
+      },
+    );
+
+    targets.forEach((player) => loadKodikQualities(player));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, players]);
+  }, [
+    open,
+    players,
+    selectedIds,
+    playersByEpisode,
+    teamName,
+    kodikQualities,
+    kodikPending,
+    kodikFailed,
+  ]);
 
   const loadEpisodePlayers = async (episodeId: number) => {
     setLoadingIds((prev) => [...prev, episodeId]);
@@ -351,13 +379,38 @@ function DownloadManagerDialog({
           ...prev,
           [episodeId]: response.data.players,
         }));
-        await loadKodikQualities(response.data.players);
       });
     } catch (error) {
       log.error('Players load failed:', episodeId, error);
       setFailedIds((prev) => [...prev, episodeId]);
     } finally {
       setLoadingIds((prev) => prev.filter((id) => id !== episodeId));
+    }
+  };
+
+  const kodikBusyIds = selectedIds.filter((id) => {
+    const player = kodikPlayerOf(playersByEpisode[id]);
+
+    return (
+      player && !kodikQualities[player.id] && !kodikFailed.includes(player.id)
+    );
+  });
+
+  const kodikFailedIds = selectedIds.filter((id) => {
+    const player = kodikPlayerOf(playersByEpisode[id]);
+
+    return player && kodikFailed.includes(player.id);
+  });
+
+  const handleRetry = (episodeId: number) => {
+    if (failedIds.includes(episodeId)) {
+      loadEpisodePlayers(episodeId);
+      return;
+    }
+
+    const player = kodikPlayerOf(playersByEpisode[episodeId]);
+    if (player) {
+      setKodikFailed((prev) => prev.filter((id) => id !== player.id));
     }
   };
 
@@ -614,9 +667,9 @@ function DownloadManagerDialog({
             defaultQualities={defaultQualities}
             playersByEpisode={playersByEpisode}
             kodikQualities={kodikQualities}
-            loadingIds={loadingIds}
-            failedIds={failedIds}
-            onRetry={loadEpisodePlayers}
+            loadingIds={[...loadingIds, ...kodikBusyIds]}
+            failedIds={[...failedIds, ...kodikFailedIds]}
+            onRetry={handleRetry}
             qualityByEpisode={qualityByEpisode}
             downloadedIds={downloadedIds}
             downloadedEpisodes={downloadedEpisodes}

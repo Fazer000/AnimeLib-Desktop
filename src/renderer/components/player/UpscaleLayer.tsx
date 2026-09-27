@@ -45,6 +45,7 @@ function UpscaleLayer({
   const rendererRef = useRef<UpscaleRenderer | null>(null);
   const [rect, setRect] = useState<Rect>(EMPTY_RECT);
   const [stats, setStats] = useState<UpscaleStats | null>(null);
+  const [frameVisible, setFrameVisible] = useState<boolean>(false);
   const statsHandlerRef = useRef(onStats);
   const failureHandlerRef = useRef(onFailure);
   statsHandlerRef.current = onStats;
@@ -63,6 +64,7 @@ function UpscaleLayer({
         statsHandlerRef.current(next);
       },
       onError: () => failureHandlerRef.current(),
+      onFrameVisibilityChange: setFrameVisible,
     });
     rendererRef.current = renderer;
 
@@ -75,6 +77,7 @@ function UpscaleLayer({
       renderer.dispose();
       rendererRef.current = null;
       setStats(null);
+      setFrameVisible(false);
     };
   }, [active, videoRef]);
 
@@ -163,7 +166,12 @@ function UpscaleLayer({
       >
         <canvas
           ref={canvasRef}
-          style={{ display: 'block', width: '100%', height: '100%' }}
+          style={{
+            display: 'block',
+            width: '100%',
+            height: '100%',
+            visibility: frameVisible ? 'visible' : 'hidden',
+          }}
         />
 
         {showStats && stats && (

@@ -64,6 +64,7 @@ export interface UpscaleStats {
 export interface UpscaleRendererOptions {
   onStats?: (stats: UpscaleStats) => void;
   onError?: (error: unknown) => void;
+  onFrameVisibilityChange?: (visible: boolean) => void;
 }
 
 export default class UpscaleRenderer {
@@ -111,9 +112,20 @@ export default class UpscaleRenderer {
 
   private readonly onError?: (error: unknown) => void;
 
-  constructor({ onStats, onError }: UpscaleRendererOptions = {}) {
+  private readonly onFrameVisibilityChange?: (visible: boolean) => void;
+
+  private frameVisible: boolean = false;
+
+  private sourceGeneration: number = 0;
+
+  constructor({
+    onStats,
+    onError,
+    onFrameVisibilityChange,
+  }: UpscaleRendererOptions = {}) {
     this.onStats = onStats;
     this.onError = onError;
+    this.onFrameVisibilityChange = onFrameVisibilityChange;
   }
 
   /**
@@ -169,6 +181,8 @@ export default class UpscaleRenderer {
     this.applyCanvasSize();
 
     this.video.addEventListener('seeked', this.requestRedraw);
+    this.video.addEventListener('emptied', this.handleSourceReset);
+    this.video.addEventListener('loadstart', this.handleSourceReset);
     this.scheduleFrame();
     this.requestRedraw();
     log.debug('Started, format:', format);
@@ -210,6 +224,8 @@ export default class UpscaleRenderer {
       this.video.cancelVideoFrameCallback(this.frameHandle);
     }
     this.video?.removeEventListener('seeked', this.requestRedraw);
+    this.video?.removeEventListener('emptied', this.handleSourceReset);
+    this.video?.removeEventListener('loadstart', this.handleSourceReset);
 
     this.inputTexture?.destroy();
     this.context?.unconfigure();
@@ -220,6 +236,22 @@ export default class UpscaleRenderer {
     this.context = null;
     this.device = null;
     this.pipelines = [];
+  }
+
+  /**
+   * Новый источник видео: прежний обработанный кадр скрывается до первого
+   * кадра нового видео, чтобы не висел кадр прошлой серии
+   */
+  private handleSourceReset = (): void => {
+    this.sourceGeneration += 1;
+    this.setFrameVisible(false);
+  };
+
+  private setFrameVisible(visible: boolean): void {
+    if (visible === this.frameVisible) return;
+
+    this.frameVisible = visible;
+    this.onFrameVisibilityChange?.(visible);
   }
 
   private applyCanvasSize(): void {
@@ -353,6 +385,7 @@ export default class UpscaleRenderer {
     try {
       if (!(await this.ensurePipelines()) || this.disposed) return;
 
+      const generation = this.sourceGeneration;
       const startedAt = performance.now();
       device.queue.copyExternalImageToTexture(
         { source: video },
@@ -382,6 +415,7 @@ export default class UpscaleRenderer {
       device.queue.submit([encoder.finish()]);
       await device.queue.onSubmittedWorkDone();
       this.recordFrameTime(performance.now() - startedAt);
+      if (generation === this.sourceGeneration) this.setFrameVisible(true);
     } catch (error) {
       if (!this.disposed) {
         log.error('Upscale frame failed:', error);
