@@ -73,8 +73,8 @@ const labelSx = (customColors: CustomColors) => ({
 
 const checkboxSx = (customColors: CustomColors) => ({
   color: `rgba(${customColors.onSurfaceRgb}, 0.45)`,
-  '&.Mui-checked': { color: customColors.secondaryColor },
-  '&.MuiCheckbox-indeterminate': { color: customColors.secondaryColor },
+  '&.Mui-checked': { color: customColors.accentSoftColor },
+  '&.MuiCheckbox-indeterminate': { color: customColors.accentSoftColor },
 });
 
 const DOWNLOADED_CHECKBOX_SX = {

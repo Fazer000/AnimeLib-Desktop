@@ -51,6 +51,7 @@ import {
 
 import { createLogger } from '../shared/logger';
 import { handleIpc, onIpc } from './ipc';
+import setHoverZone from './hoverZone';
 
 const log = createLogger('AnimeLIB');
 
@@ -183,6 +184,10 @@ const clearCurrentInterceptor = (): void => {
 log.debug(`========================================`);
 log.debug(`${APP_NAME} v${APP_VERSION}`);
 log.debug(`========================================`);
+
+onIpc('hover-zone-set', (event, zone) => {
+  if (mainWindow) setHoverZone(mainWindow, zone);
+});
 
 onIpc('window-minimize', () => {
   mainWindow?.minimize();

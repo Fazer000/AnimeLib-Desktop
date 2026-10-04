@@ -77,7 +77,7 @@ const segmentBufferedSx = (colors: CustomColors) => ({
   left: 0,
   height: '100%',
   width: 0,
-  backgroundColor: `rgba(${colors.onVideoRgb}, 0.5)`,
+  backgroundColor: `rgba(${colors.onVideoRgb}, 0.22)`,
   borderRadius: 10,
   transition: 'width 0.3s ease',
 });

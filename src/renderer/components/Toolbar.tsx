@@ -113,6 +113,37 @@ function ToolbarRefactored({
     }, ANIME_INFO_HIDE_DELAY);
   };
 
+  const showRef = useRef(handleShowAnimeInfo);
+  const hideRef = useRef(handleHideAnimeInfo);
+  showRef.current = handleShowAnimeInfo;
+  hideRef.current = handleHideAnimeInfo;
+
+  useEffect(() => {
+    const ipc = window.electron?.ipcRenderer;
+    if (!animeId || !ipc) return undefined;
+
+    const sendZone = () =>
+      ipc.sendMessage('hover-zone-set', {
+        x: (window.innerWidth - ANIME_HANDLE_HOVER_WIDTH) / 2,
+        y: 0,
+        width: ANIME_HANDLE_HOVER_WIDTH,
+        height,
+      });
+
+    sendZone();
+    window.addEventListener('resize', sendZone);
+    const unsubscribe = ipc.on('hover-zone-changed', (inside) => {
+      if (inside) showRef.current();
+      else hideRef.current();
+    });
+
+    return () => {
+      window.removeEventListener('resize', sendZone);
+      unsubscribe();
+      ipc.sendMessage('hover-zone-set', null);
+    };
+  }, [animeId, height]);
+
   const handleOpenSearch = () => {
     // eslint-disable-next-line no-console
     log.debug('Opening search modal');
@@ -222,26 +253,40 @@ function ToolbarRefactored({
       </AppBar>
 
       {animeId && (
-        <Box
-          onMouseEnter={handleShowAnimeInfo}
-          onMouseLeave={handleHideAnimeInfo}
-          sx={{
-            position: 'fixed',
-            top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: ANIME_HANDLE_HOVER_WIDTH,
-            height: height + ANIME_HANDLE_HOVER_OVERHANG,
-            zIndex: 1400,
-            WebkitAppRegion: 'no-drag',
-            appRegion: 'no-drag',
-          }}
-        >
-          <AnimeInfoHandle
-            top={height - ANIME_HANDLE_HEIGHT / 2}
-            hidden={showAnimeInfo || hideAnimeHandle}
+        <>
+          <Box
+            sx={{
+              position: 'fixed',
+              top: 0,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: ANIME_HANDLE_HOVER_WIDTH,
+              height: height + ANIME_HANDLE_HOVER_OVERHANG,
+              zIndex: 1400,
+              pointerEvents: 'none',
+            }}
+          >
+            <AnimeInfoHandle
+              top={height - ANIME_HANDLE_HEIGHT / 2}
+              hidden={showAnimeInfo || hideAnimeHandle}
+            />
+          </Box>
+          <Box
+            onMouseEnter={handleShowAnimeInfo}
+            onMouseLeave={handleHideAnimeInfo}
+            sx={{
+              position: 'fixed',
+              top: height,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: ANIME_HANDLE_HOVER_WIDTH,
+              height: ANIME_HANDLE_HOVER_OVERHANG,
+              zIndex: 1400,
+              WebkitAppRegion: 'no-drag',
+              appRegion: 'no-drag',
+            }}
           />
-        </Box>
+        </>
       )}
 
       {animeId && (

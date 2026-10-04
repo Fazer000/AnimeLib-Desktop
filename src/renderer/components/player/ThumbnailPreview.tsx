@@ -111,7 +111,7 @@ const ThumbnailPreview = memo(
             borderRadius: 1,
             overflow: 'hidden',
             boxShadow: '0 4px 16px rgba(0, 0, 0, 0.7)',
-            border: '2px solid rgba(124, 58, 237, 0.4)',
+            border: `2px solid ${customColors.onVideoAccentColor}`,
           }}
         >
           <Box
@@ -198,7 +198,7 @@ const ThumbnailPreview = memo(
               left: 0,
               height: 3,
               width: `${duration > 0 ? (time / duration) * 100 : 0}%`,
-              backgroundColor: customColors.secondaryColor,
+              backgroundColor: customColors.onVideoAccentColor,
               zIndex: 3,
               transition: 'width 0.1s ease',
             }}

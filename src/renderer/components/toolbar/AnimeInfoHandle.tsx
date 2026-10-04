@@ -23,7 +23,7 @@ function AnimeInfoHandle({ top, hidden }: AnimeInfoHandleProps) {
         width: ANIME_HANDLE_WIDTH,
         height: ANIME_HANDLE_HEIGHT,
         borderRadius: `${ANIME_HANDLE_HEIGHT}px`,
-        backgroundColor: customColors.secondaryColor,
+        backgroundColor: customColors.accentSoftColor,
         pointerEvents: 'none',
         opacity: hidden ? 0 : 1,
         transition: 'opacity 0.2s ease',

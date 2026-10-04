@@ -32,7 +32,7 @@ export function formatUpscaleStats(stats: UpscaleStatsLike): string {
     return [
       getUpscaleModeLabel(stats.preset),
       sizes,
-      'исходник не меньше экрана, обработка не нужна',
+      'обработка не нужна',
     ].join(' · ');
   }
 

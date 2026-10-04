@@ -71,3 +71,9 @@ export const APP_INFO = {
 export const API_RATE_LIMIT_RETRIES = 6;
 export const API_RATE_LIMIT_BASE_DELAY_MS = 2000;
 export const API_RATE_LIMIT_MAX_DELAY_MS = 30000;
+
+/**
+ * Как часто главный процесс проверяет курсор над зоной наведения
+ * в области перетаскивания окна, мс
+ */
+export const HOVER_ZONE_POLL_MS = 50;

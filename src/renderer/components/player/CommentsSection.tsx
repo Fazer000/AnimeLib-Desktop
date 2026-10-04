@@ -35,6 +35,7 @@ const CommentsSection = memo(
     const [shouldLoadComments, setShouldLoadComments] =
       useState<boolean>(false);
     const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+    const [sortOpen, setSortOpen] = useState<boolean>(false);
     const [commentsSettings, updateCommentsSettings] = useCommentsSettings();
     const commentsContainerRef = useRef<HTMLDivElement>(null);
 
@@ -169,6 +170,9 @@ const CommentsSection = memo(
 
               <FormControl size="small">
                 <Select
+                  open={sortOpen}
+                  onOpen={() => setSortOpen(true)}
+                  onClose={() => setSortOpen(false)}
                   value={commentsSortOption}
                   onChange={(e) => setCommentsSortOption(e.target.value)}
                   sx={{
@@ -184,7 +188,10 @@ const CommentsSection = memo(
                       borderColor: `rgba(${theme.palette.customColors.accentRgb}, 0.31)`,
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: theme.palette.customColors.secondaryColor,
+                      borderColor: sortOpen
+                        ? theme.palette.customColors.accentSoftColor
+                        : `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.19)`,
+                      borderWidth: sortOpen ? 2 : 1,
                     },
                     '& .MuiSelect-icon': {
                       color: theme.palette.customColors.accentTextColor,

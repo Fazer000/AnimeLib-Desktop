@@ -152,7 +152,7 @@ function PlayerSidebarRefactored({
                   sx={{
                     width: '70%',
                     height: 3,
-                    backgroundColor: theme.palette.customColors.secondaryColor,
+                    backgroundColor: theme.palette.customColors.accentSoftColor,
                     borderRadius: '8px',
                   }}
                 />
@@ -209,7 +209,7 @@ function PlayerSidebarRefactored({
                   transition:
                     'background-color 0.2s ease, color 0.2s ease, transform 0.1s ease',
                   '&.Mui-selected': {
-                    color: theme.palette.customColors.secondaryColor,
+                    color: theme.palette.customColors.accentSoftColor,
                     '&::before': {
                       opacity: 1,
                       transform: 'scale(1)',

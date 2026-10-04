@@ -13,6 +13,7 @@ import type {
   OfflineSnapshot,
 } from '../constants/offline';
 import type { UpdateInfo, UpdateResult } from '../constants/update';
+import type { HoverZoneRect } from './hoverZone';
 import type { ReportPayload } from '../constants/report';
 
 /** Картинка, загруженная главным процессом с нужным Referer. */
@@ -115,6 +116,7 @@ export interface IpcSendMap {
   'report-renderer-error': RendererErrorReport;
   'debug-crash-main': void;
   'debug-crash-renderer': void;
+  'hover-zone-set': HoverZoneRect | null;
 }
 
 /** Каналы уведомлений из main в renderer. */
@@ -127,6 +129,7 @@ export interface IpcEventMap {
   'offline-files-removed': [event: OfflineRemovalEvent];
   'offline-file-missing': [fileName: string];
   'offline-migration-progress': [progress: OfflineMigrationProgress];
+  'hover-zone-changed': [inside: boolean];
 }
 
 export type IpcInvokeChannel = keyof IpcInvokeMap;
