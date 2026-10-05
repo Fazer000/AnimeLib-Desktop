@@ -1,4 +1,5 @@
 import { createLogger } from '../../../shared/logger';
+import { THEME_SWITCH_SETTLE_MS } from '../../../constants';
 import {
   ColorSchemeName,
   DEFAULT_THEME_MODE,
@@ -8,6 +9,8 @@ import {
 } from '../../theme/themeMode';
 
 const log = createLogger('ThemeMode');
+
+export type SiteThemeWriter = (mode: ThemeMode) => Promise<unknown> | void;
 
 export type ThemeModeListener = (
   scheme: ColorSchemeName,
@@ -26,6 +29,8 @@ export class ThemeModeStore {
   private listeners = new Set<ThemeModeListener>();
 
   private media: MediaQueryList | null = null;
+
+  private siteWriter: SiteThemeWriter | null = null;
 
   constructor() {
     this.mode = ThemeModeStore.restore();
@@ -59,6 +64,43 @@ export class ThemeModeStore {
     this.mode = next;
     ThemeModeStore.persist(next);
     this.notify();
+  }
+
+  /** Подключает запись темы в сайт; null отключает. */
+  setSiteWriter(writer: SiteThemeWriter | null): void {
+    this.siteWriter = writer;
+  }
+
+  /** Тема, на которую переключит кнопка: противоположная показанной. */
+  getToggleTarget(): ThemeMode {
+    return this.getScheme() === 'dark' ? 'light' : 'dark';
+  }
+
+  /**
+   * Переключение темы пользователем в приложении и на сайте. Пока оба
+   * перекрашиваются, на экране держится снимок окна, затем он плавно
+   * перетекает в новую тему — без промежуточного кадра
+   */
+  toggle(): void {
+    const next = this.getToggleTarget();
+
+    const apply = async () => {
+      this.setMode(next);
+      await this.siteWriter?.(next);
+      await new Promise((resolve) => {
+        setTimeout(resolve, THEME_SWITCH_SETTLE_MS);
+      });
+    };
+
+    if (
+      typeof document !== 'undefined' &&
+      typeof document.startViewTransition === 'function'
+    ) {
+      document.startViewTransition(apply);
+      return;
+    }
+
+    apply();
   }
 
   private watchSystemPreference(): void {

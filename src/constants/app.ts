@@ -77,3 +77,8 @@ export const API_RATE_LIMIT_MAX_DELAY_MS = 30000;
  * в области перетаскивания окна, мс
  */
 export const HOVER_ZONE_POLL_MS = 50;
+
+/**
+ * Сколько держать снимок окна при смене темы, пока сайт перекрашивается, мс
+ */
+export const THEME_SWITCH_SETTLE_MS = 150;

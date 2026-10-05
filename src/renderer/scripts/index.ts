@@ -17,4 +17,5 @@ export {
   installSiteThemeWatcher,
   parseSiteThemeMessage,
   readSiteTheme,
+  writeSiteTheme,
 } from './siteThemeExtractor';

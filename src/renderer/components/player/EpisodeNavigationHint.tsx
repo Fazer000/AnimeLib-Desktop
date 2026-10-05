@@ -115,11 +115,12 @@ function EpisodeNavigationHint({
         >
           <Box
             sx={{
+              position: 'relative',
               display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 1,
               opacity: showLeft && showControls ? 1 : 0,
+              '& .MuiIconButton-root:hover + .episode-hint-label': {
+                opacity: 1,
+              },
               transform: showLeft ? 'translateX(0)' : 'translateX(-20px)',
               transition: 'all 0.3s ease',
             }}
@@ -129,7 +130,15 @@ function EpisodeNavigationHint({
             </IconButton>
             {previousEpisode && (
               <Typography
+                className="episode-hint-label"
                 sx={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  opacity: 0,
+                  transition: 'opacity 0.2s ease',
+                  pointerEvents: 'none',
                   color: customColors.onVideoColor,
                   fontSize: EPISODE_HINT_FONT,
                   fontWeight: 500,
@@ -181,11 +190,12 @@ function EpisodeNavigationHint({
         >
           <Box
             sx={{
+              position: 'relative',
               display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 1,
               opacity: showRight && showControls ? 1 : 0,
+              '& .MuiIconButton-root:hover + .episode-hint-label': {
+                opacity: 1,
+              },
               transform: showRight ? 'translateX(0)' : 'translateX(20px)',
               transition: 'all 0.3s ease',
             }}
@@ -195,7 +205,15 @@ function EpisodeNavigationHint({
             </IconButton>
             {nextEpisode && (
               <Typography
+                className="episode-hint-label"
                 sx={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  opacity: 0,
+                  transition: 'opacity 0.2s ease',
+                  pointerEvents: 'none',
                   color: customColors.onVideoColor,
                   fontSize: EPISODE_HINT_FONT,
                   fontWeight: 500,

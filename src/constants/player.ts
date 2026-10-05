@@ -18,6 +18,12 @@ export const PLAYER_FULLSCREEN_RADIUS = 2;
 export const PLAYER_INSET_X = 0;
 
 /**
+ * Шаг округления ширины кадра: чётная целая ширина ставит кадр по центру
+ * ровно на пиксели, без просвета фона у правого края, px
+ */
+export const PLAYER_WIDTH_SNAP_PX = 2;
+
+/**
  * Вертикальный отступ кадра от краёв области, px
  */
 export const PLAYER_INSET_Y = 0;

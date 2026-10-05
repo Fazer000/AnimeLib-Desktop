@@ -7,6 +7,7 @@ import {
   getCoverRange,
   getSegmentBounds,
   getPlayerRowHeight,
+  getFittedWidth,
   getQualityTagColor,
   loadFromStorage,
   saveToStorage,
@@ -171,5 +172,14 @@ describe('getSegmentBounds', () => {
 
   it('без длительности шкала пустая', () => {
     expect(getSegmentBounds(0, 10, 0)).toEqual({ left: 0, width: 0 });
+  });
+});
+
+describe('getFittedWidth', () => {
+  it('округляет ширину кадра вниз до чётных пикселей', () => {
+    const width = getFittedWidth(16 / 9);
+    expect(width.startsWith('round(down, min(')).toBe(true);
+    expect(width.endsWith(', 2px)')).toBe(true);
+    expect(width).toContain('* 1.7778');
   });
 });

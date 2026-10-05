@@ -1,4 +1,6 @@
 import {
+  buildSiteThemeWriteScript,
+  toSiteThemeName,
   SITE_THEME_MARKER,
   parseSiteThemeMessage,
 } from '../renderer/scripts/siteThemeExtractor';
@@ -33,5 +35,23 @@ describe('parseSiteThemeMessage', () => {
 
   it('неизвестное значение после маркера считает системным', () => {
     expect(parseSiteThemeMessage(message('sepia'))).toBe('system');
+  });
+});
+
+describe('toSiteThemeName', () => {
+  it('системный режим на сайте называется auto', () => {
+    expect(toSiteThemeName('system')).toBe('auto');
+    expect(toSiteThemeName('light')).toBe('light');
+    expect(toSiteThemeName('dark')).toBe('dark');
+  });
+});
+
+describe('buildSiteThemeWriteScript', () => {
+  it('пишет тему в настройки сайта и сообщает об этом событием storage', () => {
+    const script = buildSiteThemeWriteScript('light');
+
+    expect(script).toContain('{ name: "light" }');
+    expect(script).toContain("localStorage.setItem('settings', newValue)");
+    expect(script).toContain("new StorageEvent('storage'");
   });
 });

@@ -38,6 +38,7 @@ import {
   Maximize as LucideMaximize,
   Minimize as LucideMinimize,
   Minus as LucideMinus,
+  Moon as LucideMoon,
   Mouse as LucideMouse,
   Pause as LucidePause,
   Pencil as LucidePencil,
@@ -55,6 +56,7 @@ import {
   Sparkles as LucideSparkles,
   Star as LucideStar,
   Strikethrough as LucideStrikethrough,
+  Sun as LucideSun,
   Trash2 as LucideTrash2,
   Underline as LucideUnderline,
   UserX as LucideUserX,
@@ -116,6 +118,7 @@ export const ListVideo = adapt(LucideListVideo);
 export const Maximize = adapt(LucideMaximize);
 export const Minimize = adapt(LucideMinimize);
 export const Minus = adapt(LucideMinus);
+export const Moon = adapt(LucideMoon);
 export const Mouse = adapt(LucideMouse);
 export const Pause = adapt(LucidePause);
 export const Pencil = adapt(LucidePencil);
@@ -133,6 +136,7 @@ export const SlidersHorizontal = adapt(LucideSlidersHorizontal);
 export const Sparkles = adapt(LucideSparkles);
 export const Star = adapt(LucideStar);
 export const Strikethrough = adapt(LucideStrikethrough);
+export const Sun = adapt(LucideSun);
 export const Trash2 = adapt(LucideTrash2);
 export const Underline = adapt(LucideUnderline);
 export const UserX = adapt(LucideUserX);

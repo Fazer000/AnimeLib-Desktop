@@ -14,6 +14,7 @@ import {
   installSiteThemeWatcher,
   parseSiteThemeMessage,
   readSiteTheme,
+  writeSiteTheme,
   type AuthExtractionOutcome,
 } from '../scripts';
 import { bookmarksStore } from '../services/bookmarks';
@@ -67,6 +68,14 @@ function WebViewRefactored({
   const [showUrlInput, setShowUrlInput] = useState(false);
 
   const webviewRef = useRef<any>(null);
+
+  useEffect(() => {
+    themeModeStore.setSiteWriter((mode) =>
+      webviewRef.current ? writeSiteTheme(webviewRef.current, mode) : undefined,
+    );
+
+    return () => themeModeStore.setSiteWriter(null);
+  }, []);
   const webViewManagerRef = useRef<WebViewManager | null>(null);
   const scriptManagerRef = useRef<ScriptInjectionManager | null>(null);
   const hostRef = useRef<HTMLDivElement | null>(null);

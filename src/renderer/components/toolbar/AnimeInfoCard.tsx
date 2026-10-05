@@ -265,18 +265,6 @@ function AnimeInfoCard({
               >
                 {animeInfo.releaseDateString}
               </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AnimeRatingButton
-                animeId={animeInfo.id}
-                rating={animeInfo.rating}
-                onRated={(rating) =>
-                  setAnimeInfo((current) =>
-                    current ? { ...current, rating } : current,
-                  )
-                }
-              />
               {animeInfo.ageRestriction && (
                 <>
                   <Box
@@ -309,7 +297,21 @@ function AnimeInfoCard({
               )}
             </Box>
 
-            <AnimeCardActions animeInfo={animeInfo} active={isVisible} />
+            <AnimeCardActions
+              animeInfo={animeInfo}
+              active={isVisible}
+              trailing={
+                <AnimeRatingButton
+                  animeId={animeInfo.id}
+                  rating={animeInfo.rating}
+                  onRated={(rating) =>
+                    setAnimeInfo((current) =>
+                      current ? { ...current, rating } : current,
+                    )
+                  }
+                />
+              }
+            />
           </Box>
         </Box>
       </Box>

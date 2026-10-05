@@ -59,6 +59,41 @@ export const siteThemeWatcherScript = `
 })();
 `;
 
+/** Имя темы в настройках сайта для режима приложения. */
+export function toSiteThemeName(mode: ThemeMode): string {
+  return mode === 'system' ? 'auto' : mode;
+}
+
+/**
+ * Скрипт смены темы сайта: пишет тему в его настройки и сообщает о записи
+ * событием storage, на которое сайт синхронизирует своё состояние
+ */
+export function buildSiteThemeWriteScript(mode: ThemeMode): string {
+  const name = JSON.stringify(toSiteThemeName(mode));
+
+  return `
+(function () {
+  try {
+    var oldValue = localStorage.getItem('settings');
+    var settings = oldValue ? JSON.parse(oldValue) : {};
+    settings.theme = Object.assign({}, settings.theme, { name: ${name} });
+    var newValue = JSON.stringify(settings);
+    localStorage.setItem('settings', newValue);
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'settings',
+      oldValue: oldValue,
+      newValue: newValue,
+      storageArea: localStorage,
+      url: location.href,
+    }));
+    return true;
+  } catch (e) {
+    return false;
+  }
+})();
+`;
+}
+
 /** Достаёт режим темы из сообщения гостевой страницы, чужие сообщения отбрасывает. */
 export function parseSiteThemeMessage(message: unknown): ThemeMode | null {
   if (typeof message !== 'string') return null;
@@ -98,6 +133,23 @@ export function installSiteThemeWatcher(webview: {
     .then((value) => value === true)
     .catch((error) => {
       log.warn('Не удалось поставить наблюдателя темы', error);
+
+      return false;
+    });
+}
+
+/** Переключает тему сайта в webview. */
+export function writeSiteTheme(
+  webview: { executeJavaScript?: (code: string) => Promise<unknown> },
+  mode: ThemeMode,
+): Promise<boolean> {
+  if (!webview?.executeJavaScript) return Promise.resolve(false);
+
+  return webview
+    .executeJavaScript(buildSiteThemeWriteScript(mode))
+    .then((value) => value === true)
+    .catch((error) => {
+      log.warn('Не удалось сменить тему сайта', error);
 
       return false;
     });

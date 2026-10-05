@@ -1,6 +1,7 @@
 import {
   PLAYER_INSET_X,
   PLAYER_INSET_Y,
+  PLAYER_WIDTH_SNAP_PX,
   SCROLLBAR_WIDTH,
 } from '../../constants';
 import {
@@ -12,11 +13,12 @@ import {
 
 /**
  * Возвращает CSS-ширину блока с заданным соотношением сторон,
- * вписанного в размерный контейнер (container-type: size)
+ * вписанного в размерный контейнер (container-type: size),
+ * округлённую вниз до целых пикселей
  */
 export function getFittedWidth(aspectRatio: number): string {
   const ratio = aspectRatio.toFixed(4);
-  return `min(calc(100cqw - ${PLAYER_INSET_X}px), calc((100cqh - ${PLAYER_INSET_Y}px) * ${ratio}))`;
+  return `round(down, min(calc(100cqw - ${PLAYER_INSET_X}px), calc((100cqh - ${PLAYER_INSET_Y}px) * ${ratio})), ${PLAYER_WIDTH_SNAP_PX}px)`;
 }
 
 /**

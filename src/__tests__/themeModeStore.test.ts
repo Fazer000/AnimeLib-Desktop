@@ -88,4 +88,25 @@ describe('ThemeModeStore', () => {
 
     expect(store.getScheme()).toBe('dark');
   });
+
+  it('кнопка переключает на противоположную тему и пишет её в сайт', () => {
+    const store = new ThemeModeStore();
+    const writer = jest.fn();
+    store.setSiteWriter(writer);
+
+    store.toggle();
+    expect(store.getMode()).toBe('light');
+    expect(writer).toHaveBeenLastCalledWith('light');
+
+    store.toggle();
+    expect(store.getMode()).toBe('dark');
+    expect(writer).toHaveBeenLastCalledWith('dark');
+  });
+
+  it('из системного режима переключает на явную противоположную схему', () => {
+    const store = new ThemeModeStore();
+    store.setMode('system');
+
+    expect(store.getToggleTarget()).toBe('light');
+  });
 });

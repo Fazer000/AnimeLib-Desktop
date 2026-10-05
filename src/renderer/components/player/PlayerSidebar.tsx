@@ -216,9 +216,9 @@ function PlayerSidebarRefactored({
                     },
                   },
                   '&:hover': {
-                    backgroundColor: `rgba(${theme.palette.customColors.accentRgb}, 0.03)`,
+                    backgroundColor: `rgba(${theme.palette.customColors.onSurfaceRgb}, 0.06)`,
                     '&::before': {
-                      opacity: 0.3,
+                      opacity: 1,
                     },
                   },
                   '&:active': {
