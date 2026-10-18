@@ -17,6 +17,7 @@ import { OfflineSourceGuard } from './OfflineSourceGuard';
 import { createLogger } from '../../../shared/logger';
 import { classifyPlayerLoad, getResumeTime } from '../../utils/playerLoad';
 import { getPlayerIdentity } from '../../utils/playerIdentity';
+import { pickThumbnailSource } from '../../utils/thumbnailSource';
 import { preloadProgressiveSource } from './sourcePreloader';
 import { OFFLINE_SCHEME, QUALITY_PRELOAD_TIMEOUT_MS } from '../../../constants';
 
@@ -174,6 +175,7 @@ export class VideoPlayerController {
 
     const effective = this.computeBuffering();
     this.lastEmittedBuffering = effective;
+    this.thumbnailManager.setPlaybackBuffering(effective);
 
     this.config.onStateChange?.({ ...updates, isBuffering: effective });
   }
@@ -201,6 +203,7 @@ export class VideoPlayerController {
     }
 
     this.lastEmittedBuffering = effective;
+    this.thumbnailManager.setPlaybackBuffering(effective);
     this.config.onStateChange?.({ isBuffering: effective });
   }
 
@@ -355,8 +358,12 @@ export class VideoPlayerController {
       this.shouldAutoPlay,
     );
 
-    if (loaded && this.videoElement?.src) {
-      this.thumbnailManager.loadVideo(this.videoElement.src);
+    const thumbnailSource =
+      pickThumbnailSource(this.qualityManager.getQualityOptions()) ||
+      this.videoElement?.src;
+
+    if (loaded && thumbnailSource) {
+      this.thumbnailManager.loadVideo(thumbnailSource);
     }
 
     if (loaded) {

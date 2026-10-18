@@ -147,10 +147,7 @@ const ThumbnailPreview = memo(
                 display: 'block',
                 objectFit: 'cover',
                 opacity: isLoading ? 0.6 : 1,
-                filter: isApproximate ? 'blur(3px)' : 'none',
-                transform: isApproximate ? 'scale(1.04)' : 'scale(1)',
-                transition:
-                  'filter 0.15s ease, transform 0.15s ease, opacity 0.1s',
+                filter: isApproximate ? 'blur(1.5px)' : 'none',
               }}
             />
           )}

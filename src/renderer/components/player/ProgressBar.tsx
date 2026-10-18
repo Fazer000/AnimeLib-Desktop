@@ -214,9 +214,6 @@ function ProgressBar({
   const [isThumbnailLoading, setIsThumbnailLoading] = useState(false);
   const [isApproximate, setIsApproximate] = useState(false);
   const thumbnailTimeRef = useRef<number | null>(null);
-  const thumbnailTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
 
   const segments = useMemo<Segment[]>(() => {
     if (!duration || duration <= 0) {
@@ -318,9 +315,6 @@ function ProgressBar({
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
       }
-      if (thumbnailTimeoutRef.current) {
-        clearTimeout(thumbnailTimeoutRef.current);
-      }
     };
   }, []);
 
@@ -336,24 +330,16 @@ function ProgressBar({
       setIsThumbnailLoading(false);
       setIsApproximate(false);
       thumbnailTimeRef.current = null;
-      if (thumbnailTimeoutRef.current) {
-        clearTimeout(thumbnailTimeoutRef.current);
-        thumbnailTimeoutRef.current = null;
-      }
       return;
     }
 
-    const roundedTime = Math.floor(hoverTime);
+    const roundedTime = thumbnailManager.toGridTime(hoverTime);
 
     if (thumbnailTimeRef.current === roundedTime) {
       return;
     }
 
     thumbnailTimeRef.current = roundedTime;
-
-    if (thumbnailTimeoutRef.current) {
-      clearTimeout(thumbnailTimeoutRef.current);
-    }
 
     const exactCached = thumbnailManager.getExactCached(roundedTime);
     if (exactCached) {
@@ -369,27 +355,26 @@ function ProgressBar({
       setIsThumbnailLoading(false);
       setIsApproximate(true);
     } else {
+      setThumbnailUrl(thumbnailManager.getNearestCached(roundedTime, Infinity));
       setIsThumbnailLoading(true);
       setIsApproximate(false);
     }
 
-    thumbnailTimeoutRef.current = setTimeout(() => {
-      thumbnailManager
-        .getThumbnail(roundedTime, 10)
-        .then((url) => {
-          if (thumbnailTimeRef.current === roundedTime) {
-            setThumbnailUrl(url);
-            setIsThumbnailLoading(false);
-            setIsApproximate(false);
-          }
-          return url;
-        })
-        .catch(() => {
-          if (thumbnailTimeRef.current === roundedTime) {
-            setIsThumbnailLoading(false);
-          }
-        });
-    }, 40);
+    thumbnailManager
+      .getThumbnail(roundedTime)
+      .then((url) => {
+        if (thumbnailTimeRef.current === roundedTime) {
+          setThumbnailUrl(url);
+          setIsThumbnailLoading(false);
+          setIsApproximate(false);
+        }
+        return url;
+      })
+      .catch(() => {
+        if (thumbnailTimeRef.current === roundedTime) {
+          setIsThumbnailLoading(false);
+        }
+      });
   }, [hoverTime, thumbnailManager]);
 
   const progressTransition = isDragging ? 'none' : 'width 0.1s ease';

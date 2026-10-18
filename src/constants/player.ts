@@ -467,3 +467,47 @@ export const QUALITY_SWITCH_SPINNER_DELAY_MS = 1500;
  * не должна её гасить, мс
  */
 export const AMBIENT_SOURCE_RESET_DELAY_MS = 500;
+
+/**
+ * Превью на полоске: шаг сетки кадров, с
+ */
+export const THUMBNAIL_STEP_SECONDS = 5;
+
+/**
+ * Насколько далеко может стоять готовый кадр, показываемый размытым вместо
+ * ещё не готового: дальше — другая сцена, с
+ */
+export const THUMBNAIL_NEAREST_RADIUS = 15;
+
+/**
+ * Сколько ждать загрузки или перемотки скрытого видео превью, мс
+ */
+export const THUMBNAIL_SEEK_TIMEOUT_MS = 4000;
+
+/**
+ * Предел кадров превью в памяти на один источник
+ */
+export const THUMBNAIL_CACHE_SIZE = 800;
+
+/**
+ * Через сколько после загрузки видео превью начинают готовиться в фоне.
+ * Пауза даёт основному видео набрать первый буфер, мс
+ */
+export const THUMBNAIL_PRECACHE_DELAY_MS = 2000;
+
+/**
+ * Размер кадра превью на полоске, px
+ */
+export const THUMBNAIL_WIDTH = 240;
+export const THUMBNAIL_HEIGHT = 135;
+
+/**
+ * Сколько опорных кадров превью загружается из файла одновременно.
+ * Браузер держит не больше 6 соединений на хост, часть нужна основному видео
+ */
+export const THUMBNAIL_KEYFRAME_CONCURRENCY = 3;
+
+/**
+ * Сколько заголовков боксов MP4 просматривается в поисках индекса moov
+ */
+export const THUMBNAIL_MOOV_MAX_HOPS = 12;

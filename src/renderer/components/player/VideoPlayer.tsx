@@ -70,6 +70,7 @@ import { buildMediaMetadata } from '../../utils/mediaMetadata';
 import { useWheelVolume } from './hooks/useWheelVolume';
 import { useFullscreenPhase } from './hooks/useFullscreenPhase';
 import { usePlayerSegments } from './hooks/usePlayerSegments';
+import { useThumbnailPrecache } from './hooks/useThumbnailPrecache';
 import { useNextEpisodeFlow } from './hooks/useNextEpisodeFlow';
 import { offlineCatalog } from '../../services/offline';
 import {
@@ -507,6 +508,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       videoState.duration,
       timeStore,
     );
+
+    useThumbnailPrecache(thumbnailManager, videoState.duration);
 
     useEffect(() => {
       isPlayingRef.current = videoState.isPlaying;
