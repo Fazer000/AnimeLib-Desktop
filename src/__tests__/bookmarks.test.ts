@@ -1,7 +1,7 @@
-const getWatchingBookmarks = jest.fn();
+const getQuickBookmarks = jest.fn();
 
 jest.mock('../renderer/api/animeApi', () => ({
-  animeApi: { getWatchingBookmarks: () => getWatchingBookmarks() },
+  animeApi: { getQuickBookmarks: () => getQuickBookmarks() },
 }));
 
 // eslint-disable-next-line import/first
@@ -73,8 +73,8 @@ describe('BookmarkManager: состояние', () => {
 describe('BookmarksStore', () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    getWatchingBookmarks.mockReset();
-    getWatchingBookmarks.mockResolvedValue([]);
+    getQuickBookmarks.mockReset();
+    getQuickBookmarks.mockResolvedValue([]);
   });
   afterEach(() => jest.useRealTimers());
 
@@ -101,7 +101,7 @@ describe('BookmarksStore', () => {
     listener.mockClear();
 
     unsubscribe();
-    getWatchingBookmarks.mockResolvedValue([item('one-piece')]);
+    getQuickBookmarks.mockResolvedValue([item('one-piece')]);
     store.refresh();
     jest.runAllTimers();
     await Promise.resolve();
@@ -118,7 +118,7 @@ describe('BookmarksStore', () => {
     jest.runAllTimers();
     await Promise.resolve();
 
-    expect(getWatchingBookmarks).toHaveBeenCalledTimes(1);
+    expect(getQuickBookmarks).toHaveBeenCalledTimes(1);
   });
 
   it('обновление доходит до подписчика и до getItems', async () => {
@@ -127,7 +127,7 @@ describe('BookmarksStore', () => {
     store.subscribe(listener);
     listener.mockClear();
 
-    getWatchingBookmarks.mockResolvedValue([item('one-piece')]);
+    getQuickBookmarks.mockResolvedValue([item('one-piece')]);
     store.refresh();
     jest.runAllTimers();
     await Promise.resolve();
@@ -138,7 +138,7 @@ describe('BookmarksStore', () => {
 
   it('одинаковый список подписчиков не тревожит', async () => {
     const store = new BookmarksStore();
-    getWatchingBookmarks.mockResolvedValue([item('one-piece')]);
+    getQuickBookmarks.mockResolvedValue([item('one-piece')]);
 
     store.refresh();
     jest.runAllTimers();
@@ -157,7 +157,7 @@ describe('BookmarksStore', () => {
 
   it('смена номера серии считается изменением', async () => {
     const store = new BookmarksStore();
-    getWatchingBookmarks.mockResolvedValue([item('one-piece', '1')]);
+    getQuickBookmarks.mockResolvedValue([item('one-piece', '1')]);
     store.refresh();
     jest.runAllTimers();
     await Promise.resolve();
@@ -166,7 +166,7 @@ describe('BookmarksStore', () => {
     store.subscribe(listener);
     listener.mockClear();
 
-    getWatchingBookmarks.mockResolvedValue([item('one-piece', '2')]);
+    getQuickBookmarks.mockResolvedValue([item('one-piece', '2')]);
     store.refresh();
     jest.runAllTimers();
     await Promise.resolve();
@@ -176,12 +176,12 @@ describe('BookmarksStore', () => {
 
   it('ошибка запроса не роняет хранилище и не чистит список', async () => {
     const store = new BookmarksStore();
-    getWatchingBookmarks.mockResolvedValue([item('one-piece')]);
+    getQuickBookmarks.mockResolvedValue([item('one-piece')]);
     store.refresh();
     jest.runAllTimers();
     await Promise.resolve();
 
-    getWatchingBookmarks.mockRejectedValue(new Error('нет сети'));
+    getQuickBookmarks.mockRejectedValue(new Error('нет сети'));
     store.refresh();
     jest.runAllTimers();
     await Promise.resolve();

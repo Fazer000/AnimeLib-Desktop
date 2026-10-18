@@ -1,7 +1,8 @@
 import axios, { isAxiosError } from 'axios';
 
 import { createLogger } from '../../shared/logger';
-import { BOOKMARK_STATUS_WATCHING } from '../../constants';
+import { QUICK_BOOKMARK_STATUSES } from '../../constants';
+import { mergeBookmarkLists } from '../utils/quickBookmarks';
 import {
   filterAnimeFolders,
   resolveProgressStatus,
@@ -165,6 +166,7 @@ export interface BookmarkListItem {
   };
   item?: { number?: string };
   meta?: { item_number?: number };
+  updated_at?: string;
 }
 
 /** Краткая карточка тайтла в результатах поиска. */
@@ -424,6 +426,26 @@ statsApiClient.interceptors.request.use((config) => {
 
   return config;
 });
+
+/**
+ * Первая страница закладок одной папки; при сбое — пустой список
+ */
+const fetchBookmarksByStatus = async (
+  userId: string,
+  status: number,
+): Promise<BookmarkListItem[]> => {
+  try {
+    const response = await statsApiClient.get(
+      `/bookmarks?page=1&user_id=${userId}&status=${status}&sort_by=updated_at&sort_type=desc`,
+    );
+    const items = response.data?.data;
+
+    return Array.isArray(items) ? items : [];
+  } catch (error) {
+    log.error('Failed to load bookmarks:', status, error);
+    return [];
+  }
+};
 
 export const animeApi = {
   getEpisodes: async (animeId: string): Promise<EpisodesResponse> => {
@@ -686,38 +708,27 @@ export const animeApi = {
   },
 
   /**
-   * Возвращает закладки со статусом «Смотрю», от свежих к старым
+   * Возвращает быстрые закладки из папок «Смотрю» и «Пересматриваю»,
+   * от свежих к старым
    */
-  getWatchingBookmarks: async (limit: number = 50): Promise<BookmarkItem[]> => {
-    try {
-      const userId = getUserId();
-      if (!userId) {
-        return [];
-      }
-
-      const response = await statsApiClient.get(
-        `/bookmarks?page=1&user_id=${userId}&status=${BOOKMARK_STATUS_WATCHING}&sort_by=updated_at&sort_type=desc`,
-      );
-
-      const items = response.data?.data;
-      if (!Array.isArray(items)) {
-        return [];
-      }
-
-      return (items as BookmarkListItem[])
-        .filter((item) => item?.media?.slug_url)
-        .slice(0, limit)
-        .map((item) => ({
-          animeSlugUrl: item.media.slug_url,
-          title: item.media.rus_name || item.media.name || '',
-          episodeNumber:
-            item.item?.number || String(item.meta?.item_number ?? ''),
-          coverUrl: item.media.cover?.thumbnail || null,
-        }));
-    } catch (error) {
-      log.error('Failed to load bookmarks:', error);
+  getQuickBookmarks: async (limit: number = 50): Promise<BookmarkItem[]> => {
+    const userId = getUserId();
+    if (!userId) {
       return [];
     }
+
+    const lists = await Promise.all(
+      QUICK_BOOKMARK_STATUSES.map((status) =>
+        fetchBookmarksByStatus(userId, status),
+      ),
+    );
+
+    return mergeBookmarkLists(lists, limit).map((item) => ({
+      animeSlugUrl: item.media.slug_url,
+      title: item.media.rus_name || item.media.name || '',
+      episodeNumber: item.item?.number || String(item.meta?.item_number ?? ''),
+      coverUrl: item.media.cover?.thumbnail || null,
+    }));
   },
 
   /**

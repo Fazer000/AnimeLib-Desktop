@@ -3,7 +3,7 @@ import { BookmarkItem } from '../api/animeApi';
 import { bookmarksStore } from '../services/bookmarks';
 
 /**
- * Держит список закладок «Смотрю» актуальным
+ * Держит список быстрых закладок актуальным
  */
 function useWatchingBookmarks(refreshKey?: unknown): BookmarkItem[] {
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>(() =>

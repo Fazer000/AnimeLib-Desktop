@@ -34,18 +34,18 @@ export function customSelectInjectorMain(): void {
       cursor: pointer;
       transition: all 0.2s ease;
       font-size: 14px;
-      color: #bfbfbf;
+      color: var(--text-primary, #bfbfbf);
       min-height: 36px;
       box-sizing: border-box;
     }
     .custom-select-trigger:hover,
     .custom-select-trigger:focus {
       outline: none;
-      background: #1c1c1c;
+      background: var(--foreground, #1c1c1c);
     }
     .custom-select-trigger.disabled {
-      background: #0a0a0a;
-      color: rgba(191, 191, 191, 0.5);
+      background: var(--background, #0a0a0a);
+      color: var(--text-secondary, rgba(191, 191, 191, 0.5));
       cursor: not-allowed;
     }
     .custom-select-value {
@@ -56,7 +56,7 @@ export function customSelectInjectorMain(): void {
       white-space: nowrap;
     }
     .custom-select-placeholder {
-      color: rgba(191, 191, 191, 0.5);
+      color: var(--text-secondary, rgba(191, 191, 191, 0.5));
     }
     .custom-select-arrow {
       margin-left: 8px;
@@ -68,8 +68,9 @@ export function customSelectInjectorMain(): void {
     }
     .custom-select-dropdown {
       position: fixed;
-      background: #252527;
+      background: var(--background-elevated-2, #252527);
       border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
       z-index: 999999;
       max-height: 250px !important;
       overflow: hidden;
@@ -96,21 +97,21 @@ export function customSelectInjectorMain(): void {
       cursor: pointer;
       transition: background-color 0.15s ease;
       font-size: 14px;
-      color: #bfbfbf;
+      color: var(--text-primary, #bfbfbf);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
     .custom-select-option:hover {
-      background: #1c1c1c;
+      background: var(--background-hover, #1c1c1c);
     }
     .custom-select-option.selected {
-      background: rgba(124, 58, 237, 0.2);
-      color: #7C3AED;
+      background: color-mix(in srgb, var(--primary, #7c3aed) 20%, transparent);
+      color: var(--primary, #7c3aed);
       font-weight: 500;
     }
     .custom-select-option.disabled {
-      color: rgba(191, 191, 191, 0.5);
+      color: var(--text-secondary, rgba(191, 191, 191, 0.5));
       cursor: not-allowed;
     }
     .custom-select-option.disabled:hover {
@@ -128,15 +129,15 @@ export function customSelectInjectorMain(): void {
       width: 6px;
     }
     .custom-select-options::-webkit-scrollbar-track {
-      background: #1c1c1c;
+      background: transparent;
       border-radius: 3px;
     }
     .custom-select-options::-webkit-scrollbar-thumb {
-      background: #464649;
+      background: var(--scrollbar-thumb, #464649);
       border-radius: 3px;
     }
     .custom-select-options::-webkit-scrollbar-thumb:hover {
-      background: #7C3AED;
+      background: var(--primary, #7c3aed);
     }
   `;
 

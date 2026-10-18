@@ -163,7 +163,7 @@ interface ContinueWatchingButtonProps {
 }
 
 /**
- * Плавающая кнопка со списком закладок «Смотрю»
+ * Плавающая кнопка со списком закладок «Смотрю» и «Пересматриваю»
  */
 function ContinueWatchingButton({
   bookmarks,

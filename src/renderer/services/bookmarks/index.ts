@@ -1,6 +1,6 @@
 /**
  * Bookmarks Services
- * Общее состояние закладок «Смотрю»
+ * Общее состояние быстрых закладок
  */
 
 export { BookmarksStore, bookmarksStore } from './BookmarksStore';

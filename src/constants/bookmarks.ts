@@ -18,6 +18,19 @@ export const BOOKMARK_STATUS_WATCHING = 21;
 export const BOOKMARK_STATUS_PLANNED = 22;
 
 /**
+ * Папка «Пересматриваю»
+ */
+export const BOOKMARK_STATUS_REWATCHING = 26;
+
+/**
+ * Папки, из которых собираются быстрые закладки «продолжить просмотр»
+ */
+export const QUICK_BOOKMARK_STATUSES = [
+  BOOKMARK_STATUS_WATCHING,
+  BOOKMARK_STATUS_REWATCHING,
+];
+
+/**
  * Типы перевода в подписках на выход серий
  */
 export const TRANSLATION_TYPE_SUBTITLES = 1;

@@ -9,7 +9,8 @@ export type BookmarksListener = (items: BookmarkItem[]) => void;
 const REFRESH_DELAY_MS = 400;
 
 /**
- * Единый источник закладок «Смотрю» с подпиской на изменения
+ * Единый источник быстрых закладок («Смотрю» и «Пересматриваю») с подпиской
+ * на изменения
  */
 export class BookmarksStore {
   private items: BookmarkItem[] = [];
@@ -69,7 +70,7 @@ export class BookmarksStore {
     this.isLoading = true;
 
     try {
-      this.setItems(await animeApi.getWatchingBookmarks());
+      this.setItems(await animeApi.getQuickBookmarks());
     } catch (error) {
       log.error('Failed to refresh bookmarks:', error);
     } finally {
