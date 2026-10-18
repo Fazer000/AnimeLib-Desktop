@@ -20,6 +20,19 @@ export const FLOATING_BUTTONS_GAP = 64;
 export const FLOATING_BUTTONS_BOTTOM = FLOATING_BUTTONS_LEFT;
 
 /**
+ * Кнопка прокрутки вверх: размер, отступ от угла и зазор до чужих
+ * плавающих элементов, px
+ */
+export const SCROLL_TOP_BUTTON_SIZE = 48;
+export const SCROLL_TOP_BUTTON_MARGIN = 24;
+export const SCROLL_TOP_BUTTON_GAP = 12;
+
+/**
+ * Прокрутка страницы сайта, после которой появляется кнопка вверх, px
+ */
+export const SITE_SCROLL_TOP_THRESHOLD = 300;
+
+/**
  * Панель быстрых закладок, примыкающая к кнопке
  */
 export const BOOKMARKS_PANEL_WIDTH = 320;

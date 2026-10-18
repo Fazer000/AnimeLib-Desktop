@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Fab, Zoom, useTheme } from '@mui/material';
-import { ChevronUp } from '../icons';
+import ScrollTopFab from '../ScrollTopFab';
 
 import { createLogger } from '../../../shared/logger';
 
@@ -19,7 +18,6 @@ function ScrollToTopButton({
   threshold = 300,
   scrollContainerId,
 }: ScrollToTopButtonProps) {
-  const { customColors } = useTheme().palette;
   const [showButton, setShowButton] = useState(false);
 
   useEffect(() => {
@@ -28,7 +26,6 @@ function ScrollToTopButton({
       : window;
 
     if (!scrollContainer) {
-      // eslint-disable-next-line no-console
       log.warn('Scroll container not found:', scrollContainerId);
       return undefined;
     }
@@ -74,41 +71,7 @@ function ScrollToTopButton({
     }
   }, [scrollContainerId]);
 
-  return (
-    <Zoom in={showButton}>
-      <Box
-        sx={{
-          position: 'fixed',
-          bottom: 24,
-          right: 24,
-          zIndex: 1100,
-        }}
-      >
-        <Fab
-          onClick={scrollToTop}
-          size="medium"
-          sx={{
-            backgroundColor: `rgba(${customColors.overlayRgb}, 0.85)`,
-            backdropFilter: 'blur(10px)',
-            border: `1px solid rgba(${customColors.neutralRgb}, 0.33)`,
-            color: customColors.dialogTextColor,
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              backgroundColor: `rgba(${customColors.neutralRgb}, 0.4)`,
-              transform: 'translateY(-2px)',
-              boxShadow: '0 6px 16px rgba(0, 0, 0, 0.5)',
-            },
-            '&:active': {
-              transform: 'translateY(0)',
-            },
-          }}
-        >
-          <ChevronUp sx={{ fontSize: 28 }} />
-        </Fab>
-      </Box>
-    </Zoom>
-  );
+  return <ScrollTopFab visible={showButton} onClick={scrollToTop} />;
 }
 
 ScrollToTopButton.defaultProps = {

@@ -13,6 +13,12 @@ export {
   getCustomSelectScript,
 } from './customSelectInjector';
 export {
+  installPageScrollWatcher,
+  parsePageScrollMessage,
+  scrollPageToTop,
+} from './pageScrollWatcher';
+export type { PageScrollState } from './pageScrollWatcher';
+export {
   SITE_THEME_MARKER,
   installSiteThemeWatcher,
   parseSiteThemeMessage,

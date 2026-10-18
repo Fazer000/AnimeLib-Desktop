@@ -1,22 +1,29 @@
 import React, {
   useState,
   useEffect,
+  useMemo,
   useRef,
   useCallback,
   useImperativeHandle,
 } from 'react';
 import { Box, useTheme } from '@mui/material';
 import CustomToolbar from '../components/Toolbar';
+import ScrollTopFab from '../components/ScrollTopFab';
 import useStableSize from '../hooks/useStableSize';
 import {
   extractAuthToken,
   injectClickInterceptor,
+  installPageScrollWatcher,
   installSiteThemeWatcher,
+  parsePageScrollMessage,
   parseSiteThemeMessage,
   readSiteTheme,
+  scrollPageToTop,
   writeSiteTheme,
   type AuthExtractionOutcome,
+  type PageScrollState,
 } from '../scripts';
+import { placeFloatingButton } from '../utils/floatingButtonPlacement';
 import { bookmarksStore } from '../services/bookmarks';
 import { themeModeStore } from '../services/theme';
 import {
@@ -24,7 +31,14 @@ import {
   ScriptInjectionManager,
   playerHistoryManager,
 } from '../services/webview';
-import { PLAYER_PROTOCOL_PREFIX, TOOLBAR_HEIGHT } from '../../constants';
+import {
+  PLAYER_PROTOCOL_PREFIX,
+  SCROLL_TOP_BUTTON_GAP,
+  SCROLL_TOP_BUTTON_MARGIN,
+  SCROLL_TOP_BUTTON_SIZE,
+  SITE_SCROLL_TOP_THRESHOLD,
+  TOOLBAR_HEIGHT,
+} from '../../constants';
 
 import { createLogger } from '../../shared/logger';
 
@@ -66,6 +80,7 @@ function WebViewRefactored({
   const { customColors } = useTheme().palette;
   const [canGoBack, setCanGoBack] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const [pageScroll, setPageScroll] = useState<PageScrollState | null>(null);
 
   const webviewRef = useRef<any>(null);
 
@@ -162,6 +177,12 @@ function WebViewRefactored({
       });
 
       scriptManager.registerCallback(() => {
+        installPageScrollWatcher(webview, SITE_SCROLL_TOP_THRESHOLD).catch(
+          () => {},
+        );
+      });
+
+      scriptManager.registerCallback(() => {
         log.debug('Injecting custom selects...');
         try {
           scriptManager.injectCustomSelects().catch(() => {});
@@ -242,6 +263,9 @@ function WebViewRefactored({
     const handleConsoleMessage = (e: any) => {
       const mode = parseSiteThemeMessage(e?.message);
       if (mode) themeModeStore.setMode(mode);
+
+      const scroll = parsePageScrollMessage(e?.message);
+      if (scroll) setPageScroll(scroll);
     };
 
     webview.addEventListener('console-message', handleConsoleMessage);
@@ -386,6 +410,27 @@ function WebViewRefactored({
     }
   }, [hidden]);
 
+  const scrollButtonPlacement = useMemo(
+    () =>
+      pageScroll
+        ? placeFloatingButton({
+            width: pageScroll.width,
+            height: pageScroll.height,
+            size: SCROLL_TOP_BUTTON_SIZE,
+            margin: SCROLL_TOP_BUTTON_MARGIN,
+            gap: SCROLL_TOP_BUTTON_GAP,
+            obstacle: pageScroll.chat,
+          })
+        : null,
+    [pageScroll],
+  );
+
+  const handleScrollToTop = useCallback(() => {
+    if (webviewRef.current) {
+      scrollPageToTop(webviewRef.current).catch(() => {});
+    }
+  }, []);
+
   const handleUrlChange = useCallback((newUrl: string) => {
     if (webViewManagerRef.current && newUrl.trim()) {
       webViewManagerRef.current.navigateTo(newUrl.trim());
@@ -450,6 +495,14 @@ function WebViewRefactored({
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
           }}
+        />
+
+        <ScrollTopFab
+          visible={Boolean(pageScroll?.scrolled) && !hidden}
+          onClick={handleScrollToTop}
+          position="absolute"
+          right={scrollButtonPlacement?.right}
+          bottom={scrollButtonPlacement?.bottom}
         />
       </Box>
     </Box>
