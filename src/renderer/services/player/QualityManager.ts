@@ -3,6 +3,7 @@ import { QualityOption } from './ShakaPlayerManager';
 import { offlineStore } from '../offline';
 import { buildOfflineUrl } from '../../../constants';
 import { resolveKodikSource } from '../../utils/kodikHelpers';
+import { findOfflineCopies } from '../../utils/playerIdentity';
 
 import { createLogger } from '../../../shared/logger';
 
@@ -38,7 +39,7 @@ export class QualityManager {
     const options: QualityOption[] = [];
 
     const offlineEpisodes = episodeId
-      ? offlineStore.findEpisodes(episodeId, player.id)
+      ? findOfflineCopies(offlineStore.findEpisodes(episodeId), player)
       : [];
 
     if (offlineEpisodes.length > 0) {

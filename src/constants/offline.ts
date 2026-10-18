@@ -236,12 +236,16 @@ export interface OfflineProgress {
 }
 
 /**
- * Локальная отметка просмотра серии
+ * Локальная отметка просмотра серии. Тип плеера, команда и вид перевода
+ * помогают найти плеер, если сайт пересоздал его под новым id
  */
 export interface OfflineViewed {
   animeId: string;
   episodeId: number;
   playerId: number;
+  playerType?: string;
+  teamId?: number;
+  translationTypeId?: number;
   updatedAt: string;
   synced: boolean;
 }

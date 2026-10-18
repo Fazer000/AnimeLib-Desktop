@@ -2,11 +2,24 @@ import { useEffect, useRef } from 'react';
 import { animeApi } from '../api/animeApi';
 import { offlineStore, progressStore, viewedStore } from '../services/offline';
 import { BookmarkManager } from '../services/player';
-import { CONNECTIVITY_CHECK_INTERVAL_MS } from '../../constants';
+import { CONNECTIVITY_CHECK_INTERVAL_MS, OfflineViewed } from '../../constants';
+import {
+  PlayerIdentity,
+  findCurrentPlayer,
+  pickPlayerIdentity,
+} from '../utils/playerIdentity';
 
 import { createLogger } from '../../shared/logger';
 
 const log = createLogger('ProgressSync');
+
+/**
+ * Признаки плеера отметки; у записей до их появления — из скачанной копии
+ */
+const getViewedIdentity = (entry: OfflineViewed): PlayerIdentity | null =>
+  pickPlayerIdentity(entry) ??
+  offlineStore.findEpisodes(entry.episodeId, entry.playerId)[0] ??
+  null;
 
 /**
  * Обменивается прогрессом просмотра с сайтом при наличии связи
@@ -67,23 +80,34 @@ function useProgressSync(isOnline: boolean): void {
       for (const entry of pending) {
         try {
           // eslint-disable-next-line no-await-in-loop
-          const response = await animeApi.getAnimeInfo(entry.animeId);
-          const numericId = response.data?.id;
+          const { data: episode } = await animeApi.getEpisodePlayers(
+            entry.episodeId,
+          );
+          const identity = getViewedIdentity(entry);
+          const player = findCurrentPlayer(
+            episode.players,
+            entry.playerId,
+            identity,
+          );
 
-          if (!numericId) {
+          if (!player) {
+            if (identity) {
+              viewedStore.discard(entry.animeId, entry.playerId);
+              log.warn('View dropped, player gone:', entry.playerId);
+            }
             // eslint-disable-next-line no-continue
             continue;
           }
 
           // eslint-disable-next-line no-await-in-loop
           const success = await animeApi.markPlayerViewed(
-            numericId,
-            entry.playerId,
+            episode.anime_id,
+            player.id,
           );
 
           if (success) {
             viewedStore.markSynced(entry.animeId, entry.playerId);
-            log.debug('View synced:', entry.animeId);
+            log.debug('View synced:', entry.animeId, player.id);
           }
         } catch (error) {
           log.error('View sync failed:', entry.animeId, error);

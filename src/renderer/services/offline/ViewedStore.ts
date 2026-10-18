@@ -82,6 +82,19 @@ class ViewedStore {
       this.setAll(map);
     }
   }
+
+  /**
+   * Удаляет отметку, которую некуда отправить
+   */
+  public discard(animeId: string, playerId: number): void {
+    const map = this.getAll();
+    const key = buildKey(animeId, playerId);
+
+    if (map[key]) {
+      delete map[key];
+      this.setAll(map);
+    }
+  }
 }
 
 // eslint-disable-next-line import/prefer-default-export

@@ -100,8 +100,13 @@ describe('QualityManager: сборка вариантов', () => {
 
   it('оффлайн-копии вытесняют сетевые варианты', () => {
     findEpisodes.mockReturnValue([
-      { quality: '720p', fileName: 'a.mp4', playlistFileName: '' },
-      { quality: '1080p', fileName: 'b.mp4', playlistFileName: '' },
+      { playerId: 1, quality: '720p', fileName: 'a.mp4', playlistFileName: '' },
+      {
+        playerId: 1,
+        quality: '1080p',
+        fileName: 'b.mp4',
+        playlistFileName: '',
+      },
     ]);
     const manager = new QualityManager();
 
@@ -114,7 +119,12 @@ describe('QualityManager: сборка вариантов', () => {
 
   it('оффлайн-копия в формате hls не получает прогрессивных запасных', () => {
     findEpisodes.mockReturnValue([
-      { quality: '720p', fileName: 'a.ts', playlistFileName: 'a.m3u8' },
+      {
+        playerId: 1,
+        quality: '720p',
+        fileName: 'a.ts',
+        playlistFileName: 'a.m3u8',
+      },
     ]);
     const manager = new QualityManager();
 
@@ -123,6 +133,31 @@ describe('QualityManager: сборка вариантов', () => {
 
     expect(option.type).toBe('hls');
     expect(option.fallbackSrc).toBeUndefined();
+  });
+
+  it('копия Kodik, скачанная под прежним id плеера, всё равно играет', () => {
+    findEpisodes.mockReturnValue([
+      {
+        playerId: 11,
+        playerType: 'Kodik',
+        teamId: 7,
+        translationTypeId: 2,
+        quality: '720p',
+        fileName: 'k.mp4',
+        playlistFileName: '',
+      },
+    ]);
+    const manager = new QualityManager();
+    const player = {
+      id: 21,
+      player: 'Kodik',
+      team: { id: 7 },
+      translation_type: { id: 2 },
+    } as Player;
+
+    manager.createQualityOptions(player, null, 55);
+
+    expect(manager.getQualityOptions()[0].label).toContain('оффлайн');
   });
 });
 

@@ -16,6 +16,7 @@ import { OfflineSourceGuard } from './OfflineSourceGuard';
 
 import { createLogger } from '../../../shared/logger';
 import { classifyPlayerLoad, getResumeTime } from '../../utils/playerLoad';
+import { getPlayerIdentity } from '../../utils/playerIdentity';
 import { preloadProgressiveSource } from './sourcePreloader';
 import { OFFLINE_SCHEME, QUALITY_PRELOAD_TIMEOUT_MS } from '../../../constants';
 
@@ -315,7 +316,11 @@ export class VideoPlayerController {
       options.animeId ?? null,
       options.player.id,
       options.offlineAnimeId && options.episodeId
-        ? { animeId: options.offlineAnimeId, episodeId: options.episodeId }
+        ? {
+            animeId: options.offlineAnimeId,
+            episodeId: options.episodeId,
+            ...getPlayerIdentity(options.player),
+          }
         : null,
     );
 

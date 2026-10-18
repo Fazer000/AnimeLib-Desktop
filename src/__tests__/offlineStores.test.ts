@@ -158,6 +158,28 @@ describe('ViewedStore', () => {
     expect(viewedStore.getAll()).toEqual({});
   });
 
+  it('хранит признаки плеера вместе с отметкой', () => {
+    viewedStore.mark(
+      mark({ playerType: 'Kodik', teamId: 7, translationTypeId: 2 }),
+    );
+
+    expect(viewedStore.getPending()[0]).toMatchObject({
+      playerType: 'Kodik',
+      teamId: 7,
+      translationTypeId: 2,
+    });
+  });
+
+  it('удаляет отметку, остальные не трогает', () => {
+    viewedStore.mark(mark({ playerId: 10 }));
+    viewedStore.mark(mark({ playerId: 20 }));
+    viewedStore.discard('one-piece', 10);
+    viewedStore.discard('one-piece', 99);
+
+    expect(viewedStore.isMarked('one-piece', 10)).toBe(false);
+    expect(viewedStore.getPending().map((item) => item.playerId)).toEqual([20]);
+  });
+
   it('битое хранилище читается как пустое', () => {
     localStorage.setItem(OFFLINE_VIEWED_STORAGE_KEY, '{сломано');
 
