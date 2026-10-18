@@ -341,6 +341,11 @@ export const OFFLINE_COVER = { width: 90, height: 125 } as const;
 export const OFFLINE_LIBRARY_ACTION_WIDTH = 160;
 
 /**
+ * Ширина поля сортировки библиотеки вместе с кнопкой направления, px
+ */
+export const OFFLINE_LIBRARY_SORT_WIDTH = 250;
+
+/**
  * Ширина затухания карусели связанного у края со скрытыми карточками, px
  */
 export const RELATED_EDGE_FADE = 56;

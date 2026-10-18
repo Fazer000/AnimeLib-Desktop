@@ -63,6 +63,24 @@ export const OFFLINE_PROGRESS_STORAGE_KEY = 'offlineWatchProgress';
 
 export const OFFLINE_VIEWED_STORAGE_KEY = 'offlineWatchViewed';
 
+/**
+ * Сортировка библиотеки скачанного: поле и направление в одном ключе
+ */
+export type OfflineLibrarySortField = 'downloaded' | 'title';
+export type OfflineLibrarySortDirection = 'asc' | 'desc';
+export type OfflineLibrarySort =
+  `${OfflineLibrarySortField}-${OfflineLibrarySortDirection}`;
+
+export const OFFLINE_LIBRARY_SORT_FIELDS: readonly OfflineLibrarySortField[] = [
+  'downloaded',
+  'title',
+];
+
+export const OFFLINE_LIBRARY_SORT_DEFAULT: OfflineLibrarySort =
+  'downloaded-desc';
+
+export const OFFLINE_LIBRARY_SORT_STORAGE_KEY = 'offlineLibrarySort';
+
 export const CONNECTIVITY_CHECK_INTERVAL_MS = 30000;
 
 export const CONNECTIVITY_CHECK_TIMEOUT_MS = 6000;

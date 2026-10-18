@@ -22,6 +22,7 @@ import {
 } from '../../../constants';
 import { SUCCESS_MID } from '../../theme/palette';
 import { DownloadedEpisodeInfo, formatSize } from '../../utils/offlineFormat';
+import { offlineLabelSx, offlineSelectSx } from './fieldStyles';
 
 export type KodikQualityMap = Record<number, string[]>;
 
@@ -46,30 +47,6 @@ interface EpisodeSelectionListProps {
   onDefaultQualityChange: (quality: string) => void;
   onEpisodeQualityChange: (episodeId: number, quality: string) => void;
 }
-
-const selectSx = (customColors: CustomColors) => ({
-  fontSize: OFFLINE_FONT.episode,
-  color: customColors.dialogTextColor,
-  '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: customColors.borderColor,
-  },
-  '&:hover .MuiOutlinedInput-notchedOutline': {
-    borderColor: customColors.accentSoftColor,
-  },
-  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-    borderColor: customColors.accentSoftColor,
-    borderWidth: 1,
-  },
-  '& .MuiSvgIcon-root': {
-    color: `rgba(${customColors.onSurfaceRgb}, 0.6)`,
-  },
-});
-
-const labelSx = (customColors: CustomColors) => ({
-  fontSize: OFFLINE_FONT.episode,
-  color: `rgba(${customColors.onSurfaceRgb}, 0.55)`,
-  '&.Mui-focused': { color: customColors.accentSoftColor },
-});
 
 const checkboxSx = (customColors: CustomColors) => ({
   color: `rgba(${customColors.onSurfaceRgb}, 0.45)`,
@@ -198,7 +175,10 @@ function EpisodeSelectionList({
       >
         <Box sx={{ display: 'flex', gap: 1.5, mb: 2, mt: 0.5 }}>
           <FormControl size="small" sx={{ flex: 1 }}>
-            <InputLabel id="offline-team-label" sx={labelSx(customColors)}>
+            <InputLabel
+              id="offline-team-label"
+              sx={offlineLabelSx(customColors)}
+            >
               Озвучка
             </InputLabel>
             <Select
@@ -207,7 +187,7 @@ function EpisodeSelectionList({
               value={teams.includes(teamName) ? teamName : ''}
               onChange={(event) => onTeamChange(event.target.value)}
               displayEmpty
-              sx={selectSx(customColors)}
+              sx={offlineSelectSx(customColors)}
             >
               {teams.length === 0 && (
                 <MenuItem value="">Озвучки не найдены</MenuItem>
@@ -224,7 +204,7 @@ function EpisodeSelectionList({
             <InputLabel
               id="offline-quality-label"
               shrink
-              sx={labelSx(customColors)}
+              sx={offlineLabelSx(customColors)}
             >
               Общее качество
             </InputLabel>
@@ -237,7 +217,7 @@ function EpisodeSelectionList({
               onChange={(event) => onDefaultQualityChange(event.target.value)}
               displayEmpty
               notched
-              sx={selectSx(customColors)}
+              sx={offlineSelectSx(customColors)}
             >
               {defaultQualities.length === 0 && <MenuItem value="">—</MenuItem>}
               {defaultQualities.map((item) => (
@@ -444,7 +424,7 @@ function EpisodeSelectionList({
                     onChange={(event) =>
                       onEpisodeQualityChange(episode.id, event.target.value)
                     }
-                    sx={{ ...selectSx(customColors), height: 34 }}
+                    sx={{ ...offlineSelectSx(customColors), height: 34 }}
                   >
                     {qualities.map((item) => (
                       <MenuItem key={item} value={item}>

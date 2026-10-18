@@ -29,9 +29,14 @@ import {
   OFFLINE_FONT,
   OFFLINE_ICON,
   OFFLINE_LIBRARY_ACTION_WIDTH,
+  OFFLINE_LIBRARY_SORT_DEFAULT,
+  OFFLINE_LIBRARY_SORT_STORAGE_KEY,
   OfflineAnime,
   OfflineEpisode,
 } from '../../../constants';
+import { usePersistedChoice } from '../../hooks/usePersistedChoice';
+import { isLibrarySort, sortLibrary } from '../../utils/librarySort';
+import LibrarySortField from './LibrarySortField';
 import {
   offlineCatalog,
   offlineStore,
@@ -102,6 +107,11 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
   const [pending, setPending] = useState<PendingRemoval | null>(null);
   const shownRef = useRef<PendingRemoval | null>(null);
   const [query, setQuery] = useState<string>('');
+  const [sort, setSort] = usePersistedChoice(
+    OFFLINE_LIBRARY_SORT_STORAGE_KEY,
+    isLibrarySort,
+    OFFLINE_LIBRARY_SORT_DEFAULT,
+  );
 
   if (pending) {
     shownRef.current = pending;
@@ -113,11 +123,12 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
+    const sorted = sortLibrary(anime, sort);
 
     return needle
-      ? anime.filter((item) => item.title.toLowerCase().includes(needle))
-      : anime;
-  }, [anime, query]);
+      ? sorted.filter((item) => item.title.toLowerCase().includes(needle))
+      : sorted;
+  }, [anime, query, sort]);
 
   if (anime.length === 0) {
     return (
@@ -141,6 +152,9 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
             pt: 2,
             pb: 2,
             backgroundColor: customColors.dialogColor,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
           }}
         >
           <TextField
@@ -188,6 +202,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                 },
             }}
           />
+          <LibrarySortField value={sort} onChange={setSort} />
         </Box>
       )}
 

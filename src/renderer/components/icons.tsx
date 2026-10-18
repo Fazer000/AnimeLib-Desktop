@@ -2,9 +2,11 @@ import { styled } from '@mui/material/styles';
 import type { LucideIcon } from 'lucide-react';
 import {
   ArrowDown as LucideArrowDown,
+  ArrowDownWideNarrow as LucideArrowDownWideNarrow,
   ArrowDownToLine as LucideArrowDownToLine,
   ArrowLeft as LucideArrowLeft,
   ArrowUp as LucideArrowUp,
+  ArrowUpNarrowWide as LucideArrowUpNarrowWide,
   ArrowUpDown as LucideArrowUpDown,
   AudioLines as LucideAudioLines,
   Bell as LucideBell,
@@ -82,9 +84,11 @@ const adapt = (Icon: LucideIcon) =>
   });
 
 export const ArrowDown = adapt(LucideArrowDown);
+export const ArrowDownWideNarrow = adapt(LucideArrowDownWideNarrow);
 export const ArrowDownToLine = adapt(LucideArrowDownToLine);
 export const ArrowLeft = adapt(LucideArrowLeft);
 export const ArrowUp = adapt(LucideArrowUp);
+export const ArrowUpNarrowWide = adapt(LucideArrowUpNarrowWide);
 export const ArrowUpDown = adapt(LucideArrowUpDown);
 export const AudioLines = adapt(LucideAudioLines);
 export const Bell = adapt(LucideBell);
