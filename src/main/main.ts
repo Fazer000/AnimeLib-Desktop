@@ -665,6 +665,35 @@ if (process.platform === 'win32') {
 }
 registerOfflineSchemes();
 
+/**
+ * Второй экземпляр делил бы профиль с первым и не получил бы доступа к его
+ * localStorage, поэтому повторный запуск лишь поднимает открытое окно
+ */
+const hasInstanceLock = app.requestSingleInstanceLock();
+
+if (!hasInstanceLock) {
+  log.debug('Another instance is running, quitting');
+  app.quit();
+}
+
+/**
+ * Разворачивает и выводит на передний план открытое окно
+ */
+const focusMainWindow = (): void => {
+  if (!mainWindow) {
+    return;
+  }
+
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+
+  mainWindow.show();
+  mainWindow.focus();
+};
+
+app.on('second-instance', focusMainWindow);
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
@@ -781,18 +810,20 @@ const registerBookmarksWatcher = (): void => {
 
 registerCrashHandlers(() => mainWindow);
 
-app
-  .whenReady()
-  .then(() => {
-    registerPlayerNavigationGuard();
-    registerCustomProtocol();
-    registerCorsPolicy();
-    registerApiInterceptor();
-    registerBookmarksWatcher();
-    registerUpdateHandlers(() => mainWindow);
-    registerReportHandlers();
-    registerOfflineProtocol(() => mainWindow);
-    registerOfflineHandlers(() => mainWindow);
-    createWindow();
-  })
-  .catch((error) => log.error('Startup failed:', error));
+if (hasInstanceLock) {
+  app
+    .whenReady()
+    .then(() => {
+      registerPlayerNavigationGuard();
+      registerCustomProtocol();
+      registerCorsPolicy();
+      registerApiInterceptor();
+      registerBookmarksWatcher();
+      registerUpdateHandlers(() => mainWindow);
+      registerReportHandlers();
+      registerOfflineProtocol(() => mainWindow);
+      registerOfflineHandlers(() => mainWindow);
+      createWindow();
+    })
+    .catch((error) => log.error('Startup failed:', error));
+}
