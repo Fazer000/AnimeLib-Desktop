@@ -26,7 +26,7 @@
 
 ## ✨ Основные возможности
 
-* 🌐 **Интеграция с animelib.org**: Полный доступ к веб-версии сайта, личным спискам и каталогу через WebView.
+* 🌐 **Интеграция с animelib.org**: Полный доступ к веб-версии сайта и всем его возможностям через WebView.
 * 🎥 **Кастомный видеоплеер**:
   * **Форматы**: HLS (m3u8) и HTTP Progressive Download.
   * **Выбор вариантов и озвучек**: Переключение плееров и озвучек, ручной и автоматический выбор качества.
@@ -144,9 +144,18 @@ src/
 
 ---
 
+## 📥 Скачать
+
+| Платформа | Последний релиз | Ссылка |
+|-----------|-----------------|--------|
+| 🖥️ **Desktop (ПК)** | [![Desktop Release](https://img.shields.io/github/v/release/Fazer000/AnimeLib-Desktop?label=desktop&style=flat-square)](https://github.com/Fazer000/AnimeLib-Desktop/releases) | [Скачать последнюю версию](https://github.com/Fazer000/AnimeLib-Desktop/releases) |
+| 📱 **Mobile (Android)** | [![Mobile Release](https://img.shields.io/github/v/release/Fazer000/AnimeLib-Mobile?label=mobile&style=flat-square)](https://github.com/Fazer000/AnimeLib-Mobile/releases) | [Скачать последнюю версию](https://github.com/Fazer000/AnimeLib-Mobile/releases) |
+
+---
+
 ## 📄 Отказ от ответственности (Disclaimer)
 
-* Данное приложение создано исключительно в ознакомительных и образовательных целях.
+* Данное приложение создано исключительно в ознакомительных целях.
 * Все логотипы, товарные знаки и графические материалы сайта **animelib.org** принадлежат **ООО «Мангалиб»**.
 * Разработчик не несёт ответственности за контент, предоставляемый сторонними ресурсами и сервисами.
 
