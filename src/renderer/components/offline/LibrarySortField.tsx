@@ -25,7 +25,11 @@ import {
   toggleSortDirection,
   withSortField,
 } from '../../utils/librarySort';
-import { offlineLabelSx, offlineSelectSx } from './fieldStyles';
+import {
+  blurSelectOnClose,
+  offlineLabelSx,
+  offlineSelectSx,
+} from './fieldStyles';
 
 interface LibrarySortFieldProps {
   value: OfflineLibrarySort;
@@ -53,6 +57,7 @@ function LibrarySortField({ value, onChange }: LibrarySortFieldProps) {
         Сортировка
       </InputLabel>
       <Select
+        onClose={blurSelectOnClose}
         labelId={LABEL_ID}
         value={field}
         onChange={(event) =>

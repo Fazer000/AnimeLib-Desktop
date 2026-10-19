@@ -1,5 +1,5 @@
 /**
- * Оформление выпадающих полей менеджера загрузок
+ * Оформление и поведение выпадающих полей менеджера загрузок
  */
 import type { CustomColors } from '@mui/material/styles';
 import { OFFLINE_FONT } from '../../../constants';
@@ -33,3 +33,20 @@ export const offlineLabelSx = (customColors: CustomColors) => ({
   color: `rgba(${customColors.onSurfaceRgb}, 0.55)`,
   '&.Mui-focused': { color: customColors.accentSoftColor },
 });
+
+/**
+ * Снимает фокус с поля после закрытия меню. Пока меню открыто, Select
+ * не замечает ухода фокуса и остаётся подсвеченным до второго клика
+ */
+export const blurSelectOnClose = (): void => {
+  setTimeout(() => {
+    const active = document.activeElement;
+
+    if (
+      active instanceof HTMLElement &&
+      active.getAttribute('role') === 'combobox'
+    ) {
+      active.blur();
+    }
+  });
+};

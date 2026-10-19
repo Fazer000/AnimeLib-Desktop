@@ -22,7 +22,11 @@ import {
 } from '../../../constants';
 import { SUCCESS_MID } from '../../theme/palette';
 import { DownloadedEpisodeInfo, formatSize } from '../../utils/offlineFormat';
-import { offlineLabelSx, offlineSelectSx } from './fieldStyles';
+import {
+  blurSelectOnClose,
+  offlineLabelSx,
+  offlineSelectSx,
+} from './fieldStyles';
 
 export type KodikQualityMap = Record<number, string[]>;
 
@@ -182,6 +186,7 @@ function EpisodeSelectionList({
               Озвучка
             </InputLabel>
             <Select
+              onClose={blurSelectOnClose}
               labelId="offline-team-label"
               label="Озвучка"
               value={teams.includes(teamName) ? teamName : ''}
@@ -209,6 +214,7 @@ function EpisodeSelectionList({
               Общее качество
             </InputLabel>
             <Select
+              onClose={blurSelectOnClose}
               labelId="offline-quality-label"
               label="Общее качество"
               value={
@@ -416,6 +422,7 @@ function EpisodeSelectionList({
               {isSelected && !isLoading && qualities.length > 0 && (
                 <FormControl size="small" sx={{ width: 132, flexShrink: 0 }}>
                   <Select
+                    onClose={blurSelectOnClose}
                     value={
                       qualities.includes(qualityByEpisode[episode.id])
                         ? qualityByEpisode[episode.id]

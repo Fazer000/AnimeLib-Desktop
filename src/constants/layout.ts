@@ -409,3 +409,43 @@ export const EPISODE_SLIDER_EDGE_FADE = 56;
  */
 export const SLIDER_WHEEL_SCROLL_MULTIPLIER = 3;
 export const SLIDER_WHEEL_IDLE_MS = 200;
+
+/**
+ * Граф хронологии: размеры узла, высота ряда и зазор между узлами ряда, px
+ */
+export const FRANCHISE_NODE_WIDTH = 190;
+export const FRANCHISE_NODE_HEIGHT = 64;
+export const FRANCHISE_ROW_HEIGHT = 84;
+export const FRANCHISE_NODE_GAP = 16;
+
+/**
+ * Сколько рядов ответвлений помещается над и под основной линией
+ */
+export const FRANCHISE_ROWS_ABOVE = 2;
+export const FRANCHISE_ROWS_BELOW = 3;
+
+/**
+ * Шкала хронологии: наименьшая ширина года с тайтлами и ширина разрыва
+ * на месте подряд идущих пустых лет, px
+ */
+export const FRANCHISE_MIN_YEAR_WIDTH = 160;
+export const FRANCHISE_EMPTY_GAP_WIDTH = 64;
+
+/**
+ * Высота области хронологии: не ниже ленты связанного, чтобы комментарии
+ * не сдвигались при смене вкладки, и не выше предела; лишнее сдвигается, px
+ */
+export const FRANCHISE_MIN_HEIGHT = RELATED_CARD_HEIGHT + 16;
+export const FRANCHISE_MAX_HEIGHT = 480;
+
+/**
+ * Хронология: ширина закреплённой легенды слева и высота оси годов сверху, px
+ */
+export const FRANCHISE_LEGEND_WIDTH = 190;
+export const FRANCHISE_AXIS_HEIGHT = 30;
+
+/**
+ * Высота полоски с пояснением линий под хронологией, px. Входит в общую
+ * наименьшую высоту блока
+ */
+export const FRANCHISE_LEGEND_BAR_HEIGHT = 28;

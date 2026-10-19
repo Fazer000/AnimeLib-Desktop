@@ -898,6 +898,19 @@ export const animeApi = {
   },
 
   /**
+   * Название, тип, обложка и дата выхода тайтла
+   */
+  getAnimeRelease: async (animeSlugUrl: string): Promise<AnimeInfo> => {
+    const response = await withRateLimitRetry(
+      () => animeApiClient.get(`/anime/${animeSlugUrl}?fields[]=releaseDate`),
+      inspectRateLimit,
+      { cooldown: apiCooldown },
+    );
+
+    return response.data.data;
+  },
+
+  /**
    * Get related anime
    */
   getRelatedAnime: async (
@@ -905,8 +918,10 @@ export const animeApi = {
   ): Promise<RelatedAnimeResponse> => {
     try {
       log.debug('Loading related anime for:', animeSlugUrl);
-      const response = await animeApiClient.get(
-        `/anime/${animeSlugUrl}/relations`,
+      const response = await withRateLimitRetry(
+        () => animeApiClient.get(`/anime/${animeSlugUrl}/relations`),
+        inspectRateLimit,
+        { cooldown: apiCooldown },
       );
 
       log.debug('Related anime loaded:', response.data.data.length, 'items');

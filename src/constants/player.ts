@@ -511,3 +511,31 @@ export const THUMBNAIL_KEYFRAME_CONCURRENCY = 3;
  * Сколько заголовков боксов MP4 просматривается в поисках индекса moov
  */
 export const THUMBNAIL_MOOV_MAX_HOPS = 12;
+
+/**
+ * Хронология франшизы: предел тайтлов в обходе, одновременных запросов
+ * и пауза после каждого запроса, мс. Обход идёт медленно, чтобы не упереться
+ * в ограничение частоты API и не задеть запросы самой страницы
+ */
+export const FRANCHISE_MAX_TITLES = 80;
+export const FRANCHISE_CONCURRENCY = 1;
+export const FRANCHISE_REQUEST_GAP_MS = 600;
+
+/**
+ * Сколько шагов не по продолжениям хронология уходит от основной линии.
+ * Обход раскрывает связи на этом расстоянии и подбирает тайтлы на шаг дальше,
+ * чтобы основную линию можно было найти и от побочного тайтла
+ */
+export const FRANCHISE_MAX_HOPS = 1;
+
+/**
+ * Пауза перед обходом после открытия плеера, мс: сначала грузится сам плеер
+ */
+export const FRANCHISE_START_DELAY_MS = 3000;
+
+/**
+ * Вкладка блока связанного под плеером, запоминается между запусками
+ */
+export const RELATED_TAB_STORAGE_KEY = 'animeLibRelatedTab';
+export const RELATED_TABS = ['related', 'chronology'] as const;
+export type RelatedTab = (typeof RELATED_TABS)[number];

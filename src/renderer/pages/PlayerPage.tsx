@@ -12,7 +12,7 @@ import EpisodeSlider from '../components/player/EpisodeSlider';
 import PlayerSidebar from '../components/player/PlayerSidebar';
 import CommentsSection from '../components/player/CommentsSection';
 import ScrollToTopButton from '../components/player/ScrollToTopButton';
-import RelatedAnime from '../components/player/RelatedAnime';
+import RelatedSection from '../components/player/RelatedSection';
 import AmbientLight from '../components/player/AmbientLight';
 import DownloadManagerDialog from '../components/offline/DownloadManagerDialog';
 import { PlayerSelectionManager, BookmarkManager } from '../services/player';
@@ -830,8 +830,9 @@ function PlayerPageRefactored({
             }}
           >
             {relatedAnime.length > 0 && (
-              <RelatedAnime
+              <RelatedSection
                 key={currentAnimeId}
+                currentSlug={currentAnimeId}
                 relatedAnime={relatedAnime}
                 onAnimeClick={handleRelatedAnimeClick}
               />
