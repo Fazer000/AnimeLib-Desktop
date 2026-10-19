@@ -539,3 +539,26 @@ export const FRANCHISE_START_DELAY_MS = 3000;
 export const RELATED_TAB_STORAGE_KEY = 'animeLibRelatedTab';
 export const RELATED_TABS = ['related', 'chronology'] as const;
 export type RelatedTab = (typeof RELATED_TABS)[number];
+
+/**
+ * API Shikimori: отсюда берётся франшиза для хронологии, одним запросом
+ */
+export const SHIKIMORI_API_URL = 'https://shikimori.io/api';
+export const SHIKIMORI_TIMEOUT_MS = 10000;
+
+/**
+ * Сколько результатов поиска по названию проверяется, если тайтл Shikimori
+ * не нашёлся на Animelib по slug
+ */
+export const FRANCHISE_SEARCH_CANDIDATES = 3;
+
+/**
+ * Кэш хронологий между запусками: ключ localStorage, сколько франшиз
+ * хранится, сколько живёт найденный и ненайденный на Animelib тайтл, мс,
+ * и пауза перед записью, чтобы не писать после каждого найденного тайтла
+ */
+export const FRANCHISE_CACHE_STORAGE_KEY = 'animeLibFranchiseCache';
+export const FRANCHISE_CACHE_LIMIT = 30;
+export const FRANCHISE_FOUND_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+export const FRANCHISE_MISSING_TTL_MS = 24 * 60 * 60 * 1000;
+export const FRANCHISE_CACHE_SAVE_DELAY_MS = 2000;

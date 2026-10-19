@@ -2,12 +2,31 @@
  * Граф франшизы для хронологии: тайтлы, связи между ними и раскладка по датам
  */
 
+/**
+ * Есть ли тайтл на Animelib: ещё неизвестно, есть, нет, или не найден без
+ * входа на сайт — тогда он может быть скрыт по возрасту
+ */
+export type FranchiseAvailability =
+  | 'pending'
+  | 'available'
+  | 'missing'
+  | 'restricted';
+
+/**
+ * Тайтл франшизы. slugUrl — ключ узла; у тайтлов из Shikimori, пока они
+ * не сопоставлены с Animelib, это не slug Animelib. Куда вести по клику,
+ * говорит link, а без него — сам slugUrl
+ */
 export interface FranchiseTitle {
   slugUrl: string;
   name: string;
   type: string;
   cover: string | null;
   releaseDate: string | null;
+  link?: string | null;
+  availability?: FranchiseAvailability;
+  lookupSlug?: string | null;
+  shikimoriId?: number;
 }
 
 export interface FranchiseEdge {
@@ -17,9 +36,14 @@ export interface FranchiseEdge {
   sequel: boolean;
 }
 
+/**
+ * Граф франшизы. curated — состав уже выверен источником (Shikimori)
+ * и обрезать дальние тайтлы не нужно
+ */
 export interface FranchiseGraph {
   titles: Map<string, FranchiseTitle>;
   edges: FranchiseEdge[];
+  curated?: boolean;
 }
 
 export interface RelationLike {
@@ -173,8 +197,8 @@ export function animeRelationEdges(
 
 /**
  * Основная линия — группа тайтлов, связанных продолжениями, где больше всего
- * TV-сериалов; затем та, у которой больше связей с остальной франшизой;
- * затем та, где есть текущий тайтл
+ * TV-сериалов; затем та, где есть текущий тайтл; затем та, у которой больше
+ * связей с остальной франшизой
  */
 export function findMainLine(
   graph: FranchiseGraph,
@@ -217,8 +241,8 @@ export function findMainLine(
 
     const rank = (item: Set<string>) => [
       tvCount(item),
-      degree(item),
       item.has(currentSlug) ? 1 : 0,
+      degree(item),
     ];
     const score = rank(group);
     const bestScore = rank(best);
@@ -605,4 +629,23 @@ export function layoutFranchise(
     minRow: Math.min(0, ...placed.map((node) => node.row)),
     maxRow: Math.max(0, ...placed.map((node) => node.row)),
   };
+}
+
+/**
+ * Конец связи, который смотреть позже. У продолжения это само продолжение,
+ * у прочих связей — тайтл, вышедший позже; невышедший тайтл без даты —
+ * всегда позже. При равных датах — конец связи
+ */
+export function laterEnd(
+  edge: FranchiseEdge,
+  titles: Map<string, FranchiseTitle>,
+): string {
+  if (edge.sequel) return edge.to;
+
+  const from = toYearFraction(titles.get(edge.from)?.releaseDate ?? null);
+  const to = toYearFraction(titles.get(edge.to)?.releaseDate ?? null);
+
+  if (to === null) return edge.to;
+  if (from === null || from > to) return edge.from;
+  return edge.to;
 }

@@ -17,6 +17,7 @@ import FranchiseTimeline from './FranchiseTimeline';
 
 interface RelatedSectionProps {
   currentSlug: string;
+  shikimoriId: number | null | undefined;
   relatedAnime: RelatedAnimeType[];
   onAnimeClick: (slugUrl: string) => void;
 }
@@ -37,6 +38,7 @@ const CONTENT_INSET =
  */
 function RelatedSection({
   currentSlug,
+  shikimoriId,
   relatedAnime,
   onAnimeClick,
 }: RelatedSectionProps) {
@@ -108,6 +110,7 @@ function RelatedSection({
           <Box sx={{ px: `${CONTENT_INSET}px` }}>
             <FranchiseTimeline
               currentSlug={currentSlug}
+              shikimoriId={shikimoriId}
               onAnimeClick={onAnimeClick}
             />
           </Box>

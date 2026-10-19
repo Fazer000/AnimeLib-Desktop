@@ -448,6 +448,11 @@ const fetchBookmarksByStatus = async (
 };
 
 export const animeApi = {
+  /**
+   * Выполнен ли вход на сайт: без него тайтлы 16+ и 18+ не находятся
+   */
+  isAuthorized: (): boolean => Boolean(getBearerToken()),
+
   getEpisodes: async (animeId: string): Promise<EpisodesResponse> => {
     log.debug('Loading episodes for anime_id:', animeId);
 
@@ -908,6 +913,19 @@ export const animeApi = {
     );
 
     return response.data.data;
+  },
+
+  /**
+   * Тайтл по slug, в том числе без числового префикса: one-piece-anime.
+   * Нет такого тайтла — null
+   */
+  findAnime: async (animeSlugUrl: string): Promise<AnimeInfo | null> => {
+    try {
+      return await animeApi.getAnimeRelease(animeSlugUrl);
+    } catch (error) {
+      if (errorResponse(error)?.status === 404) return null;
+      throw error;
+    }
   },
 
   /**

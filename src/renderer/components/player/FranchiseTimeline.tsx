@@ -13,7 +13,6 @@ import {
   FRANCHISE_EMPTY_GAP_WIDTH,
   FRANCHISE_LEGEND_BAR_HEIGHT,
   FRANCHISE_LEGEND_WIDTH,
-  FRANCHISE_MAX_HEIGHT,
   FRANCHISE_MAX_HOPS,
   FRANCHISE_MIN_HEIGHT,
   FRANCHISE_MIN_YEAR_WIDTH,
@@ -25,6 +24,7 @@ import {
   FRANCHISE_ROWS_BELOW,
 } from '../../../constants';
 import useFranchiseGraph from '../../hooks/useFranchiseGraph';
+import { resolveFranchiseTitle } from '../../services/franchise/franchiseLoader';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 import useStableSize from '../../hooks/useStableSize';
 import {
@@ -35,6 +35,7 @@ import {
   findMainLine,
   formatReleaseMonth,
   franchiseRoot,
+  laterEnd,
   layoutFranchise,
   linkedTitles,
   pruneDistantTitles,
@@ -49,6 +50,7 @@ const BORDER = 2;
 
 interface FranchiseTimelineProps {
   currentSlug: string;
+  shikimoriId: number | null | undefined;
   onAnimeClick: (slugUrl: string) => void;
 }
 
@@ -71,6 +73,14 @@ const LANE_LEGEND: Record<FranchiseSide, string> = {
 };
 
 const CURRENT_LABEL = 'Вы здесь';
+const MISSING_LABEL = 'Нет на AnimeLib';
+const RESTRICTED_LABEL = 'Недоступно';
+
+/**
+ * Тайтл нельзя открыть: его нет на Animelib или он не найден без входа
+ */
+const isUnavailable = (title: FranchiseTitle) =>
+  title.availability === 'missing' || title.availability === 'restricted';
 
 /**
  * Положение узла в пикселях холста
@@ -91,13 +101,16 @@ const nodeBox = (layout: FranchiseLayout, slugUrl: string): NodeBox => {
  * Линия связи: в одном ряду — от края к краю, между рядами — дугой
  * от нижнего или верхнего края к левой части узла
  */
-const edgePath = (from: NodeBox, to: NodeBox): string => {
+const edgePath = (
+  from: NodeBox,
+  to: NodeBox,
+): { d: string; start: [number, number]; end: [number, number] } => {
   if (from.top === to.top) {
     const forward = to.left >= from.left;
     const x1 = forward ? from.left + FRANCHISE_NODE_WIDTH : from.left;
     const x2 = forward ? to.left : to.left + FRANCHISE_NODE_WIDTH;
     const y = from.top + FRANCHISE_NODE_HEIGHT / 2;
-    return `M${x1},${y} L${x2},${y}`;
+    return { d: `M${x1},${y} L${x2},${y}`, start: [x1, y], end: [x2, y] };
   }
 
   const down = to.top > from.top;
@@ -107,7 +120,11 @@ const edgePath = (from: NodeBox, to: NodeBox): string => {
   const y2 = down ? to.top : to.top + FRANCHISE_NODE_HEIGHT;
   const midY = (y1 + y2) / 2;
 
-  return `M${x1},${y1} C${x1},${midY} ${x2},${midY} ${x2},${y2}`;
+  return {
+    d: `M${x1},${y1} C${x1},${midY} ${x2},${midY} ${x2},${y2}`,
+    start: [x1, y1],
+    end: [x2, y2],
+  };
 };
 
 /**
@@ -141,10 +158,32 @@ function FranchiseNode({
   const imageUrl = useImageWithReferer(title.cover || undefined);
   const meta = metaLine(title);
   const tint = `rgba(${customColors.accentRgb}, 0.14)`;
-  const tooltip = [title.name, meta, isCurrent ? CURRENT_LABEL : '']
+  const missing = isUnavailable(title);
+  const tooltip = [
+    title.name,
+    meta,
+    isCurrent ? CURRENT_LABEL : '',
+    title.availability === 'missing' ? MISSING_LABEL : '',
+    title.availability === 'restricted' ? RESTRICTED_LABEL : '',
+  ]
     .filter(Boolean)
     .join('\n');
   const framed = isCurrent || state === 'focused';
+  const textRef = useRef<HTMLDivElement>(null);
+  const [clipped, setClipped] = useState(false);
+
+  // Подсказка нужна, только если текст на узле обрезан или тайтла
+  // нет на Animelib. Пиксель запаса — на дробную ширину текста
+  const measureClipping = () => {
+    const lines = textRef.current ? [...textRef.current.children] : [];
+    setClipped(lines.some((line) => line.scrollWidth > line.clientWidth + 1));
+  };
+
+  // Шрифт может догрузиться позже, поэтому замер повторяется при наведении
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useLayoutEffect(measureClipping, [label, meta]);
+
+  const needsTooltip = clipped || missing;
 
   let frameColor = customColors.lineColor;
   if (state === 'focused') frameColor = customColors.accentSoftColor;
@@ -152,12 +191,21 @@ function FranchiseNode({
 
   return (
     <Tooltip
-      title={<span style={{ whiteSpace: 'pre-line' }}>{tooltip}</span>}
+      title={
+        needsTooltip ? (
+          <span style={{ whiteSpace: 'pre-line' }}>{tooltip}</span>
+        ) : (
+          ''
+        )
+      }
       enterDelay={400}
     >
       <ButtonBase
         onClick={onClick}
-        onMouseEnter={() => onHover(true)}
+        onMouseEnter={() => {
+          measureClipping();
+          onHover(true);
+        }}
         onMouseLeave={() => onHover(false)}
         disableRipple
         sx={{
@@ -176,12 +224,12 @@ function FranchiseNode({
             state === 'focused'
               ? `linear-gradient(${tint}, ${tint}), ${customColors.primaryColor}`
               : customColors.primaryColor,
-          border: `${framed ? BORDER : 1}px solid ${frameColor}`,
+          border: `${framed ? BORDER : 1}px ${missing ? 'dashed' : 'solid'} ${frameColor}`,
           borderLeft: `4px solid ${sideColor(side, customColors)}`,
-          cursor: 'pointer',
+          cursor: missing ? 'default' : 'pointer',
           transition: 'border-color 0.15s ease',
           '& > *': {
-            opacity: state === 'dimmed' ? 0.4 : 1,
+            opacity: state === 'dimmed' || missing ? 0.4 : 1,
             transition: 'opacity 0.15s ease',
           },
         }}
@@ -203,6 +251,7 @@ function FranchiseNode({
           )}
         </Box>
         <Box
+          ref={textRef}
           sx={{
             minWidth: 0,
             flex: 1,
@@ -252,11 +301,13 @@ function FranchiseNode({
  */
 function FranchiseTimeline({
   currentSlug,
+  shikimoriId,
   onAnimeClick,
 }: FranchiseTimelineProps) {
   const { customColors } = useTheme().palette;
   const { graph, progress, done, failed } = useFranchiseGraph(
     currentSlug,
+    shikimoriId,
     true,
   );
   const frameRef = useRef<HTMLDivElement>(null);
@@ -279,12 +330,9 @@ function FranchiseTimeline({
     if (!graph || frameWidth === 0) return null;
 
     const mainLine = findMainLine(graph, currentSlug);
-    const shown = pruneDistantTitles(
-      graph,
-      mainLine,
-      currentSlug,
-      FRANCHISE_MAX_HOPS,
-    );
+    const shown = graph.curated
+      ? graph
+      : pruneDistantTitles(graph, mainLine, currentSlug, FRANCHISE_MAX_HOPS);
     const layout = layoutFranchise(shown, mainLine, {
       nodeWidth: FRANCHISE_NODE_WIDTH,
       gap: FRANCHISE_NODE_GAP,
@@ -376,7 +424,7 @@ function FranchiseTimeline({
                   side={0}
                   isCurrent
                   state="normal"
-                  onClick={() => onAnimeClick(alone.slugUrl)}
+                  onClick={() => onAnimeClick(currentSlug)}
                   onHover={() => undefined}
                 />
               </Box>
@@ -480,9 +528,16 @@ function FranchiseTimeline({
       setIsDragging(false);
     };
 
-    const handleNodeClick = (slugUrl: string) => {
-      if (drag.current.moved) return;
-      onAnimeClick(slugUrl);
+    const handleNodeClick = async (title: FranchiseTitle) => {
+      if (drag.current.moved || isUnavailable(title)) return;
+
+      if (title.link || title.shikimoriId === undefined) {
+        onAnimeClick(title.link ?? title.slugUrl);
+        return;
+      }
+
+      const slug = await resolveFranchiseTitle(title.shikimoriId);
+      if (slug) onAnimeClick(slug);
     };
 
     return (
@@ -497,7 +552,8 @@ function FranchiseTimeline({
           minWidth: 0,
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'auto',
+          overflowX: 'auto',
+          overflowY: 'hidden',
           cursor: isDragging ? 'grabbing' : 'grab',
           userSelect: 'none',
         }}
@@ -634,7 +690,7 @@ function FranchiseTimeline({
                 );
               })}
               {shown.edges.map((edge) => {
-                const d = edgePath(
+                const { d } = edgePath(
                   nodeBox(layout, edge.from),
                   nodeBox(layout, edge.to),
                 );
@@ -671,7 +727,7 @@ function FranchiseTimeline({
                 side={sides.get(title.slugUrl) ?? 1}
                 isCurrent={title.slugUrl === currentSlug}
                 state={nodeState(title.slugUrl)}
-                onClick={() => handleNodeClick(title.slugUrl)}
+                onClick={() => handleNodeClick(title)}
                 onHover={(isHovered) =>
                   setHovered((prev) => {
                     if (isHovered) return title.slugUrl;
@@ -680,6 +736,39 @@ function FranchiseTimeline({
                 }
               />
             ))}
+
+            {hovered && (
+              <svg
+                width={width}
+                height={height}
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  pointerEvents: 'none',
+                }}
+              >
+                {shown.edges.filter(isFocusedEdge).map((edge) => {
+                  const { start, end } = edgePath(
+                    nodeBox(layout, edge.from),
+                    nodeBox(layout, edge.to),
+                  );
+                  const [cx, cy] =
+                    laterEnd(edge, shown.titles) === edge.to ? end : start;
+                  return (
+                    <circle
+                      key={`${edge.from}|${edge.to}`}
+                      cx={cx}
+                      cy={cy}
+                      r={4.5}
+                      fill={customColors.panelColor}
+                      stroke={customColors.accentSoftColor}
+                      strokeWidth={2}
+                    />
+                  );
+                })}
+              </svg>
+            )}
           </Box>
         </Box>
       </Box>
@@ -713,6 +802,27 @@ function FranchiseTimeline({
       'ответвление',
     ],
     [
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box
+          sx={{
+            width: 16,
+            borderTop: `2px solid ${customColors.accentSoftColor}`,
+          }}
+        />
+        <Box
+          sx={{
+            width: 10,
+            height: 10,
+            ml: '-1px',
+            borderRadius: '50%',
+            backgroundColor: customColors.panelColor,
+            border: `2px solid ${customColors.accentSoftColor}`,
+          }}
+        />
+      </Box>,
+      'порядок просмотра',
+    ],
+    [
       <Box
         sx={{
           width: 18,
@@ -731,7 +841,6 @@ function FranchiseTimeline({
       sx={{
         display: 'flex',
         minHeight: FRANCHISE_MIN_HEIGHT - FRANCHISE_LEGEND_BAR_HEIGHT,
-        maxHeight: FRANCHISE_MAX_HEIGHT,
         overflow: 'hidden',
         borderRadius: 2,
         border: `1px solid ${customColors.lineColor}`,

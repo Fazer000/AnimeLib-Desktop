@@ -9,6 +9,7 @@ import {
   formatReleaseMonth,
   isFranchiseLink,
   isSequelLabel,
+  laterEnd,
   franchiseRoot,
   layoutFranchise,
   linkedTitles,
@@ -134,6 +135,28 @@ describe('findMainLine', () => {
     expect([...findMainLine(graphOf([title('x', null)], []), 'x')]).toEqual([
       'x',
     ]);
+  });
+
+  it('без сериалов основная линия — цепочка текущего тайтла', () => {
+    const ona = graphOf(
+      [
+        title('cur1', null, 'ONA'),
+        title('cur2', null, 'ONA'),
+        title('hub1', null, 'ONA'),
+        title('hub2', null, 'ONA'),
+        title('x', null, 'ONA'),
+        title('y', null, 'ONA'),
+      ],
+      [
+        normalizeEdge('cur1', 'cur2', 'Продолжение'),
+        normalizeEdge('hub1', 'hub2', 'Продолжение'),
+        normalizeEdge('hub1', 'x', 'Другое'),
+        normalizeEdge('hub1', 'y', 'Другое'),
+        normalizeEdge('hub1', 'cur1', 'Другое'),
+      ],
+    );
+
+    expect([...findMainLine(ona, 'cur2')].sort()).toEqual(['cur1', 'cur2']);
   });
 
   it('сериал важнее ONA, к которой привязано много короткометражек', () => {
@@ -485,5 +508,38 @@ describe('layoutFranchise', () => {
 
     expect(layout.width).toBe(600);
     expect(layout.segments[0].width).toBe(600);
+  });
+});
+
+describe('laterEnd', () => {
+  const titles = new Map(
+    [
+      title('s1', '2013-04-07'),
+      title('s2', '2017-04-01'),
+      title('film', '2014-11-22', 'Фильм'),
+      title('soon', null, 'Фильм'),
+    ].map((item) => [item.slugUrl, item]),
+  );
+
+  it('у продолжения позже смотрится само продолжение', () => {
+    expect(laterEnd(normalizeEdge('s2', 's1', 'Предыстория'), titles)).toBe(
+      's2',
+    );
+  });
+
+  it('у прочих связей позже тот, кто вышел позже', () => {
+    expect(laterEnd(normalizeEdge('s2', 'film', 'Другое'), titles)).toBe('s2');
+    expect(laterEnd(normalizeEdge('s1', 'film', 'Обобщение'), titles)).toBe(
+      'film',
+    );
+  });
+
+  it('невышедший тайтл без даты смотрится позже', () => {
+    expect(laterEnd(normalizeEdge('soon', 's2', 'Другое'), titles)).toBe(
+      'soon',
+    );
+    expect(laterEnd(normalizeEdge('s2', 'soon', 'Другое'), titles)).toBe(
+      'soon',
+    );
   });
 });

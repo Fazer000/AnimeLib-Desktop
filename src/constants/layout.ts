@@ -432,17 +432,18 @@ export const FRANCHISE_MIN_YEAR_WIDTH = 160;
 export const FRANCHISE_EMPTY_GAP_WIDTH = 64;
 
 /**
- * Высота области хронологии: не ниже ленты связанного, чтобы комментарии
- * не сдвигались при смене вкладки, и не выше предела; лишнее сдвигается, px
- */
-export const FRANCHISE_MIN_HEIGHT = RELATED_CARD_HEIGHT + 16;
-export const FRANCHISE_MAX_HEIGHT = 480;
-
-/**
  * Хронология: ширина закреплённой легенды слева и высота оси годов сверху, px
  */
 export const FRANCHISE_LEGEND_WIDTH = 190;
 export const FRANCHISE_AXIS_HEIGHT = 30;
+
+/**
+ * Наименьшая высота области хронологии: как у ленты связанного, чтобы
+ * комментарии не сдвигались при смене вкладки. Сверху высоту ограничивает
+ * число рядов, поэтому по вертикали граф не прокручивается и колесо
+ * листает страницу, px
+ */
+export const FRANCHISE_MIN_HEIGHT = RELATED_CARD_HEIGHT + 16;
 
 /**
  * Высота полоски с пояснением линий под хронологией, px. Входит в общую

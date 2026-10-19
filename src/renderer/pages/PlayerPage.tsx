@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import {
+  AnimeInfo,
   animeApi,
   Episode,
   RelatedAnime as RelatedAnimeType,
 } from '../api/animeApi';
+import { parseShikimoriId } from '../utils/shikimoriFranchise';
 import CustomToolbar from '../components/Toolbar';
 import VideoPlayer, { VideoPlayerRef } from '../components/player/VideoPlayer';
 import ErrorBoundary from '../components/ErrorBoundary';
@@ -114,6 +116,10 @@ function PlayerPageRefactored({
   );
 
   const [relatedAnime, setRelatedAnime] = useState<RelatedAnimeType[]>([]);
+  const [shikimori, setShikimori] = useState<{
+    slug: string;
+    id: number | null;
+  } | null>(null);
 
   const [sidebarCollapsed, setSidebarCollapsed] = usePersistedFlag(
     offlineMode ? 'playerSidebarCollapsedOffline' : 'playerSidebarCollapsed',
@@ -190,6 +196,18 @@ function PlayerPageRefactored({
       [bookmarkManager, setHasBookmark],
     ),
   });
+
+  /**
+   * Запоминает id Shikimori текущего тайтла для хронологии
+   */
+  const handleAnimeInfoLoaded = useCallback(
+    (info: AnimeInfo | null) =>
+      setShikimori({
+        slug: currentAnimeId,
+        id: parseShikimoriId(info?.shikimori_href),
+      }),
+    [currentAnimeId],
+  );
 
   /**
    * Load related anime
@@ -733,6 +751,7 @@ function PlayerPageRefactored({
                       }
                       onPlayingChange={setIsVideoPlaying}
                       onControlsVisibilityChange={setControlsVisible}
+                      onAnimeInfoLoaded={handleAnimeInfoLoaded}
                       initialTimecode={initialTimecode}
                       onTimecodeApplied={() => {
                         log.debug('Timecode applied successfully, clearing...');
@@ -833,6 +852,9 @@ function PlayerPageRefactored({
               <RelatedSection
                 key={currentAnimeId}
                 currentSlug={currentAnimeId}
+                shikimoriId={
+                  shikimori?.slug === currentAnimeId ? shikimori.id : undefined
+                }
                 relatedAnime={relatedAnime}
                 onAnimeClick={handleRelatedAnimeClick}
               />

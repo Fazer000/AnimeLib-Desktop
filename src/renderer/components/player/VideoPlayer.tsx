@@ -144,6 +144,8 @@ interface VideoPlayerProps {
   onPlayingChange?: (isPlaying: boolean) => void;
   // eslint-disable-next-line react/require-default-props
   onControlsVisibilityChange?: (visible: boolean) => void;
+  // eslint-disable-next-line react/require-default-props
+  onAnimeInfoLoaded?: (info: AnimeInfo | null) => void;
 }
 
 interface VideoPlayerRef {
@@ -190,6 +192,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       offlineMode = false,
       onPlayingChange,
       onControlsVisibilityChange,
+      onAnimeInfoLoaded,
     },
     ref,
   ) => {
@@ -467,13 +470,15 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         try {
           const response = await animeApi.getAnimeInfo(animeId);
           setAnimeInfo(response.data);
+          onAnimeInfoLoaded?.(response.data);
         } catch (error) {
           log.error('Failed to load anime info:', error);
+          onAnimeInfoLoaded?.(null);
         }
       };
 
       loadAnimeInfo();
-    }, [animeId, offlineMode]);
+    }, [animeId, offlineMode, onAnimeInfoLoaded]);
 
     useEffect(() => {
       timecodeAppliedRef.current = false;
