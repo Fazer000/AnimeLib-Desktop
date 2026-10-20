@@ -111,7 +111,7 @@ function WebViewRefactored({
   const webViewManagerRef = useRef<WebViewManager | null>(null);
   const scriptManagerRef = useRef<ScriptInjectionManager | null>(null);
   const hostRef = useRef<HTMLDivElement | null>(null);
-  const hostSize = useStableSize(hostRef);
+  const hostSize = useStableSize(hostRef, 'frame');
   const authOutcomeRef = useRef<AuthExtractionOutcome>('unknown');
 
   /**

@@ -8,9 +8,18 @@ interface StableSize {
 const SETTLE_DELAY = 200;
 
 /**
- * Возвращает размер элемента, обновляемый только после завершения ресайза
+ * Как часто обновлять размер: 'settled' — после завершения ресайза,
+ * 'frame' — не чаще раза за кадр, чтобы содержимое следовало за окном
  */
-function useStableSize(ref: RefObject<HTMLElement | null>): StableSize | null {
+export type SizeUpdateMode = 'settled' | 'frame';
+
+/**
+ * Возвращает округлённый размер элемента
+ */
+function useStableSize(
+  ref: RefObject<HTMLElement | null>,
+  mode: SizeUpdateMode = 'settled',
+): StableSize | null {
   const [size, setSize] = useState<StableSize | null>(null);
 
   useEffect(() => {
@@ -22,8 +31,10 @@ function useStableSize(ref: RefObject<HTMLElement | null>): StableSize | null {
 
     // eslint-disable-next-line no-undef
     let timer: NodeJS.Timeout | null = null;
+    let frame: number | null = null;
 
     const commit = () => {
+      frame = null;
       const rect = node.getBoundingClientRect();
       const width = Math.round(rect.width);
       const height = Math.round(rect.height);
@@ -40,6 +51,11 @@ function useStableSize(ref: RefObject<HTMLElement | null>): StableSize | null {
     };
 
     const schedule = () => {
+      if (mode === 'frame') {
+        if (frame === null) frame = requestAnimationFrame(commit);
+        return;
+      }
+
       if (timer) {
         clearTimeout(timer);
       }
@@ -55,9 +71,12 @@ function useStableSize(ref: RefObject<HTMLElement | null>): StableSize | null {
       if (timer) {
         clearTimeout(timer);
       }
+      if (frame !== null) {
+        cancelAnimationFrame(frame);
+      }
       observer.disconnect();
     };
-  }, [ref]);
+  }, [ref, mode]);
 
   return size;
 }
