@@ -5,6 +5,8 @@ import {
   currentSiteHomeUrl,
   libSiteHomeUrl,
   libTitlePageUrl,
+  libSitePageUrl,
+  pickSearchSite,
 } from '../renderer/utils/libSites';
 
 const chapters = [
@@ -186,5 +188,37 @@ describe('libTitlePageUrl', () => {
     expect(libTitlePageUrl(5, '1--a')).toBeNull();
     expect(libTitlePageUrl(6, '1--a')).toBeNull();
     expect(libTitlePageUrl(1, '')).toBeNull();
+  });
+});
+
+describe('libSitePageUrl', () => {
+  it('путь на сайте манги или ранобэ по Site-Id', () => {
+    expect(libSitePageUrl(3, '/ru/x/read/v1/c2')).toBe(
+      'https://ranobelib.me/ru/x/read/v1/c2',
+    );
+    expect(libSitePageUrl(2, '/ru/manga/1--a')).toBe(
+      'https://v2.shlib.life/ru/manga/1--a',
+    );
+  });
+
+  it('AnimeLib и неизвестный сайт — null', () => {
+    expect(libSitePageUrl(5, '/ru/anime/1--a')).toBeNull();
+    expect(libSitePageUrl(6, '/')).toBeNull();
+  });
+});
+
+describe('pickSearchSite', () => {
+  it('остаётся на текущем сайте, если там есть результаты', () => {
+    expect(pickSearchSite({ 5: 2, 1: 10 }, 5)).toBe(5);
+  });
+
+  it('иначе первый сайт с результатами по порядку сайтов', () => {
+    expect(pickSearchSite({ 5: 0, 1: 0, 2: 4, 3: 7 }, 5)).toBe(2);
+    expect(pickSearchSite({ 1: 0, 3: 7, 5: 1 }, 1)).toBe(5);
+  });
+
+  it('ничего не найдено — текущий сайт', () => {
+    expect(pickSearchSite({ 5: 0, 1: 0 }, 1)).toBe(1);
+    expect(pickSearchSite({}, 3)).toBe(3);
   });
 });

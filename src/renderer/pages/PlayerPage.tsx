@@ -390,21 +390,6 @@ function PlayerPageRefactored({
     exitPlayer(onBack);
   }, [exitPlayer, onBack]);
 
-  /**
-   * Handle URL change
-   */
-  const handleUrlChange = useCallback(
-    (newUrl: string) => {
-      log.debug('URL changed:', newUrl);
-      if (onNavigateToUrl) {
-        onNavigateToUrl(newUrl);
-      } else {
-        log.warn('onNavigateToUrl not provided');
-      }
-    },
-    [onNavigateToUrl],
-  );
-
   const handleMinimize = useCallback(() => {
     if (window.electron?.ipcRenderer) {
       window.electron.ipcRenderer.sendMessage('window-minimize');
@@ -535,7 +520,7 @@ function PlayerPageRefactored({
         animeId={offlineMode ? undefined : currentAnimeId}
         onOpenAnimePage={handleOpenAnimePage}
         hideAnimeHandle={!controlsVisible}
-        onUrlChange={handleUrlChange}
+        onUrlChange={handleOpenPage}
         onToggleUrlInput={() => setShowUrlInput(!showUrlInput)}
         onPlayerButtonClick={onPlayerButtonClick}
         onMinimize={handleMinimize}

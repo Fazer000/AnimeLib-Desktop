@@ -8,6 +8,7 @@ import {
   resolveProgressStatus,
 } from '../utils/bookmarkFolders';
 import type { AnimeSubscriptionItem } from '../utils/animeSubscriptions';
+import { buildTitleAction } from '../utils/titleAction';
 import {
   RateLimitCooldown,
   RateLimitInfo,
@@ -181,6 +182,7 @@ export interface SearchResultItem {
   cover?: { default: string };
   slug: string;
   slug_url: string;
+  site?: number;
 }
 
 export interface SearchAnimeResponse {
@@ -400,7 +402,7 @@ animeApiClient.interceptors.request.use((config) => {
   config.headers.Accept = '*/*';
   config.headers['Accept-Language'] = 'ru,en;q=0.9,de;q=0.8,zh;q=0.7';
   config.headers['Content-Type'] = 'application/json';
-  config.headers['Site-Id'] = '5';
+  config.headers['Site-Id'] = config.headers['Site-Id'] ?? '5';
   config.headers['Client-Time-Zone'] = 'Europe/Samara';
   config.headers.Priority = 'u=1, i';
 
@@ -1026,6 +1028,51 @@ export const animeApi = {
       log.error('Error searching anime:', error);
       throw error;
     }
+  },
+
+  /**
+   * Поиск манги или ранобэ на сайте сети (Site-Id)
+   */
+  searchSiteTitles: async (
+    siteId: number,
+    query: string,
+  ): Promise<SearchResultItem[]> => {
+    const response = await animeApiClient.get('/manga', {
+      params: {
+        'fields[]': ['rate_avg', 'rate', 'releaseDate'],
+        'site_id[]': [siteId],
+        q: query,
+      },
+      headers: { 'Site-Id': String(siteId) },
+    });
+    const items = response.data?.data;
+    return Array.isArray(items) ? items : [];
+  },
+
+  /**
+   * Путь главы для чтения: из закладки или первая; без глав — null
+   */
+  getReadingPath: async (
+    siteId: number,
+    slugUrl: string,
+  ): Promise<string | null> => {
+    const headers = { 'Site-Id': String(siteId) };
+    const [chapters, bookmark] = await Promise.all([
+      animeApiClient.get(`/manga/${slugUrl}/chapters`, { headers }),
+      getBearerToken()
+        ? animeApiClient
+            .get(`/manga/${slugUrl}/bookmark`, { headers })
+            .catch(() => null)
+        : Promise.resolve(null),
+    ]);
+    const items = chapters.data?.data;
+
+    return buildTitleAction({
+      watch: false,
+      slug: slugUrl,
+      items: Array.isArray(items) ? items : [],
+      bookmarkItemId: bookmark?.data?.data?.item_id ?? null,
+    }).href;
   },
 };
 

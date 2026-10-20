@@ -8,7 +8,9 @@ import AnimeInfoCard from './toolbar/AnimeInfoCard';
 import AnimeInfoHandle from './toolbar/AnimeInfoHandle';
 import SearchModal from './toolbar/SearchModal';
 import { buildAnimePageUrl } from '../utils/urlHelpers';
+import { findLibSiteByUrl } from '../utils/libSites';
 import {
+  LIB_SITES,
   ANIME_HANDLE_HEIGHT,
   ANIME_HANDLE_HOVER_OVERHANG,
   ANIME_HANDLE_HOVER_WIDTH,
@@ -303,7 +305,9 @@ function ToolbarRefactored({
       <SearchModal
         open={showSearchModal}
         onClose={handleCloseSearch}
+        currentSiteId={(findLibSiteByUrl(currentUrl) ?? LIB_SITES[0]).siteId}
         onAnimeSelect={handleAnimeSelect}
+        onOpenUrl={onUrlChange}
       />
     </>
   );

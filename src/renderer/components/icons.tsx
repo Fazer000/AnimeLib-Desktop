@@ -13,6 +13,7 @@ import {
   BellRing as LucideBellRing,
   Bold as LucideBold,
   Bookmark as LucideBookmark,
+  BookOpen as LucideBookOpen,
   Bug as LucideBug,
   Captions as LucideCaptions,
   Check as LucideCheck,
@@ -95,6 +96,7 @@ export const Bell = adapt(LucideBell);
 export const BellRing = adapt(LucideBellRing);
 export const Bold = adapt(LucideBold);
 export const Bookmark = adapt(LucideBookmark);
+export const BookOpen = adapt(LucideBookOpen);
 export const Bug = adapt(LucideBug);
 export const Captions = adapt(LucideCaptions);
 export const Check = adapt(LucideCheck);

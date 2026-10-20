@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Modal,
   Box,
@@ -11,41 +11,36 @@ import {
   ButtonBase,
   useTheme,
 } from '@mui/material';
-import { Play, Search, SearchX, X } from '../icons';
+import { BookOpen, Play, Search, SearchX, X } from '../icons';
 import EmptyState from '../EmptyState';
-import { animeApi } from '../../api/animeApi';
+import LibSiteIcon from '../sideRail/LibSiteIcon';
+import { animeApi, SearchResultItem } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
+import { LIB_SITES, LibSite } from '../../../constants';
+import {
+  libSitePageUrl,
+  libTitlePageUrl,
+  pickSearchSite,
+} from '../../utils/libSites';
 
 import { createLogger } from '../../../shared/logger';
 
 const log = createLogger('SearchModal');
 
-interface SearchResult {
-  id: number;
-  name: string;
-  rus_name?: string;
-  type?: {
-    id: number;
-    label: string;
-  };
-  status?: {
-    id: number;
-    label: string;
-  };
-  releaseDate?: string;
-  releaseDateString?: string;
-  cover?: {
-    default: string;
-  };
-  slug: string;
-  slug_url: string;
-}
+const SEARCH_DELAY = 300;
+const SEARCH_MIN_LENGTH = 2;
+const TAB_ICON_SIZE = 18;
+
+type SiteResults = Record<number, SearchResultItem[]>;
 
 interface SearchModalProps {
   open: boolean;
   onClose: () => void;
+  currentSiteId: number;
   // eslint-disable-next-line react/require-default-props
   onAnimeSelect?: (slugUrl: string, openInPlayer?: boolean) => void;
+  // eslint-disable-next-line react/require-default-props
+  onOpenUrl?: (url: string) => void;
 }
 
 /**
@@ -53,15 +48,20 @@ interface SearchModalProps {
  */
 function SearchResultCard({
   result,
+  watch,
+  busy,
   onCardClick,
-  onPlayerClick,
+  onActionClick,
 }: {
-  result: SearchResult;
+  result: SearchResultItem;
+  watch: boolean;
+  busy: boolean;
   onCardClick: () => void;
-  onPlayerClick: () => void;
+  onActionClick: () => void;
 }) {
   const coverUrl = useImageWithReferer(result.cover?.default || '');
   const { customColors } = useTheme().palette;
+  const ActionIcon = watch ? Play : BookOpen;
 
   return (
     <Box
@@ -154,9 +154,11 @@ function SearchResultCard({
         <ButtonBase
           onClick={(e) => {
             e.stopPropagation();
-            onPlayerClick();
+            onActionClick();
           }}
-          aria-label="Открыть в плеере"
+          disabled={busy}
+          aria-label={watch ? 'Открыть в плеере' : 'Читать'}
+          title={watch ? 'Открыть в плеере' : 'Читать'}
           sx={{
             height: '100%',
             paddingInline: 2,
@@ -166,35 +168,41 @@ function SearchResultCard({
             transition: 'background-color 0.18s ease',
             '&:hover': {
               backgroundColor: customColors.accentQuietColor,
-              '& .search-play-icon': {
+              '& .search-action-icon': {
                 color: customColors.accentSoftColor,
                 transform: 'scale(1.2)',
               },
             },
-            '&:active .search-play-icon': {
+            '&:active .search-action-icon': {
               transform: 'scale(0.94)',
             },
           }}
         >
           <Box
             sx={{
-              width: 20,
+              width: 24,
               height: '100%',
-              borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Play
-              className="search-play-icon"
-              sx={{
-                color: customColors.mutedTextColor,
-                fontSize: 24,
-                transition:
-                  'color 0.18s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
-              }}
-            />
+            {busy ? (
+              <CircularProgress
+                size={18}
+                sx={{ color: customColors.accentSoftColor }}
+              />
+            ) : (
+              <ActionIcon
+                className="search-action-icon"
+                sx={{
+                  color: customColors.mutedTextColor,
+                  fontSize: 24,
+                  transition:
+                    'color 0.18s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                }}
+              />
+            )}
           </Box>
         </ButtonBase>
       </Box>
@@ -203,64 +211,141 @@ function SearchResultCard({
 }
 
 /**
- * SearchModal - Компонент модального окна поиска аниме
+ * Поиск тайтла по сайту сети: аниме — через свой поиск, манга и ранобэ —
+ * через каталог с Site-Id
  */
-function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
+const searchSite = (site: LibSite, query: string) =>
+  site.kind === 'anime'
+    ? animeApi.searchAnime(query).then((response) => response.data || [])
+    : animeApi.searchSiteTitles(site.siteId, query);
+
+/**
+ * SearchModal - поиск тайтлов по всем сайтам сети, вкладка на каждый сайт
+ */
+function SearchModal({
+  open,
+  onClose,
+  currentSiteId,
+  onAnimeSelect,
+  onOpenUrl,
+}: SearchModalProps) {
   const { customColors } = useTheme().palette;
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<number>(0);
-  const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-
-  const tabs = ['Тайтлы'];
+  const [activeSiteId, setActiveSiteId] = useState<number>(currentSiteId);
+  const [results, setResults] = useState<SiteResults>({});
+  const [pending, setPending] = useState<number[]>([]);
+  const [busySlug, setBusySlug] = useState<string | null>(null);
+  const tabPickedRef = useRef(false);
+  const searchIdRef = useRef(0);
 
   useEffect(() => {
     if (!open) {
       setSearchQuery('');
-      setSearchResults([]);
-      setActiveTab(0);
+      setResults({});
+      setPending([]);
+      setBusySlug(null);
+    } else {
+      setActiveSiteId(currentSiteId);
     }
-  }, [open]);
+    tabPickedRef.current = false;
+  }, [open, currentSiteId]);
 
   useEffect(() => {
-    if (searchQuery.length < 2) {
-      setSearchResults([]);
+    searchIdRef.current += 1;
+    const searchId = searchIdRef.current;
+
+    if (searchQuery.length < SEARCH_MIN_LENGTH) {
+      setResults({});
+      setPending([]);
       return undefined;
     }
 
-    setIsSearching(true);
-    const timeoutId = setTimeout(async () => {
-      try {
-        log.debug('Searching for:', searchQuery);
-        const response = await animeApi.searchAnime(searchQuery);
-        setSearchResults(response.data || []);
-      } catch (error) {
-        log.error('Search error:', error);
-        setSearchResults([]);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 300);
+    setPending(LIB_SITES.map((site) => site.siteId));
+    const timeoutId = setTimeout(() => {
+      log.debug('Searching for:', searchQuery);
+
+      LIB_SITES.forEach(async (site) => {
+        let items: SearchResultItem[] = [];
+        try {
+          items = await searchSite(site, searchQuery);
+        } catch (error) {
+          log.error('Search error on site', site.siteId, error);
+        }
+
+        if (searchIdRef.current !== searchId) return;
+        setResults((prev) => ({ ...prev, [site.siteId]: items }));
+        setPending((prev) => prev.filter((id) => id !== site.siteId));
+      });
+    }, SEARCH_DELAY);
 
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue);
+  useEffect(() => {
+    if (tabPickedRef.current || pending.length > 0) return;
+    if (Object.keys(results).length === 0) return;
+
+    const counts: Record<number, number> = {};
+    Object.entries(results).forEach(([siteId, items]) => {
+      counts[Number(siteId)] = items.length;
+    });
+    setActiveSiteId(pickSearchSite(counts, currentSiteId));
+  }, [results, pending, currentSiteId]);
+
+  const activeSite =
+    LIB_SITES.find((site) => site.siteId === activeSiteId) ?? LIB_SITES[0];
+  const activeResults = results[activeSiteId] ?? [];
+  const isSearching = pending.includes(activeSiteId);
+
+  const handleTabChange = (_event: React.SyntheticEvent, siteId: number) => {
+    tabPickedRef.current = true;
+    setActiveSiteId(siteId);
   };
 
-  const handleAnimeClick = (result: SearchResult, openInPlayer = false) => {
-    log.debug(
-      'Anime selected:',
-      result.slug_url,
-      'openInPlayer:',
-      openInPlayer,
-    );
-    if (onAnimeSelect) {
-      onAnimeSelect(result.slug_url, openInPlayer);
-    }
+  const openUrl = (url: string | null) => {
+    if (!url || !onOpenUrl) return;
+    log.debug('Opening title page:', url);
+    onOpenUrl(url);
     onClose();
   };
+
+  const handleCardClick = (result: SearchResultItem) => {
+    if (activeSite.kind === 'anime') {
+      log.debug('Anime selected:', result.slug_url);
+      onAnimeSelect?.(result.slug_url, false);
+      onClose();
+      return;
+    }
+
+    openUrl(libTitlePageUrl(activeSite.siteId, result.slug_url));
+  };
+
+  const handleActionClick = async (result: SearchResultItem) => {
+    if (activeSite.kind === 'anime') {
+      log.debug('Anime selected for player:', result.slug_url);
+      onAnimeSelect?.(result.slug_url, true);
+      onClose();
+      return;
+    }
+
+    const { siteId } = activeSite;
+    setBusySlug(result.slug_url);
+    try {
+      const path = await animeApi.getReadingPath(siteId, result.slug_url);
+      openUrl(
+        path
+          ? libSitePageUrl(siteId, path)
+          : libTitlePageUrl(siteId, result.slug_url),
+      );
+    } catch (error) {
+      log.error('Error loading reading path:', error);
+      openUrl(libTitlePageUrl(siteId, result.slug_url));
+    } finally {
+      setBusySlug(null);
+    }
+  };
+
+  const hasQuery = searchQuery.length > 0;
 
   return (
     <Modal
@@ -347,23 +432,17 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
           }}
         >
           <Tabs
-            value={activeTab}
+            value={activeSiteId}
             onChange={handleTabChange}
             variant="scrollable"
             scrollButtons="auto"
-            TabIndicatorProps={{
-              style: {
-                height: 3,
-                borderRadius: '3px 3px 0 0',
-                transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
-              },
-            }}
             sx={{
               minHeight: 40,
               '& .MuiTabs-indicator': {
                 backgroundColor: customColors.accentSoftColor,
                 height: 3,
                 borderRadius: '3px 3px 0 0',
+                transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
               },
               '& .MuiTab-root': {
                 color: customColors.accentTextColor,
@@ -371,9 +450,10 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
                 fontSize: '13px',
                 minHeight: 40,
                 minWidth: 'auto',
-                padding: '8px 16px',
+                padding: '8px 14px',
+                gap: 1,
                 fontFamily: 'Open Sans, sans-serif',
-                transition: 'color 200ms',
+                transition: 'color 200ms, opacity 200ms',
                 '&.Mui-selected': {
                   color: customColors.accentSoftColor,
                 },
@@ -386,9 +466,46 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
               },
             }}
           >
-            {tabs.map((tab) => (
-              <Tab key={tab} label={tab} />
-            ))}
+            {LIB_SITES.map((site) => {
+              const loading = pending.includes(site.siteId);
+              const count = results[site.siteId]?.length;
+              const empty = hasQuery && !loading && count === 0;
+
+              return (
+                <Tab
+                  key={site.siteId}
+                  value={site.siteId}
+                  iconPosition="start"
+                  icon={<LibSiteIcon site={site} size={TAB_ICON_SIZE} />}
+                  sx={{ opacity: empty ? 0.5 : 1 }}
+                  label={
+                    <Box
+                      component="span"
+                      sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}
+                    >
+                      {site.name}
+                      {loading && (
+                        <CircularProgress
+                          size={10}
+                          sx={{ color: customColors.mutedTextColor }}
+                        />
+                      )}
+                      {!loading && count !== undefined && (
+                        <Box
+                          component="span"
+                          sx={{
+                            fontSize: '11px',
+                            color: customColors.mutedTextColor,
+                          }}
+                        >
+                          {count}
+                        </Box>
+                      )}
+                    </Box>
+                  }
+                />
+              );
+            })}
           </Tabs>
         </Box>
 
@@ -415,71 +532,25 @@ function SearchModal({ open, onClose, onAnimeSelect }: SearchModalProps) {
             </Box>
           )}
 
-          {!isSearching && searchQuery.length === 0 && (
+          {!isSearching && !hasQuery && (
             <EmptyState icon={<Search />} text="Начните вводить для поиска" />
           )}
 
-          {!isSearching &&
-            searchQuery.length > 0 &&
-            searchResults.length === 0 && (
-              <EmptyState icon={<SearchX />} text="Ничего не найдено" />
-            )}
-
-          {searchResults.length > 0 && !isSearching && (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.5,
-                flexShrink: 0,
-                marginBottom: 2,
-              }}
-            >
-              <Box
-                component="svg"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 512 512"
-                sx={{
-                  width: 24,
-                  height: 24,
-                  '& .site-logo__corner': {
-                    fill: customColors.accentSoftColor,
-                  },
-                  '& .site-logo__words': {
-                    fill: customColors.dialogTextColor,
-                  },
-                }}
-              >
-                <path
-                  className="site-logo__corner"
-                  d="M220 78v30c0 4.42-3.58 8-8 8h-86c-5.52 0-10 4.48-10 10v86c0 4.42-3.58 8-8 8H78c-4.42 0-8-3.58-8-8V82c0-6.63 5.37-12 12-12h130c4.42 0 8 3.58 8 8zM292 434v-30c0-4.42 3.58-8 8-8h86c5.52 0 10-4.48 10-10v-86c0-4.42 3.58-8 8-8h30c4.42 0 8 3.58 8 8v130c0 6.63-5.37 12-12 12H300c-4.42 0-8-3.58-8-8z"
-                />
-                <path
-                  className="site-logo__words"
-                  d="M164.16 354c-1.5 0-2.85-.6-4.06-1.82-1.22-1.21-1.82-2.56-1.82-4.06 0-.93.09-1.77.28-2.52l65.8-179.76c.56-2.05 1.72-3.87 3.5-5.46 1.77-1.58 4.24-2.38 7.42-2.38h41.44c3.17 0 5.64.8 7.42 2.38 1.77 1.59 2.94 3.41 3.5 5.46l65.52 179.76c.37.75.56 1.59.56 2.52 0 1.5-.61 2.85-1.82 4.06-1.21 1.22-2.66 1.82-4.34 1.82h-34.44c-2.8 0-4.9-.7-6.3-2.1-1.4-1.4-2.29-2.66-2.66-3.78l-10.92-28.56h-74.76l-10.64 28.56c-.38 1.12-1.22 2.38-2.52 3.78-1.31 1.4-3.55 2.1-6.72 2.1h-34.44zm65.8-74.76h52.08L256 205.32l-26.04 73.92z"
-                />
-              </Box>
-              <Typography
-                sx={{
-                  color: customColors.dialogTextColor,
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  fontFamily: 'Open Sans, sans-serif',
-                }}
-              >
-                AnimeLib
-              </Typography>
-            </Box>
+          {!isSearching && hasQuery && activeResults.length === 0 && (
+            <EmptyState icon={<SearchX />} text="Ничего не найдено" />
           )}
 
-          {searchResults.map((result) => (
-            <SearchResultCard
-              key={result.id}
-              result={result}
-              onCardClick={() => handleAnimeClick(result, false)}
-              onPlayerClick={() => handleAnimeClick(result, true)}
-            />
-          ))}
+          {!isSearching &&
+            activeResults.map((result) => (
+              <SearchResultCard
+                key={result.id}
+                result={result}
+                watch={activeSite.kind === 'anime'}
+                busy={busySlug === result.slug_url}
+                onCardClick={() => handleCardClick(result)}
+                onActionClick={() => handleActionClick(result)}
+              />
+            ))}
         </Box>
       </Box>
     </Modal>

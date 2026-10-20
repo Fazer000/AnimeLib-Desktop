@@ -55,6 +55,21 @@ export function currentSiteHomeUrl(
 }
 
 /**
+ * Полный адрес пути на сайте сети по Site-Id; AnimeLib и неизвестный
+ * сайт — null
+ */
+export function libSitePageUrl(
+  siteId: number,
+  path: string,
+  sites: LibSite[] = LIB_SITES,
+): string | null {
+  const site = sites.find((item) => item.siteId === siteId);
+  if (!site?.home) return null;
+
+  return `${new URL(site.home).origin}${path}`;
+}
+
+/**
  * Страница тайтла на его сайте сети по Site-Id: манга — /ru/manga/,
  * ранобэ — /ru/book/. Аниме и неизвестный сайт — null: аниме открывается
  * своим путём, через адрес AnimeLib из настроек
@@ -68,5 +83,20 @@ export function libTitlePageUrl(
   if (!site?.home || !slugUrl) return null;
 
   const section = site.kind === 'ranobe' ? 'book' : 'manga';
-  return `${new URL(site.home).origin}/ru/${section}/${slugUrl}`;
+  return libSitePageUrl(siteId, `/ru/${section}/${slugUrl}`, sites);
+}
+
+/**
+ * С какой вкладки поиска начать: текущий сайт, если на нём что-то нашлось,
+ * иначе первый сайт с результатами по порядку
+ */
+export function pickSearchSite(
+  counts: Record<number, number>,
+  currentSiteId: number,
+  sites: LibSite[] = LIB_SITES,
+): number {
+  if ((counts[currentSiteId] ?? 0) > 0) return currentSiteId;
+
+  const found = sites.find((site) => (counts[site.siteId] ?? 0) > 0);
+  return found?.siteId ?? currentSiteId;
 }
