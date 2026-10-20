@@ -1,7 +1,17 @@
 import { Player, KodikVideoLinks } from '../../api/animeApi';
 import { QualityOption } from './ShakaPlayerManager';
 import { offlineStore } from '../offline';
-import { buildOfflineUrl } from '../../../constants';
+import {
+  QUALITY_PREFERENCE_STORAGE_KEY,
+  buildOfflineUrl,
+} from '../../../constants';
+import {
+  AutoQualityPolicy,
+  AutoQualityReason,
+  AutoQualitySample,
+  NetworkCeiling,
+  pickManualQuality,
+} from '../../utils/autoQuality';
 import { resolveKodikSource } from '../../utils/kodikHelpers';
 import { findOfflineCopies } from '../../utils/playerIdentity';
 
@@ -9,10 +19,38 @@ import { createLogger } from '../../../shared/logger';
 
 const log = createLogger('QualityManager');
 
+/** «Авто» включено и почему оно играет не самое высокое качество. */
+export interface QualityModeState {
+  auto: boolean;
+  reason: AutoQualityReason;
+}
+
+/** Значение пункта «Авто» в меню качества. */
+export const AUTO_QUALITY = 'auto';
+
 export interface QualityManagerConfig {
   onQualityOptionsChange?: (options: QualityOption[]) => void;
   onSelectedQualityChange?: (quality: string) => void;
+  onQualityModeChange?: (mode: QualityModeState) => void;
+  /** Потолок качества по размеру плеера, по высоте кадра */
+  getSizeCap?: (values: string[]) => number;
 }
+
+const readPreference = (): string => {
+  try {
+    return localStorage.getItem(QUALITY_PREFERENCE_STORAGE_KEY) || AUTO_QUALITY;
+  } catch {
+    return AUTO_QUALITY;
+  }
+};
+
+const savePreference = (value: string): void => {
+  try {
+    localStorage.setItem(QUALITY_PREFERENCE_STORAGE_KEY, value);
+  } catch (error) {
+    log.error('Error saving quality preference:', error);
+  }
+};
 
 /**
  * Управляет качеством видео и источниками
@@ -23,6 +61,12 @@ export class QualityManager {
   private selectedQuality: string = '';
 
   private config: QualityManagerConfig;
+
+  private preference: string = readPreference();
+
+  private policy: AutoQualityPolicy | null = null;
+
+  private ceiling: NetworkCeiling | null = null;
 
   constructor(config: QualityManagerConfig = {}) {
     this.config = config;
@@ -37,6 +81,7 @@ export class QualityManager {
     episodeId?: number,
   ): void {
     const options: QualityOption[] = [];
+    this.dropPolicy();
 
     const offlineEpisodes = episodeId
       ? findOfflineCopies(offlineStore.findEpisodes(episodeId), player)
@@ -71,6 +116,7 @@ export class QualityManager {
       this.selectedQuality = options[0].value;
       this.config.onSelectedQualityChange?.(this.selectedQuality);
       this.config.onQualityOptionsChange?.(options);
+      this.emitMode();
       log.debug('Using offline sources:', options.length);
       return;
     }
@@ -123,11 +169,112 @@ export class QualityManager {
     log.debug('Created quality options:', options.length);
 
     if (options.length > 0) {
-      this.selectedQuality = options[0].value;
+      const values = options.map((option) => option.value);
+      if (this.isAuto()) {
+        this.policy = new AutoQualityPolicy(values, this.ceiling);
+        this.selectedQuality = this.policy.initial(
+          this.sizeCap(values),
+          Date.now(),
+        );
+      } else {
+        this.selectedQuality = pickManualQuality(values, this.preference);
+      }
       this.config.onSelectedQualityChange?.(this.selectedQuality);
     }
 
     this.config.onQualityOptionsChange?.(options);
+    this.emitMode();
+  }
+
+  /**
+   * Выбор пользователя в меню: «Авто» или конкретное качество; запоминается
+   * для следующих серий. Возвращает качество, которое должно играть
+   */
+  choose(choice: string): string | null {
+    const values = this.qualityOptions.map((option) => option.value);
+    if (choice !== AUTO_QUALITY && !values.includes(choice)) {
+      log.error('Quality not found:', choice);
+      return null;
+    }
+
+    this.preference = choice;
+    savePreference(choice);
+
+    if (choice !== AUTO_QUALITY) {
+      this.dropPolicy();
+      this.emitMode();
+      return choice;
+    }
+
+    const offline = this.qualityOptions.some((option) =>
+      option.label.endsWith('(оффлайн)'),
+    );
+    if (offline) {
+      this.emitMode();
+      return values[0] ?? null;
+    }
+
+    this.policy = new AutoQualityPolicy(values, this.ceiling);
+    const target = this.policy.initial(this.sizeCap(values), Date.now());
+    this.emitMode();
+    return target;
+  }
+
+  /**
+   * Шаг автоподбора: качество, на которое пора переключиться, или null
+   */
+  autoStep(state: AutoQualitySample): string | null {
+    if (!this.policy) return null;
+
+    const now = Date.now();
+    const values = this.qualityOptions.map((option) => option.value);
+    this.policy.setCap(this.sizeCap(values), now);
+    return this.policy.sample(state, now);
+  }
+
+  /**
+   * Качество сменилось: автоподбор отсчитывает паузу от этого момента
+   */
+  noteSwitched(value: string): void {
+    this.policy?.noteSwitch(value, Date.now());
+    this.emitMode();
+  }
+
+  /**
+   * Перемотка: ожидание буфера после неё не повод понижать качество
+   */
+  noteSeek(): void {
+    this.policy?.noteSeek(Date.now());
+  }
+
+  /**
+   * Включено ли «Авто»
+   */
+  isAuto(): boolean {
+    return this.preference === AUTO_QUALITY;
+  }
+
+  getModeState(): QualityModeState {
+    return {
+      auto: this.isAuto(),
+      reason: this.policy?.reason(Date.now()) ?? null,
+    };
+  }
+
+  /**
+   * Снимает автоподбор серии, запоминая потолок по сети для следующей
+   */
+  private dropPolicy(): void {
+    if (this.policy) this.ceiling = this.policy.networkCeiling(Date.now());
+    this.policy = null;
+  }
+
+  private sizeCap(values: string[]): number {
+    return this.config.getSizeCap?.(values) ?? Infinity;
+  }
+
+  private emitMode(): void {
+    this.config.onQualityModeChange?.(this.getModeState());
   }
 
   /**
@@ -215,6 +362,7 @@ export class QualityManager {
   reset(): void {
     this.qualityOptions = [];
     this.selectedQuality = '';
+    this.dropPolicy();
     this.config.onQualityOptionsChange?.([]);
     this.config.onSelectedQualityChange?.('');
   }

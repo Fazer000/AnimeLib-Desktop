@@ -556,3 +556,35 @@ export const FRANCHISE_CACHE_LIMIT = 30;
 export const FRANCHISE_FOUND_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const FRANCHISE_MISSING_TTL_MS = 24 * 60 * 60 * 1000;
 export const FRANCHISE_CACHE_SAVE_DELAY_MS = 2000;
+
+/** Выбор качества: «auto» или запомненное вручную значение вида «1080p». */
+export const QUALITY_PREFERENCE_STORAGE_KEY = 'animeLibQualityPreference';
+
+/** Как часто автоподбор смотрит на буфер, мс. */
+export const AUTO_QUALITY_TICK_MS = 1000;
+
+/** После смены качества или перемотки ожидание буфера не считается проблемой сети, мс. */
+export const AUTO_QUALITY_GRACE_MS = 5000;
+
+/** Сколько длится ожидание буфера при воспроизведении, чтобы понизить качество, мс. */
+export const AUTO_QUALITY_STALL_MS = 1500;
+
+/** Запас буфера, ниже которого качество понижается, если держится долго, с. */
+export const AUTO_QUALITY_LOW_BUFFER_S = 3;
+export const AUTO_QUALITY_LOW_BUFFER_MS = 6000;
+
+/** Запас буфера, при котором качество повышается, если держится долго (цель буфера Shaka — 30 с). */
+export const AUTO_QUALITY_HIGH_BUFFER_S = 20;
+export const AUTO_QUALITY_HIGH_BUFFER_MS = 20000;
+
+/** Минимальная пауза между автоматическими сменами качества, мс. */
+export const AUTO_QUALITY_SWITCH_COOLDOWN_MS = 30000;
+
+/** Сколько не возвращаться к качеству, на котором сеть не справилась, мс. */
+export const AUTO_QUALITY_CEILING_MS = 5 * 60 * 1000;
+
+/** Сколько размер плеера должен не меняться, чтобы подстроить под него качество, мс. */
+export const AUTO_QUALITY_SIZE_SETTLE_MS = 2000;
+
+/** Допуск: качество чуть ниже высоты плеера ещё считается достаточным. */
+export const AUTO_QUALITY_SIZE_TOLERANCE = 0.9;

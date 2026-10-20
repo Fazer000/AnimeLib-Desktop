@@ -14,7 +14,8 @@ export { VideoStateManager } from './VideoStateManager';
 export type { VideoState, VideoStateConfig } from './VideoStateManager';
 
 export { QualityManager } from './QualityManager';
-export type { QualityManagerConfig } from './QualityManager';
+export type { QualityManagerConfig, QualityModeState } from './QualityManager';
+export { AUTO_QUALITY } from './QualityManager';
 
 export { SubtitlesManager } from './SubtitlesManager';
 export type {

@@ -35,6 +35,7 @@ import {
 } from './settings/navigation';
 import type { MenuDirection } from './settings/navigation';
 import useContentHeight from '../../hooks/useContentHeight';
+import type { QualityModeState } from '../../services/player';
 
 const DEFAULT_AUTO_SKIP: AutoSkipSettings = {
   skipOpenings: false,
@@ -102,6 +103,7 @@ interface SettingsMenuProps {
   onClose: () => void;
   qualityOptions: Array<{ label: string; value: string }>;
   selectedQuality: string;
+  qualityMode: QualityModeState;
   playbackRate: number;
   skipManager: SkipManager;
   onQualityChange: (quality: string) => void;
@@ -129,6 +131,7 @@ function SettingsMenu({
   onClose,
   qualityOptions,
   selectedQuality,
+  qualityMode,
   playbackRate,
   skipManager,
   onQualityChange,
@@ -200,6 +203,7 @@ function SettingsMenu({
                 <MainPage
                   qualityOptions={qualityOptions}
                   selectedQuality={selectedQuality}
+                  qualityMode={qualityMode}
                   playbackRate={playbackRate}
                   skipManager={skipManager}
                   autoSkipSettings={autoSkipSettings}
@@ -222,6 +226,7 @@ function SettingsMenu({
                 <QualityPage
                   options={qualityOptions}
                   selected={selectedQuality}
+                  mode={qualityMode}
                   onSelect={(quality) => {
                     onQualityChange(quality);
                     closeMenu();

@@ -1,7 +1,7 @@
 import { Player, KodikVideoLinks } from '../../api/animeApi';
 import { ShakaPlayerManager } from './ShakaPlayerManager';
 import { VideoStateManager } from './VideoStateManager';
-import { QualityManager } from './QualityManager';
+import { QualityManager, QualityModeState } from './QualityManager';
 import {
   SubtitlesManager,
   SubtitleTrack,
@@ -19,7 +19,13 @@ import { classifyPlayerLoad, getResumeTime } from '../../utils/playerLoad';
 import { getPlayerIdentity } from '../../utils/playerIdentity';
 import { pickThumbnailSource } from '../../utils/thumbnailSource';
 import { preloadProgressiveSource } from './sourcePreloader';
-import { OFFLINE_SCHEME, QUALITY_PRELOAD_TIMEOUT_MS } from '../../../constants';
+import {
+  AUTO_QUALITY_TICK_MS,
+  OFFLINE_SCHEME,
+  QUALITY_PRELOAD_TIMEOUT_MS,
+} from '../../../constants';
+import { playerPixelHeight, sizeCapHeight } from '../../utils/autoQuality';
+import { bufferedAhead } from '../../utils/bufferAhead';
 
 const log = createLogger('VideoPlayerController');
 
@@ -30,6 +36,9 @@ export interface VideoPlayerControllerConfig {
   onTimeUpdate?: (currentTime: number, buffered: number) => void;
   onQualityOptionsChange?: (options: any[]) => void;
   onSelectedQualityChange?: (quality: string) => void;
+  onQualityModeChange?: (mode: QualityModeState) => void;
+  /** «Авто» решило сменить качество; переключение идёт через UI ради застывшего кадра */
+  onAutoQualitySwitch?: (quality: string) => void;
   onSubtitleTracksChange?: (tracks: SubtitleTrack[]) => void;
   onSubtitleCuesChange?: (cues: SubtitleCue[]) => void;
   onSubtitleSettingsChange?: (settings: SubtitlesSettings) => void;
@@ -97,6 +106,12 @@ export class VideoPlayerController {
 
   private offlineGuard: OfflineSourceGuard;
 
+  private autoQualityTimer: ReturnType<typeof setInterval> | null = null;
+
+  private isSwitchingQuality: boolean = false;
+
+  private readonly handleSeeking = () => this.qualityManager.noteSeek();
+
   constructor(config: VideoPlayerControllerConfig = {}) {
     this.config = config;
 
@@ -120,6 +135,8 @@ export class VideoPlayerController {
     this.qualityManager = new QualityManager({
       onQualityOptionsChange: config.onQualityOptionsChange,
       onSelectedQualityChange: config.onSelectedQualityChange,
+      onQualityModeChange: config.onQualityModeChange,
+      getSizeCap: (values) => this.sizeCap(values),
     });
 
     this.subtitlesManager = new SubtitlesManager({
@@ -232,6 +249,12 @@ export class VideoPlayerController {
     this.subtitlesManager.attach(videoElement);
 
     this.keyboardManager.enable();
+
+    videoElement.addEventListener('seeking', this.handleSeeking);
+    this.autoQualityTimer = setInterval(
+      () => this.autoQualityTick(),
+      AUTO_QUALITY_TICK_MS,
+    );
 
     this.isInitialized = true;
     log.debug('Initialized successfully');
@@ -368,6 +391,7 @@ export class VideoPlayerController {
 
     if (loaded) {
       this.offlineGuard.watch(qualityOption.src);
+      this.qualityManager.noteSwitched(qualityOption.value);
     }
 
     this.savedTime = 0;
@@ -412,20 +436,62 @@ export class VideoPlayerController {
   }
 
   /**
+   * Выбор в меню: «Авто» или конкретное качество. Выбор запоминается;
+   * если играет уже нужное качество, источник не перезагружается
+   */
+  async changeQuality(
+    choice: string,
+    beforeSwitch?: () => void,
+  ): Promise<boolean> {
+    log.debug('Quality choice:', choice);
+
+    const target = this.qualityManager.choose(choice);
+    if (!target) return false;
+    if (target === this.qualityManager.getSelectedQuality()) return true;
+
+    return this.switchQuality(target, beforeSwitch);
+  }
+
+  /**
+   * Переключение, которое решило «Авто»: выбор пользователя не меняется
+   */
+  async applyAutoQuality(
+    quality: string,
+    beforeSwitch?: () => void,
+  ): Promise<boolean> {
+    if (!this.qualityManager.isAuto()) return false;
+    if (quality === this.qualityManager.getSelectedQuality()) return true;
+
+    log.debug('Auto quality switch to:', quality);
+    return this.switchQuality(quality, beforeSwitch);
+  }
+
+  /**
    * Бесшовно меняет качество: MP4 нового качества заранее подгружается,
    * пока играет прежнее; перед переключением вызывается beforeSwitch,
    * чтобы накрыть перезагрузку застывшим кадром
    */
-  async changeQuality(
+  private async switchQuality(
     quality: string,
     beforeSwitch?: () => void,
   ): Promise<boolean> {
-    log.debug('Changing quality to:', quality);
-
     if (!this.qualityManager.setSelectedQuality(quality)) {
       return false;
     }
 
+    this.isSwitchingQuality = true;
+    try {
+      const switched = await this.loadSelectedQuality(beforeSwitch);
+      if (switched) this.qualityManager.noteSwitched(quality);
+      return switched;
+    } finally {
+      this.isSwitchingQuality = false;
+    }
+  }
+
+  private async loadSelectedQuality(
+    beforeSwitch?: () => void,
+  ): Promise<boolean> {
     const qualityOption = this.qualityManager.getSelectedQualityOption();
     if (!qualityOption) {
       return false;
@@ -590,7 +656,52 @@ export class VideoPlayerController {
   /**
    * Полностью уничтожает контроллер
    */
+  /**
+   * Шаг автоподбора: смотрит на буфер и размер плеера и при необходимости
+   * просит UI переключить качество
+   */
+  private autoQualityTick(): void {
+    const video = this.videoElement;
+    if (!video || this.isSwitchingQuality || !this.qualityManager.isAuto()) {
+      return;
+    }
+
+    const state = this.stateManager.getState();
+    const target = this.qualityManager.autoStep({
+      playing: state.isPlaying,
+      buffering: this.computeBuffering(),
+      bufferAhead: bufferedAhead(video.buffered, video.currentTime),
+    });
+
+    if (target && target !== this.qualityManager.getSelectedQuality()) {
+      this.config.onAutoQualitySwitch?.(target);
+    }
+  }
+
+  /**
+   * Потолок качества по размеру плеера на экране
+   */
+  private sizeCap(values: string[]): number {
+    const node = this.containerElement;
+    if (!node?.clientWidth || !node.clientHeight) return Infinity;
+
+    return sizeCapHeight(
+      playerPixelHeight(
+        node.clientWidth,
+        node.clientHeight,
+        window.devicePixelRatio || 1,
+      ),
+      values,
+    );
+  }
+
   async destroy(): Promise<void> {
+    if (this.autoQualityTimer) {
+      clearInterval(this.autoQualityTimer);
+      this.autoQualityTimer = null;
+    }
+    this.videoElement?.removeEventListener('seeking', this.handleSeeking);
+
     log.debug('Destroying controller');
 
     this.keyboardManager.disable();

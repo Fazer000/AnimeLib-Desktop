@@ -41,6 +41,7 @@ import {
 
 import { createLogger } from '../../../shared/logger';
 import { WHITE_SHORT } from '../../theme/palette';
+import type { QualityModeState } from '../../services/player';
 
 const log = createLogger('VideoControls');
 
@@ -95,6 +96,7 @@ interface VideoControlsProps {
     value: string;
   }>;
   selectedQuality: string;
+  qualityMode: QualityModeState;
   playbackRate: number;
 
   episodes: Array<{ id: number; number: string; name: string }>;
@@ -174,6 +176,7 @@ function VideoControls({
   hasBookmark,
   qualityOptions,
   selectedQuality,
+  qualityMode,
   playbackRate,
   episodes,
   currentEpisodeIndex,
@@ -703,6 +706,7 @@ function VideoControls({
         onClose={handleSettingsMenuClose}
         qualityOptions={qualityOptions}
         selectedQuality={selectedQuality}
+        qualityMode={qualityMode}
         playbackRate={playbackRate}
         skipManager={skipManager}
         onQualityChange={onQualityChange}

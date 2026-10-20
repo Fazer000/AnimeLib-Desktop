@@ -16,6 +16,8 @@ import {
   getQualityTagFromResolution,
 } from '../../../utils/videoHelpers';
 import { formatUpscaleSummary } from '../../../utils/upscaleMode';
+import { qualitySummary } from '../../../utils/autoQuality';
+import type { QualityModeState } from '../../../services/player';
 import { NavRow, ToggleRow } from './rows';
 import { MENU_ICON_SIZE, menuIconBoxSx } from './styles';
 import type { AutoSkipSettings, MenuPage, UpscaleControls } from './types';
@@ -24,6 +26,7 @@ import {} from '../../../theme/palette';
 interface MainPageProps {
   qualityOptions: Array<{ label: string; value: string }>;
   selectedQuality: string;
+  qualityMode: QualityModeState;
   playbackRate: number;
   skipManager: SkipManager;
   autoSkipSettings: AutoSkipSettings;
@@ -52,6 +55,7 @@ const subtitlesSummary = (
 function MainPage({
   qualityOptions,
   selectedQuality,
+  qualityMode,
   playbackRate,
   skipManager,
   autoSkipSettings,
@@ -76,10 +80,10 @@ function MainPage({
       <NavRow
         icon={<Box sx={menuIconBoxSx(qualityColor)}>{qualityTag || '—'}</Box>}
         title="Качество"
-        value={
-          qualityOptions.find((q) => q.value === selectedQuality)?.label ||
-          'Авто'
-        }
+        value={qualitySummary(
+          qualityMode.auto,
+          qualityOptions.find((q) => q.value === selectedQuality)?.label ?? '',
+        )}
         onClick={() => onNavigate('quality')}
       />
 

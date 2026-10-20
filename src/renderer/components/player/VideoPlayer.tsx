@@ -37,6 +37,7 @@ import {
   VideoPlayerController,
   VideoState,
   QualityOption,
+  QualityModeState,
   UIStateManager,
   UIState,
   PlaybackTimeStore,
@@ -275,6 +276,11 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     const [qualityOptions, setQualityOptions] = useState<QualityOption[]>([]);
     const [selectedQuality, setSelectedQuality] = useState<string>('');
+    const [qualityMode, setQualityMode] = useState<QualityModeState>({
+      auto: true,
+      reason: null,
+    });
+    const autoQualitySwitchRef = useRef<(quality: string) => void>(() => {});
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const [subtitleTracks, setSubtitleTracks] = useState<SubtitleTrack[]>([]);
@@ -347,6 +353,9 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             timeStore.set(currentTime, buffered),
           onQualityOptionsChange: setQualityOptions,
           onSelectedQualityChange: setSelectedQuality,
+          onQualityModeChange: setQualityMode,
+          onAutoQualitySwitch: (quality) =>
+            autoQualitySwitchRef.current(quality),
           onSubtitleTracksChange: setSubtitleTracks,
           onSubtitleCuesChange: setSubtitleCues,
           onSubtitleSettingsChange: setSubtitleSettings,
@@ -687,17 +696,21 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       controllerRef.current?.getStateManager().setPlaybackRate(rate);
     }, []);
 
-    const handleQualityChange = useCallback(async (quality: string) => {
-      log.debug('Quality changed to:', quality);
-      const video = videoRef.current;
-      const canvas = frozenFrameRef.current;
-      let frozen = false;
-      let switchTime = 0;
-      let wasPlaying = false;
+    /**
+     * Смена качества под застывшим кадром: пока грузится новый источник,
+     * на экране остаётся последний кадр прежнего
+     */
+    const switchUnderFrozenFrame = useCallback(
+      async (
+        run: (beforeSwitch: () => void) => Promise<boolean> | undefined,
+      ) => {
+        const video = videoRef.current;
+        const canvas = frozenFrameRef.current;
+        let frozen = false;
+        let switchTime = 0;
+        let wasPlaying = false;
 
-      const switched = await controllerRef.current?.changeQuality(
-        quality,
-        () => {
+        const switched = await run(() => {
           switchTime = video?.currentTime ?? 0;
           wasPlaying = Boolean(video && !video.paused);
           frozen = Boolean(video && canvas && captureVideoFrame(video, canvas));
@@ -705,21 +718,38 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           if (frozen && video) AmbientLightManager.hold(video, true);
           if (!frozen) log.warn('Quality switch: frame capture failed');
           setFrameFrozen(frozen);
-        },
-      );
+        });
 
-      if (frozen && switched && video) {
-        await waitForVideoFrame(
-          video,
-          switchTime,
-          wasPlaying,
-          QUALITY_SWITCH_FRAME_TIMEOUT_MS,
+        if (frozen && switched && video) {
+          await waitForVideoFrame(
+            video,
+            switchTime,
+            wasPlaying,
+            QUALITY_SWITCH_FRAME_TIMEOUT_MS,
+          );
+        }
+        if (canvas) canvas.style.visibility = '';
+        if (video) AmbientLightManager.hold(video, false);
+        setFrameFrozen(false);
+      },
+      [],
+    );
+
+    const handleQualityChange = useCallback(
+      (quality: string) => {
+        log.debug('Quality chosen:', quality);
+        return switchUnderFrozenFrame((beforeSwitch) =>
+          controllerRef.current?.changeQuality(quality, beforeSwitch),
         );
-      }
-      if (canvas) canvas.style.visibility = '';
-      if (video) AmbientLightManager.hold(video, false);
-      setFrameFrozen(false);
-    }, []);
+      },
+      [switchUnderFrozenFrame],
+    );
+
+    autoQualitySwitchRef.current = (quality: string) => {
+      switchUnderFrozenFrame((beforeSwitch) =>
+        controllerRef.current?.applyAutoQuality(quality, beforeSwitch),
+      );
+    };
 
     const handleSkipForward = useCallback((seconds: number) => {
       controllerRef.current?.getStateManager().skip(seconds);
@@ -1227,6 +1257,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             hasBookmark={hasBookmark}
             qualityOptions={qualityOptions}
             selectedQuality={selectedQuality}
+            qualityMode={qualityMode}
             playbackRate={videoState.playbackRate}
             onTogglePlay={handleTogglePlay}
             onVolumeChange={handleVolumeChange}
