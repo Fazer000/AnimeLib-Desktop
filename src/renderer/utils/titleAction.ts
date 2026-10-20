@@ -15,6 +15,7 @@ export interface TitleActionInput {
   slug: string;
   items: TitleActionItem[];
   bookmarkItemId: number | null;
+  userId?: string | null;
 }
 
 export interface TitleActionModel {
@@ -27,10 +28,11 @@ export interface TitleActionModel {
 /**
  * Что показать на кнопке: подпись, счётчик «позиция / всего» и куда вести.
  * Позиция — номер серии или главы из закладки по порядку списка, 0 без
- * закладки. Без серий и глав кнопка недоступна
+ * закладки. Без серий и глав кнопка недоступна. В ссылку на главу сайт
+ * добавляет ?ui=<id пользователя>: без него читалка 18+ сайтов отдаёт 404
  */
 export function buildTitleAction(input: TitleActionInput): TitleActionModel {
-  const { watch, slug, items, bookmarkItemId } = input;
+  const { watch, slug, items, bookmarkItemId, userId } = input;
 
   if (items.length === 0) {
     return {
@@ -55,6 +57,8 @@ export function buildTitleAction(input: TitleActionInput): TitleActionModel {
     counter: `${started ? index + 1 : 0} / ${items.length}`,
     href: watch
       ? `/ru/anime/${slug}/watch`
-      : `/ru/${slug}/read/v${target.volume ?? 1}/c${target.number ?? 1}`,
+      : `/ru/${slug}/read/v${target.volume ?? 1}/c${target.number ?? 1}${
+          userId ? `?ui=${userId}` : ''
+        }`,
   };
 }

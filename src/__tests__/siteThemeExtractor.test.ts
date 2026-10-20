@@ -3,6 +3,7 @@ import {
   toSiteThemeName,
   SITE_THEME_MARKER,
   parseSiteThemeMessage,
+  siteThemeWatcherScript,
 } from '../renderer/scripts/siteThemeExtractor';
 
 describe('parseSiteThemeMessage', () => {
@@ -53,5 +54,13 @@ describe('buildSiteThemeWriteScript', () => {
     expect(script).toContain('{ name: "light" }');
     expect(script).toContain("localStorage.setItem('settings', newValue)");
     expect(script).toContain("new StorageEvent('storage'");
+  });
+});
+
+describe('siteThemeWatcherScript', () => {
+  it('сообщает только о смене атрибута темы, не о теме при загрузке', () => {
+    expect(siteThemeWatcherScript).toContain('MutationObserver');
+    expect(siteThemeWatcherScript).not.toMatch(/\n\s*report\(\);/);
+    expect(siteThemeWatcherScript).not.toContain("addEventListener('storage'");
   });
 });

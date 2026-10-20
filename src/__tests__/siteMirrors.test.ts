@@ -18,6 +18,7 @@ import {
 } from '../renderer/utils/libSites';
 import {
   failedPageHost,
+  isPageLoaded,
   isSiteDownStatus,
 } from '../renderer/utils/loadFailure';
 
@@ -177,5 +178,18 @@ describe('isSiteDownStatus', () => {
     [200, 301, 403, 404, 500, 503].forEach((code) =>
       expect(isSiteDownStatus(code)).toBe(false),
     );
+  });
+});
+
+describe('isPageLoaded', () => {
+  it('страница открылась: обычный ответ или переход внутри страницы', () => {
+    expect(isPageLoaded(200)).toBe(true);
+    expect(isPageLoaded(404)).toBe(true);
+    expect(isPageLoaded(undefined)).toBe(true);
+  });
+
+  it('сеть не ответила или ошибка прокси — не открылась', () => {
+    expect(isPageLoaded(0)).toBe(false);
+    expect(isPageLoaded(525)).toBe(false);
   });
 });

@@ -59,6 +59,7 @@ function SideRail({
     false,
   );
   const [open, setOpen] = useState<Flyout | null>(null);
+  const [, setMirrorsVersion] = useState(0);
   const mirrorStates = useMirrorStatus(MIRROR_HOMES, open === 'sites');
 
   useEffect(() => {
@@ -86,9 +87,10 @@ function SideRail({
     onSelectSite(next);
   };
 
+  /** Капсула зеркала только меняет выбор; сайт откроет клик по его строке */
   const selectMirror = (next: LibSite, mirror: string) => {
-    close();
     onSelectMirror(next, mirror);
+    setMirrorsVersion((version) => version + 1);
   };
 
   return (

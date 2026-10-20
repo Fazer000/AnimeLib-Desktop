@@ -10,7 +10,6 @@ import type { LoginStreakTier } from '../../constants';
 export const QUALITY_FHD = '#8B5CF6';
 
 /** Поверхности: от самой глубокой к самой светлой. */
-export const SURFACE_DEEPEST = '#0A0A0A';
 export const SURFACE_DARKER = '#1A1A1A';
 export const SURFACE = '#1C1C1C';
 export const SURFACE_ELEVATED = '#1E1E1E';
@@ -36,9 +35,6 @@ export const BLACK = '#000000';
 export const BLACK_SHORT = '#000';
 export const OFF_WHITE = '#D8D8D8';
 export const LILAC_TINT = '#EDE7F6';
-
-/** Фиолетовый подмес в фоновом градиенте стартовой страницы. */
-export const GRADIENT_VIOLET = '#1A0A2E';
 
 /** Состояния: успех, предупреждение, ошибка. */
 export const SUCCESS = '#4ADE80';

@@ -24,13 +24,16 @@ interface RawReadingBookmark {
 
 /**
  * Закладки сайта манги или ранобэ в строки подменю. С главой — ссылка
- * на неё в читалке; без главы чтение ещё не начато, и path — страница
+ * на неё в читалке (с ?ui=<id пользователя>, как у ссылок сайта:
+ * без него читалка 18+ сайтов отдаёт 404); без главы чтение ещё не начато, и path — страница
  * тайтла на случай, если первую главу не удастся найти
  */
 export function toReadingBookmarks(
   items: unknown[],
   kind: LibSiteKind,
+  userId: string | null = null,
 ): ReadingBookmark[] {
+  const query = userId ? `?ui=${userId}` : '';
   const section = kind === 'ranobe' ? 'book' : 'manga';
 
   return (items as RawReadingBookmark[]).flatMap((raw) => {
@@ -54,7 +57,7 @@ export function toReadingBookmarks(
           ? `Продолжить чтение · гл. ${chapter.number}`
           : 'Начать чтение',
         path: hasChapter
-          ? `/ru/${slug}/read/v${chapter.volume}/c${chapter.number}`
+          ? `/ru/${slug}/read/v${chapter.volume}/c${chapter.number}${query}`
           : `/ru/${section}/${slug}`,
         started: hasChapter,
       },

@@ -11,6 +11,7 @@ import CustomToolbar from '../components/Toolbar';
 import ScrollTopFab from '../components/ScrollTopFab';
 import SiteLoadError from '../components/SiteLoadError';
 import { failedPageHost, isSiteDownStatus } from '../utils/loadFailure';
+import { siteThemeToWrite } from '../theme/themeMode';
 import useStableSize from '../hooks/useStableSize';
 import {
   extractAuthToken,
@@ -133,6 +134,7 @@ function WebViewRefactored({
         },
         onUrlChange: (url) => {
           log.debug('URL changed:', url);
+          setCurrentUrl(url);
           onPageUrlChangeRef.current?.(url);
         },
         onLoadStop: (url) => {
@@ -183,7 +185,9 @@ function WebViewRefactored({
           installSiteThemeWatcher(webview).catch(() => {});
           readSiteTheme(webview)
             .then((mode) => {
-              themeModeStore.setMode(mode);
+              const target =
+                mode && siteThemeToWrite(mode, themeModeStore.getMode());
+              if (target) writeSiteTheme(webview, target);
 
               return mode;
             })
@@ -276,10 +280,10 @@ function WebViewRefactored({
       log.debug('===== WEBVIEW NAVIGATION =====');
       log.debug('URL:', e.url);
 
-      webViewManager.handleNavigation(e.url);
+      const code = Number(e.httpResponseCode) || 0;
+      webViewManager.handleNavigation(e.url, 'navigate', code);
       scriptManager.inject();
 
-      const code = Number(e.httpResponseCode) || 0;
       const host =
         code > 0 &&
         isSiteDownStatus(code) &&

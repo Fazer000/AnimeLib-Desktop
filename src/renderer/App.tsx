@@ -9,6 +9,7 @@ import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import ErrorBoundary from './components/ErrorBoundary';
 import { installDebugApi } from './utils/debugApi';
 import SiteChoicePage from './pages/SiteChoicePage';
+import AnimeTheme from './components/AnimeTheme';
 import WebView from './pages/WebViewPage';
 import type { WebViewPageRef } from './pages/WebViewPage';
 import PlayerPage from './pages/PlayerPage';
@@ -60,7 +61,6 @@ const initialStartUrl = (): string | null => {
 
 function App() {
   const scheme = useColorScheme();
-  const theme = useMemo(() => createAppTheme(scheme), [scheme]);
 
   const [savedUrl, setSavedUrl] = useState<string | null>(initialStartUrl);
   const [sitesRequest, setSitesRequest] = useState(0);
@@ -99,6 +99,10 @@ function App() {
   const webViewRef = useRef<WebViewPageRef>(null);
   const currentSite =
     findLibSiteByUrl(pageUrl || savedUrl || '') ?? LIB_SITES[0];
+  const theme = useMemo(
+    () => createAppTheme(scheme, currentSite.siteId),
+    [scheme, currentSite.siteId],
+  );
   const [playerReturnsBack, setPlayerReturnsBack] = useState<boolean>(false);
   const [playerEpisodeId, setPlayerEpisodeId] = useState<number | undefined>(
     undefined,
@@ -196,7 +200,6 @@ function App() {
 
   const handleSelectMirror = useCallback((site: LibSite, mirror: string) => {
     saveSiteMirror(site, mirror);
-    webViewRef.current?.navigateTo(mirror);
   }, []);
 
   const handlePlayFromLibrary = useCallback(
@@ -325,78 +328,83 @@ function App() {
           />
         </Box>
 
-        <OfflineNoticeDialog
-          open={showOfflineNotice && !playerUrl && !offlineTarget}
-          onOpenLibrary={() => {
-            setShowOfflineNotice(false);
-            setLibraryTab(2);
-          }}
-          onClose={() => setShowOfflineNotice(false)}
-        />
+        <AnimeTheme>
+          <OfflineNoticeDialog
+            open={showOfflineNotice && !playerUrl && !offlineTarget}
+            onOpenLibrary={() => {
+              setShowOfflineNotice(false);
+              setLibraryTab(2);
+            }}
+            onClose={() => setShowOfflineNotice(false)}
+          />
 
-        {offlineTarget && (
-          <Box sx={{ position: 'absolute', inset: 0, zIndex: 2 }}>
-            <PlayerPage
-              key={`offline-${offlineTarget.animeId}-${offlineTarget.episodeId ?? 'auto'}`}
-              playerUrl=""
-              animeId={offlineTarget.animeId}
-              offlineMode
-              initialEpisodeId={offlineTarget.episodeId}
-              onPlayOffline={handlePlayFromLibrary}
-              onBack={() => {
-                log.debug('Offline player closed');
-                setOfflineTarget(null);
-              }}
-              onHome={() => {
-                log.debug('Offline player home');
-                webViewRef.current?.goHome();
-                setOfflineTarget(null);
-              }}
-              onNavigateToUrl={(url: string) => {
-                log.debug('Offline player navigate to URL:', url);
-                webViewRef.current?.navigateTo(url);
-                setOfflineTarget(null);
-              }}
-              onPlayerButtonClick={(url: string, providedAnimeId?: string) => {
-                setOfflineTarget(null);
-                handlePlayerButtonClick(url, providedAnimeId);
-              }}
-            />
-          </Box>
-        )}
+          {offlineTarget && (
+            <Box sx={{ position: 'absolute', inset: 0, zIndex: 2 }}>
+              <PlayerPage
+                key={`offline-${offlineTarget.animeId}-${offlineTarget.episodeId ?? 'auto'}`}
+                playerUrl=""
+                animeId={offlineTarget.animeId}
+                offlineMode
+                initialEpisodeId={offlineTarget.episodeId}
+                onPlayOffline={handlePlayFromLibrary}
+                onBack={() => {
+                  log.debug('Offline player closed');
+                  setOfflineTarget(null);
+                }}
+                onHome={() => {
+                  log.debug('Offline player home');
+                  webViewRef.current?.goHome();
+                  setOfflineTarget(null);
+                }}
+                onNavigateToUrl={(url: string) => {
+                  log.debug('Offline player navigate to URL:', url);
+                  webViewRef.current?.navigateTo(url);
+                  setOfflineTarget(null);
+                }}
+                onPlayerButtonClick={(
+                  url: string,
+                  providedAnimeId?: string,
+                ) => {
+                  setOfflineTarget(null);
+                  handlePlayerButtonClick(url, providedAnimeId);
+                }}
+              />
+            </Box>
+          )}
 
-        {playerUrl && (
-          <Box sx={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-            <PlayerPage
-              key={`${animeId || 'unknown'}-${playerEpisodeId ?? 'auto'}`}
-              playerUrl={playerUrl}
-              animeId={animeId || 'unknown'}
-              initialEpisodeId={playerEpisodeId}
-              onPlayerButtonClick={handlePlayerButtonClick}
-              onPlayOffline={handlePlayFromLibrary}
-              onBack={() => {
-                log.debug('Player back button clicked');
-                playerHistoryManager.discard();
-                handlePlayerClose(playerUrl);
+          {playerUrl && (
+            <Box sx={{ position: 'absolute', inset: 0, zIndex: 1 }}>
+              <PlayerPage
+                key={`${animeId || 'unknown'}-${playerEpisodeId ?? 'auto'}`}
+                playerUrl={playerUrl}
+                animeId={animeId || 'unknown'}
+                initialEpisodeId={playerEpisodeId}
+                onPlayerButtonClick={handlePlayerButtonClick}
+                onPlayOffline={handlePlayFromLibrary}
+                onBack={() => {
+                  log.debug('Player back button clicked');
+                  playerHistoryManager.discard();
+                  handlePlayerClose(playerUrl);
 
-                if (playerReturnsBack) {
-                  webViewRef.current?.goBack();
-                }
-              }}
-              onHome={() => {
-                log.debug('Player home button clicked');
-                webViewRef.current?.goHome();
-                handlePlayerClose(playerUrl);
-              }}
-              onNavigateToUrl={(url: string) => {
-                log.debug('Player navigate to URL:', url);
-                playerHistoryManager.commit(url);
-                webViewRef.current?.navigateTo(url);
-                handlePlayerClose(playerUrl);
-              }}
-            />
-          </Box>
-        )}
+                  if (playerReturnsBack) {
+                    webViewRef.current?.goBack();
+                  }
+                }}
+                onHome={() => {
+                  log.debug('Player home button clicked');
+                  webViewRef.current?.goHome();
+                  handlePlayerClose(playerUrl);
+                }}
+                onNavigateToUrl={(url: string) => {
+                  log.debug('Player navigate to URL:', url);
+                  playerHistoryManager.commit(url);
+                  webViewRef.current?.navigateTo(url);
+                  handlePlayerClose(playerUrl);
+                }}
+              />
+            </Box>
+          )}
+        </AnimeTheme>
       </Box>
     </ThemeProvider>
   );

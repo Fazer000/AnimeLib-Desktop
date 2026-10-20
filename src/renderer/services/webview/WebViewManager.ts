@@ -33,6 +33,7 @@ import {
   saveSiteUrl,
 } from '../../utils/urlHelpers';
 import { currentSiteHomeUrl } from '../../utils/libSites';
+import { isPageLoaded } from '../../utils/loadFailure';
 import { NavigationHistoryTracker } from './NavigationHistoryTracker';
 import type { NavigationSource } from './NavigationHistoryTracker';
 
@@ -450,17 +451,24 @@ export class WebViewManager {
   }
 
   /**
-   * Handle navigation event
+   * Обрабатывает переход. Адрес сайта в настройках обновляется, только
+   * если страница открылась: иначе недоступное зеркало стало бы адресом
+   * «Домой» и стартовой страницей
    */
   public handleNavigation(
     url: string,
     source: NavigationSource = 'navigate',
+    httpResponseCode: number | undefined = undefined,
   ): void {
     log.debug('Navigation event:', url);
     this.currentUrl = url;
 
     WebViewManager.saveUrl(url, true);
-    WebViewManager.saveUrl(url, false);
+    if (isPageLoaded(httpResponseCode)) {
+      WebViewManager.saveUrl(url, false);
+    } else {
+      log.debug('Base URL not updated, page did not load:', url);
+    }
 
     if (
       this.pendingHistoryResetUrl !== null &&

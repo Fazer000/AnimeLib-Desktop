@@ -61,6 +61,18 @@ export interface VideoHeadersPayload {
   authToken?: string;
 }
 
+/** Скрипт для текущего документа webview по id его webContents */
+export interface PageScriptPayload {
+  webContentsId: number;
+  code: string;
+}
+
+/** Итог скрипта: ok — выполнен, value — его результат */
+export interface PageScriptResult {
+  ok: boolean;
+  value?: unknown;
+}
+
 /** Ответ зеркала: код HTTP (0 — сеть не ответила) и время, мс */
 export interface MirrorCheckResult {
   status: number;
@@ -78,6 +90,10 @@ export interface IpcInvokeMap {
   'fetch-image': { request: FetchImagePayload; response: FetchImageResult };
   'fetch-subtitles': { request: string[]; response: FetchSubtitlesResult };
   'check-mirror': { request: string; response: MirrorCheckResult };
+  'execute-in-page': {
+    request: PageScriptPayload;
+    response: PageScriptResult;
+  };
   'get-kodik-links': { request: string; response: KodikLinksResult };
   'setup-video-headers': {
     request: VideoHeadersPayload;

@@ -1,9 +1,5 @@
 import { createLogger } from '../../shared/logger';
-import {
-  DEFAULT_THEME_MODE,
-  ThemeMode,
-  normalizeThemeMode,
-} from '../theme/themeMode';
+import { ThemeMode, normalizeThemeMode } from '../theme/themeMode';
 
 const log = createLogger('SiteTheme');
 
@@ -30,7 +26,11 @@ export const siteThemeScript = `
 })();
 `;
 
-/** Ставит наблюдателя за атрибутом темы, сообщая о смене через консоль страницы. */
+/**
+ * Ставит наблюдателя за атрибутом темы, сообщая о смене через консоль
+ * страницы. О теме при загрузке не сообщает: тема общая для всех сайтов,
+ * её задаёт приложение, а принимается только смена на самом сайте
+ */
 export const siteThemeWatcherScript = `
 (function () {
   try {
@@ -47,11 +47,6 @@ export const siteThemeWatcherScript = `
       attributeFilter: ['data-theme'],
     });
 
-    window.addEventListener('storage', function (event) {
-      if (event.key === 'settings') report();
-    });
-
-    report();
     return true;
   } catch (e) {
     return false;
@@ -102,14 +97,36 @@ export function parseSiteThemeMessage(message: unknown): ThemeMode | null {
   return normalizeThemeMode(message.slice(SITE_THEME_MARKER.length));
 }
 
-/** Однократно читает режим темы сайта из webview. */
-export function readSiteTheme(webview: {
+/** Тег webview: его страница и id webContents для выполнения кода. */
+export interface PageTarget {
   executeJavaScript?: (code: string) => Promise<unknown>;
-}): Promise<ThemeMode> {
-  if (!webview?.executeJavaScript) return Promise.resolve(DEFAULT_THEME_MODE);
+  getWebContentsId?: () => number;
+}
 
+/**
+ * Выполняет код в текущем документе webview. Через main-процесс код
+ * выполняется сразу; executeJavaScript тега ждёт конца загрузки страницы,
+ * и тема на тяжёлых сайтах применялась бы с опозданием или терялась
+ */
+async function runInPage(webview: PageTarget, code: string): Promise<unknown> {
+  const invoke = window.electron?.ipcRenderer?.invoke;
+  if (invoke && webview.getWebContentsId) {
+    const result = await invoke('execute-in-page', {
+      webContentsId: webview.getWebContentsId(),
+      code,
+    });
+    if (!result.ok) throw new Error('page script failed');
+    return result.value;
+  }
+
+  if (!webview.executeJavaScript) throw new Error('no page');
+  return webview.executeJavaScript(code);
+}
+
+/** Однократно читает режим темы сайта; не удалось — null. */
+export function readSiteTheme(webview: PageTarget): Promise<ThemeMode | null> {
   return Promise.race([
-    webview.executeJavaScript(siteThemeScript),
+    runInPage(webview, siteThemeScript),
     new Promise((_resolve, reject) => {
       setTimeout(() => reject(new Error('timeout')), READ_TIMEOUT_MS);
     }),
@@ -118,18 +135,13 @@ export function readSiteTheme(webview: {
     .catch((error) => {
       log.warn('Не удалось прочитать тему сайта', error);
 
-      return DEFAULT_THEME_MODE;
+      return null;
     });
 }
 
 /** Ставит наблюдателя за темой в гостевой странице. */
-export function installSiteThemeWatcher(webview: {
-  executeJavaScript?: (code: string) => Promise<unknown>;
-}): Promise<boolean> {
-  if (!webview?.executeJavaScript) return Promise.resolve(false);
-
-  return webview
-    .executeJavaScript(siteThemeWatcherScript)
+export function installSiteThemeWatcher(webview: PageTarget): Promise<boolean> {
+  return runInPage(webview, siteThemeWatcherScript)
     .then((value) => value === true)
     .catch((error) => {
       log.warn('Не удалось поставить наблюдателя темы', error);
@@ -140,13 +152,10 @@ export function installSiteThemeWatcher(webview: {
 
 /** Переключает тему сайта в webview. */
 export function writeSiteTheme(
-  webview: { executeJavaScript?: (code: string) => Promise<unknown> },
+  webview: PageTarget,
   mode: ThemeMode,
 ): Promise<boolean> {
-  if (!webview?.executeJavaScript) return Promise.resolve(false);
-
-  return webview
-    .executeJavaScript(buildSiteThemeWriteScript(mode))
+  return runInPage(webview, buildSiteThemeWriteScript(mode))
     .then((value) => value === true)
     .catch((error) => {
       log.warn('Не удалось сменить тему сайта', error);

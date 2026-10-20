@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Download } from '../icons';
 import DownloadManagerDialog from './DownloadManagerDialog';
+import AnimeTheme from '../AnimeTheme';
 import RailButton from '../sideRail/RailButton';
 import useOfflineLibrary from '../../hooks/useOfflineLibrary';
 import { SIDE_RAIL_ICON_SIZE, isActiveDownload } from '../../../constants';
@@ -53,12 +54,14 @@ function OfflineButton({
         icon={<Download sx={{ fontSize: SIDE_RAIL_ICON_SIZE }} />}
       />
 
-      <DownloadManagerDialog
-        open={open}
-        onClose={() => setOpen(false)}
-        initialTab={initialTab}
-        onPlayOffline={onPlayOffline}
-      />
+      <AnimeTheme>
+        <DownloadManagerDialog
+          open={open}
+          onClose={() => setOpen(false)}
+          initialTab={initialTab}
+          onPlayOffline={onPlayOffline}
+        />
+      </AnimeTheme>
     </>
   );
 }

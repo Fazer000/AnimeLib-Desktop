@@ -50,6 +50,7 @@ import {
   LIGHT_SURFACE_CONTAINER_HIGH,
   LIGHT_SURFACE_CONTAINER_HIGHEST,
   LIGHT_SURFACE_CONTAINER_HIGHEST_RGB,
+  LIB_SITE_COLORS,
   LILAC_TINT,
   LILAC_TINT_RGB,
   NEUTRAL_RGB,
@@ -64,8 +65,9 @@ import {
   WARNING_ORANGE,
   WHITE,
 } from './palette';
-import { SCROLLBAR_WIDTH, TOOLBAR_HEIGHT } from '../../constants';
+import { LIB_SITES, SCROLLBAR_WIDTH, TOOLBAR_HEIGHT } from '../../constants';
 import { ColorSchemeName } from './themeMode';
+import { deriveSiteAccent } from './siteAccent';
 
 declare module '@mui/material/styles' {
   interface CustomColors {
@@ -254,15 +256,48 @@ const LIGHT_BASE = {
   divider: LIGHT_OUTLINE,
 };
 
-/** Возвращает набор ролей для схемы. */
-export function getSchemeColors(scheme: ColorSchemeName) {
-  return scheme === 'light' ? LIGHT_COLORS : DARK_COLORS;
+/**
+ * Набор ролей для схемы. С siteId сайта манги или ранобэ акценты и шапка
+ * светлой схемы берутся из цвета этого сайта; AnimeLib и неизвестный сайт
+ * остаются в фирменном фиолетовом приложения
+ */
+export function getSchemeColors(scheme: ColorSchemeName, siteId?: number) {
+  const colors = scheme === 'light' ? LIGHT_COLORS : DARK_COLORS;
+  const site = LIB_SITES.find((item) => item.siteId === siteId);
+  const primary = site ? LIB_SITE_COLORS[site.siteId] : undefined;
+  if (!site || site.kind === 'anime' || !primary) return colors;
+
+  const accent = deriveSiteAccent(primary, scheme);
+  const header = accent.header
+    ? {
+        headerColor: accent.header,
+        siteHeaderColor: accent.header,
+        footerColor: accent.header,
+        headerRgb: accent.headerRgb ?? colors.headerRgb,
+      }
+    : {};
+
+  return {
+    ...colors,
+    secondaryColor: accent.fill,
+    secondaryTextColor: accent.soft,
+    accentSoftColor: accent.soft,
+    accentHoverColor: accent.hover,
+    accentQuietColor: accent.quiet,
+    accentRgb: accent.rgb,
+    ...header,
+  };
 }
 
-/** Собирает тему приложения под выбранную цветовую схему. */
-export function createAppTheme(scheme: ColorSchemeName): Theme {
+/**
+ * Собирает тему приложения под цветовую схему и, если передан, сайт сети
+ */
+export function createAppTheme(
+  scheme: ColorSchemeName,
+  siteId?: number,
+): Theme {
   const base = scheme === 'light' ? LIGHT_BASE : DARK_BASE;
-  const customColors = getSchemeColors(scheme);
+  const customColors = getSchemeColors(scheme, siteId);
 
   return createTheme({
     typography: {
@@ -287,9 +322,9 @@ export function createAppTheme(scheme: ColorSchemeName): Theme {
         contrastText: base.onSurface,
       },
       secondary: {
-        main: DARK_PRIMARY,
-        light: DARK_PRIMARY_ACCENT,
-        dark: PRIMARY_DEEP,
+        main: customColors.secondaryColor,
+        light: customColors.accentSoftColor,
+        dark: customColors.accentHoverColor,
         contrastText: WHITE,
       },
       background: {

@@ -99,6 +99,30 @@ describe('buildTitleAction', () => {
   });
 });
 
+describe('buildTitleAction: id пользователя в ссылке', () => {
+  it('ссылка на главу получает ?ui=, как у ссылок сайта', () => {
+    expect(
+      buildTitleAction({
+        watch: false,
+        slug: '1--a',
+        items: [{ id: 7, volume: '1', number: '1' }],
+        bookmarkItemId: null,
+        userId: '42',
+      }).href,
+    ).toBe('/ru/1--a/read/v1/c1?ui=42');
+  });
+
+  it('без входа и у аниме параметра нет', () => {
+    const base = { slug: '1--a', items: [{ id: 7 }], bookmarkItemId: null };
+    expect(buildTitleAction({ ...base, watch: false, userId: null }).href).toBe(
+      '/ru/1--a/read/v1/c1',
+    );
+    expect(buildTitleAction({ ...base, watch: true, userId: '42' }).href).toBe(
+      '/ru/anime/1--a/watch',
+    );
+  });
+});
+
 describe('findLibSite', () => {
   it('узнаёт сайт по домену и поддомену', () => {
     expect(findLibSite('v5.animelib.org')?.siteId).toBe(5);

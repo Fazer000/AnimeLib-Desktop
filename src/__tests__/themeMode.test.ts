@@ -4,6 +4,7 @@ import {
   isThemeMode,
   normalizeThemeMode,
   resolveColorScheme,
+  siteThemeToWrite,
 } from '../renderer/theme/themeMode';
 
 describe('normalizeThemeMode', () => {
@@ -65,5 +66,16 @@ describe('DEFAULT_THEME_MODE', () => {
   it('до ответа сайта приложение остаётся тёмным', () => {
     expect(DEFAULT_THEME_MODE).toBe('dark');
     expect(isThemeMode(DEFAULT_THEME_MODE)).toBe(true);
+  });
+});
+
+describe('siteThemeToWrite', () => {
+  it('сайту с другой темой пишется тема приложения', () => {
+    expect(siteThemeToWrite('light', 'dark')).toBe('dark');
+    expect(siteThemeToWrite('dark', 'system')).toBe('system');
+  });
+
+  it('тема совпадает — ничего не пишется', () => {
+    expect(siteThemeToWrite('dark', 'dark')).toBeNull();
   });
 });

@@ -46,3 +46,15 @@ export function resolveColorScheme(
 export function isThemeMode(value: unknown): value is ThemeMode {
   return typeof value === 'string' && THEME_MODES.includes(value as ThemeMode);
 }
+
+/**
+ * Какую тему записать сайту при загрузке: тема общая для всех сайтов и
+ * задаётся приложением, поэтому сайту с другой темой пишется тема
+ * приложения; совпадает — ничего
+ */
+export function siteThemeToWrite(
+  siteMode: ThemeMode,
+  appMode: ThemeMode,
+): ThemeMode | null {
+  return siteMode === appMode ? null : appMode;
+}

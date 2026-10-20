@@ -955,6 +955,11 @@ export const animeApi = {
   hasUser: (): boolean => getUserId() !== null,
 
   /**
+   * Id вошедшего пользователя из токена; без входа — null
+   */
+  userId: (): string | null => getUserId(),
+
+  /**
    * Get related anime
    */
   getRelatedAnime: async (
@@ -1072,6 +1077,7 @@ export const animeApi = {
       slug: slugUrl,
       items: Array.isArray(items) ? items : [],
       bookmarkItemId: bookmark?.data?.data?.item_id ?? null,
+      userId: getUserId(),
     }).href;
   },
 };

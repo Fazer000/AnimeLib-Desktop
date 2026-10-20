@@ -26,6 +26,7 @@ import { registerUpdateHandlers } from './updater';
 import { registerCrashHandlers } from './crashReporter';
 import { registerReportHandlers } from './report';
 import registerMirrorCheckHandler from './mirrorCheck';
+import registerPageScriptHandler from './pageScript';
 import { addCorsHeaders } from './corsHeaders';
 import {
   registerOfflineHandlers,
@@ -823,6 +824,7 @@ if (hasInstanceLock) {
       registerUpdateHandlers(() => mainWindow);
       registerReportHandlers();
       registerMirrorCheckHandler();
+      registerPageScriptHandler();
       registerOfflineProtocol(() => mainWindow);
       registerOfflineHandlers(() => mainWindow);
       createWindow();

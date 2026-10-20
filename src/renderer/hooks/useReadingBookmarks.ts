@@ -45,7 +45,7 @@ function useReadingBookmarks(
         );
         if (!cancelled) {
           setState({
-            items: toReadingBookmarks(raw, site.kind),
+            items: toReadingBookmarks(raw, site.kind, animeApi.userId()),
             loading: false,
             signedIn: true,
           });

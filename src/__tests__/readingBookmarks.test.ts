@@ -49,4 +49,17 @@ describe('toReadingBookmarks', () => {
       [],
     );
   });
+
+  it('ссылка на главу с id пользователя, страница тайтла — без', () => {
+    const [started, fresh] = toReadingBookmarks(
+      [
+        { media: { slug_url: '1--a' }, item: { volume: 2, number: 5 } },
+        { media: { slug_url: '2--b' }, item: null },
+      ],
+      'manga',
+      '42',
+    );
+    expect(started.path).toBe('/ru/1--a/read/v2/c5?ui=42');
+    expect(fresh.path).toBe('/ru/manga/2--b');
+  });
 });

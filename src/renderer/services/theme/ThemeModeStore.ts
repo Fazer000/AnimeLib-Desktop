@@ -20,7 +20,10 @@ export type ThemeModeListener = (
 const STORAGE_KEY = 'animeLibThemeMode';
 const DARK_QUERY = '(prefers-color-scheme: dark)';
 
-/** Общее состояние темы: режим сайта плюс системное предпочтение. */
+/**
+ * Общее состояние темы: одна тема для всех сайтов сети плюс системное
+ * предпочтение. Приложение задаёт её сайтам, смена на сайте становится общей
+ */
 export class ThemeModeStore {
   private mode: ThemeMode = DEFAULT_THEME_MODE;
 
@@ -56,7 +59,7 @@ export class ThemeModeStore {
     return resolveColorScheme(this.mode, this.prefersDark);
   }
 
-  /** Принимает режим от сайта, сохраняет его и оповещает подписчиков. */
+  /** Принимает режим (в том числе сменённый на сайте), сохраняет его и оповещает подписчиков. */
   setMode(value: unknown): void {
     const next = normalizeThemeMode(value);
     if (next === this.mode) return;

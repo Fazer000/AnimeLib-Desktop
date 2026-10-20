@@ -71,6 +71,17 @@ export function titleActionButtonMain(
     return (await response.json()).data;
   };
 
+  const userId = (): string | null => {
+    try {
+      const bearer = token();
+      if (!bearer) return null;
+      const { sub } = JSON.parse(atob(bearer.split('.')[1]));
+      return sub ? String(sub) : null;
+    } catch {
+      return null;
+    }
+  };
+
   const currentSlug = (): string | null => {
     const match = /^\/ru\/(?:anime|manga|book)\/([^/?#]+)/.exec(
       window.location.pathname,
@@ -95,6 +106,7 @@ export function titleActionButtonMain(
         slug,
         items: Array.isArray(list) ? list : [],
         bookmarkItemId: mark?.item_id ?? null,
+        userId: userId(),
       }),
     );
     model.catch(() => cache.delete(slug));

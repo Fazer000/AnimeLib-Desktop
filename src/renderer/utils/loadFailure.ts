@@ -16,6 +16,14 @@ export function isSiteDownStatus(status: number): boolean {
   );
 }
 
+/**
+ * Открылась ли страница при переходе: код ответа известен только при
+ * полной загрузке; без него (переход внутри страницы) — открылась
+ */
+export function isPageLoaded(httpResponseCode?: number): boolean {
+  return httpResponseCode === undefined || !isSiteDownStatus(httpResponseCode);
+}
+
 export interface LoadFailureEvent {
   errorCode?: number;
   validatedURL?: string;
