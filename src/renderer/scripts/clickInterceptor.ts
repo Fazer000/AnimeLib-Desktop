@@ -1,6 +1,12 @@
+import { LIB_SITES } from '../../constants';
 import { createLogger } from '../../shared/logger';
 
 const log = createLogger('AnimeLIB');
+
+/** Домены сайтов с аниме: только там клики ведут в плеер приложения */
+const ANIME_HOSTS = LIB_SITES.filter((site) => site.kind === 'anime').flatMap(
+  (site) => site.hosts,
+);
 
 /**
  * Упрощенный скрипт для перехвата кликов по кнопкам плеера
@@ -9,6 +15,12 @@ export const clickInterceptorScript = `
   console.log('[AnimeLIB] ===== SIMPLE CLICK INTERCEPTOR =====');
 
   try {
+    var animeHosts = ${JSON.stringify(ANIME_HOSTS)};
+    var onAnimeSite = animeHosts.some(function(domain) {
+      var host = window.location.hostname;
+      return host === domain || host.slice(-domain.length - 1) === '.' + domain;
+    });
+
     var isDragging = false;
     var dragStartTime = 0;
     var dragStartPosition = { x: 0, y: 0 };
@@ -45,6 +57,10 @@ export const clickInterceptorScript = `
 
       if (isDragging) {
         console.log('[AnimeLIB] Ignoring click - was dragging');
+        return;
+      }
+
+      if (!onAnimeSite) {
         return;
       }
 

@@ -32,6 +32,7 @@ import {
   isSiteUrl,
   saveSiteUrl,
 } from '../../utils/urlHelpers';
+import { currentSiteHomeUrl } from '../../utils/libSites';
 import { NavigationHistoryTracker } from './NavigationHistoryTracker';
 import type { NavigationSource } from './NavigationHistoryTracker';
 
@@ -313,10 +314,13 @@ export class WebViewManager {
   }
 
   /**
-   * Переходит на главную и сбрасывает историю переходов
+   * Переходит на главную текущего сайта сети и сбрасывает историю переходов
    */
   public navigateToHome(): void {
-    const homeUrl = WebViewManager.getHomeUrl();
+    const homeUrl = currentSiteHomeUrl(
+      this.getCurrentUrl(),
+      WebViewManager.getHomeUrl(),
+    );
     log.debug('Navigating to home URL:', homeUrl);
 
     if (this.getCurrentUrl() === homeUrl) {

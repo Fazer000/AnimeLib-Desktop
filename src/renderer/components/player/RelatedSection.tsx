@@ -20,6 +20,7 @@ interface RelatedSectionProps {
   shikimoriId: number | null | undefined;
   relatedAnime: RelatedAnimeType[];
   onAnimeClick: (slugUrl: string) => void;
+  onOpenUrl: (url: string) => void;
 }
 
 const TAB_LABELS: Record<RelatedTab, string> = {
@@ -41,6 +42,7 @@ function RelatedSection({
   shikimoriId,
   relatedAnime,
   onAnimeClick,
+  onOpenUrl,
 }: RelatedSectionProps) {
   const { customColors } = useTheme().palette;
   const [tab, setTab] = usePersistedChoice<RelatedTab>(
@@ -105,6 +107,7 @@ function RelatedSection({
           <RelatedAnime
             relatedAnime={uniqueRelated}
             onAnimeClick={onAnimeClick}
+            onOpenUrl={onOpenUrl}
           />
         ) : (
           <Box sx={{ px: `${CONTENT_INSET}px` }}>

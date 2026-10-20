@@ -12,10 +12,13 @@ import UrlInputPage from './pages/UrlInputPage';
 import WebView from './pages/WebViewPage';
 import type { WebViewPageRef } from './pages/WebViewPage';
 import PlayerPage from './pages/PlayerPage';
-import { buildAnimePageUrl, saveSiteUrl } from './utils/urlHelpers';
-import ContinueWatchingButton from './components/ContinueWatchingButton';
+import { buildAnimePageUrl, getHomeUrl, saveSiteUrl } from './utils/urlHelpers';
+import { findLibSiteByUrl, libSiteHomeUrl } from './utils/libSites';
 import OfflineButton from './components/offline/OfflineButton';
 import ReportButton from './components/report/ReportButton';
+import SideRail from './components/sideRail/SideRail';
+import BookmarksFlyout from './components/sideRail/BookmarksFlyout';
+import { LIB_SITES } from '../constants';
 import {
   NavigationHistoryTracker,
   playerHistoryManager,
@@ -41,6 +44,7 @@ function App() {
   const theme = useMemo(() => createAppTheme(scheme), [scheme]);
 
   const [savedUrl, setSavedUrl] = useState<string | null>(null);
+  const [pageUrl, setPageUrl] = useState<string>('');
   const [playerUrl, setPlayerUrl] = useState<string | null>(null);
   const [animeId, setAnimeId] = useState<string | null>(null);
   const bookmarks = useWatchingBookmarks(playerUrl);
@@ -73,6 +77,8 @@ function App() {
   }, [isOnline, hasDownloads]);
 
   const webViewRef = useRef<WebViewPageRef>(null);
+  const currentSite =
+    findLibSiteByUrl(pageUrl || savedUrl || '') ?? LIB_SITES[0];
   const [playerReturnsBack, setPlayerReturnsBack] = useState<boolean>(false);
   const [playerEpisodeId, setPlayerEpisodeId] = useState<number | undefined>(
     undefined,
@@ -224,31 +230,54 @@ function App() {
             hidden={Boolean(playerUrl)}
             onBeforeGoBack={handleBeforeGoBack}
             onPlayerButtonClick={handlePlayerButtonClick}
+            onPageUrlChange={setPageUrl}
+            sidebar={
+              <SideRail
+                site={currentSite}
+                onSelectSite={(site) =>
+                  webViewRef.current?.navigateTo(
+                    libSiteHomeUrl(site, getHomeUrl()),
+                  )
+                }
+                renderBookmarks={(close) => (
+                  <BookmarksFlyout
+                    site={currentSite}
+                    watching={bookmarks}
+                    offlineItems={offlineContinue}
+                    useOffline={!isOnline}
+                    onSelectWatching={(bookmark) => {
+                      close();
+                      handlePlayerButtonClick(
+                        buildAnimePageUrl(bookmark.animeSlugUrl),
+                        bookmark.animeSlugUrl,
+                      );
+                    }}
+                    onSelectOffline={(item) => {
+                      close();
+                      handlePlayFromLibrary(item.animeId, item.episodeId);
+                    }}
+                    onOpenReading={(bookmark) => {
+                      close();
+                      const { origin } = new URL(
+                        webViewRef.current?.getCurrentUrl() || pageUrl,
+                      );
+                      webViewRef.current?.navigateTo(
+                        `${origin}${bookmark.path}`,
+                      );
+                    }}
+                  />
+                )}
+                downloads={
+                  <OfflineButton
+                    onPlayOffline={handlePlayFromLibrary}
+                    openTab={libraryTab}
+                    onOpenHandled={() => setLibraryTab(null)}
+                  />
+                }
+                report={<ReportButton />}
+              />
+            }
           />
-          {!playerUrl && !offlineTarget && (
-            <>
-              <ContinueWatchingButton
-                bookmarks={bookmarks}
-                useOffline={!isOnline}
-                offlineItems={offlineContinue}
-                onSelectOffline={(item) => {
-                  log.debug('Continue watching offline:', item.animeId);
-                  handlePlayFromLibrary(item.animeId, item.episodeId);
-                }}
-                onSelect={(bookmark) => {
-                  const url = buildAnimePageUrl(bookmark.animeSlugUrl);
-                  log.debug('Continue watching:', url);
-                  handlePlayerButtonClick(url, bookmark.animeSlugUrl);
-                }}
-              />
-              <OfflineButton
-                onPlayOffline={handlePlayFromLibrary}
-                openTab={libraryTab}
-                onOpenHandled={() => setLibraryTab(null)}
-              />
-              <ReportButton />
-            </>
-          )}
         </Box>
 
         <OfflineNoticeDialog

@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Box, useTheme } from '@mui/material';
-import { alpha } from '@mui/material/styles';
-import type { CustomColors } from '@mui/material/styles';
 import { Download } from '../icons';
 import DownloadManagerDialog from './DownloadManagerDialog';
-import EdgeActionButton from '../EdgeActionButton';
+import RailButton from '../sideRail/RailButton';
 import useOfflineLibrary from '../../hooks/useOfflineLibrary';
-import { FLOATING_BUTTONS_TOP, isActiveDownload } from '../../../constants';
+import { SIDE_RAIL_ICON_SIZE, isActiveDownload } from '../../../constants';
 
 interface OfflineButtonProps {
   // eslint-disable-next-line react/require-default-props
@@ -17,38 +14,14 @@ interface OfflineButtonProps {
   onOpenHandled?: () => void;
 }
 
-const counterSx = (colors: CustomColors) => ({
-  position: 'absolute',
-  top: 1,
-  left: 26,
-  minWidth: 16,
-  height: 16,
-  px: '4px',
-  boxSizing: 'border-box',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  borderRadius: '8px',
-  backgroundColor: colors.secondaryColor,
-  color: colors.onAccentColor,
-  fontSize: '0.62rem',
-  fontWeight: 700,
-  lineHeight: 1,
-  border: `2px solid rgba(${colors.overlayRgb}, 0.9)`,
-  boxShadow: `0 2px 6px ${alpha(colors.blackColor, 0.5)}`,
-  pointerEvents: 'none',
-  zIndex: 1,
-});
-
 /**
- * Плавающая кнопка менеджера загрузок вне плеера
+ * Кнопка менеджера загрузок на левой панели; счётчик — идущие загрузки
  */
 function OfflineButton({
   onPlayOffline,
   openTab = null,
   onOpenHandled,
 }: OfflineButtonProps) {
-  const { customColors } = useTheme().palette;
   const snapshot = useOfflineLibrary();
   const [open, setOpen] = useState<boolean>(false);
   const [initialTab, setInitialTab] = useState<number | undefined>(undefined);
@@ -69,37 +42,16 @@ function OfflineButton({
 
   return (
     <>
-      <Box
-        sx={{
-          position: 'fixed',
-          top: FLOATING_BUTTONS_TOP,
-          left: 0,
-          zIndex: 1200,
+      <RailButton
+        label="Загрузки"
+        active={open}
+        badge={activeCount}
+        onClick={() => {
+          setInitialTab(2);
+          setOpen(true);
         }}
-      >
-        <EdgeActionButton
-          side="left"
-          solid
-          active={open}
-          label="Загрузки"
-          color={customColors.dialogTextColor}
-          onClick={() => {
-            setInitialTab(2);
-            setOpen(true);
-          }}
-          icon={
-            <Download
-              sx={{ fontSize: 24, color: customColors.accentSoftColor }}
-            />
-          }
-        />
-
-        {activeCount > 0 && (
-          <Box sx={counterSx(customColors)}>
-            {activeCount > 99 ? '99+' : activeCount}
-          </Box>
-        )}
-      </Box>
+        icon={<Download sx={{ fontSize: SIDE_RAIL_ICON_SIZE }} />}
+      />
 
       <DownloadManagerDialog
         open={open}

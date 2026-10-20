@@ -421,7 +421,7 @@ statsApiClient.interceptors.request.use((config) => {
 
   config.headers.Accept = '*/*';
   config.headers['Content-Type'] = 'application/json';
-  config.headers['Site-Id'] = '5';
+  config.headers['Site-Id'] = config.headers['Site-Id'] ?? '5';
   config.headers['Client-Time-Zone'] = 'Europe/Samara';
 
   return config;
@@ -927,6 +927,30 @@ export const animeApi = {
       throw error;
     }
   },
+
+  /**
+   * Закладки одной папки на сайте сети (Site-Id) без преобразования;
+   * без входа — пустой список
+   */
+  getSiteBookmarks: async (
+    siteId: number,
+    status: number,
+  ): Promise<unknown[]> => {
+    const userId = getUserId();
+    if (!userId) return [];
+
+    const response = await statsApiClient.get(
+      `/bookmarks?page=1&user_id=${userId}&status=${status}&sort_by=updated_at&sort_type=desc`,
+      { headers: { 'Site-Id': String(siteId) } },
+    );
+    const items = response.data?.data;
+    return Array.isArray(items) ? items : [];
+  },
+
+  /**
+   * Выполнен ли вход: без токена закладки не загрузить
+   */
+  hasUser: (): boolean => getUserId() !== null,
 
   /**
    * Get related anime

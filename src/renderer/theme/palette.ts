@@ -56,6 +56,15 @@ export const DANGER_DEEP = '#B91C1C';
 /** Плашка собственной оценки тайтла, как на сайте. */
 export const RATING_USER_BADGE = '#3BB33B';
 
+/** Фирменные цвета сайтов сети Lib по Site-Id, как --primary на сайтах. */
+export const LIB_SITE_COLORS: Record<number, string> = {
+  1: '#FF9100',
+  2: '#D81B60',
+  3: '#2196F3',
+  4: '#F44336',
+  5: '#7E57C2',
+};
+
 /** Информационные акценты. */
 export const INFO = '#2196F3';
 export const INFO_DEEP = '#1976D2';

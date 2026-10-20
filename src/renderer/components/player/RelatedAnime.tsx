@@ -23,6 +23,7 @@ import {
   RELATED_ROW_PADDING,
 } from '../../../constants';
 import { buildEdgeFadeMask } from '../../utils/edgeFade';
+import { libTitlePageUrl } from '../../utils/libSites';
 import { BLACK } from '../../theme/palette';
 
 const scrollButtonSx = (colors: CustomColors) => ({
@@ -38,31 +39,41 @@ const scrollButtonSx = (colors: CustomColors) => ({
 interface RelatedAnimeProps {
   relatedAnime: RelatedAnimeType[];
   onAnimeClick: (slugUrl: string) => void;
+  onOpenUrl: (url: string) => void;
 }
 
 /**
- * Компонент карточки связанного аниме
+ * Карточка связанного тайтла. Аниме открывается в приложении, манга
+ * и ранобэ — на странице тайтла своего сайта сети
  */
 function RelatedAnimeCard({
   item,
-  onClick,
+  onAnimeClick,
+  onOpenUrl,
   isDragMoving,
 }: {
   item: RelatedAnimeType;
-  onClick: () => void;
+  onAnimeClick: (slugUrl: string) => void;
+  onOpenUrl: (url: string) => void;
   isDragMoving: boolean;
 }) {
   const theme = useTheme();
   const imageUrl = useImageWithReferer(item.media.cover.default);
   const isAnime = item.media.model === 'anime';
+  const siteUrl = isAnime
+    ? null
+    : libTitlePageUrl(item.media.site, item.media.slug_url);
+  const isOpenable = isAnime || siteUrl !== null;
 
   const handleClick = (e: React.MouseEvent) => {
-    if (isDragMoving || !isAnime) {
+    if (isDragMoving || !isOpenable) {
       e.preventDefault();
       e.stopPropagation();
       return;
     }
-    onClick();
+
+    if (siteUrl) onOpenUrl(siteUrl);
+    else onAnimeClick(item.media.slug_url);
   };
 
   return (
@@ -81,11 +92,11 @@ function RelatedAnimeCard({
         overflow: 'hidden',
         textAlign: 'left',
         justifyContent: 'flex-start',
-        cursor: isAnime ? 'pointer' : 'not-allowed',
-        opacity: isAnime ? 1 : 0.5,
+        cursor: isOpenable ? 'pointer' : 'not-allowed',
+        opacity: isOpenable ? 1 : 0.5,
         transition:
           'transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease',
-        '&:hover': isAnime
+        '&:hover': isOpenable
           ? {
               transform: `scale(${RELATED_CARD_HOVER_SCALE})`,
               backgroundColor: `rgba(${theme.palette.customColors.accentRgb}, 0.14)`,
@@ -177,7 +188,11 @@ function RelatedAnimeCard({
 /**
  * RelatedAnime - карусель связанного аниме
  */
-function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
+function RelatedAnime({
+  relatedAnime,
+  onAnimeClick,
+  onOpenUrl,
+}: RelatedAnimeProps) {
   const theme = useTheme();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -334,7 +349,8 @@ function RelatedAnime({ relatedAnime, onAnimeClick }: RelatedAnimeProps) {
             <RelatedAnimeCard
               key={item.media.id}
               item={item}
-              onClick={() => onAnimeClick(item.media.slug_url)}
+              onAnimeClick={onAnimeClick}
+              onOpenUrl={onOpenUrl}
               isDragMoving={dragMoved}
             />
           ))}

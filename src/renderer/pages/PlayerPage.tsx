@@ -350,21 +350,28 @@ function PlayerPageRefactored({
   );
 
   /**
-   * Открывает главную страницу связанного аниме в WebView
+   * Выходит из плеера и открывает страницу в WebView
    */
-  const handleRelatedAnimeClick = useCallback(
-    (slugUrl: string) => {
-      const animeUrl = buildAnimePageUrl(slugUrl);
-      log.debug('Opening related anime page:', animeUrl);
+  const handleOpenPage = useCallback(
+    (url: string) => {
+      log.debug('Opening page from player:', url);
 
       if (!onNavigateToUrl) {
         log.warn('onNavigateToUrl not provided');
         return;
       }
 
-      exitPlayer(() => onNavigateToUrl(animeUrl));
+      exitPlayer(() => onNavigateToUrl(url));
     },
     [exitPlayer, onNavigateToUrl],
+  );
+
+  /**
+   * Открывает главную страницу связанного аниме в WebView
+   */
+  const handleRelatedAnimeClick = useCallback(
+    (slugUrl: string) => handleOpenPage(buildAnimePageUrl(slugUrl)),
+    [handleOpenPage],
   );
 
   /**
@@ -857,6 +864,7 @@ function PlayerPageRefactored({
                 }
                 relatedAnime={relatedAnime}
                 onAnimeClick={handleRelatedAnimeClick}
+                onOpenUrl={handleOpenPage}
               />
             )}
 

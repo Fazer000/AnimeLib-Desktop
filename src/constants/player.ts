@@ -218,12 +218,6 @@ export const COMMENTS_SETTINGS_DEFAULTS = {
 };
 
 /**
- * Размеры кнопок, примыкающих к кромке кадра
- */
-export const PLAYER_EDGE_BUTTON_SIZE = 42;
-export const PLAYER_EDGE_BUTTON_RADIUS = 14;
-
-/**
  * Размер буфера, в который отражается кадр для подсветки, px
  */
 export const AMBIENT_SOURCE_WIDTH = 64;

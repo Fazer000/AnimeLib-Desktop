@@ -10,16 +10,6 @@ import { PLAYER_INSET_X, PLAYER_INSET_Y } from './player';
 export const TOOLBAR_HEIGHT = 38;
 
 /**
- * Позиция плавающих кнопок вне плеера, px
- */
-export const SITE_HEADER_HEIGHT = 63;
-export const FLOATING_BUTTONS_LEFT = 24;
-export const FLOATING_BUTTONS_TOP =
-  TOOLBAR_HEIGHT + SITE_HEADER_HEIGHT + FLOATING_BUTTONS_LEFT;
-export const FLOATING_BUTTONS_GAP = 64;
-export const FLOATING_BUTTONS_BOTTOM = FLOATING_BUTTONS_LEFT;
-
-/**
  * Кнопка прокрутки вверх: размер, отступ от угла и зазор до чужих
  * плавающих элементов, px
  */
@@ -33,47 +23,9 @@ export const SCROLL_TOP_BUTTON_GAP = 12;
 export const SITE_SCROLL_TOP_THRESHOLD = 300;
 
 /**
- * Панель быстрых закладок, примыкающая к кнопке
+ * Обложка в строке закладки, px
  */
-export const BOOKMARKS_PANEL_WIDTH = 320;
-export const BOOKMARKS_PANEL_RADIUS = 10;
-export const BOOKMARKS_PANEL_DURATION_MS = 300;
-export const BOOKMARKS_PANEL_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 export const BOOKMARKS_COVER = { width: 44, height: 62 } as const;
-
-/**
- * Отступы строки закладки сверху и снизу, px
- */
-export const BOOKMARKS_ROW_PADDING = 6;
-
-/**
- * Отступы списка закладок сверху и снизу, px
- */
-export const BOOKMARKS_LIST_PADDING = 6;
-
-/**
- * Высота строки закладки: обложка со своими отступами, px
- */
-export const BOOKMARKS_ROW_HEIGHT =
-  BOOKMARKS_COVER.height + BOOKMARKS_ROW_PADDING * 2;
-
-/**
- * Сколько строк показывается целиком, без обрезанной снизу
- */
-export const BOOKMARKS_VISIBLE_ROWS = 5;
-
-/**
- * Высота панели закладок кратна строке, поэтому последняя не обрезается
- */
-export const BOOKMARKS_PANEL_MAX_HEIGHT =
-  BOOKMARKS_LIST_PADDING * 2 + BOOKMARKS_ROW_HEIGHT * BOOKMARKS_VISIBLE_ROWS;
-
-/**
- * Матовая поверхность краевых кнопок и панели закладок
- */
-export const EDGE_SURFACE_ALPHA = 0.72;
-export const EDGE_SURFACE_BLUR = 'blur(14px)';
-export const EDGE_ACCENT_BORDER_ALPHA = 0.45;
 
 /**
  * Границы резиновой ширины сайдбара озвучек, px
@@ -450,3 +402,19 @@ export const FRANCHISE_MIN_HEIGHT = RELATED_CARD_HEIGHT + 16;
  * наименьшую высоту блока
  */
 export const FRANCHISE_LEGEND_BAR_HEIGHT = 28;
+
+/**
+ * Левая панель приложения: ширина, размер кнопок и значков в них, ширина
+ * выдвижного подменю и размер язычка, которым панель прячется, px
+ */
+export const SIDE_RAIL_WIDTH = 52;
+export const SIDE_RAIL_BUTTON_SIZE = 42;
+export const SIDE_RAIL_ICON_SIZE = 24;
+export const SIDE_RAIL_SITE_ICON_SIZE = 28;
+export const SIDE_FLYOUT_WIDTH = 300;
+export const SIDE_RAIL_TAB = { width: 14, height: 56 };
+
+/**
+ * Скрыта ли левая панель — запоминается между запусками
+ */
+export const SIDE_RAIL_HIDDEN_STORAGE_KEY = 'animeLibSideRailHidden';

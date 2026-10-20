@@ -31,6 +31,12 @@ export const QUICK_BOOKMARK_STATUSES = [
 ];
 
 /**
+ * Папка «Читаю» на сайтах манги и ранобэ: из неё собираются закладки
+ * подменю на этих сайтах
+ */
+export const BOOKMARK_STATUS_READING = 1;
+
+/**
  * Типы перевода в подписках на выход серий
  */
 export const TRANSLATION_TYPE_SUBTITLES = 1;

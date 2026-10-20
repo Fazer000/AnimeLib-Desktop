@@ -1,5 +1,6 @@
 import { createLogger } from '../../../shared/logger';
 import { getCustomSelectScript } from '../../scripts/customSelectInjector';
+import { getTitleActionScript } from '../../scripts/titleActionButton';
 
 const log = createLogger('ScriptInjectionManager');
 
@@ -291,6 +292,22 @@ export class ScriptInjectionManager {
           reject(error);
         });
     });
+  }
+
+  /**
+   * Заменяет «Лицензирован» на странице тайтла кнопкой «Начать / Продолжить»
+   */
+  public injectTitleAction(): Promise<void> {
+    if (!this.webview) {
+      return Promise.reject(new Error('WebView not available'));
+    }
+
+    return this.webview
+      .executeJavaScript(getTitleActionScript())
+      .then((result: boolean) => {
+        if (!result) throw new Error('Title action injection failed');
+        return undefined;
+      });
   }
 
   /**

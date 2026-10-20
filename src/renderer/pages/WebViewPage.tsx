@@ -60,6 +60,10 @@ interface WebViewProps {
   pageRef?: React.Ref<WebViewPageRef>;
   // eslint-disable-next-line react/require-default-props
   onBeforeGoBack?: () => boolean;
+  // eslint-disable-next-line react/require-default-props
+  onPageUrlChange?: (url: string) => void;
+  // eslint-disable-next-line react/require-default-props
+  sidebar?: React.ReactNode;
 }
 
 /**
@@ -75,6 +79,8 @@ function WebViewRefactored({
   hidden = false,
   pageRef,
   onBeforeGoBack,
+  onPageUrlChange,
+  sidebar,
 }: WebViewProps) {
   const [currentUrl, setCurrentUrl] = useState(savedUrl);
   const { customColors } = useTheme().palette;
@@ -83,6 +89,8 @@ function WebViewRefactored({
   const [pageScroll, setPageScroll] = useState<PageScrollState | null>(null);
 
   const webviewRef = useRef<any>(null);
+  const onPageUrlChangeRef = useRef(onPageUrlChange);
+  onPageUrlChangeRef.current = onPageUrlChange;
 
   useEffect(() => {
     themeModeStore.setSiteWriter((mode) =>
@@ -117,6 +125,7 @@ function WebViewRefactored({
         },
         onUrlChange: (url) => {
           log.debug('URL changed:', url);
+          onPageUrlChangeRef.current?.(url);
         },
         onLoadStop: (url) => {
           log.debug('Load complete:', url);
@@ -180,6 +189,12 @@ function WebViewRefactored({
         installPageScrollWatcher(webview, SITE_SCROLL_TOP_THRESHOLD).catch(
           () => {},
         );
+      });
+
+      scriptManager.registerCallback(() => {
+        scriptManager.injectTitleAction().catch((error) => {
+          log.warn('Title action injection skipped:', error);
+        });
       });
 
       scriptManager.registerCallback(() => {
@@ -477,33 +492,43 @@ function WebViewRefactored({
       />
 
       <Box
-        ref={hostRef}
         sx={{
           flex: 1,
-          position: 'relative',
+          minHeight: 0,
+          display: 'flex',
           marginTop: `${TOOLBAR_HEIGHT}px`,
-          overflow: 'hidden',
         }}
       >
-        <webview
-          ref={webviewRef}
-          src={savedUrl}
-          style={{
-            width: hostSize ? `${hostSize.width}px` : '100%',
-            height: hostSize ? `${hostSize.height}px` : '100%',
-            border: 'none',
-            WebkitFontSmoothing: 'antialiased',
-            MozOsxFontSmoothing: 'grayscale',
+        {sidebar}
+        <Box
+          ref={hostRef}
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            position: 'relative',
+            overflow: 'hidden',
           }}
-        />
+        >
+          <webview
+            ref={webviewRef}
+            src={savedUrl}
+            style={{
+              width: hostSize ? `${hostSize.width}px` : '100%',
+              height: hostSize ? `${hostSize.height}px` : '100%',
+              border: 'none',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
+            }}
+          />
 
-        <ScrollTopFab
-          visible={Boolean(pageScroll?.scrolled) && !hidden}
-          onClick={handleScrollToTop}
-          position="absolute"
-          right={scrollButtonPlacement?.right}
-          bottom={scrollButtonPlacement?.bottom}
-        />
+          <ScrollTopFab
+            visible={Boolean(pageScroll?.scrolled) && !hidden}
+            onClick={handleScrollToTop}
+            position="absolute"
+            right={scrollButtonPlacement?.right}
+            bottom={scrollButtonPlacement?.bottom}
+          />
+        </Box>
       </Box>
     </Box>
   );

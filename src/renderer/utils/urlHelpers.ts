@@ -1,3 +1,4 @@
+import { LIB_SITES } from '../../constants';
 import { createLogger } from '../../shared/logger';
 
 const log = createLogger('urlHelpers');
@@ -12,9 +13,11 @@ const log = createLogger('urlHelpers');
 export const DEFAULT_SITE_URL = 'https://v5.animelib.org';
 
 /**
- * Домены, которые считаются доменами сайта
+ * Домены AnimeLib, включая запасные: адрес сайта в настройках — один из них
  */
-export const SITE_DOMAINS = ['animelib.org'];
+export const SITE_DOMAINS = LIB_SITES.filter(
+  (site) => site.kind === 'anime',
+).flatMap((site) => site.hosts);
 
 /**
  * Проверяет, принадлежит ли URL домену сайта

@@ -15,6 +15,7 @@ describe('isSiteUrl', () => {
     expect(isSiteUrl('https://animelib.org/ru')).toBe(true);
     expect(isSiteUrl('https://v5.animelib.org/')).toBe(true);
     expect(isSiteUrl('https://anime.animelib.org/x')).toBe(true);
+    expect(isSiteUrl('https://anilib.me/ru')).toBe(true);
   });
 
   it('отклоняет чужие домены, в том числе похожие', () => {
