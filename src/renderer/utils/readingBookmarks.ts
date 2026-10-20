@@ -9,6 +9,7 @@ export interface ReadingBookmark {
   coverUrl: string | null;
   caption: string;
   path: string;
+  started: boolean;
 }
 
 interface RawReadingBookmark {
@@ -23,7 +24,8 @@ interface RawReadingBookmark {
 
 /**
  * Закладки сайта манги или ранобэ в строки подменю. С главой — ссылка
- * на неё в читалке, без главы — на страницу тайтла
+ * на неё в читалке; без главы чтение ещё не начато, и path — страница
+ * тайтла на случай, если первую главу не удастся найти
  */
 export function toReadingBookmarks(
   items: unknown[],
@@ -50,10 +52,11 @@ export function toReadingBookmarks(
           raw.media?.cover?.thumbnail || raw.media?.cover?.default || null,
         caption: hasChapter
           ? `Продолжить чтение · гл. ${chapter.number}`
-          : 'Открыть тайтл',
+          : 'Начать чтение',
         path: hasChapter
           ? `/ru/${slug}/read/v${chapter.volume}/c${chapter.number}`
           : `/ru/${section}/${slug}`,
+        started: hasChapter,
       },
     ];
   });

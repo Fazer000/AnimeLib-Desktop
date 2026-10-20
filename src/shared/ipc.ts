@@ -61,6 +61,12 @@ export interface VideoHeadersPayload {
   authToken?: string;
 }
 
+/** Ответ зеркала: код HTTP (0 — сеть не ответила) и время, мс */
+export interface MirrorCheckResult {
+  status: number;
+  ms: number;
+}
+
 export interface FetchImagePayload {
   url: string;
   referer: string;
@@ -71,6 +77,7 @@ export interface IpcInvokeMap {
   'get-maximize-state': { request: void; response: boolean };
   'fetch-image': { request: FetchImagePayload; response: FetchImageResult };
   'fetch-subtitles': { request: string[]; response: FetchSubtitlesResult };
+  'check-mirror': { request: string; response: MirrorCheckResult };
   'get-kodik-links': { request: string; response: KodikLinksResult };
   'setup-video-headers': {
     request: VideoHeadersPayload;

@@ -6,7 +6,8 @@ export type LibSiteKind = 'anime' | 'manga' | 'ranobe';
 
 /**
  * Сайт сети. home — главная; у AnimeLib её нет: адрес выбирает пользователь
- * (animelib.org, v5.animelib.org), и он берётся из настроек
+ * (animelib.org, v5.animelib.org), и он берётся из настроек. mirrors —
+ * главные всех зеркал сайта, первым идёт основное
  */
 export interface LibSite {
   name: string;
@@ -15,9 +16,19 @@ export interface LibSite {
   kind: LibSiteKind;
   hosts: string[];
   home: string | null;
+  mirrors: string[];
 }
 
 export const LIB_API_URL = 'https://api.cdnlibs.org/api';
+
+/** Выбранные зеркала сайтов, кроме AnimeLib: { [siteId]: главная } */
+export const LIB_SITE_MIRRORS_STORAGE_KEY = 'libSiteMirrors';
+
+/** Site-Id базового сайта, с которого открывается приложение */
+export const LIB_START_SITE_STORAGE_KEY = 'libStartSite';
+
+/** Сколько ждать ответа зеркала при проверке доступности, мс */
+export const MIRROR_CHECK_TIMEOUT = 6000;
 
 export const LIB_SITES: LibSite[] = [
   {
@@ -27,6 +38,11 @@ export const LIB_SITES: LibSite[] = [
     kind: 'anime',
     hosts: ['animelib.org', 'anilib.me'],
     home: null,
+    mirrors: [
+      'https://animelib.org/',
+      'https://v5.animelib.org/',
+      'https://anilib.me/',
+    ],
   },
   {
     name: 'MangaLIB',
@@ -35,14 +51,16 @@ export const LIB_SITES: LibSite[] = [
     kind: 'manga',
     hosts: ['mangalib.me'],
     home: 'https://mangalib.me/',
+    mirrors: ['https://mangalib.me/'],
   },
   {
-    name: 'YaoiLIB',
-    letter: 'Y',
+    name: 'SlashLIB',
+    letter: 'S',
     siteId: 2,
     kind: 'manga',
     hosts: ['shlib.life', 'slashlib.me'],
     home: 'https://v2.shlib.life/',
+    mirrors: ['https://v2.shlib.life/', 'https://slashlib.me/'],
   },
   {
     name: 'RanobeLIB',
@@ -51,6 +69,7 @@ export const LIB_SITES: LibSite[] = [
     kind: 'ranobe',
     hosts: ['ranobelib.me'],
     home: 'https://ranobelib.me/',
+    mirrors: ['https://ranobelib.me/'],
   },
   {
     name: 'HentaiLIB',
@@ -59,5 +78,6 @@ export const LIB_SITES: LibSite[] = [
     kind: 'manga',
     hosts: ['hentailib.me'],
     home: 'https://hentailib.me/',
+    mirrors: ['https://hentailib.me/'],
   },
 ];

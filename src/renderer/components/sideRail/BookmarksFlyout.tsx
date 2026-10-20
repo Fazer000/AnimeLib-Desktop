@@ -119,7 +119,8 @@ function ReadingList({ site, onOpen }: ReadingListProps) {
   if (!signedIn)
     return <Notice text="Войдите на сайт, чтобы видеть закладки" />;
   if (loading && items.length === 0) return <Notice text="Загрузка…" />;
-  if (items.length === 0) return <Notice text="В папке «Читаю» пусто" />;
+  if (items.length === 0)
+    return <Notice text={`У тебя нет закладок на ${site.name}`} />;
 
   return (
     <>
@@ -182,7 +183,7 @@ function BookmarksFlyout({
   }
 
   if (watching.length === 0) {
-    return <Notice text="В папках «Смотрю» и «Пересматриваю» пусто" />;
+    return <Notice text={`У тебя нет закладок на ${site.name}`} />;
   }
 
   return (

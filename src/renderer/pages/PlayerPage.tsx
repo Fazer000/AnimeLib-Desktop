@@ -103,8 +103,6 @@ function PlayerPageRefactored({
 
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
 
-  const [showUrlInput, setShowUrlInput] = useState<boolean>(false);
-
   const [autoplayEnabled, handleAutoplayChange] = usePersistedFlag(
     'playerAutoplayEnabled',
     false,
@@ -514,14 +512,11 @@ function PlayerPageRefactored({
         }}
         canGoBack
         height={TOOLBAR_HEIGHT}
-        isPlayerPage
-        showUrlInput={showUrlInput}
         currentUrl={playerUrl}
         animeId={offlineMode ? undefined : currentAnimeId}
         onOpenAnimePage={handleOpenAnimePage}
         hideAnimeHandle={!controlsVisible}
         onUrlChange={handleOpenPage}
-        onToggleUrlInput={() => setShowUrlInput(!showUrlInput)}
         onPlayerButtonClick={onPlayerButtonClick}
         onMinimize={handleMinimize}
         onMaximize={handleMaximize}

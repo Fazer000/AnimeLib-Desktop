@@ -117,7 +117,7 @@ describe('findLibSite', () => {
 describe('findLibSiteByUrl', () => {
   it('узнаёт сайт по адресу страницы', () => {
     expect(findLibSiteByUrl('https://v2.shlib.life/ru/manga/1--a')?.name).toBe(
-      'YaoiLIB',
+      'SlashLIB',
     );
     expect(findLibSiteByUrl('https://example.com/')).toBeNull();
     expect(findLibSiteByUrl('не адрес')).toBeNull();

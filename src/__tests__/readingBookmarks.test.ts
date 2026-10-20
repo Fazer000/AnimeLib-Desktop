@@ -23,11 +23,12 @@ describe('toReadingBookmarks', () => {
         coverUrl: 't.jpg',
         caption: 'Продолжить чтение · гл. 222.5',
         path: '/ru/1284--relife/read/v5/c222.5',
+        started: true,
       },
     ]);
   });
 
-  it('без главы ведёт на страницу тайтла своего раздела', () => {
+  it('без главы — не начато, запасной путь на страницу тайтла', () => {
     const [manga] = toReadingBookmarks(
       [{ media: { slug_url: '1--a', name: 'A' }, item: null }],
       'manga',
@@ -38,7 +39,8 @@ describe('toReadingBookmarks', () => {
     );
 
     expect(manga.path).toBe('/ru/manga/1--a');
-    expect(manga.caption).toBe('Открыть тайтл');
+    expect(manga.caption).toBe('Начать чтение');
+    expect(manga.started).toBe(false);
     expect(ranobe.path).toBe('/ru/book/2--b');
   });
 

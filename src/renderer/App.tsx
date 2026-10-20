@@ -8,17 +8,24 @@ import React, {
 import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import ErrorBoundary from './components/ErrorBoundary';
 import { installDebugApi } from './utils/debugApi';
-import UrlInputPage from './pages/UrlInputPage';
+import SiteChoicePage from './pages/SiteChoicePage';
 import WebView from './pages/WebViewPage';
 import type { WebViewPageRef } from './pages/WebViewPage';
 import PlayerPage from './pages/PlayerPage';
-import { buildAnimePageUrl, getHomeUrl, saveSiteUrl } from './utils/urlHelpers';
+import { buildAnimePageUrl, getHomeUrl } from './utils/urlHelpers';
 import { findLibSiteByUrl, libSiteHomeUrl } from './utils/libSites';
+import {
+  readStartSite,
+  saveSiteMirror,
+  saveStartSite,
+} from './utils/siteMirrors';
 import OfflineButton from './components/offline/OfflineButton';
 import ReportButton from './components/report/ReportButton';
 import SideRail from './components/sideRail/SideRail';
 import BookmarksFlyout from './components/sideRail/BookmarksFlyout';
-import { LIB_SITES } from '../constants';
+import { LIB_SITES, LibSite } from '../constants';
+import { animeApi } from './api/animeApi';
+import type { ReadingBookmark } from './utils/readingBookmarks';
 import {
   NavigationHistoryTracker,
   playerHistoryManager,
@@ -39,11 +46,24 @@ const log = createLogger('App');
 
 installDebugApi();
 
+/**
+ * С чего открыть приложение: главная базового сайта; у прежних установок
+ * без базового сайта — сохранённый адрес AnimeLib; при первом запуске —
+ * null, и пользователь выбирает сайт
+ */
+const initialStartUrl = (): string | null => {
+  const startSite = readStartSite();
+  if (startSite) return libSiteHomeUrl(startSite, getHomeUrl());
+
+  return localStorage.getItem('animeLibUrl');
+};
+
 function App() {
   const scheme = useColorScheme();
   const theme = useMemo(() => createAppTheme(scheme), [scheme]);
 
-  const [savedUrl, setSavedUrl] = useState<string | null>(null);
+  const [savedUrl, setSavedUrl] = useState<string | null>(initialStartUrl);
+  const [sitesRequest, setSitesRequest] = useState(0);
   const [pageUrl, setPageUrl] = useState<string>('');
   const [playerUrl, setPlayerUrl] = useState<string | null>(null);
   const [animeId, setAnimeId] = useState<string | null>(null);
@@ -128,11 +148,6 @@ function App() {
   );
 
   useEffect(() => {
-    const storedUrl = localStorage.getItem('animeLibUrl');
-    if (storedUrl) {
-      setSavedUrl(storedUrl);
-    }
-
     if (window.electron?.ipcRenderer) {
       const unsubscribe = window.electron.ipcRenderer.on(
         'open-player-page',
@@ -149,8 +164,39 @@ function App() {
     return undefined;
   }, [handlePlayerButtonClick]);
 
-  const handleUrlSubmit = useCallback((url: string) => {
-    setSavedUrl(saveSiteUrl(url));
+  const handleSiteChoice = useCallback((site: LibSite, mirror: string) => {
+    saveSiteMirror(site, mirror);
+    saveStartSite(site);
+    setSavedUrl(mirror);
+  }, []);
+
+  const handleOpenReading = useCallback(
+    async (bookmark: ReadingBookmark) => {
+      const { origin } = new URL(
+        webViewRef.current?.getCurrentUrl() || pageUrl,
+      );
+      let { path } = bookmark;
+
+      if (!bookmark.started) {
+        try {
+          path =
+            (await animeApi.getReadingPath(
+              currentSite.siteId,
+              bookmark.slugUrl,
+            )) ?? path;
+        } catch (error) {
+          log.error('Error resolving first chapter:', error);
+        }
+      }
+
+      webViewRef.current?.navigateTo(`${origin}${path}`);
+    },
+    [pageUrl, currentSite.siteId],
+  );
+
+  const handleSelectMirror = useCallback((site: LibSite, mirror: string) => {
+    saveSiteMirror(site, mirror);
+    webViewRef.current?.navigateTo(mirror);
   }, []);
 
   const handlePlayFromLibrary = useCallback(
@@ -207,7 +253,7 @@ function App() {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <UrlInputPage onSubmit={handleUrlSubmit} />
+        <SiteChoicePage onSubmit={handleSiteChoice} />
       </ThemeProvider>
     );
   }
@@ -231,9 +277,13 @@ function App() {
             onBeforeGoBack={handleBeforeGoBack}
             onPlayerButtonClick={handlePlayerButtonClick}
             onPageUrlChange={setPageUrl}
+            onRequestSites={() => setSitesRequest((count) => count + 1)}
             sidebar={
               <SideRail
                 site={currentSite}
+                sitesRequest={sitesRequest}
+                suspended={Boolean(playerUrl || offlineTarget)}
+                onSelectMirror={handleSelectMirror}
                 onSelectSite={(site) =>
                   webViewRef.current?.navigateTo(
                     libSiteHomeUrl(site, getHomeUrl()),
@@ -258,12 +308,7 @@ function App() {
                     }}
                     onOpenReading={(bookmark) => {
                       close();
-                      const { origin } = new URL(
-                        webViewRef.current?.getCurrentUrl() || pageUrl,
-                      );
-                      webViewRef.current?.navigateTo(
-                        `${origin}${bookmark.path}`,
-                      );
+                      handleOpenReading(bookmark);
                     }}
                   />
                 )}

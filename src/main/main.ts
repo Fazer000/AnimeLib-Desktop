@@ -25,6 +25,7 @@ import { resolveHtmlPath } from './util';
 import { registerUpdateHandlers } from './updater';
 import { registerCrashHandlers } from './crashReporter';
 import { registerReportHandlers } from './report';
+import registerMirrorCheckHandler from './mirrorCheck';
 import { addCorsHeaders } from './corsHeaders';
 import {
   registerOfflineHandlers,
@@ -821,6 +822,7 @@ if (hasInstanceLock) {
       registerBookmarksWatcher();
       registerUpdateHandlers(() => mainWindow);
       registerReportHandlers();
+      registerMirrorCheckHandler();
       registerOfflineProtocol(() => mainWindow);
       registerOfflineHandlers(() => mainWindow);
       createWindow();

@@ -9,6 +9,8 @@ import React, {
 import { Box, useTheme } from '@mui/material';
 import CustomToolbar from '../components/Toolbar';
 import ScrollTopFab from '../components/ScrollTopFab';
+import SiteLoadError from '../components/SiteLoadError';
+import { failedPageHost, isSiteDownStatus } from '../utils/loadFailure';
 import useStableSize from '../hooks/useStableSize';
 import {
   extractAuthToken,
@@ -64,6 +66,8 @@ interface WebViewProps {
   onPageUrlChange?: (url: string) => void;
   // eslint-disable-next-line react/require-default-props
   sidebar?: React.ReactNode;
+  // eslint-disable-next-line react/require-default-props
+  onRequestSites?: () => void;
 }
 
 /**
@@ -81,11 +85,15 @@ function WebViewRefactored({
   onBeforeGoBack,
   onPageUrlChange,
   sidebar,
+  onRequestSites,
 }: WebViewProps) {
   const [currentUrl, setCurrentUrl] = useState(savedUrl);
   const { customColors } = useTheme().palette;
   const [canGoBack, setCanGoBack] = useState(false);
-  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [loadError, setLoadError] = useState<{
+    url: string;
+    host: string;
+  } | null>(null);
   const [pageScroll, setPageScroll] = useState<PageScrollState | null>(null);
 
   const webviewRef = useRef<any>(null);
@@ -257,7 +265,12 @@ function WebViewRefactored({
       log.error('===== WEBVIEW ERROR =====');
       log.error('Error:', e);
       webViewManager.handleError(e);
+
+      const host = failedPageHost(e, [PLAYER_PROTOCOL_PREFIX]);
+      if (host) setLoadError({ url: failedUrl, host });
     };
+
+    const handleStartLoading = () => setLoadError(null);
 
     const handleNavigate = (e: any) => {
       log.debug('===== WEBVIEW NAVIGATION =====');
@@ -265,6 +278,13 @@ function WebViewRefactored({
 
       webViewManager.handleNavigation(e.url);
       scriptManager.inject();
+
+      const code = Number(e.httpResponseCode) || 0;
+      const host =
+        code > 0 &&
+        isSiteDownStatus(code) &&
+        failedPageHost({ validatedURL: e.url });
+      if (host) setLoadError({ url: e.url, host });
     };
 
     const handleInPageNavigate = (e: any) => {
@@ -287,6 +307,7 @@ function WebViewRefactored({
     webview.addEventListener('dom-ready', handleDomReady);
     webview.addEventListener('did-finish-load', handleLoadStop);
     webview.addEventListener('did-fail-load', handleError);
+    webview.addEventListener('did-start-loading', handleStartLoading);
     webview.addEventListener('did-navigate', handleNavigate);
     webview.addEventListener('did-navigate-in-page', handleInPageNavigate);
 
@@ -298,6 +319,7 @@ function WebViewRefactored({
       webview.removeEventListener('dom-ready', handleDomReady);
       webview.removeEventListener('did-finish-load', handleLoadStop);
       webview.removeEventListener('did-fail-load', handleError);
+      webview.removeEventListener('did-start-loading', handleStartLoading);
       webview.removeEventListener('did-navigate', handleNavigate);
       webview.removeEventListener('did-navigate-in-page', handleInPageNavigate);
 
@@ -453,6 +475,10 @@ function WebViewRefactored({
     }
   }, []);
 
+  const handleRetryLoad = useCallback(() => {
+    if (loadError) webViewManagerRef.current?.navigateTo(loadError.url);
+  }, [loadError]);
+
   const handleWindowMinimize = useCallback(() => {
     if (window.electron?.ipcRenderer) {
       window.electron.ipcRenderer.sendMessage('window-minimize');
@@ -479,10 +505,8 @@ function WebViewRefactored({
         onRefresh={handleRefresh}
         onHome={handleHome}
         canGoBack={canGoBack}
-        showUrlInput={showUrlInput}
         currentUrl={currentUrl}
         onUrlChange={handleUrlChange}
-        onToggleUrlInput={() => setShowUrlInput(!showUrlInput)}
         onPlayerButtonClick={onPlayerButtonClick}
         onMinimize={handleWindowMinimize}
         onMaximize={handleWindowMaximize}
@@ -521,8 +545,16 @@ function WebViewRefactored({
             }}
           />
 
+          {loadError && (
+            <SiteLoadError
+              host={loadError.host}
+              onChangeSite={() => onRequestSites?.()}
+              onRetry={handleRetryLoad}
+            />
+          )}
+
           <ScrollTopFab
-            visible={Boolean(pageScroll?.scrolled) && !hidden}
+            visible={Boolean(pageScroll?.scrolled) && !hidden && !loadError}
             onClick={handleScrollToTop}
             position="absolute"
             right={scrollButtonPlacement?.right}

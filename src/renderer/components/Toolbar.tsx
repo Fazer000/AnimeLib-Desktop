@@ -2,7 +2,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AppBar, Toolbar, Box, useTheme } from '@mui/material';
 import NavigationButtons from './toolbar/NavigationButtons';
-import UrlBar from './toolbar/UrlBar';
 import WindowControls from './toolbar/WindowControls';
 import AnimeInfoCard from './toolbar/AnimeInfoCard';
 import AnimeInfoHandle from './toolbar/AnimeInfoHandle';
@@ -30,9 +29,7 @@ interface ToolbarProps {
 
   currentUrl?: string;
 
-  showUrlInput?: boolean;
   onUrlChange?: (url: string) => void;
-  onToggleUrlInput?: () => void;
 
   onMinimize?: () => void;
   onMaximize?: () => void;
@@ -40,8 +37,6 @@ interface ToolbarProps {
 
   backgroundColor?: string;
   height?: number;
-
-  isPlayerPage?: boolean;
 
   animeId?: string;
 
@@ -59,9 +54,7 @@ function ToolbarRefactored({
 
   currentUrl = '',
 
-  showUrlInput = false,
   onUrlChange,
-  onToggleUrlInput,
 
   onMinimize,
   onMaximize,
@@ -69,8 +62,6 @@ function ToolbarRefactored({
 
   backgroundColor,
   height = 32,
-
-  isPlayerPage = false,
 
   animeId,
   onPlayerButtonClick,
@@ -235,16 +226,7 @@ function ToolbarRefactored({
             canGoBack={canGoBack}
           />
 
-          {!isPlayerPage && (
-            <UrlBar
-              currentUrl={currentUrl}
-              showUrlInput={showUrlInput}
-              onUrlChange={onUrlChange}
-              onToggleUrlInput={onToggleUrlInput}
-            />
-          )}
-
-          {isPlayerPage && <Box sx={{ flex: 1 }} />}
+          <Box sx={{ flex: 1 }} />
 
           <WindowControls
             onMinimize={onMinimize}

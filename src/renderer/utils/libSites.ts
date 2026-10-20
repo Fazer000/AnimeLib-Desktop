@@ -1,4 +1,5 @@
 import { LIB_SITES, LibSite } from '../../constants';
+import { chosenMirror, readSiteMirrors } from './siteMirrors';
 
 /**
  * Сайт сети Lib по имени хоста, в том числе по поддомену (v5.animelib.org)
@@ -33,10 +34,14 @@ export function findLibSiteByUrl(
 }
 
 /**
- * Главная сайта; у AnimeLib — адрес из настроек приложения
+ * Главная сайта на выбранном зеркале; у AnimeLib — адрес из настроек
  */
-export function libSiteHomeUrl(site: LibSite, animeHomeUrl: string): string {
-  return site.home ?? animeHomeUrl;
+export function libSiteHomeUrl(
+  site: LibSite,
+  animeHomeUrl: string,
+  homes: Record<number, string> = readSiteMirrors(),
+): string {
+  return site.kind === 'anime' ? animeHomeUrl : chosenMirror(site, homes);
 }
 
 /**
@@ -55,18 +60,19 @@ export function currentSiteHomeUrl(
 }
 
 /**
- * Полный адрес пути на сайте сети по Site-Id; AnimeLib и неизвестный
- * сайт — null
+ * Полный адрес пути на сайте сети по Site-Id на выбранном зеркале;
+ * AnimeLib и неизвестный сайт — null
  */
 export function libSitePageUrl(
   siteId: number,
   path: string,
   sites: LibSite[] = LIB_SITES,
+  homes: Record<number, string> = readSiteMirrors(),
 ): string | null {
   const site = sites.find((item) => item.siteId === siteId);
   if (!site?.home) return null;
 
-  return `${new URL(site.home).origin}${path}`;
+  return `${new URL(chosenMirror(site, homes)).origin}${path}`;
 }
 
 /**
@@ -78,12 +84,13 @@ export function libTitlePageUrl(
   siteId: number,
   slugUrl: string,
   sites: LibSite[] = LIB_SITES,
+  homes: Record<number, string> = readSiteMirrors(),
 ): string | null {
   const site = sites.find((item) => item.siteId === siteId);
   if (!site?.home || !slugUrl) return null;
 
   const section = site.kind === 'ranobe' ? 'book' : 'manga';
-  return libSitePageUrl(siteId, `/ru/${section}/${slugUrl}`, sites);
+  return libSitePageUrl(siteId, `/ru/${section}/${slugUrl}`, sites, homes);
 }
 
 /**

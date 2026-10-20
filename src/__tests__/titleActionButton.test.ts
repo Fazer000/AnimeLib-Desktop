@@ -65,6 +65,7 @@ describe('titleActionButtonMain', () => {
             kind,
             hosts: ['localhost'],
             home: null,
+            mirrors: [],
           },
         ],
       },
