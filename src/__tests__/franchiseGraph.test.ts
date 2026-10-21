@@ -6,6 +6,8 @@ import {
   buildTimeScale,
   dedupeRelations,
   findMainLine,
+  fitFranchiseRows,
+  rowLinkCost,
   formatReleaseMonth,
   isFranchiseLink,
   isSequelLabel,
@@ -127,8 +129,65 @@ describe('findMainLine', () => {
     ],
   );
 
-  it('выбирает самую длинную цепочку продолжений', () => {
-    expect([...findMainLine(graph, 'f1')].sort()).toEqual(['s1', 's2', 's3']);
+  it('цепочка текущего сериала — основная, даже если есть длиннее', () => {
+    expect([...findMainLine(graph, 'f1')].sort()).toEqual(['f1', 'f2']);
+  });
+
+  it('одиночный тайтл — основная самая длинная цепочка сериалов', () => {
+    expect([...findMainLine(graph, 'x')].sort()).toEqual(['s1', 's2', 's3']);
+  });
+
+  it('цепочка текущего фильма — основная', () => {
+    const films = graphOf(
+      [
+        title('s1', null),
+        title('s2', null),
+        title('m1', null, 'Фильм'),
+        title('m2', null, 'Фильм'),
+      ],
+      [
+        normalizeEdge('s1', 's2', 'Продолжение'),
+        normalizeEdge('m1', 'm2', 'Продолжение'),
+        normalizeEdge('s1', 'm1', 'Другое'),
+      ],
+    );
+    expect([...findMainLine(films, 'm2')].sort()).toEqual(['m1', 'm2']);
+  });
+
+  it('цепочка текущей ONA — основная, как у сериала', () => {
+    const ona = graphOf(
+      [
+        title('s1', null),
+        title('s2', null),
+        title('s3', null),
+        title('o1', null, 'ONA'),
+        title('o2', null, 'ONA'),
+      ],
+      [
+        normalizeEdge('s1', 's2', 'Продолжение'),
+        normalizeEdge('s2', 's3', 'Продолжение'),
+        normalizeEdge('o1', 'o2', 'Продолжение'),
+        normalizeEdge('s1', 'o1', 'Другое'),
+      ],
+    );
+    expect([...findMainLine(ona, 'o2')].sort()).toEqual(['o1', 'o2']);
+  });
+
+  it('цепочка из одних спецвыпусков не становится основной', () => {
+    const specials = graphOf(
+      [
+        title('s1', null),
+        title('s2', null),
+        title('sp1', null, 'Спешл'),
+        title('sp2', null, 'Спешл'),
+      ],
+      [
+        normalizeEdge('s1', 's2', 'Продолжение'),
+        normalizeEdge('sp1', 'sp2', 'Продолжение'),
+        normalizeEdge('s1', 'sp1', 'Другое'),
+      ],
+    );
+    expect([...findMainLine(specials, 'sp2')].sort()).toEqual(['s1', 's2']);
   });
 
   it('без продолжений основная линия — текущий тайтл', () => {
@@ -540,6 +599,70 @@ describe('laterEnd', () => {
     );
     expect(laterEnd(normalizeEdge('s2', 'soon', 'Другое'), titles)).toBe(
       'soon',
+    );
+  });
+});
+
+describe('fitFranchiseRows', () => {
+  const base = { above: 2, below: 3 };
+
+  it('мало места — обычные ряды', () => {
+    expect(fitFranchiseRows(300, 84, base)).toEqual(base);
+  });
+
+  it('много места — больше рядов в той же пропорции', () => {
+    expect(fitFranchiseRows(84 * 11, 84, base)).toEqual({ above: 4, below: 6 });
+  });
+});
+
+describe('раскладка с учётом связей', () => {
+  const graph = graphOf(
+    [
+      title('main', '2010-01-01'),
+      title('x', '2011-01-01', 'OVA'),
+      title('p1', '2011-02-01', 'OVA'),
+      title('p2', '2015-01-01', 'OVA'),
+    ],
+    [normalizeEdge('p1', 'p2', 'Продолжение')],
+  );
+
+  it('продолжение встаёт в ряд своей предыстории', () => {
+    const plain = layoutFranchise(graph, new Set(['main']), OPTIONS);
+    const linked = layoutFranchise(graph, new Set(['main']), {
+      ...OPTIONS,
+      linkAware: true,
+    });
+
+    expect(plain.nodes.get('p1')?.row).toBe(2);
+    expect(plain.nodes.get('p2')?.row).toBe(1);
+    expect(linked.nodes.get('p2')?.row).toBe(2);
+  });
+
+  it('ширина лет считается по заданным рядам, а не по числу рядов раскладки', () => {
+    const base = layoutFranchise(graph, new Set(['main']), OPTIONS);
+    const more = layoutFranchise(graph, new Set(['main']), {
+      ...OPTIONS,
+      rowsBelow: 6,
+      yearRows: { above: OPTIONS.rowsAbove, below: OPTIONS.rowsBelow },
+    });
+
+    expect(more.segments).toEqual(base.segments);
+  });
+
+  it('стоимость ряда: продолжение тянет сильнее прочих связей', () => {
+    expect(rowLinkCost(2, [{ row: 2, sequel: true }])).toBeLessThan(
+      rowLinkCost(1, [{ row: 2, sequel: true }]),
+    );
+    expect(
+      rowLinkCost(1, [
+        { row: 1, sequel: true },
+        { row: 2, sequel: false },
+      ]),
+    ).toBeLessThan(
+      rowLinkCost(2, [
+        { row: 1, sequel: true },
+        { row: 2, sequel: false },
+      ]),
     );
   });
 });

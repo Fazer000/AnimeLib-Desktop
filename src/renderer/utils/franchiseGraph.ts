@@ -76,6 +76,10 @@ export interface FranchiseLayoutOptions {
   minYearWidth: number;
   emptyGapWidth: number;
   minWidth: number;
+  /** Ряды, по которым считается ширина года; без них — rowsAbove/rowsBelow */
+  yearRows?: { above: number; below: number };
+  /** Ставить тайтл в свободный ряд ближе к уже расставленным связанным */
+  linkAware?: boolean;
 }
 
 /** Отрезок шкалы: год с тайтлами или схлопнутые пустые годы (year = null) */
@@ -99,6 +103,10 @@ const PREQUEL_LABEL = 'Предыстория';
 const SUMMARY_LABEL = 'Обобщение';
 const FILM_TYPE = 'Фильм';
 const TV_TYPE = 'TV Сериал';
+const ONA_TYPE = 'ONA';
+
+/** Тайтлы, ради которых цепочка текущего тайтла становится основной линией. */
+const FEATURE_TYPES = [TV_TYPE, ONA_TYPE, FILM_TYPE];
 const CROSSOVER_LABEL = 'Кроссовер';
 
 /**
@@ -196,9 +204,10 @@ export function animeRelationEdges(
 }
 
 /**
- * Основная линия — группа тайтлов, связанных продолжениями, где больше всего
- * TV-сериалов; затем та, где есть текущий тайтл; затем та, у которой больше
- * связей с остальной франшизой
+ * Основная линия — цепочка продолжений текущего тайтла, если в ней больше
+ * одного тайтла и есть сериал (TV или ONA) или фильм. Иначе — группа,
+ * связанная продолжениями, где больше всего TV-сериалов; затем та, где есть
+ * текущий тайтл; затем та, у которой больше связей с остальной франшизой
  */
 export function findMainLine(
   graph: FranchiseGraph,
@@ -221,6 +230,9 @@ export function findMainLine(
     [...group].filter((slug) => graph.titles.get(slug)?.type === TV_TYPE)
       .length;
   let best = new Set<string>([currentSlug]);
+  let currentLine: Set<string> | null = null;
+  const isFeature = (slug: string) =>
+    FEATURE_TYPES.includes(graph.titles.get(slug)?.type ?? '');
 
   [...graph.titles.keys()].forEach((start) => {
     if (visited.has(start)) return;
@@ -244,6 +256,14 @@ export function findMainLine(
       item.has(currentSlug) ? 1 : 0,
       degree(item),
     ];
+    if (
+      group.has(currentSlug) &&
+      group.size > 1 &&
+      [...group].some(isFeature)
+    ) {
+      currentLine = group;
+    }
+
     const score = rank(group);
     const bestScore = rank(best);
     const index = score.findIndex((value, i) => value !== bestScore[i]);
@@ -251,7 +271,7 @@ export function findMainLine(
     if (index >= 0 && score[index] > bestScore[index]) best = group;
   });
 
-  return best;
+  return currentLine ?? best;
 }
 
 /**
@@ -529,12 +549,14 @@ function measureYears(
 
   const step = options.nodeWidth + options.gap;
   const widths = new Map<number, number>();
+  const above = options.yearRows?.above ?? options.rowsAbove;
+  const below = options.yearRows?.below ?? options.rowsBelow;
 
   counts.forEach((count, year) => {
     const perRow = Math.max(
       count[0],
-      Math.ceil(count[-1] / options.rowsAbove),
-      Math.ceil(count[1] / options.rowsBelow),
+      Math.ceil(count[-1] / above),
+      Math.ceil(count[1] / below),
     );
     widths.set(year, Math.max(options.minYearWidth, perRow * step));
   });
@@ -543,9 +565,26 @@ function measureYears(
 }
 
 /**
+ * Насколько неудобен ряд для тайтла: сумма расстояний по рядам до уже
+ * расставленных связанных тайтлов; связь продолжения весит больше, чтобы
+ * цепочка держалась одного ряда. Ряд дальше от основной линии чуть хуже
+ */
+export function rowLinkCost(
+  row: number,
+  neighbours: Array<{ row: number; sequel: boolean }>,
+): number {
+  const links = neighbours.reduce(
+    (sum, item) => sum + Math.abs(row - item.row) * (item.sequel ? 3 : 1),
+    0,
+  );
+  return links + Math.abs(row) * 0.01;
+}
+
+/**
  * Раскладка: по горизонтали — дата выхода, основная линия в нулевом ряду.
- * Тайтлы одной стороны занимают первый свободный ряд; если места нет,
- * сдвигаются вправо в ближнем ряду
+ * Тайтлы одной стороны занимают первый свободный ряд (с linkAware — тот
+ * свободный, что ближе к связанным); если места нет, сдвигаются вправо
+ * в ближнем ряду
  */
 export function layoutFranchise(
   graph: FranchiseGraph,
@@ -594,6 +633,26 @@ export function layoutFranchise(
       const side = resolveSide(slug, graph, mainLine);
       const limit = side < 0 ? rowsAbove : rowsBelow;
       const x = xOf(slug);
+
+      if (options.linkAware) {
+        const neighbours = graph.edges.flatMap((edge) => {
+          const other = edge.from === slug ? edge.to : edge.from;
+          const placedNode =
+            edge.from === slug || edge.to === slug ? nodes.get(other) : null;
+          return placedNode
+            ? [{ row: placedNode.row, sequel: edge.sequel }]
+            : [];
+        });
+        const free = Array.from({ length: limit }, (_, i) => side * (i + 1))
+          .filter((row) => !overlaps(rows.get(row) || [], x, nodeWidth, gap))
+          .sort(
+            (a, b) => rowLinkCost(a, neighbours) - rowLinkCost(b, neighbours),
+          );
+        if (free.length > 0) {
+          place(slug, x, free[0]);
+          return;
+        }
+      }
 
       for (let depth = 1; depth <= limit; depth += 1) {
         const row = side * depth;
@@ -648,4 +707,26 @@ export function laterEnd(
   if (to === null) return edge.to;
   if (from === null || from > to) return edge.from;
   return edge.to;
+}
+
+/**
+ * Сколько рядов ответвлений поместить сверху и снизу от основной линии
+ * при заданной высоте: делит свободные ряды в той же пропорции, что и
+ * обычный вид, и не опускается ниже него
+ */
+export function fitFranchiseRows(
+  height: number,
+  rowHeight: number,
+  base: { above: number; below: number },
+): { above: number; below: number } {
+  const side = Math.max(
+    base.above + base.below,
+    Math.floor(height / rowHeight) - 1,
+  );
+  const below = Math.max(
+    base.below,
+    Math.round((side * base.below) / (base.above + base.below)),
+  );
+
+  return { above: Math.max(base.above, side - below), below };
 }

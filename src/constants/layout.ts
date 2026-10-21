@@ -403,6 +403,18 @@ export const FRANCHISE_MIN_HEIGHT = RELATED_CARD_HEIGHT + 16;
  */
 export const FRANCHISE_LEGEND_BAR_HEIGHT = 28;
 
+/** Отступы раскрытой во всё окно хронологии, px. */
+export const FRANCHISE_EXPANDED_PADDING = 24;
+
+/** Насколько раскрытую хронологию можно утащить за края, px. */
+export const FRANCHISE_EXPANDED_OVERSCROLL = 160;
+
+/** Высота ряда раскрытой хронологии: шире промежуток между рядами для связей, px. */
+export const FRANCHISE_EXPANDED_ROW_HEIGHT = 124;
+
+/** Раскрытая хронология: выше плеера и карточки, ниже шапки приложения. */
+export const FRANCHISE_EXPANDED_Z_INDEX = 1250;
+
 /**
  * Левая панель приложения: ширина, размер кнопок и значков в них, ширина
  * выдвижного подменю и размер язычка, которым панель прячется, px

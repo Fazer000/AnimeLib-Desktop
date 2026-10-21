@@ -11,6 +11,8 @@ import type { CustomColors } from '@mui/material/styles';
 import {
   FRANCHISE_AXIS_HEIGHT,
   FRANCHISE_EMPTY_GAP_WIDTH,
+  FRANCHISE_EXPANDED_OVERSCROLL,
+  FRANCHISE_EXPANDED_ROW_HEIGHT,
   FRANCHISE_LEGEND_BAR_HEIGHT,
   FRANCHISE_LEGEND_WIDTH,
   FRANCHISE_MAX_HOPS,
@@ -41,7 +43,9 @@ import {
   pruneDistantTitles,
   resolveSide,
   shortenTitle,
+  fitFranchiseRows,
 } from '../../utils/franchiseGraph';
+import { X } from '../icons';
 
 const PADDING_X = 24;
 const COVER_WIDTH = 38;
@@ -52,6 +56,12 @@ interface FranchiseTimelineProps {
   currentSlug: string;
   shikimoriId: number | null | undefined;
   onAnimeClick: (slugUrl: string) => void;
+  /** Раскрыта во всё окно: занимает всю высоту, рядов больше, есть шапка */
+  // eslint-disable-next-line react/require-default-props
+  expanded?: boolean;
+  /** Закрытие раскрытой хронологии */
+  // eslint-disable-next-line react/require-default-props
+  onClose?: () => void;
 }
 
 interface NodeBox {
@@ -85,15 +95,19 @@ const isUnavailable = (title: FranchiseTitle) =>
 /**
  * Положение узла в пикселях холста
  */
-const nodeBox = (layout: FranchiseLayout, slugUrl: string): NodeBox => {
+const nodeBox = (
+  layout: FranchiseLayout,
+  slugUrl: string,
+  rowHeight: number = FRANCHISE_ROW_HEIGHT,
+): NodeBox => {
   const node = layout.nodes.get(slugUrl);
   const row = node?.row ?? 0;
 
   return {
     left: PADDING_X + (node?.x ?? 0),
     top:
-      (row - layout.minRow) * FRANCHISE_ROW_HEIGHT +
-      (FRANCHISE_ROW_HEIGHT - FRANCHISE_NODE_HEIGHT) / 2,
+      (row - layout.minRow) * rowHeight +
+      (rowHeight - FRANCHISE_NODE_HEIGHT) / 2,
   };
 };
 
@@ -303,6 +317,8 @@ function FranchiseTimeline({
   currentSlug,
   shikimoriId,
   onAnimeClick,
+  expanded = false,
+  onClose,
 }: FranchiseTimelineProps) {
   const { customColors } = useTheme().palette;
   const { graph, progress, done, failed } = useFranchiseGraph(
@@ -325,6 +341,23 @@ function FranchiseTimeline({
   const [isDragging, setIsDragging] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
   const frameWidth = frameSize?.width ?? 0;
+  const frameHeight = frameSize?.height ?? 0;
+  // В раскрытом виде граф можно утащить за края на этот запас
+  const overscroll = expanded ? FRANCHISE_EXPANDED_OVERSCROLL : 0;
+  // В раскрытом виде ряды выше: между ними шире промежуток для связей
+  const rowHeight = expanded
+    ? FRANCHISE_EXPANDED_ROW_HEIGHT
+    : FRANCHISE_ROW_HEIGHT;
+  const rowLimits = useMemo(
+    () =>
+      expanded
+        ? fitFranchiseRows(frameHeight - FRANCHISE_AXIS_HEIGHT, rowHeight, {
+            above: FRANCHISE_ROWS_ABOVE,
+            below: FRANCHISE_ROWS_BELOW,
+          })
+        : { above: FRANCHISE_ROWS_ABOVE, below: FRANCHISE_ROWS_BELOW },
+    [expanded, frameHeight, rowHeight],
+  );
 
   const view = useMemo(() => {
     if (!graph || frameWidth === 0) return null;
@@ -336,11 +369,14 @@ function FranchiseTimeline({
     const layout = layoutFranchise(shown, mainLine, {
       nodeWidth: FRANCHISE_NODE_WIDTH,
       gap: FRANCHISE_NODE_GAP,
-      rowsAbove: FRANCHISE_ROWS_ABOVE,
-      rowsBelow: FRANCHISE_ROWS_BELOW,
+      rowsAbove: rowLimits.above,
+      rowsBelow: rowLimits.below,
       minYearWidth: FRANCHISE_MIN_YEAR_WIDTH,
       emptyGapWidth: FRANCHISE_EMPTY_GAP_WIDTH,
       minWidth: frameWidth - FRANCHISE_LEGEND_WIDTH - PADDING_X * 2 - BORDER,
+      // Ширина лет как в обычном виде: даты не сдвигаются при раскрытии
+      yearRows: { above: FRANCHISE_ROWS_ABOVE, below: FRANCHISE_ROWS_BELOW },
+      linkAware: expanded,
     });
     const sides = new Map(
       [...shown.titles.keys()].map((slug) => [
@@ -355,7 +391,7 @@ function FranchiseTimeline({
       sides,
       root: franchiseRoot(shown, mainLine),
     };
-  }, [graph, currentSlug, frameWidth]);
+  }, [graph, currentSlug, frameWidth, rowLimits, expanded]);
 
   // Граф растёт по ходу загрузки: первый раз текущий тайтл ставится
   // в центр, дальше вид сдвигается вместе с ним, чтобы ничего не прыгало
@@ -363,7 +399,7 @@ function FranchiseTimeline({
     const element = scrollRef.current;
     if (!view || !element || !view.layout.nodes.has(currentSlug)) return;
 
-    const current = nodeBox(view.layout, currentSlug);
+    const current = nodeBox(view.layout, currentSlug, rowHeight);
     const previous = anchor.current;
     anchor.current = { slug: currentSlug, box: current };
 
@@ -375,11 +411,21 @@ function FranchiseTimeline({
 
     const visibleWidth = element.clientWidth - FRANCHISE_LEGEND_WIDTH;
     const visibleHeight = element.clientHeight - FRANCHISE_AXIS_HEIGHT;
-    element.scrollLeft =
-      current.left - visibleWidth / 2 + FRANCHISE_NODE_WIDTH / 2;
-    element.scrollTop =
-      current.top - visibleHeight / 2 + FRANCHISE_NODE_HEIGHT / 2;
-  }, [view, currentSlug]);
+    // Запас за краями при открытии не показывается: только когда тянут
+    const fit = (value: number, size: number, client: number) =>
+      Math.min(Math.max(value, overscroll), size - client - overscroll);
+
+    element.scrollLeft = fit(
+      overscroll + current.left - visibleWidth / 2 + FRANCHISE_NODE_WIDTH / 2,
+      element.scrollWidth,
+      element.clientWidth,
+    );
+    element.scrollTop = fit(
+      overscroll + current.top - visibleHeight / 2 + FRANCHISE_NODE_HEIGHT / 2,
+      element.scrollHeight,
+      element.clientHeight,
+    );
+  }, [view, currentSlug, overscroll, rowHeight]);
 
   const linked = useMemo(
     () => (view && hovered ? linkedTitles(view.shown.edges, hovered) : null),
@@ -457,8 +503,12 @@ function FranchiseTimeline({
 
     const { shown, layout, sides, root } = view;
     const width = layout.width + PADDING_X * 2;
-    const height = (layout.maxRow - layout.minRow + 1) * FRANCHISE_ROW_HEIGHT;
-    const mainBandTop = -layout.minRow * FRANCHISE_ROW_HEIGHT;
+    const rowsHeight = (layout.maxRow - layout.minRow + 1) * rowHeight;
+    // Раскрытая хронология заполняет окно по высоте: сетка лет доходит до низа
+    const height = expanded
+      ? Math.max(rowsHeight, frameHeight - FRANCHISE_AXIS_HEIGHT - BORDER)
+      : rowsHeight;
+    const mainBandTop = -layout.minRow * rowHeight;
     const lanes = (
       [
         [-1, -layout.minRow],
@@ -561,8 +611,12 @@ function FranchiseTimeline({
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: `${FRANCHISE_LEGEND_WIDTH}px ${width}px`,
-            gridTemplateRows: `${FRANCHISE_AXIS_HEIGHT}px ${height}px`,
+            gridTemplateColumns: `${FRANCHISE_LEGEND_WIDTH}px ${
+              width + overscroll * 2
+            }px`,
+            gridTemplateRows: `${FRANCHISE_AXIS_HEIGHT}px ${
+              height + overscroll * 2
+            }px`,
             flexShrink: 0,
           }}
         >
@@ -593,6 +647,7 @@ function FranchiseTimeline({
                     position: 'absolute',
                     top: 7,
                     left:
+                      overscroll +
                       PADDING_X +
                       segment.start +
                       (isGap ? segment.width / 2 : 6),
@@ -612,6 +667,7 @@ function FranchiseTimeline({
             sx={{
               ...stickyCell,
               left: 0,
+              pt: `${overscroll}px`,
               borderRight: `1px solid ${customColors.lineColor}`,
             }}
           >
@@ -619,7 +675,7 @@ function FranchiseTimeline({
               <Box
                 key={side}
                 sx={{
-                  height: rows * FRANCHISE_ROW_HEIGHT,
+                  height: rows * rowHeight,
                   display: 'flex',
                   alignItems: 'center',
                   gap: 1,
@@ -647,97 +703,22 @@ function FranchiseTimeline({
               </Box>
             ))}
           </Box>
-          <Box sx={{ position: 'relative', width, height }}>
-            <svg
-              width={width}
-              height={height}
-              style={{ position: 'absolute', left: 0, top: 0 }}
+          <Box
+            sx={{
+              position: 'relative',
+              width: width + overscroll * 2,
+              height: height + overscroll * 2,
+            }}
+          >
+            <Box
+              sx={{
+                position: 'absolute',
+                left: overscroll,
+                top: overscroll,
+                width,
+                height,
+              }}
             >
-              <rect
-                x={0}
-                y={mainBandTop}
-                width={width}
-                height={FRANCHISE_ROW_HEIGHT}
-                fill={`rgba(${customColors.accentRgb}, 0.06)`}
-              />
-              {layout.segments.map((segment) => {
-                const x = PADDING_X + segment.start;
-
-                if (segment.year === null) {
-                  return (
-                    <g key={segment.label}>
-                      <rect
-                        x={x + 8}
-                        y={0}
-                        width={segment.width - 16}
-                        height={height}
-                        fill={`rgba(${customColors.onSurfaceRgb}, 0.03)`}
-                      />
-                    </g>
-                  );
-                }
-
-                return (
-                  <g key={segment.label}>
-                    <line
-                      x1={x}
-                      y1={0}
-                      x2={x}
-                      y2={height}
-                      stroke={`rgba(${customColors.onSurfaceRgb}, 0.08)`}
-                    />
-                  </g>
-                );
-              })}
-              {shown.edges.map((edge) => {
-                const { d } = edgePath(
-                  nodeBox(layout, edge.from),
-                  nodeBox(layout, edge.to),
-                );
-                const focused = isFocusedEdge(edge);
-                return (
-                  <g key={`${edge.from}|${edge.to}`}>
-                    <path
-                      d={d}
-                      fill="none"
-                      stroke={edgeStroke(edge)}
-                      strokeWidth={isMainEdge(edge) || focused ? 2.5 : 1.2}
-                      strokeOpacity={edgeOpacity(edge)}
-                      strokeDasharray={edge.sequel ? undefined : '4 4'}
-                    />
-                    <path
-                      d={d}
-                      fill="none"
-                      stroke="transparent"
-                      strokeWidth={10}
-                    >
-                      <title>{edge.label}</title>
-                    </path>
-                  </g>
-                );
-              })}
-            </svg>
-
-            {[...shown.titles.values()].map((title) => (
-              <FranchiseNode
-                key={title.slugUrl}
-                title={title}
-                label={shortenTitle(title.name, root)}
-                box={nodeBox(layout, title.slugUrl)}
-                side={sides.get(title.slugUrl) ?? 1}
-                isCurrent={title.slugUrl === currentSlug}
-                state={nodeState(title.slugUrl)}
-                onClick={() => handleNodeClick(title)}
-                onHover={(isHovered) =>
-                  setHovered((prev) => {
-                    if (isHovered) return title.slugUrl;
-                    return prev === title.slugUrl ? null : prev;
-                  })
-                }
-              />
-            ))}
-
-            {hovered && (
               <svg
                 width={width}
                 height={height}
@@ -745,30 +726,126 @@ function FranchiseTimeline({
                   position: 'absolute',
                   left: 0,
                   top: 0,
-                  pointerEvents: 'none',
+                  overflow: 'visible',
                 }}
               >
-                {shown.edges.filter(isFocusedEdge).map((edge) => {
-                  const { start, end } = edgePath(
-                    nodeBox(layout, edge.from),
-                    nodeBox(layout, edge.to),
-                  );
-                  const [cx, cy] =
-                    laterEnd(edge, shown.titles) === edge.to ? end : start;
+                <rect
+                  x={-overscroll}
+                  y={mainBandTop}
+                  width={width + overscroll * 2}
+                  height={rowHeight}
+                  fill={`rgba(${customColors.accentRgb}, 0.06)`}
+                />
+                {layout.segments.map((segment) => {
+                  const x = PADDING_X + segment.start;
+
+                  if (segment.year === null) {
+                    return (
+                      <g key={segment.label}>
+                        <rect
+                          x={x + 8}
+                          y={-overscroll}
+                          width={segment.width - 16}
+                          height={height + overscroll * 2}
+                          fill={`rgba(${customColors.onSurfaceRgb}, 0.03)`}
+                        />
+                      </g>
+                    );
+                  }
+
                   return (
-                    <circle
-                      key={`${edge.from}|${edge.to}`}
-                      cx={cx}
-                      cy={cy}
-                      r={4.5}
-                      fill={customColors.panelColor}
-                      stroke={customColors.accentSoftColor}
-                      strokeWidth={2}
-                    />
+                    <g key={segment.label}>
+                      <line
+                        x1={x}
+                        y1={-overscroll}
+                        x2={x}
+                        y2={height + overscroll}
+                        stroke={`rgba(${customColors.onSurfaceRgb}, 0.08)`}
+                      />
+                    </g>
+                  );
+                })}
+                {shown.edges.map((edge) => {
+                  const { d } = edgePath(
+                    nodeBox(layout, edge.from, rowHeight),
+                    nodeBox(layout, edge.to, rowHeight),
+                  );
+                  const focused = isFocusedEdge(edge);
+                  return (
+                    <g key={`${edge.from}|${edge.to}`}>
+                      <path
+                        d={d}
+                        fill="none"
+                        stroke={edgeStroke(edge)}
+                        strokeWidth={isMainEdge(edge) || focused ? 2.5 : 1.2}
+                        strokeOpacity={edgeOpacity(edge)}
+                        strokeDasharray={edge.sequel ? undefined : '4 4'}
+                      />
+                      <path
+                        d={d}
+                        fill="none"
+                        stroke="transparent"
+                        strokeWidth={10}
+                      >
+                        <title>{edge.label}</title>
+                      </path>
+                    </g>
                   );
                 })}
               </svg>
-            )}
+
+              {[...shown.titles.values()].map((title) => (
+                <FranchiseNode
+                  key={title.slugUrl}
+                  title={title}
+                  label={shortenTitle(title.name, root)}
+                  box={nodeBox(layout, title.slugUrl, rowHeight)}
+                  side={sides.get(title.slugUrl) ?? 1}
+                  isCurrent={title.slugUrl === currentSlug}
+                  state={nodeState(title.slugUrl)}
+                  onClick={() => handleNodeClick(title)}
+                  onHover={(isHovered) =>
+                    setHovered((prev) => {
+                      if (isHovered) return title.slugUrl;
+                      return prev === title.slugUrl ? null : prev;
+                    })
+                  }
+                />
+              ))}
+
+              {hovered && (
+                <svg
+                  width={width}
+                  height={height}
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    pointerEvents: 'none',
+                  }}
+                >
+                  {shown.edges.filter(isFocusedEdge).map((edge) => {
+                    const { start, end } = edgePath(
+                      nodeBox(layout, edge.from, rowHeight),
+                      nodeBox(layout, edge.to, rowHeight),
+                    );
+                    const [cx, cy] =
+                      laterEnd(edge, shown.titles) === edge.to ? end : start;
+                    return (
+                      <circle
+                        key={`${edge.from}|${edge.to}`}
+                        cx={cx}
+                        cy={cy}
+                        r={4.5}
+                        fill={customColors.panelColor}
+                        stroke={customColors.accentSoftColor}
+                        strokeWidth={2}
+                      />
+                    );
+                  })}
+                </svg>
+              )}
+            </Box>
           </Box>
         </Box>
       </Box>
@@ -839,8 +916,12 @@ function FranchiseTimeline({
     <Box
       ref={frameRef}
       sx={{
+        position: 'relative',
         display: 'flex',
-        minHeight: FRANCHISE_MIN_HEIGHT - FRANCHISE_LEGEND_BAR_HEIGHT,
+        minHeight: expanded
+          ? 0
+          : FRANCHISE_MIN_HEIGHT - FRANCHISE_LEGEND_BAR_HEIGHT,
+        flex: expanded ? 1 : undefined,
         overflow: 'hidden',
         borderRadius: 2,
         border: `1px solid ${customColors.lineColor}`,
@@ -867,7 +948,42 @@ function FranchiseTimeline({
   );
 
   return (
-    <Box>
+    <Box
+      sx={
+        expanded
+          ? { height: '100%', display: 'flex', flexDirection: 'column' }
+          : undefined
+      }
+    >
+      {expanded && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+          <Typography
+            sx={{
+              fontSize: '1.5rem',
+              fontWeight: 600,
+              fontFamily: 'Open Sans, sans-serif',
+              color: customColors.primaryTextColor,
+            }}
+          >
+            Хронология
+          </Typography>
+          <ButtonBase
+            aria-label="Закрыть хронологию"
+            onClick={onClose}
+            sx={{
+              ml: 'auto',
+              width: 32,
+              height: 32,
+              borderRadius: 1.5,
+              color: customColors.mutedTextColor,
+              border: `1px solid ${customColors.lineColor}`,
+              '&:hover': { color: customColors.primaryTextColor },
+            }}
+          >
+            <X sx={{ fontSize: 18 }} />
+          </ButtonBase>
+        </Box>
+      )}
       {frame}
       <Box
         sx={{

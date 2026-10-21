@@ -1,6 +1,9 @@
-import React, { useMemo } from 'react';
-import { Box, ButtonBase, useTheme } from '@mui/material';
+import React, { useMemo, useState } from 'react';
+import { Box, ButtonBase, Modal, useTheme } from '@mui/material';
 import {
+  FRANCHISE_EXPANDED_PADDING,
+  FRANCHISE_EXPANDED_Z_INDEX,
+  TOOLBAR_HEIGHT,
   RELATED_ARROW_SIZE,
   RELATED_ROW_GAP,
   RELATED_ROW_PADDING,
@@ -14,6 +17,7 @@ import { usePersistedChoice } from '../../hooks/usePersistedChoice';
 import { dedupeRelations } from '../../utils/franchiseGraph';
 import RelatedAnime from './RelatedAnime';
 import FranchiseTimeline from './FranchiseTimeline';
+import { Maximize } from '../icons';
 
 interface RelatedSectionProps {
   currentSlug: string;
@@ -54,6 +58,7 @@ function RelatedSection({
     () => dedupeRelations(relatedAnime),
     [relatedAnime],
   );
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <Box sx={{ width: '100%', marginBottom: 4, paddingY: 3 }}>
@@ -69,9 +74,10 @@ function RelatedSection({
           role="tablist"
           sx={{
             display: 'flex',
+            alignItems: 'center',
             gap: 3,
             marginBottom: 2,
-            paddingLeft: `${CONTENT_INSET}px`,
+            paddingX: `${CONTENT_INSET}px`,
           }}
         >
           {RELATED_TABS.map((item) => {
@@ -101,6 +107,26 @@ function RelatedSection({
               </ButtonBase>
             );
           })}
+          {tab === 'chronology' && (
+            <ButtonBase
+              aria-label="Развернуть хронологию"
+              onClick={() => setExpanded(true)}
+              sx={{
+                ml: 'auto',
+                width: 32,
+                height: 32,
+                borderRadius: 1.5,
+                color: customColors.mutedTextColor,
+                border: `1px solid ${customColors.lineColor}`,
+                '&:hover': {
+                  color: customColors.primaryTextColor,
+                  borderColor: customColors.accentSoftColor,
+                },
+              }}
+            >
+              <Maximize sx={{ fontSize: 16 }} />
+            </ButtonBase>
+          )}
         </Box>
 
         {tab === 'related' ? (
@@ -119,6 +145,33 @@ function RelatedSection({
           </Box>
         )}
       </Box>
+
+      <Modal
+        open={expanded}
+        onClose={() => setExpanded(false)}
+        hideBackdrop
+        sx={{ top: TOOLBAR_HEIGHT, zIndex: FRANCHISE_EXPANDED_Z_INDEX }}
+      >
+        <Box
+          sx={{
+            height: '100%',
+            outline: 'none',
+            p: `${FRANCHISE_EXPANDED_PADDING}px`,
+            backgroundColor: customColors.pageColor,
+          }}
+        >
+          <FranchiseTimeline
+            currentSlug={currentSlug}
+            shikimoriId={shikimoriId}
+            expanded
+            onClose={() => setExpanded(false)}
+            onAnimeClick={(slugUrl) => {
+              setExpanded(false);
+              onAnimeClick(slugUrl);
+            }}
+          />
+        </Box>
+      </Modal>
     </Box>
   );
 }
