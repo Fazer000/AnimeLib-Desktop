@@ -24,4 +24,7 @@ export {
   parseSiteThemeMessage,
   readSiteTheme,
   writeSiteTheme,
+  isReaderUrl,
+  readerThemeFor,
+  writeReaderTheme,
 } from './siteThemeExtractor';

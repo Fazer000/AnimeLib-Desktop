@@ -1,5 +1,11 @@
 import { createLogger } from '../../shared/logger';
-import { ThemeMode, normalizeThemeMode } from '../theme/themeMode';
+import type { LibSiteKind } from '../../constants';
+import { RANOBE_READER_DARK, RANOBE_READER_LIGHT } from '../theme/palette';
+import {
+  ColorSchemeName,
+  ThemeMode,
+  normalizeThemeMode,
+} from '../theme/themeMode';
 
 const log = createLogger('SiteTheme');
 
@@ -8,18 +14,20 @@ export const SITE_THEME_MARKER = '[animelib-theme]';
 
 const READ_TIMEOUT_MS = 3000;
 
-/** Читает режим темы сайта: сначала атрибут корня, затем сохранённые настройки. */
+/**
+ * Читает режим темы сайта: сначала сохранённые настройки, затем атрибут
+ * корня. Настройки первыми, потому что в читалке атрибут показывает тему
+ * читалки, а не сайта
+ */
 export const siteThemeScript = `
 (function () {
   try {
-    var attr = document.documentElement.getAttribute('data-theme');
-    if (attr) return attr;
-
     var raw = localStorage.getItem('settings');
-    if (!raw) return '';
+    var parsed = raw ? JSON.parse(raw) : null;
+    var name = parsed && parsed.theme && parsed.theme.name;
+    if (name) return name;
 
-    var parsed = JSON.parse(raw);
-    return (parsed && parsed.theme && parsed.theme.name) || '';
+    return document.documentElement.getAttribute('data-theme') || '';
   } catch (e) {
     return '';
   }
@@ -29,7 +37,8 @@ export const siteThemeScript = `
 /**
  * Ставит наблюдателя за атрибутом темы, сообщая о смене через консоль
  * страницы. О теме при загрузке не сообщает: тема общая для всех сайтов,
- * её задаёт приложение, а принимается только смена на самом сайте
+ * её задаёт приложение, а принимается только смена на самом сайте.
+ * В читалке молчит: там атрибут — тема читалки, она меняется только в ней
  */
 export const siteThemeWatcherScript = `
 (function () {
@@ -38,6 +47,7 @@ export const siteThemeWatcherScript = `
     window.__animeLibThemeWatcher = true;
 
     var report = function () {
+      if (location.pathname.indexOf('/read/') !== -1) return;
       var mode = document.documentElement.getAttribute('data-theme') || '';
       console.info('${SITE_THEME_MARKER}' + mode);
     };
@@ -57,6 +67,71 @@ export const siteThemeWatcherScript = `
 /** Имя темы в настройках сайта для режима приложения. */
 export function toSiteThemeName(mode: ThemeMode): string {
   return mode === 'system' ? 'auto' : mode;
+}
+
+/** Тема читалки в настройках сайта: имя и, у ранобэ, цвета пресета. */
+export interface ReaderTheme {
+  name: string;
+  color?: { text: string; background: string };
+}
+
+/**
+ * Открыта ли читалка: путь вида /ru/{slug}/read/v1/c1
+ */
+export function isReaderUrl(url: string): boolean {
+  try {
+    return new URL(url).pathname.includes('/read/');
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Тема читалки из темы приложения. У манги — те же три режима, что у
+ * сайта; у ранобэ — пресет «светлая» или «тёмная» по показанной схеме
+ */
+export function readerThemeFor(
+  kind: LibSiteKind,
+  mode: ThemeMode,
+  scheme: ColorSchemeName,
+): ReaderTheme {
+  if (kind !== 'ranobe') return { name: toSiteThemeName(mode) };
+
+  return scheme === 'dark'
+    ? { name: 'dark', color: { ...RANOBE_READER_DARK } }
+    : { name: 'light', color: { ...RANOBE_READER_LIGHT } };
+}
+
+/**
+ * Скрипт смены темы читалки: пишет её в настройки сайта и сообщает о
+ * записи событием storage, как и для темы сайта
+ */
+export function buildReaderThemeWriteScript(theme: ReaderTheme): string {
+  const value = JSON.stringify(theme);
+
+  return `
+(function () {
+  try {
+    var oldValue = localStorage.getItem('settings');
+    var settings = oldValue ? JSON.parse(oldValue) : {};
+    var reader = Object.assign({}, settings.reader);
+    reader.theme = Object.assign({}, reader.theme, ${value});
+    settings.reader = reader;
+    var newValue = JSON.stringify(settings);
+    localStorage.setItem('settings', newValue);
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'settings',
+      oldValue: oldValue,
+      newValue: newValue,
+      storageArea: localStorage,
+      url: location.href,
+    }));
+    return true;
+  } catch (e) {
+    return false;
+  }
+})();
+`;
 }
 
 /**
@@ -159,6 +234,20 @@ export function writeSiteTheme(
     .then((value) => value === true)
     .catch((error) => {
       log.warn('Не удалось сменить тему сайта', error);
+
+      return false;
+    });
+}
+
+/** Ставит тему читалки в webview. */
+export function writeReaderTheme(
+  webview: PageTarget,
+  theme: ReaderTheme,
+): Promise<boolean> {
+  return runInPage(webview, buildReaderThemeWriteScript(theme))
+    .then((value) => value === true)
+    .catch((error) => {
+      log.warn('Не удалось сменить тему читалки', error);
 
       return false;
     });

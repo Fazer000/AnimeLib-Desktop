@@ -61,6 +61,10 @@ export const LIB_SITE_COLORS: Record<number, string> = {
   5: '#7E57C2',
 };
 
+/** Пресеты «светлая» и «тёмная» читалки ранобэ, как на сайте. */
+export const RANOBE_READER_LIGHT = { text: '#212529', background: '#f2f2f3' };
+export const RANOBE_READER_DARK = { text: '#dddddd', background: '#141414' };
+
 /** Информационные акценты. */
 export const INFO = '#2196F3';
 export const INFO_DEEP = '#1976D2';

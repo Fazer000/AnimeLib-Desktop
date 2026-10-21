@@ -11,6 +11,7 @@ import CustomToolbar from '../components/Toolbar';
 import ScrollTopFab from '../components/ScrollTopFab';
 import SiteLoadError from '../components/SiteLoadError';
 import { failedPageHost, isSiteDownStatus } from '../utils/loadFailure';
+import { findLibSiteByUrl } from '../utils/libSites';
 import { siteThemeToWrite } from '../theme/themeMode';
 import useStableSize from '../hooks/useStableSize';
 import {
@@ -21,6 +22,9 @@ import {
   parsePageScrollMessage,
   parseSiteThemeMessage,
   readSiteTheme,
+  isReaderUrl,
+  readerThemeFor,
+  writeReaderTheme,
   scrollPageToTop,
   writeSiteTheme,
   type AuthExtractionOutcome,
@@ -101,14 +105,41 @@ function WebViewRefactored({
   const onPageUrlChangeRef = useRef(onPageUrlChange);
   onPageUrlChangeRef.current = onPageUrlChange;
 
-  useEffect(() => {
-    themeModeStore.setSiteWriter((mode) =>
-      webviewRef.current ? writeSiteTheme(webviewRef.current, mode) : undefined,
+  const webViewManagerRef = useRef<WebViewManager | null>(null);
+  const inReaderRef = useRef(false);
+
+  const currentPageUrl = () => webViewManagerRef.current?.getTrackedUrl() ?? '';
+
+  /**
+   * Тема читалки из темы приложения: ставится при входе в читалку и при
+   * смене темы кнопкой, пока читалка открыта. Смена внутри читалки
+   * остаётся только в ней до выхода
+   */
+  const applyReaderTheme = (webview: any, url: string) => {
+    const site = findLibSiteByUrl(url);
+    if (!site || site.kind === 'anime') return;
+
+    writeReaderTheme(
+      webview,
+      readerThemeFor(
+        site.kind,
+        themeModeStore.getMode(),
+        themeModeStore.getScheme(),
+      ),
     );
+  };
+  useEffect(() => {
+    themeModeStore.setSiteWriter(async (mode) => {
+      const webview = webviewRef.current;
+      if (!webview) return;
+
+      await writeSiteTheme(webview, mode);
+      if (inReaderRef.current) applyReaderTheme(webview, currentPageUrl());
+    });
 
     return () => themeModeStore.setSiteWriter(null);
   }, []);
-  const webViewManagerRef = useRef<WebViewManager | null>(null);
+
   const scriptManagerRef = useRef<ScriptInjectionManager | null>(null);
   const hostRef = useRef<HTMLDivElement | null>(null);
   const hostSize = useStableSize(hostRef, 'frame');
@@ -183,6 +214,14 @@ function WebViewRefactored({
         log.debug('Syncing site theme...');
         try {
           installSiteThemeWatcher(webview).catch(() => {});
+
+          const url = webViewManager.getTrackedUrl();
+          const inReader = isReaderUrl(url);
+          if (inReader && !inReaderRef.current) {
+            applyReaderTheme(webview, url);
+          }
+          inReaderRef.current = inReader;
+
           readSiteTheme(webview)
             .then((mode) => {
               const target =
