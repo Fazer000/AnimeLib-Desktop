@@ -12,6 +12,7 @@ import {
   siteStatus,
 } from '../renderer/utils/siteMirrors';
 import {
+  findLibSite,
   libSiteHomeUrl,
   libSitePageUrl,
   libTitlePageUrl,
@@ -191,5 +192,32 @@ describe('isPageLoaded', () => {
   it('сеть не ответила или ошибка прокси — не открылась', () => {
     expect(isPageLoaded(0)).toBe(false);
     expect(isPageLoaded(525)).toBe(false);
+  });
+});
+
+describe('зеркала MangaLIB и RanobeLIB', () => {
+  const ranobe = LIB_SITES[3];
+
+  it('новые домены узнаются как свои сайты', () => {
+    expect(findLibSite('mangalib.org')?.siteId).toBe(1);
+    expect(findLibSite('v1.novelslib.me')?.siteId).toBe(3);
+  });
+
+  it('у обоих сайтов по два зеркала, основное первым', () => {
+    expect(manga.mirrors).toEqual([
+      'https://mangalib.me/',
+      'https://mangalib.org/',
+    ]);
+    expect(ranobe.mirrors[0]).toBe('https://ranobelib.me/');
+  });
+
+  it('ссылки ведут на выбранное зеркало', () => {
+    const homes = { 1: 'https://mangalib.org/', 3: 'https://v1.novelslib.me/' };
+    expect(libTitlePageUrl(1, '1--a', LIB_SITES, homes)).toBe(
+      'https://mangalib.org/ru/manga/1--a',
+    );
+    expect(libTitlePageUrl(3, '2--b', LIB_SITES, homes)).toBe(
+      'https://v1.novelslib.me/ru/book/2--b',
+    );
   });
 });

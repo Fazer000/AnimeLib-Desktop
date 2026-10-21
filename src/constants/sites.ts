@@ -49,9 +49,9 @@ export const LIB_SITES: LibSite[] = [
     letter: 'M',
     siteId: 1,
     kind: 'manga',
-    hosts: ['mangalib.me'],
+    hosts: ['mangalib.me', 'mangalib.org'],
     home: 'https://mangalib.me/',
-    mirrors: ['https://mangalib.me/'],
+    mirrors: ['https://mangalib.me/', 'https://mangalib.org/'],
   },
   {
     name: 'SlashLIB',
@@ -67,9 +67,9 @@ export const LIB_SITES: LibSite[] = [
     letter: 'R',
     siteId: 3,
     kind: 'ranobe',
-    hosts: ['ranobelib.me'],
+    hosts: ['ranobelib.me', 'novelslib.me'],
     home: 'https://ranobelib.me/',
-    mirrors: ['https://ranobelib.me/'],
+    mirrors: ['https://ranobelib.me/', 'https://v1.novelslib.me/'],
   },
   {
     name: 'HentaiLIB',
