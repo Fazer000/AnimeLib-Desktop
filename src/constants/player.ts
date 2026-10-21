@@ -540,6 +540,9 @@ export type RelatedTab = (typeof RELATED_TABS)[number];
 export const SHIKIMORI_API_URL = 'https://shikimori.io/api';
 export const SHIKIMORI_TIMEOUT_MS = 10000;
 
+/** Сколько оценок Shikimori держать в памяти. */
+export const SHIKIMORI_RATING_CACHE_LIMIT = 100;
+
 /**
  * Сколько результатов поиска по названию проверяется, если тайтл Shikimori
  * не нашёлся на Animelib по slug

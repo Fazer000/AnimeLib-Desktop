@@ -1,7 +1,7 @@
 /**
  * Папка закладок тайтла: список папок пользователя и перенос тайтла между ними
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { animeApi, AnimeBookmark, BookmarkFolder } from '../api/animeApi';
 import { createLogger } from '../../shared/logger';
 
@@ -18,7 +18,9 @@ export interface AnimeBookmarkFolderState {
 }
 
 /**
- * Загружает папки и закладку тайтла, пока active, и меняет папку тайтла
+ * Загружает папки и закладку тайтла и меняет папку тайтла. Первый раз —
+ * сразу, чтобы подпись кнопки не менялась при раскрытии карточки; затем
+ * обновляет при каждом раскрытии (active)
  */
 export function useAnimeBookmarkFolder(
   animeSlugUrl: string | null,
@@ -28,14 +30,16 @@ export function useAnimeBookmarkFolder(
   const [bookmark, setBookmark] = useState<AnimeBookmark | null>(null);
   const [loaded, setLoaded] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
+  const loadedRef = useRef(false);
 
   useEffect(() => {
     setBookmark(null);
     setLoaded(false);
+    loadedRef.current = false;
   }, [animeSlugUrl]);
 
   useEffect(() => {
-    if (!active || !animeSlugUrl) return undefined;
+    if (!animeSlugUrl || (!active && loadedRef.current)) return undefined;
 
     let cancelled = false;
 
@@ -49,6 +53,7 @@ export function useAnimeBookmarkFolder(
         setFolders(folderList);
         setBookmark(response.data);
         setLoaded(true);
+        loadedRef.current = true;
       } catch (error) {
         log.error('Failed to load bookmark folder:', error);
       }

@@ -67,12 +67,18 @@ function AnimeRatingButton({
     </>
   );
 
+  const frame = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 1,
+    px: 1,
+    py: 0.25,
+    borderRadius: 1.5,
+    border: `1px solid ${customColors.lineColor}`,
+  };
+
   if (!authorized) {
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        {content}
-      </Box>
-    );
+    return <Box sx={frame}>{content}</Box>;
   }
 
   return (
@@ -85,14 +91,7 @@ function AnimeRatingButton({
         aria-label="Оценить тайтл"
         onClick={() => setOpen(true)}
         sx={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 1,
-          px: 1,
-          py: 0.25,
-          ml: -1,
-          borderRadius: 1.5,
-          border: '1px solid transparent',
+          ...frame,
           transition: 'background-color 0.2s ease, border-color 0.2s ease',
           '&:hover': {
             backgroundColor: `rgba(${customColors.accentRgb}, 0.14)`,

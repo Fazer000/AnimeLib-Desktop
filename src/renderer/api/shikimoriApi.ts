@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { SHIKIMORI_API_URL, SHIKIMORI_TIMEOUT_MS } from '../../constants';
 import type { ShikimoriFranchise } from '../utils/shikimoriFranchise';
+import { ShikimoriRating, toShikimoriRating } from '../utils/shikimoriRating';
 
 const shikimoriClient = axios.create({
   baseURL: SHIKIMORI_API_URL,
@@ -17,6 +18,14 @@ export const shikimoriApi = {
       `/animes/${shikimoriId}/franchise`,
     );
     return response.data;
+  },
+
+  /**
+   * Оценка тайтла и число проголосовавших; без оценки — null
+   */
+  getRating: async (shikimoriId: number): Promise<ShikimoriRating | null> => {
+    const response = await shikimoriClient.get(`/animes/${shikimoriId}`);
+    return toShikimoriRating(response.data);
   },
 };
 

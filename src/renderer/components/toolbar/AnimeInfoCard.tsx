@@ -4,6 +4,7 @@ import { animeApi, AnimeInfo } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 import AnimeCardActions from './AnimeCardActions';
 import AnimeRatingButton from './AnimeRatingButton';
+import ShikimoriRatingLabel from './ShikimoriRatingLabel';
 import { CardPopupProvider } from './cardPopup';
 import { isPointInRect, PointLike } from '../../utils/pointInRect';
 import {
@@ -77,23 +78,32 @@ function AnimeInfoCard({
     });
   }, [onMouseLeave]);
 
+  /**
+   * Данные грузятся сразу при открытии тайтла, а не при первом наведении:
+   * к раскрытию карточки уже готовы обложка и оценка Shikimori
+   */
   useEffect(() => {
-    if (!isVisible || !animeId || animeInfo) return;
+    setAnimeInfo(null);
+    if (!animeId) return undefined;
 
+    let cancelled = false;
     const loadAnimeInfo = async () => {
       setLoading(true);
       try {
         const response = await animeApi.getAnimeInfo(animeId);
-        setAnimeInfo(response.data);
+        if (!cancelled) setAnimeInfo(response.data);
       } catch (error) {
         log.error('Error loading anime info:', error);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     loadAnimeInfo();
-  }, [isVisible, animeId, animeInfo]);
+    return () => {
+      cancelled = true;
+    };
+  }, [animeId]);
 
   const panelSx = {
     position: 'fixed' as const,
@@ -301,15 +311,20 @@ function AnimeInfoCard({
               animeInfo={animeInfo}
               active={isVisible}
               trailing={
-                <AnimeRatingButton
-                  animeId={animeInfo.id}
-                  rating={animeInfo.rating}
-                  onRated={(rating) =>
-                    setAnimeInfo((current) =>
-                      current ? { ...current, rating } : current,
-                    )
-                  }
-                />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <AnimeRatingButton
+                    animeId={animeInfo.id}
+                    rating={animeInfo.rating}
+                    onRated={(rating) =>
+                      setAnimeInfo((current) =>
+                        current ? { ...current, rating } : current,
+                      )
+                    }
+                  />
+                  <ShikimoriRatingLabel
+                    shikimoriHref={animeInfo.shikimori_href}
+                  />
+                </Box>
               }
             />
           </Box>
