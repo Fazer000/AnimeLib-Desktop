@@ -7,6 +7,7 @@ import {
   Rect,
 } from '../../utils/upscaleGeometry';
 import { formatUpscaleStats } from '../../utils/upscaleStats';
+import useUpscaleSupport from '../../hooks/useUpscaleSupport';
 import {
   UPSCALE_HUD_BOTTOM,
   UPSCALE_RESIZE_SETTLE_MS,
@@ -59,7 +60,8 @@ function UpscaleLayer({
   statsHandlerRef.current = onStats;
   failureHandlerRef.current = onFailure;
 
-  const active = preset !== null && UpscaleRenderer.isSupported();
+  const supported = useUpscaleSupport();
+  const active = preset !== null && supported;
 
   useEffect(() => {
     const video = videoRef.current;

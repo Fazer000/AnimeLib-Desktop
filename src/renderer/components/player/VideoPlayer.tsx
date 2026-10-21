@@ -32,6 +32,7 @@ import LetterboxGlow from './LetterboxGlow';
 import UpscaleLayer from './UpscaleLayer';
 import type { UpscaleControls } from './settings/types';
 import { useUpscaleSettings } from '../../hooks/useUpscaleSettings';
+import useUpscaleSupport from '../../hooks/useUpscaleSupport';
 import {
   SkipManager,
   VideoPlayerController,
@@ -46,7 +47,6 @@ import {
   TimeCodeSegment,
   SubtitleTrack,
   SubtitlesSettings,
-  UpscaleRenderer,
   AmbientLightManager,
 } from '../../services/player';
 import {
@@ -236,6 +236,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       useState<boolean>(false);
 
     const upscale = useUpscaleSettings();
+    const upscaleSupported = useUpscaleSupport();
     const [upscaleCovering, setUpscaleCovering] = useState<boolean>(false);
     const [letterboxActive, setLetterboxActive] = useState<boolean>(false);
     const frozenFrameRef = useRef<HTMLCanvasElement | null>(null);
@@ -256,7 +257,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     }, [frameFrozen]);
     const upscaleControls = useMemo<UpscaleControls>(
       () => ({
-        supported: UpscaleRenderer.isSupported(),
+        supported: upscaleSupported,
         mode: upscale.mode,
         activePreset: upscale.activePreset,
         failed: upscale.failed,
@@ -265,6 +266,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         onShowStatsChange: upscale.setShowStats,
       }),
       [
+        upscaleSupported,
         upscale.mode,
         upscale.activePreset,
         upscale.failed,

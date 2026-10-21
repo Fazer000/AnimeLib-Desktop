@@ -28,6 +28,12 @@ const MODE_DESCRIPTIONS: Record<UpscaleMode, string> = {
   quality: 'Максимум чёткости, высокая нагрузка',
 };
 
+/** Признак программного адаптера: в новых версиях WebGPU он в info */
+export interface AdapterFlags {
+  isFallbackAdapter?: boolean;
+  info?: { isFallbackAdapter?: boolean };
+}
+
 export interface UpscaleWindowStats {
   frameTimeMs: number;
   overBudgetShare: number;
@@ -45,6 +51,18 @@ export function isUpscaleMode(value: unknown): value is UpscaleMode {
  */
 export function isUpscalePreset(value: unknown): value is UpscalePreset {
   return UPSCALE_PRESETS.includes(value as UpscalePreset);
+}
+
+/**
+ * Годится ли адаптер WebGPU для улучшения: программный (SwiftShader)
+ * считает на процессоре и не тянет даже лёгкий уровень
+ */
+export function isHardwareAdapter(adapter: AdapterFlags | null): boolean {
+  if (adapter === null) return false;
+  return (
+    adapter.isFallbackAdapter !== true &&
+    adapter.info?.isFallbackAdapter !== true
+  );
 }
 
 /**

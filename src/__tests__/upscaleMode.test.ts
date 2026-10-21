@@ -5,11 +5,27 @@ import {
   getStartPreset,
   getUpscaleModeDescription,
   getUpscaleModeLabel,
+  isHardwareAdapter,
   isUpscaleMode,
   isUpscalePreset,
 } from '../renderer/utils/upscaleMode';
 
 const BUDGET = 1000 / 60;
+
+describe('isHardwareAdapter', () => {
+  it('отвергает отсутствующий и программный адаптер', () => {
+    expect(isHardwareAdapter(null)).toBe(false);
+    expect(isHardwareAdapter({ isFallbackAdapter: true })).toBe(false);
+    expect(isHardwareAdapter({ info: { isFallbackAdapter: true } })).toBe(
+      false,
+    );
+  });
+
+  it('принимает аппаратный адаптер, даже без поля isFallbackAdapter', () => {
+    expect(isHardwareAdapter({ isFallbackAdapter: false })).toBe(true);
+    expect(isHardwareAdapter({})).toBe(true);
+  });
+});
 
 describe('isUpscaleMode и isUpscalePreset', () => {
   it('принимают только известные значения', () => {

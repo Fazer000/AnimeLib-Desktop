@@ -1,0 +1,65 @@
+name: Release
+
+# Сборка установщиков для Windows и Linux. Запускается тегом версии (v1.9.0)
+# или вручную; файлы попадают в черновик релиза этой версии на GitHub —
+# апдейтер видит релиз только после публикации черновика
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: Сборка (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+            target: --win
+          # Не ubuntu-latest: fpm из electron-builder 25 не собирает rpm
+          # с RPM 4.20+ (Ubuntu 26.04), а в 24.04 стоит RPM 4.18
+          - name: Linux
+            os: ubuntu-24.04
+            target: --linux
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # rpmbuild нужен для пакета Fedora/openSUSE
+      - name: Инструменты для rpm
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y rpm
+
+      - name: Установка зависимостей
+        run: npm ci
+
+      # Версия приложения берётся из тега (v1.10.0 → 1.10.0), а не из
+      # package.json: в разработке там может стоять другая версия
+      - name: Версия из тега
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version --allow-same-version
+
+      - name: Сборка main и renderer
+        run: npm run build
+
+      - name: Установщики и выкладка в черновик релиза
+        run: npx electron-builder build ${{ matrix.target }} --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

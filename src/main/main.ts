@@ -629,19 +629,26 @@ const createWindow = async (): Promise<void> => {
 };
 
 const applyRadicalFix = (): void => {
-  const switches = [
+  // На Linux песочница zygote уже запущена к этому моменту: no-sandbox
+  // из кода ломает общую память рендереров. WebGPU (Anime4K) там
+  // включается только через Vulkan
+  const platformSwitches: [string, string?][] =
+    process.platform === 'linux'
+      ? [['enable-unsafe-webgpu'], ['enable-features', 'Vulkan']]
+      : [['enable-features', 'D3D11VideoDecoder'], ['no-sandbox']];
+
+  const switches: [string, string?][] = [
     ['disable-features', 'CalculateNativeWinOcclusion'],
     ['ignore-gpu-blocklist'],
     ['enable-accelerated-video-decode'],
-    ['enable-features', 'D3D11VideoDecoder'],
     ['enable-zero-copy'],
     ['disable-backgrounding-occluded-windows'],
     ['disable-renderer-backgrounding'],
     ['disable-blink-features', 'AutomationControlled'],
     ['disable-dev-shm-usage'],
-    ['no-sandbox'],
     ['js-flags', '--max-old-space-size=4096'],
-  ] as const;
+    ...platformSwitches,
+  ];
 
   switches.forEach(([key, value]) => {
     if (value) {

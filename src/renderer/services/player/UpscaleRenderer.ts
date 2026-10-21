@@ -14,6 +14,7 @@ import FrameTimeMeter from '../../utils/FrameTimeMeter';
 import { PixelSize, shouldBypassUpscale } from '../../utils/upscaleGeometry';
 import { createLogger } from '../../../shared/logger';
 import { getFramesPerSecond } from '../../utils/upscaleStats';
+import { isHardwareAdapter } from '../../utils/upscaleMode';
 import {
   Anime4KPipelineList,
   createAnime4KChain,
@@ -135,11 +136,28 @@ export default class UpscaleRenderer {
     this.onFrameVisibilityChange = onFrameVisibilityChange;
   }
 
+  private static supportProbe: Promise<boolean> | null = null;
+
   /**
-   * Есть ли в окружении WebGPU
+   * Есть ли в окружении WebGPU (без проверки видеокарты)
    */
   public static isSupported(): boolean {
     return typeof navigator !== 'undefined' && 'gpu' in navigator;
+  }
+
+  /**
+   * Есть ли аппаратный адаптер WebGPU; запрашивается один раз за сессию
+   */
+  public static probeSupport(): Promise<boolean> {
+    if (!UpscaleRenderer.supportProbe) {
+      UpscaleRenderer.supportProbe = UpscaleRenderer.isSupported()
+        ? navigator.gpu
+            .requestAdapter({ powerPreference: 'high-performance' })
+            .then(isHardwareAdapter)
+            .catch(() => false)
+        : Promise.resolve(false);
+    }
+    return UpscaleRenderer.supportProbe;
   }
 
   /**
@@ -152,7 +170,9 @@ export default class UpscaleRenderer {
     const adapter = await navigator.gpu.requestAdapter({
       powerPreference: 'high-performance',
     });
-    if (!adapter) throw new Error('WebGPU adapter is unavailable');
+    if (!adapter || !isHardwareAdapter(adapter)) {
+      throw new Error('WebGPU hardware adapter is unavailable');
+    }
 
     const device = await adapter.requestDevice();
     if (this.disposed) {

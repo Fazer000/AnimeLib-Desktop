@@ -1,6 +1,6 @@
 {
   "name": "animelib-desktop",
-  "version": "1.0.0",
+  "version": "1.9.0",
   "description": "AnimeLib Desktop - Desktop anime player",
   "keywords": [
     "electron",
@@ -195,6 +195,7 @@
     "appId": "org.animelib.desktop",
     "asar": true,
     "afterSign": ".erb/scripts/notarize.js",
+    "afterPack": ".erb/scripts/after-pack.js",
     "asarUnpack": "**\\*.{node,dll}",
     "files": [
       "dist",
@@ -266,10 +267,14 @@
     },
     "linux": {
       "target": [
-        "AppImage"
+        "AppImage",
+        "deb",
+        "rpm"
       ],
       "icon": "assets/icons",
-      "category": "Development"
+      "category": "AudioVideo",
+      "executableName": "animelib-desktop",
+      "synopsis": "Desktop client for the Lib sites network"
     },
     "directories": {
       "app": "release/app",
@@ -283,6 +288,17 @@
       "provider": "github",
       "owner": "Fazer000",
       "repo": "AnimeLib-Desktop"
+    },
+    "appImage": {
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "deb": {
+      "artifactName": "${productName}-${version}.${ext}",
+      "afterInstall": ".erb/scripts/linux-after-install.sh"
+    },
+    "rpm": {
+      "artifactName": "${productName}-${version}.${ext}",
+      "afterInstall": ".erb/scripts/linux-after-install.sh"
     }
   },
   "collective": {
