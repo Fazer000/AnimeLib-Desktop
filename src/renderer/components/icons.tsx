@@ -24,6 +24,7 @@ import {
   ChevronRight as LucideChevronRight,
   ChevronUp as LucideChevronUp,
   ChevronsRight as LucideChevronsRight,
+  Clock as LucideClock,
   CloudDownload as LucideCloudDownload,
   CloudOff as LucideCloudOff,
   Download as LucideDownload,
@@ -33,6 +34,7 @@ import {
   FastForward as LucideFastForward,
   FolderOpen as LucideFolderOpen,
   Gauge as LucideGauge,
+  Heart as LucideHeart,
   House as LucideHouse,
   Italic as LucideItalic,
   Keyboard as LucideKeyboard,
@@ -107,6 +109,7 @@ export const ChevronLeft = adapt(LucideChevronLeft);
 export const ChevronRight = adapt(LucideChevronRight);
 export const ChevronUp = adapt(LucideChevronUp);
 export const ChevronsRight = adapt(LucideChevronsRight);
+export const Clock = adapt(LucideClock);
 export const CloudDownload = adapt(LucideCloudDownload);
 export const CloudOff = adapt(LucideCloudOff);
 export const Copy = adapt(LucideCopy);
@@ -117,6 +120,7 @@ export const Eye = adapt(LucideEye);
 export const FastForward = adapt(LucideFastForward);
 export const FolderOpen = adapt(LucideFolderOpen);
 export const Gauge = adapt(LucideGauge);
+export const Heart = adapt(LucideHeart);
 export const House = adapt(LucideHouse);
 export const Italic = adapt(LucideItalic);
 export const Keyboard = adapt(LucideKeyboard);

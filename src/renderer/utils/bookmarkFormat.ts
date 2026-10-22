@@ -3,6 +3,11 @@
  */
 
 /**
+ * Надпись пустого подменю: закладки, «Запланировано», «Любимое»
+ */
+export const EMPTY_LIST_TEXT = 'Пока тут пусто';
+
+/**
  * Подпись закладки: с номером эпизода либо без него
  */
 export const formatContinueLabel = (episodeNumber: string): string => {

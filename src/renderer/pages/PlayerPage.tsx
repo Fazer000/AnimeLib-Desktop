@@ -126,6 +126,8 @@ function PlayerPageRefactored({
 
   const [showDownloadManager, setShowDownloadManager] =
     useState<boolean>(false);
+  // Раскрытая хронология лежит в листе страницы, ниже кнопки «Наверх»
+  const [chronologyExpanded, setChronologyExpanded] = useState<boolean>(false);
 
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
   const [controlsVisible, setControlsVisible] = useState<boolean>(true);
@@ -845,6 +847,7 @@ function PlayerPageRefactored({
                 relatedAnime={relatedAnime}
                 onAnimeClick={handleRelatedAnimeClick}
                 onOpenUrl={handleOpenPage}
+                onExpandedChange={setChronologyExpanded}
               />
             )}
 
@@ -862,6 +865,7 @@ function PlayerPageRefactored({
           <ScrollToTopButton
             threshold={400}
             scrollContainerId="player-page-scroll-container"
+            hidden={chronologyExpanded}
           />
         )}
       </Box>

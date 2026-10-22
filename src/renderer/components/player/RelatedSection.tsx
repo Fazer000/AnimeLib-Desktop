@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Box, ButtonBase, Modal, useTheme } from '@mui/material';
 import {
   FRANCHISE_EXPANDED_PADDING,
@@ -25,6 +25,8 @@ interface RelatedSectionProps {
   relatedAnime: RelatedAnimeType[];
   onAnimeClick: (slugUrl: string) => void;
   onOpenUrl: (url: string) => void;
+  /** Хронология раскрыта во всё окно или свёрнута */
+  onExpandedChange?: (expanded: boolean) => void;
 }
 
 const TAB_LABELS: Record<RelatedTab, string> = {
@@ -47,6 +49,7 @@ function RelatedSection({
   relatedAnime,
   onAnimeClick,
   onOpenUrl,
+  onExpandedChange,
 }: RelatedSectionProps) {
   const { customColors } = useTheme().palette;
   const [tab, setTab] = usePersistedChoice<RelatedTab>(
@@ -59,6 +62,13 @@ function RelatedSection({
     [relatedAnime],
   );
   const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    onExpandedChange?.(expanded);
+  }, [expanded, onExpandedChange]);
+
+  // Раскрытая хронология закрывается вместе с блоком (смена тайтла)
+  useEffect(() => () => onExpandedChange?.(false), [onExpandedChange]);
 
   return (
     <Box sx={{ width: '100%', marginBottom: 4, paddingY: 3 }}>
@@ -146,10 +156,13 @@ function RelatedSection({
         )}
       </Box>
 
+      {/* Без портала: хронология остаётся в слое плеера, и выезжающая
+          карточка аниме из шапки ложится поверх неё */}
       <Modal
         open={expanded}
         onClose={() => setExpanded(false)}
         hideBackdrop
+        disablePortal
         sx={{ top: TOOLBAR_HEIGHT, zIndex: FRANCHISE_EXPANDED_Z_INDEX }}
       >
         <Box
@@ -175,5 +188,7 @@ function RelatedSection({
     </Box>
   );
 }
+
+RelatedSection.defaultProps = { onExpandedChange: undefined };
 
 export default RelatedSection;

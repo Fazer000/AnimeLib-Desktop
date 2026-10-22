@@ -18,6 +18,17 @@ export const BOOKMARK_STATUS_WATCHING = 21;
 export const BOOKMARK_STATUS_PLANNED = 22;
 
 /**
+ * Через сколько после изменения закладок перезагружаются списки: серия
+ * запросов сайта склеивается в одно обновление, мс
+ */
+export const BOOKMARKS_REFRESH_DELAY_MS = 400;
+
+/**
+ * Папка «Любимые»
+ */
+export const BOOKMARK_STATUS_FAVORITE = 25;
+
+/**
  * Папка «Пересматриваю»
  */
 export const BOOKMARK_STATUS_REWATCHING = 26;
@@ -35,6 +46,12 @@ export const QUICK_BOOKMARK_STATUSES = [
  * подменю на этих сайтах
  */
 export const BOOKMARK_STATUS_READING = 1;
+
+/**
+ * Папки «В планах» и «Любимые» на сайтах манги и ранобэ
+ */
+export const BOOKMARK_STATUS_READING_PLANNED = 2;
+export const BOOKMARK_STATUS_READING_FAVORITE = 5;
 
 /**
  * Типы перевода в подписках на выход серий

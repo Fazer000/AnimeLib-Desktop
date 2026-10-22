@@ -43,6 +43,7 @@ import {
   pruneDistantTitles,
   resolveSide,
   shortenTitle,
+  centerMainRowOffset,
   fitFranchiseRows,
 } from '../../utils/franchiseGraph';
 import { X } from '../icons';
@@ -93,12 +94,13 @@ const isUnavailable = (title: FranchiseTitle) =>
   title.availability === 'missing' || title.availability === 'restricted';
 
 /**
- * Положение узла в пикселях холста
+ * Положение узла в пикселях холста; rowsTop — отступ рядов сверху
  */
 const nodeBox = (
   layout: FranchiseLayout,
   slugUrl: string,
   rowHeight: number = FRANCHISE_ROW_HEIGHT,
+  rowsTop: number = 0,
 ): NodeBox => {
   const node = layout.nodes.get(slugUrl);
   const row = node?.row ?? 0;
@@ -106,6 +108,7 @@ const nodeBox = (
   return {
     left: PADDING_X + (node?.x ?? 0),
     top:
+      rowsTop +
       (row - layout.minRow) * rowHeight +
       (rowHeight - FRANCHISE_NODE_HEIGHT) / 2,
   };
@@ -393,13 +396,21 @@ function FranchiseTimeline({
     };
   }, [graph, currentSlug, frameWidth, rowLimits, expanded]);
 
+  // В раскрытом виде ряды опущены так, чтобы основная история шла
+  // посередине окна, а не прилипала к шкале лет
+  const visibleRowsHeight = frameHeight - FRANCHISE_AXIS_HEIGHT - BORDER;
+  const rowsTop =
+    expanded && view
+      ? centerMainRowOffset(view.layout.minRow, rowHeight, visibleRowsHeight)
+      : 0;
+
   // Граф растёт по ходу загрузки: первый раз текущий тайтл ставится
   // в центр, дальше вид сдвигается вместе с ним, чтобы ничего не прыгало
   useLayoutEffect(() => {
     const element = scrollRef.current;
     if (!view || !element || !view.layout.nodes.has(currentSlug)) return;
 
-    const current = nodeBox(view.layout, currentSlug, rowHeight);
+    const current = nodeBox(view.layout, currentSlug, rowHeight, rowsTop);
     const previous = anchor.current;
     anchor.current = { slug: currentSlug, box: current };
 
@@ -425,7 +436,7 @@ function FranchiseTimeline({
       element.scrollHeight,
       element.clientHeight,
     );
-  }, [view, currentSlug, overscroll, rowHeight]);
+  }, [view, currentSlug, overscroll, rowHeight, rowsTop]);
 
   const linked = useMemo(
     () => (view && hovered ? linkedTitles(view.shown.edges, hovered) : null),
@@ -506,9 +517,11 @@ function FranchiseTimeline({
     const rowsHeight = (layout.maxRow - layout.minRow + 1) * rowHeight;
     // Раскрытая хронология заполняет окно по высоте: сетка лет доходит до низа
     const height = expanded
-      ? Math.max(rowsHeight, frameHeight - FRANCHISE_AXIS_HEIGHT - BORDER)
+      ? Math.max(rowsTop + rowsHeight, visibleRowsHeight)
       : rowsHeight;
-    const mainBandTop = -layout.minRow * rowHeight;
+    const mainBandTop = rowsTop - layout.minRow * rowHeight;
+    const box = (slugUrl: string) =>
+      nodeBox(layout, slugUrl, rowHeight, rowsTop);
     const lanes = (
       [
         [-1, -layout.minRow],
@@ -667,7 +680,7 @@ function FranchiseTimeline({
             sx={{
               ...stickyCell,
               left: 0,
-              pt: `${overscroll}px`,
+              pt: `${overscroll + rowsTop}px`,
               borderRight: `1px solid ${customColors.lineColor}`,
             }}
           >
@@ -766,10 +779,7 @@ function FranchiseTimeline({
                   );
                 })}
                 {shown.edges.map((edge) => {
-                  const { d } = edgePath(
-                    nodeBox(layout, edge.from, rowHeight),
-                    nodeBox(layout, edge.to, rowHeight),
-                  );
+                  const { d } = edgePath(box(edge.from), box(edge.to));
                   const focused = isFocusedEdge(edge);
                   return (
                     <g key={`${edge.from}|${edge.to}`}>
@@ -799,7 +809,7 @@ function FranchiseTimeline({
                   key={title.slugUrl}
                   title={title}
                   label={shortenTitle(title.name, root)}
-                  box={nodeBox(layout, title.slugUrl, rowHeight)}
+                  box={box(title.slugUrl)}
                   side={sides.get(title.slugUrl) ?? 1}
                   isCurrent={title.slugUrl === currentSlug}
                   state={nodeState(title.slugUrl)}
@@ -826,8 +836,8 @@ function FranchiseTimeline({
                 >
                   {shown.edges.filter(isFocusedEdge).map((edge) => {
                     const { start, end } = edgePath(
-                      nodeBox(layout, edge.from, rowHeight),
-                      nodeBox(layout, edge.to, rowHeight),
+                      box(edge.from),
+                      box(edge.to),
                     );
                     const [cx, cy] =
                       laterEnd(edge, shown.titles) === edge.to ? end : start;

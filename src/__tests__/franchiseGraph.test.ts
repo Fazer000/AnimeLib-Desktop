@@ -1,4 +1,5 @@
 import {
+  centerMainRowOffset,
   FranchiseEdge,
   FranchiseGraph,
   FranchiseTitle,
@@ -664,5 +665,21 @@ describe('раскладка с учётом связей', () => {
         { row: 2, sequel: false },
       ]),
     );
+  });
+});
+
+describe('centerMainRowOffset', () => {
+  it('ставит основную историю посередине, когда рядов мало', () => {
+    // Основная история сверху (minRow 0), ряд 124, видимая высота 800:
+    // середина ряда 62 должна оказаться на 400
+    expect(centerMainRowOffset(0, 124, 800)).toBe(338);
+  });
+
+  it('учитывает ряды над основной историей', () => {
+    expect(centerMainRowOffset(-1, 124, 800)).toBe(214);
+  });
+
+  it('без отступа, когда рядов над основной историей больше половины', () => {
+    expect(centerMainRowOffset(-5, 124, 800)).toBe(0);
   });
 });

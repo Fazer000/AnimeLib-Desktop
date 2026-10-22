@@ -13,15 +13,20 @@ interface OfflineButtonProps {
   openTab?: number | null;
   // eslint-disable-next-line react/require-default-props
   onOpenHandled?: () => void;
+  // eslint-disable-next-line react/require-default-props
+  showButton?: boolean;
 }
 
 /**
- * Кнопка менеджера загрузок на левой панели; счётчик — идущие загрузки
+ * Кнопка менеджера загрузок на левой панели; счётчик — идущие загрузки.
+ * Без кнопки (сайты манги и ранобэ) диалог всё равно открывается
+ * через openTab — из предложения открыть скачанное без сети
  */
 function OfflineButton({
   onPlayOffline,
   openTab = null,
   onOpenHandled,
+  showButton = true,
 }: OfflineButtonProps) {
   const snapshot = useOfflineLibrary();
   const [open, setOpen] = useState<boolean>(false);
@@ -43,16 +48,18 @@ function OfflineButton({
 
   return (
     <>
-      <RailButton
-        label="Загрузки"
-        active={open}
-        badge={activeCount}
-        onClick={() => {
-          setInitialTab(2);
-          setOpen(true);
-        }}
-        icon={<Download sx={{ fontSize: SIDE_RAIL_ICON_SIZE }} />}
-      />
+      {showButton && (
+        <RailButton
+          label="Загрузки"
+          active={open}
+          badge={activeCount}
+          onClick={() => {
+            setInitialTab(2);
+            setOpen(true);
+          }}
+          icon={<Download sx={{ fontSize: SIDE_RAIL_ICON_SIZE }} />}
+        />
+      )}
 
       <AnimeTheme>
         <DownloadManagerDialog

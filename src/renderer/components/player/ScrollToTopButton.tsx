@@ -8,6 +8,8 @@ const log = createLogger('ScrollToTopButton');
 interface ScrollToTopButtonProps {
   threshold?: number;
   scrollContainerId?: string;
+  /** Спрятать, даже если страница прокручена (раскрыта хронология) */
+  hidden?: boolean;
 }
 
 /**
@@ -17,6 +19,7 @@ interface ScrollToTopButtonProps {
 function ScrollToTopButton({
   threshold = 300,
   scrollContainerId,
+  hidden = false,
 }: ScrollToTopButtonProps) {
   const [showButton, setShowButton] = useState(false);
 
@@ -71,12 +74,13 @@ function ScrollToTopButton({
     }
   }, [scrollContainerId]);
 
-  return <ScrollTopFab visible={showButton} onClick={scrollToTop} />;
+  return <ScrollTopFab visible={showButton && !hidden} onClick={scrollToTop} />;
 }
 
 ScrollToTopButton.defaultProps = {
   threshold: 300,
   scrollContainerId: undefined,
+  hidden: false,
 };
 
 export default ScrollToTopButton;

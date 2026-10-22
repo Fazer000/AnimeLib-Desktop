@@ -10,6 +10,7 @@ import { BookmarkItem } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 import useReadingBookmarks from '../../hooks/useReadingBookmarks';
 import {
+  EMPTY_LIST_TEXT,
   formatContinueLabel,
   formatOfflineLabel,
 } from '../../utils/bookmarkFormat';
@@ -25,7 +26,7 @@ interface RowProps {
 /**
  * Строка закладки: обложка, название и куда она ведёт
  */
-function Row({ coverUrl, title, caption, onClick }: RowProps) {
+export function Row({ coverUrl, title, caption, onClick }: RowProps) {
   const { customColors } = useTheme().palette;
 
   return (
@@ -82,7 +83,7 @@ function Row({ coverUrl, title, caption, onClick }: RowProps) {
   );
 }
 
-function RemoteRow({
+export function RemoteRow({
   cover,
   ...rest
 }: Omit<RowProps, 'coverUrl'> & { cover: string | null }) {
@@ -91,7 +92,7 @@ function RemoteRow({
   return <Row coverUrl={coverUrl} {...rest} />;
 }
 
-function Notice({ text }: { text: string }) {
+export function Notice({ text }: { text: string }) {
   const { customColors } = useTheme().palette;
 
   return (
@@ -119,8 +120,7 @@ function ReadingList({ site, onOpen }: ReadingListProps) {
   if (!signedIn)
     return <Notice text="Войдите на сайт, чтобы видеть закладки" />;
   if (loading && items.length === 0) return <Notice text="Загрузка…" />;
-  if (items.length === 0)
-    return <Notice text={`У тебя нет закладок на ${site.name}`} />;
+  if (items.length === 0) return <Notice text={EMPTY_LIST_TEXT} />;
 
   return (
     <>
@@ -183,7 +183,7 @@ function BookmarksFlyout({
   }
 
   if (watching.length === 0) {
-    return <Notice text={`У тебя нет закладок на ${site.name}`} />;
+    return <Notice text={EMPTY_LIST_TEXT} />;
   }
 
   return (

@@ -3,6 +3,7 @@ import axios, { isAxiosError } from 'axios';
 import { createLogger } from '../../shared/logger';
 import { QUICK_BOOKMARK_STATUSES } from '../../constants';
 import { mergeBookmarkLists } from '../utils/quickBookmarks';
+import { toAnimeBookmarkItems } from '../utils/folderBookmarks';
 import {
   filterAnimeFolders,
   resolveProgressStatus,
@@ -730,12 +731,7 @@ export const animeApi = {
       ),
     );
 
-    return mergeBookmarkLists(lists, limit).map((item) => ({
-      animeSlugUrl: item.media.slug_url,
-      title: item.media.rus_name || item.media.name || '',
-      episodeNumber: item.item?.number || String(item.meta?.item_number ?? ''),
-      coverUrl: item.media.cover?.thumbnail || null,
-    }));
+    return toAnimeBookmarkItems(mergeBookmarkLists(lists, limit));
   },
 
   /**

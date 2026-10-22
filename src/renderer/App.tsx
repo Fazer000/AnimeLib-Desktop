@@ -24,6 +24,7 @@ import OfflineButton from './components/offline/OfflineButton';
 import ReportButton from './components/report/ReportButton';
 import SideRail from './components/sideRail/SideRail';
 import BookmarksFlyout from './components/sideRail/BookmarksFlyout';
+import FolderFlyout from './components/sideRail/FolderFlyout';
 import { LIB_SITES, LibSite } from '../constants';
 import { animeApi } from './api/animeApi';
 import type { ReadingBookmark } from './utils/readingBookmarks';
@@ -33,6 +34,8 @@ import {
 } from './services/webview';
 import OfflineNoticeDialog from './components/offline/OfflineNoticeDialog';
 import useWatchingBookmarks from './hooks/useWatchingBookmarks';
+import { usePrefetchSiteBookmarks } from './hooks/useSiteBookmarks';
+import { getSiteFolderStatuses } from './utils/folderBookmarks';
 import useOnlineStatus from './hooks/useOnlineStatus';
 import useProgressSync from './hooks/useProgressSync';
 import useOfflineLibrary from './hooks/useOfflineLibrary';
@@ -102,6 +105,11 @@ function App() {
   const theme = useMemo(
     () => createAppTheme(scheme, currentSite.siteId),
     [scheme, currentSite.siteId],
+  );
+  // Папки панели загружаются заранее, как быстрые закладки
+  usePrefetchSiteBookmarks(
+    currentSite,
+    getSiteFolderStatuses(currentSite.kind),
   );
   const [playerReturnsBack, setPlayerReturnsBack] = useState<boolean>(false);
   const [playerEpisodeId, setPlayerEpisodeId] = useState<number | undefined>(
@@ -315,11 +323,30 @@ function App() {
                     }}
                   />
                 )}
+                renderFolder={(folder, close) => (
+                  <FolderFlyout
+                    site={currentSite}
+                    folder={folder}
+                    online={isOnline}
+                    onSelectAnime={(bookmark) => {
+                      close();
+                      handlePlayerButtonClick(
+                        buildAnimePageUrl(bookmark.animeSlugUrl),
+                        bookmark.animeSlugUrl,
+                      );
+                    }}
+                    onOpenReading={(bookmark) => {
+                      close();
+                      handleOpenReading(bookmark);
+                    }}
+                  />
+                )}
                 downloads={
                   <OfflineButton
                     onPlayOffline={handlePlayFromLibrary}
                     openTab={libraryTab}
                     onOpenHandled={() => setLibraryTab(null)}
+                    showButton={currentSite.kind === 'anime'}
                   />
                 }
                 report={<ReportButton />}

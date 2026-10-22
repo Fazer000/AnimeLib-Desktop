@@ -710,6 +710,20 @@ export function laterEnd(
 }
 
 /**
+ * Отступ рядов сверху, при котором основная история (ряд 0) стоит
+ * посередине видимой высоты. Рядов больше, чем помещается, — без отступа
+ */
+export function centerMainRowOffset(
+  minRow: number,
+  rowHeight: number,
+  visibleHeight: number,
+): number {
+  const mainCenter = -minRow * rowHeight + rowHeight / 2;
+
+  return Math.max(0, Math.round(visibleHeight / 2 - mainCenter));
+}
+
+/**
  * Сколько рядов ответвлений поместить сверху и снизу от основной линии
  * при заданной высоте: делит свободные ряды в той же пропорции, что и
  * обычный вид, и не опускается ниже него

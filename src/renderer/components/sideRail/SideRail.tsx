@@ -1,6 +1,13 @@
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { Box, ButtonBase, Typography, useTheme } from '@mui/material';
-import { Bookmark, Check, ChevronLeft, ChevronRight } from '../icons';
+import {
+  Bookmark,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Heart,
+} from '../icons';
 import {
   LIB_SITES,
   LibSite,
@@ -14,10 +21,27 @@ import {
 import { usePersistedFlag } from '../../hooks/usePersistedFlag';
 import useMirrorStatus from '../../hooks/useMirrorStatus';
 import { currentMirror, mirrorHost } from '../../utils/siteMirrors';
+import {
+  getFolderLabel,
+  QUICK_FOLDERS,
+  QuickFolder,
+} from '../../utils/folderBookmarks';
 import LibSiteIcon from './LibSiteIcon';
 import RailButton from './RailButton';
 
-type Flyout = 'sites' | 'bookmarks';
+type Flyout = 'sites' | 'bookmarks' | QuickFolder;
+
+const FLYOUT_TITLES: Record<Flyout, string> = {
+  sites: 'Сайты',
+  bookmarks: 'Закладки',
+  planned: getFolderLabel('planned'),
+  favorites: getFolderLabel('favorites'),
+};
+
+const FOLDER_ICONS: Record<QuickFolder, typeof Clock> = {
+  planned: Clock,
+  favorites: Heart,
+};
 
 const MOTION = '0.2s ease';
 
@@ -32,13 +56,15 @@ interface SideRailProps {
   sitesRequest: number;
   suspended: boolean;
   renderBookmarks: (close: () => void) => ReactNode;
+  renderFolder: (folder: QuickFolder, close: () => void) => ReactNode;
   downloads: ReactNode;
   report: ReactNode;
 }
 
 /**
- * Левая панель: переключение сайтов, закладки текущего сайта, загрузки
- * и обращение к разработчику. Сайты и закладки выдвигаются подменю,
+ * Левая панель: переключение сайтов, закладки текущего сайта, папки
+ * «Запланировано» и «Любимое», загрузки и обращение к разработчику.
+ * Сайты, закладки и папки выдвигаются подменю,
  * которое закрывает клик в любом месте окна; панель прячется язычком.
  * У сайтов с несколькими зеркалами под названием — выбор зеркала.
  * Пока страницу сайта закрывает плеер (suspended), подменю закрыто
@@ -50,6 +76,7 @@ function SideRail({
   sitesRequest,
   suspended,
   renderBookmarks,
+  renderFolder,
   downloads,
   report,
 }: SideRailProps) {
@@ -59,6 +86,9 @@ function SideRail({
     false,
   );
   const [open, setOpen] = useState<Flyout | null>(null);
+  // Заголовок не пропадает, пока подменю уезжает
+  const lastOpen = useRef<Flyout>('bookmarks');
+  if (open) lastOpen.current = open;
   const [, setMirrorsVersion] = useState(0);
   const mirrorStates = useMirrorStatus(MIRROR_HOMES, open === 'sites');
 
@@ -92,6 +122,19 @@ function SideRail({
     onSelectMirror(next, mirror);
     setMirrorsVersion((version) => version + 1);
   };
+
+  const divider = (
+    <Box
+      sx={{
+        width: 26,
+        height: '1px',
+        my: 0.5,
+        flexShrink: 0,
+        backgroundColor: customColors.lineColor,
+      }}
+    />
+  );
+  const folderOpen = QUICK_FOLDERS.find((folder) => folder === open);
 
   return (
     <Box
@@ -128,21 +171,27 @@ function SideRail({
           onClick={() => toggle('sites')}
           icon={<LibSiteIcon site={site} size={SIDE_RAIL_SITE_ICON_SIZE} />}
         />
-        <Box
-          sx={{
-            width: 26,
-            height: '1px',
-            my: 0.5,
-            flexShrink: 0,
-            backgroundColor: customColors.lineColor,
-          }}
-        />
+        {divider}
         <RailButton
           label="Закладки"
           active={open === 'bookmarks'}
           onClick={() => toggle('bookmarks')}
           icon={<Bookmark sx={{ fontSize: SIDE_RAIL_ICON_SIZE }} />}
         />
+        {QUICK_FOLDERS.map((folder) => {
+          const Icon = FOLDER_ICONS[folder];
+          return (
+            <RailButton
+              key={folder}
+              label={getFolderLabel(folder)}
+              active={open === folder}
+              onClick={() => toggle(folder)}
+              icon={<Icon sx={{ fontSize: SIDE_RAIL_ICON_SIZE }} />}
+            />
+          );
+        })}
+        {/* Загрузки есть только у аниме: на других сайтах нет и полосы */}
+        {site.kind === 'anime' && divider}
         {downloads}
         <Box sx={{ flex: 1 }} />
         {report}
@@ -177,7 +226,7 @@ function SideRail({
             color: customColors.mutedTextColor,
           }}
         >
-          {open === 'sites' ? 'Сайты' : 'Закладки'}
+          {FLYOUT_TITLES[open ?? lastOpen.current]}
         </Typography>
 
         {open === 'sites' &&
@@ -283,6 +332,12 @@ function SideRail({
           })}
 
         {open === 'bookmarks' && renderBookmarks(close)}
+        {folderOpen && (
+          // Своё состояние на каждую папку и сайт: без мелькания прошлого списка
+          <React.Fragment key={`${site.siteId}-${folderOpen}`}>
+            {renderFolder(folderOpen, close)}
+          </React.Fragment>
+        )}
       </Box>
 
       <ButtonBase

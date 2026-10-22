@@ -1,10 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { animeApi } from '../api/animeApi';
 import { BOOKMARK_STATUS_READING, LibSite } from '../../constants';
 import { ReadingBookmark, toReadingBookmarks } from '../utils/readingBookmarks';
-import { createLogger } from '../../shared/logger';
-
-const log = createLogger('useReadingBookmarks');
+import useSiteBookmarks from './useSiteBookmarks';
 
 interface ReadingBookmarksState {
   items: ReadingBookmark[];
@@ -13,58 +11,25 @@ interface ReadingBookmarksState {
 }
 
 /**
- * Закладки «Читаю» сайта манги или ранобэ; загружаются заново при каждом
- * открытии подменю, пока active
+ * Закладки папки сайта манги или ранобэ (по умолчанию «Читаю»);
+ * загружаются заново при каждом открытии подменю, пока active
  */
 function useReadingBookmarks(
   site: LibSite,
   active: boolean,
+  status: number = BOOKMARK_STATUS_READING,
 ): ReadingBookmarksState {
-  const [state, setState] = useState<ReadingBookmarksState>({
-    items: [],
-    loading: false,
-    signedIn: true,
-  });
+  const { items, loading, signedIn } = useSiteBookmarks(
+    site,
+    status,
+    active && site.kind !== 'anime',
+  );
+  const reading = useMemo(
+    () => toReadingBookmarks(items, site.kind, animeApi.userId()),
+    [items, site.kind],
+  );
 
-  useEffect(() => {
-    if (!active || site.kind === 'anime') return undefined;
-
-    if (!animeApi.hasUser()) {
-      setState({ items: [], loading: false, signedIn: false });
-      return undefined;
-    }
-
-    let cancelled = false;
-    setState((prev) => ({ ...prev, loading: true, signedIn: true }));
-
-    const load = async () => {
-      try {
-        const raw = await animeApi.getSiteBookmarks(
-          site.siteId,
-          BOOKMARK_STATUS_READING,
-        );
-        if (!cancelled) {
-          setState({
-            items: toReadingBookmarks(raw, site.kind, animeApi.userId()),
-            loading: false,
-            signedIn: true,
-          });
-        }
-      } catch (error) {
-        log.error('Reading bookmarks failed:', site.name, error);
-        if (!cancelled) {
-          setState({ items: [], loading: false, signedIn: true });
-        }
-      }
-    };
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [site, active]);
-
-  return state;
+  return { items: reading, loading, signedIn };
 }
 
 export default useReadingBookmarks;

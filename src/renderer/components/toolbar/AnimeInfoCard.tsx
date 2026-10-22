@@ -10,6 +10,7 @@ import { isPointInRect, PointLike } from '../../utils/pointInRect';
 import {
   ANIME_CARD_COVER_HEIGHT,
   ANIME_CARD_PANEL_HEIGHT,
+  ANIME_INFO_CARD_Z_INDEX,
   ANIME_CARD_COVER_WIDTH,
   ANIME_CARD_MAX_WIDTH,
   ANIME_CARD_MIN_WIDTH,
@@ -110,7 +111,7 @@ function AnimeInfoCard({
     top: topOffset,
     left: 0,
     right: 0,
-    zIndex: 1200,
+    zIndex: ANIME_INFO_CARD_Z_INDEX,
     minHeight: ANIME_CARD_PANEL_HEIGHT,
     backgroundColor: customColors.headerColor,
     borderBottom: `1px solid ${customColors.lineColor}`,

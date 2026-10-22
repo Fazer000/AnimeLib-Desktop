@@ -1,12 +1,11 @@
 import { animeApi, BookmarkItem } from '../../api/animeApi';
+import { BOOKMARKS_REFRESH_DELAY_MS } from '../../../constants';
 
 import { createLogger } from '../../../shared/logger';
 
 const log = createLogger('BookmarksStore');
 
 export type BookmarksListener = (items: BookmarkItem[]) => void;
-
-const REFRESH_DELAY_MS = 400;
 
 /**
  * Единый источник быстрых закладок («Смотрю» и «Пересматриваю») с подпиской
@@ -55,7 +54,7 @@ export class BookmarksStore {
     this.refreshTimer = setTimeout(() => {
       this.refreshTimer = null;
       this.load();
-    }, REFRESH_DELAY_MS);
+    }, BOOKMARKS_REFRESH_DELAY_MS);
   }
 
   /**

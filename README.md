@@ -1,11 +1,11 @@
 # AnimeLib Desktop
 
-![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-0078D6?style=flat-square)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-0078D6?style=flat-square)
 ![Framework](https://img.shields.io/badge/Framework-Electron-47848F?style=flat-square)
 ![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?style=flat-square)
 ![UI](https://img.shields.io/badge/UI-React%20%2F%20MUI-61DAFB?style=flat-square)
 
-Неофициальное десктопное приложение для Windows, macOS и Linux, предоставляющее удобный интерфейс для сайтов сети Lib — **AnimeLIB**, **MangaLIB**, **SlashLIB**, **RanobeLIB** и **HentaiLIB** — и кастомный видеоплеер для комфортного просмотра аниме.
+Неофициальное десктопное приложение для Windows и Linux, предоставляющее удобный интерфейс для сайтов сети Lib — **AnimeLIB**, **MangaLIB**, **SlashLIB**, **RanobeLIB** и **HentaiLIB** — и кастомный видеоплеер для комфортного просмотра аниме.
 
 ---
 
@@ -57,7 +57,7 @@
 ## 🛠 Технические характеристики
 
 ### Требования для запуска приложения
-* **ОС**: Windows 10/11, macOS 10.15+, Linux (x64)
+* **ОС**: Windows 10/11, Linux (x64)
 * **Минимальное разрешение экрана**: 930×480
 * **Интернет-соединение**: требуется для просмотра онлайн; скачанные серии доступны без сети
 
@@ -141,7 +141,6 @@ src/
 2. **Авторизация**: Вход выполняется на самом сайте внутри WebView. Скрипт `renderer/scripts/authExtractor.ts` считывает токен авторизации из `localStorage` страницы и передаёт его приложению для выполнения авторизованных API-запросов — списков, комментариев и прогресса просмотра.
 3. **Настройки приложения** хранятся в каталоге пользовательских данных Electron:
    * **Windows**: `%APPDATA%\animelib-desktop\`
-   * **macOS**: `~/Library/Application Support/animelib-desktop/`
    * **Linux**: `~/.config/animelib-desktop/`
 
 ---
