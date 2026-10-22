@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@mui/material';
 import { ArrowDownToLine } from '../icons';
-import useUpdateChecker from '../../hooks/useUpdateChecker';
+import useUpdateChecker, { isUpdateBusy } from '../../hooks/useUpdateChecker';
 import UpdateDialog from './UpdateDialog';
 import { SUCCESS_DEEP, SUCCESS_STRONG, WHITE } from '../../theme/palette';
 
@@ -9,8 +9,15 @@ import { SUCCESS_DEEP, SUCCESS_STRONG, WHITE } from '../../theme/palette';
  * Кнопка обновления в тулбаре, видна только при наличии новой версии
  */
 function UpdateButton() {
-  const { updateInfo, status, progress, startUpdate, openRelease } =
-    useUpdateChecker();
+  const {
+    updateInfo,
+    status,
+    failure,
+    manualCommand,
+    progress,
+    startUpdate,
+    openRelease,
+  } = useUpdateChecker();
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
 
   if (!updateInfo?.available) {
@@ -18,6 +25,7 @@ function UpdateButton() {
   }
 
   const isDownloading = status === 'downloading';
+  const busyLabel = status === 'installing' ? 'Установка…' : 'Перезапуск…';
 
   const handleConfirm = () => {
     startUpdate();
@@ -48,13 +56,17 @@ function UpdateButton() {
           '& .MuiButton-startIcon': { mr: 0.5, ml: 0 },
         }}
       >
-        {isDownloading ? `Загрузка ${progress}%` : 'Доступно обновление'}
+        {isDownloading && `Загрузка ${progress}%`}
+        {isUpdateBusy(status) && !isDownloading && busyLabel}
+        {!isUpdateBusy(status) && 'Доступно обновление'}
       </Button>
 
       <UpdateDialog
         open={dialogOpen}
         updateInfo={updateInfo}
         status={status}
+        failure={failure}
+        manualCommand={manualCommand}
         progress={progress}
         onConfirm={handleConfirm}
         onOpenRelease={openRelease}

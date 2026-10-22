@@ -12,7 +12,11 @@ import type {
   OfflineRemovalEvent,
   OfflineSnapshot,
 } from '../constants/offline';
-import type { UpdateInfo, UpdateResult } from '../constants/update';
+import type {
+  UpdateInfo,
+  UpdateInstallStage,
+  UpdateResult,
+} from '../constants/update';
 import type { HoverZoneRect } from './hoverZone';
 import type { ReportPayload } from '../constants/report';
 
@@ -147,6 +151,7 @@ export interface IpcEventMap {
   'open-player-page': [url: string];
   'bookmarks-changed': [];
   'update-download-progress': [percent: number];
+  'update-install-stage': [stage: UpdateInstallStage];
   'offline-tasks-changed': [];
   'offline-library-changed': [];
   'offline-files-removed': [event: OfflineRemovalEvent];

@@ -272,9 +272,15 @@
         "rpm"
       ],
       "icon": "assets/icons",
-      "category": "AudioVideo",
+      "category": "AudioVideo;Video;Player",
       "executableName": "animelib-desktop",
-      "synopsis": "Desktop client for the Lib sites network"
+      "synopsis": "Client for the Lib sites network",
+      "description": "Anime, manga and ranobe from the Lib sites network",
+      "desktop": {
+        "Name": "AnimeLib Desktop",
+        "Keywords": "anime;manga;ranobe;",
+        "StartupWMClass": "animelib-desktop"
+      }
     },
     "directories": {
       "app": "release/app",
@@ -294,11 +300,21 @@
     },
     "deb": {
       "artifactName": "${productName}-${version}.${ext}",
-      "afterInstall": ".erb/scripts/linux-after-install.sh"
+      "afterInstall": ".erb/scripts/linux-after-install.sh",
+      "fpm": [
+        "--description",
+        "Client for the Lib sites network\nAnimeLib Desktop is an app for the Lib sites network with many useful improvements.",
+        ".erb/linux/io.github.fazer000.AnimeLibDesktop.metainfo.xml=/usr/share/metainfo/io.github.fazer000.AnimeLibDesktop.metainfo.xml"
+      ]
     },
     "rpm": {
       "artifactName": "${productName}-${version}.${ext}",
-      "afterInstall": ".erb/scripts/linux-after-install.sh"
+      "afterInstall": ".erb/scripts/linux-after-install.sh",
+      "fpm": [
+        "--description",
+        "AnimeLib Desktop is an app for the Lib sites network with many useful improvements.",
+        ".erb/linux/io.github.fazer000.AnimeLibDesktop.metainfo.xml=/usr/share/metainfo/io.github.fazer000.AnimeLibDesktop.metainfo.xml"
+      ]
     }
   },
   "collective": {

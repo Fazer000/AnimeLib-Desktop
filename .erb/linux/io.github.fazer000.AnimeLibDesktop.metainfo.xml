@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Описание приложения для центров приложений Linux (AppStream) -->
+<component type="desktop-application">
+  <id>io.github.fazer000.AnimeLibDesktop</id>
+  <launchable type="desktop-id">animelib-desktop.desktop</launchable>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+
+  <name>AnimeLib Desktop</name>
+  <summary>Client for the Lib sites network</summary>
+
+  <developer id="io.github.fazer000">
+    <name>Fazer000</name>
+  </developer>
+
+  <description>
+    <p>AnimeLib Desktop is an app for the Lib sites network with many useful improvements.</p>
+  </description>
+
+  <icon type="stock">animelib-desktop</icon>
+  <url type="homepage">https://github.com/Fazer000/AnimeLib-Desktop</url>
+  <url type="bugtracker">https://github.com/Fazer000/AnimeLib-Desktop/issues</url>
+
+  <categories>
+    <category>AudioVideo</category>
+    <category>Video</category>
+    <category>Player</category>
+  </categories>
+
+  <keywords>
+    <keyword>anime</keyword>
+    <keyword>manga</keyword>
+    <keyword>ranobe</keyword>
+  </keywords>
+</component>

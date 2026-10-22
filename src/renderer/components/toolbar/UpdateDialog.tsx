@@ -13,14 +13,26 @@ import {
 } from '@mui/material';
 import { ExternalLink } from '../icons';
 import DialogCloseButton from '../DialogCloseButton';
-import { DIALOG_TITLE_RIGHT_INSET, UpdateInfo } from '../../../constants';
-import { UpdateStatus } from '../../hooks/useUpdateChecker';
+import ManualCommand from './ManualCommand';
+import {
+  DIALOG_TITLE_RIGHT_INSET,
+  UpdateFailure,
+  UpdateInfo,
+} from '../../../constants';
+import { isUpdateBusy, UpdateStatus } from '../../hooks/useUpdateChecker';
+import {
+  getUpdateCaption,
+  getUpdateConfirmLabel,
+  getUpdateFailureText,
+} from '../../utils/updateStatus';
 import { SUCCESS_DEEP, SUCCESS_MID, SUCCESS_STRONG } from '../../theme/palette';
 
 interface UpdateDialogProps {
   open: boolean;
   updateInfo: UpdateInfo;
   status: UpdateStatus;
+  failure: UpdateFailure | null;
+  manualCommand: string | null;
   progress: number;
   onConfirm: () => void;
   onOpenRelease: () => void;
@@ -127,13 +139,16 @@ function UpdateDialog({
   open,
   updateInfo,
   status,
+  failure,
+  manualCommand,
   progress,
   onConfirm,
   onOpenRelease,
   onClose,
 }: UpdateDialogProps) {
   const { customColors } = useTheme().palette;
-  const isDownloading = status === 'downloading';
+  const isDownloading = isUpdateBusy(status);
+  const caption = getUpdateCaption(status, progress);
   const publishedAt = formatDate(updateInfo.publishedAt);
 
   return (
@@ -181,11 +196,11 @@ function UpdateDialog({
           {renderNotes(updateInfo.releaseNotes, customColors)}
         </Box>
 
-        {isDownloading && (
+        {caption && (
           <Box sx={{ mt: 2 }}>
             <LinearProgress
               variant="determinate"
-              value={progress}
+              value={status === 'downloading' ? progress : 100}
               sx={{
                 height: 6,
                 borderRadius: 3,
@@ -200,8 +215,19 @@ function UpdateDialog({
                 mt: 0.75,
               }}
             >
-              {`Загрузка обновления… ${progress}%`}
+              {caption.text}
             </Typography>
+            {caption.hint && (
+              <Typography
+                sx={{
+                  fontSize: '0.75rem',
+                  color: `rgba(${customColors.onSurfaceRgb}, 0.45)`,
+                  mt: 0.25,
+                }}
+              >
+                {caption.hint}
+              </Typography>
+            )}
           </Box>
         )}
 
@@ -209,8 +235,12 @@ function UpdateDialog({
           <Typography
             sx={{ fontSize: '0.8rem', color: customColors.dangerColor, mt: 2 }}
           >
-            Не удалось загрузить обновление. Страница релиза открыта в браузере.
+            {getUpdateFailureText(failure)}
           </Typography>
+        )}
+
+        {status === 'error' && manualCommand && (
+          <ManualCommand command={manualCommand} />
         )}
       </DialogContent>
 
@@ -241,7 +271,7 @@ function UpdateDialog({
             '&:hover': { backgroundColor: SUCCESS_STRONG },
           }}
         >
-          Обновить сейчас
+          {getUpdateConfirmLabel(failure)}
         </Button>
       </DialogActions>
     </Dialog>

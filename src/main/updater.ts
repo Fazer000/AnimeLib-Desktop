@@ -5,32 +5,59 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import https from 'https';
+import { execFile, spawn } from 'child_process';
 import { app, BrowserWindow, shell } from 'electron';
 import {
   APP_VERSION,
-  UPDATE_ASSET_PREFIX,
-  UPDATE_ASSET_SUFFIX,
   UPDATE_CHECK_TIMEOUT_MS,
+  UPDATE_QUIT_DELAY_MS,
   UPDATE_LATEST_RELEASE_API,
   UPDATE_RELEASES_PAGE,
   UPDATE_REPO_URL,
   UPDATE_USER_AGENT,
   UpdateInfo,
+  UpdateInstallStage,
   UpdateResult,
 } from '../constants';
 
 import { createLogger } from '../shared/logger';
 import { isNewerVersion } from '../shared/version';
+import {
+  buildInstallCommand,
+  buildManualInstallCommand,
+  buildRelaunchCommand,
+  getLinuxLauncherPath,
+  getRelaunchArgs,
+  pickAssetUrl,
+  resolvePackageKind,
+  UpdatePackageKind,
+} from '../shared/updatePackage';
 import { handleIpc, onIpc } from './ipc';
 
 const log = createLogger('Updater');
 
 /**
- * Возвращает расширение установщика для текущей платформы
+ * Вид установки: exe, AppImage, deb или rpm
  */
-const getPlatformSuffix = (): string => {
-  const suffixes = UPDATE_ASSET_SUFFIX as Record<string, string>;
-  return suffixes[process.platform] || UPDATE_ASSET_SUFFIX.win32;
+const getPackageKind = (): UpdatePackageKind => {
+  let packageType: string | null = null;
+
+  if (process.platform === 'linux' && !process.env.APPIMAGE) {
+    try {
+      packageType = fs.readFileSync(
+        path.join(process.resourcesPath, 'package-type'),
+        'utf8',
+      );
+    } catch {
+      packageType = null;
+    }
+  }
+
+  return resolvePackageKind(
+    process.platform,
+    process.env.APPIMAGE,
+    packageType,
+  );
 };
 
 /**
@@ -149,25 +176,6 @@ const downloadFile = (
   });
 
 /**
- * Строит ссылку на установщик по шаблону имени артефакта
- */
-const buildFallbackDownloadUrl = (version: string): string =>
-  `${UPDATE_REPO_URL}/releases/download/v${version}/${UPDATE_ASSET_PREFIX}-${version}${getPlatformSuffix()}`;
-
-/**
- * Выбирает подходящий файл релиза для текущей платформы
- */
-const pickAssetUrl = (release: any, version: string): string => {
-  const suffix = getPlatformSuffix();
-  const assets: any[] = Array.isArray(release?.assets) ? release.assets : [];
-  const asset = assets.find((item) =>
-    String(item?.name || '').endsWith(suffix),
-  );
-
-  return asset?.browser_download_url || buildFallbackDownloadUrl(version);
-};
-
-/**
  * Проверяет наличие новой версии на GitHub
  */
 export const checkForUpdate = async (): Promise<UpdateInfo> => {
@@ -199,12 +207,150 @@ export const checkForUpdate = async (): Promise<UpdateInfo> => {
     available: true,
     currentVersion: APP_VERSION,
     latestVersion,
-    downloadUrl: pickAssetUrl(release, latestVersion),
+    downloadUrl: pickAssetUrl(
+      Array.isArray(release.assets) ? release.assets : [],
+      getPackageKind(),
+      latestVersion,
+      UPDATE_REPO_URL,
+    ),
     releaseUrl: release.html_url || UPDATE_RELEASES_PAGE,
     releaseName: String(release.name || `Версия ${latestVersion}`),
     releaseNotes: String(release.body || ''),
     publishedAt: String(release.published_at || ''),
   };
+};
+
+/**
+ * Сообщает окну стадию после загрузки: установка или перезапуск
+ */
+const sendStage = (
+  window: BrowserWindow | null,
+  stage: UpdateInstallStage,
+): void => {
+  window?.webContents.send('update-install-stage', stage);
+};
+
+/**
+ * Перезапускает приложение через секунду: диалог успевает показать стадию.
+ * Новый процесс отвязан от текущего и стартует после его выхода
+ */
+const relaunchSoon = (execPath: string): void => {
+  const relaunch = buildRelaunchCommand(
+    execPath,
+    getRelaunchArgs(process.argv),
+    process.pid,
+  );
+  spawn(relaunch.command, relaunch.args, {
+    detached: true,
+    stdio: 'ignore',
+  }).unref();
+  setTimeout(() => app.quit(), UPDATE_QUIT_DELAY_MS);
+};
+
+/**
+ * Выполняет команду; true — завершилась успешно
+ */
+const runCommand = (command: string, args: string[]): Promise<boolean> =>
+  new Promise((resolve) => {
+    execFile(command, args, (error, _stdout, stderr) => {
+      if (error) log.warn('Install command failed:', error.message, stderr);
+      resolve(!error);
+    });
+  });
+
+/**
+ * AppImage: новый файл скачивается рядом и подменяет старый, затем
+ * перезапуск. Папка без записи — файл остаётся в «Загрузках»
+ */
+const installAppImage = async (
+  window: BrowserWindow | null,
+  info: UpdateInfo,
+  appImagePath: string,
+): Promise<UpdateResult> => {
+  const nextPath = path.join(
+    path.dirname(appImagePath),
+    `.${path.basename(appImagePath)}.update`,
+  );
+  const fallbackPath = path.join(
+    app.getPath('downloads'),
+    path.basename(new URL(info.downloadUrl).pathname),
+  );
+  const writable = await fs.promises
+    .access(path.dirname(appImagePath), fs.constants.W_OK)
+    .then(() => true)
+    .catch(() => false);
+  const target = writable ? nextPath : fallbackPath;
+
+  const downloaded = await downloadFile(info.downloadUrl, target, (percent) =>
+    window?.webContents.send('update-download-progress', percent),
+  );
+  if (!downloaded) {
+    await fs.promises.rm(target, { force: true }).catch(() => undefined);
+    return { success: false, failure: 'download' };
+  }
+
+  await fs.promises.chmod(target, 0o755).catch(() => undefined);
+
+  const replaced =
+    writable &&
+    (await fs.promises
+      .rename(target, appImagePath)
+      .then(() => true)
+      .catch((error) => {
+        log.warn('AppImage replace failed:', error);
+        return false;
+      }));
+
+  if (!replaced) {
+    if (target === nextPath) {
+      await fs.promises.copyFile(nextPath, fallbackPath);
+      await fs.promises.chmod(fallbackPath, 0o755).catch(() => undefined);
+      await fs.promises.rm(nextPath, { force: true }).catch(() => undefined);
+    }
+    shell.showItemInFolder(fallbackPath);
+    return { success: false, failure: 'readonly', filePath: fallbackPath };
+  }
+
+  sendStage(window, 'restarting');
+  relaunchSoon(appImagePath);
+  return { success: true, filePath: appImagePath };
+};
+
+/**
+ * deb и rpm: установка через системное окно пароля, затем перезапуск.
+ * Отказ — папка с пакетом и команда для терминала: Центр приложений
+ * не обновляет уже установленный пакет из файла
+ */
+const installPackage = async (
+  window: BrowserWindow | null,
+  kind: UpdatePackageKind,
+  filePath: string,
+): Promise<UpdateResult> => {
+  const managers = {
+    dnf: fs.existsSync('/usr/bin/dnf'),
+    zypper: fs.existsSync('/usr/bin/zypper'),
+  };
+  const command = buildInstallCommand(kind, filePath, managers);
+
+  sendStage(window, 'installing');
+  const installed = command
+    ? await runCommand(command.command, command.args)
+    : false;
+
+  if (!installed) {
+    shell.showItemInFolder(filePath);
+    return {
+      success: false,
+      failure: 'install',
+      filePath,
+      manualCommand:
+        buildManualInstallCommand(kind, filePath, managers) ?? undefined,
+    };
+  }
+
+  sendStage(window, 'restarting');
+  relaunchSoon(getLinuxLauncherPath(process.execPath));
+  return { success: true, filePath };
 };
 
 /**
@@ -218,10 +364,20 @@ const downloadAndInstall = async (
     return { success: false, error: 'Файл обновления не найден' };
   }
 
-  const fileName = path.basename(new URL(info.downloadUrl).pathname);
-  const filePath = path.join(os.tmpdir(), fileName);
+  const kind = getPackageKind();
+  const appImagePath = process.env.APPIMAGE;
 
-  log.debug('Downloading:', info.downloadUrl);
+  log.debug('Downloading:', info.downloadUrl, 'as', kind);
+
+  if (kind === 'appimage' && appImagePath) {
+    return installAppImage(window, info, appImagePath);
+  }
+
+  const fileName = path.basename(new URL(info.downloadUrl).pathname);
+  // deb и rpm — в «Загрузки»: Центр приложений (snap) не видит /tmp
+  const directory =
+    kind === 'deb' || kind === 'rpm' ? app.getPath('downloads') : os.tmpdir();
+  const filePath = path.join(directory, fileName);
 
   const downloaded = await downloadFile(info.downloadUrl, filePath, (percent) =>
     window?.webContents.send('update-download-progress', percent),
@@ -229,14 +385,22 @@ const downloadAndInstall = async (
 
   if (!downloaded) {
     await fs.promises.rm(filePath, { force: true }).catch(() => undefined);
-    return { success: false, error: 'Не удалось скачать обновление' };
+    return {
+      success: false,
+      error: 'Не удалось скачать обновление',
+      failure: 'download',
+    };
   }
 
   log.debug('Downloaded to:', filePath);
 
+  if (kind === 'deb' || kind === 'rpm') {
+    return installPackage(window, kind, filePath);
+  }
+
   if (process.platform === 'win32') {
     await shell.openPath(filePath);
-    setTimeout(() => app.quit(), 1000);
+    setTimeout(() => app.quit(), UPDATE_QUIT_DELAY_MS);
   } else {
     shell.showItemInFolder(filePath);
   }

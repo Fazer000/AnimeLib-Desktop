@@ -18,6 +18,7 @@ import {
   Captions as LucideCaptions,
   Check as LucideCheck,
   CheckCheck as LucideCheckCheck,
+  Copy as LucideCopy,
   ChevronDown as LucideChevronDown,
   ChevronLeft as LucideChevronLeft,
   ChevronRight as LucideChevronRight,
@@ -108,6 +109,7 @@ export const ChevronUp = adapt(LucideChevronUp);
 export const ChevronsRight = adapt(LucideChevronsRight);
 export const CloudDownload = adapt(LucideCloudDownload);
 export const CloudOff = adapt(LucideCloudOff);
+export const Copy = adapt(LucideCopy);
 export const Download = adapt(LucideDownload);
 export const Ellipsis = adapt(LucideEllipsis);
 export const ExternalLink = adapt(LucideExternalLink);

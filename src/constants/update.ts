@@ -12,19 +12,26 @@ export const UPDATE_LATEST_RELEASE_API = `https://api.github.com/repos/${UPDATE_
 
 export const UPDATE_RELEASES_PAGE = `${UPDATE_REPO_URL}/releases/latest`;
 
+/** Начало имени установщика (exe, AppImage) */
 export const UPDATE_ASSET_PREFIX = 'AnimeLib-Desktop-Setup';
 
-export const UPDATE_ASSET_SUFFIX = {
-  win32: '.exe',
-  darwin: '.dmg',
-  linux: '.AppImage',
-} as const;
+/** Начало имени пакета deb и rpm */
+export const UPDATE_PACKAGE_PREFIX = 'AnimeLib-Desktop';
+
+/** Имя исполняемого файла на Linux: обёртка запуска рядом с бинарником */
+export const UPDATE_LINUX_EXECUTABLE = 'animelib-desktop';
 
 export const UPDATE_USER_AGENT = `${UPDATE_REPO_NAME}-Updater`;
 
 export const UPDATE_CHECK_TIMEOUT_MS = 10000;
 
 export const UPDATE_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
+
+/** Пауза перед выходом: диалог успевает показать стадию, мс */
+export const UPDATE_QUIT_DELAY_MS = 1000;
+
+/** Сколько держится надпись «Скопировано» у команды установки, мс */
+export const UPDATE_COPIED_RESET_MS = 2000;
 
 /**
  * Результат проверки доступной версии
@@ -41,10 +48,24 @@ export interface UpdateInfo {
 }
 
 /**
+ * Стадия после загрузки: установка пакета (deb, rpm) или перезапуск
+ */
+export type UpdateInstallStage = 'installing' | 'restarting';
+
+/**
+ * Почему обновление не завершилось: не скачалось, пакет не установлен
+ * (пароль не введён), файл AppImage не заменить
+ */
+export type UpdateFailure = 'download' | 'install' | 'readonly';
+
+/**
  * Результат загрузки и запуска установщика
  */
 export interface UpdateResult {
   success: boolean;
   filePath?: string;
   error?: string;
+  failure?: UpdateFailure;
+  /** Команда для ручной установки deb или rpm в терминале */
+  manualCommand?: string;
 }
