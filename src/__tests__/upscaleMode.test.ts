@@ -51,6 +51,11 @@ describe('getStartPreset', () => {
     expect(getStartPreset('auto', 'fast')).toBe('fast');
     expect(getStartPreset('auto', null)).toBe('quality');
   });
+
+  it('«Авто», признавшее видеокарту слабой, ничего не обрабатывает', () => {
+    expect(getStartPreset('auto', 'off')).toBeNull();
+    expect(getStartPreset('fast', 'off')).toBe('fast');
+  });
 });
 
 describe('getLowerPreset', () => {
@@ -58,6 +63,26 @@ describe('getLowerPreset', () => {
     expect(getLowerPreset('quality')).toBe('balanced');
     expect(getLowerPreset('balanced')).toBe('fast');
     expect(getLowerPreset('fast')).toBeNull();
+  });
+});
+
+describe('evaluateAutoWindow при почти стоящей картинке', () => {
+  it('кадр дольше четырёх бюджетов понижает уровень сразу', () => {
+    expect(
+      evaluateAutoWindow({ frameTimeMs: 1446, overBudgetShare: 1 }, 0, BUDGET),
+    ).toEqual({ badWindows: 0, stepDown: true });
+  });
+
+  it('28 мс при видео в 24 к/с — не пропуск', () => {
+    expect(
+      evaluateAutoWindow({ frameTimeMs: 28, overBudgetShare: 0 }, 1, 1000 / 24),
+    ).toEqual({ badWindows: 0, stepDown: false });
+  });
+
+  it('просто медленный кадр по-прежнему ждёт второго окна', () => {
+    expect(
+      evaluateAutoWindow({ frameTimeMs: 40, overBudgetShare: 1 }, 0, BUDGET),
+    ).toEqual({ badWindows: 1, stepDown: false });
   });
 });
 
@@ -108,5 +133,6 @@ describe('подписи режимов', () => {
     expect(formatUpscaleSummary('auto', 'fast', true)).toBe(
       'Не удалось включить',
     );
+    expect(formatUpscaleSummary('auto', null, false)).toBe('Авто · Выключено');
   });
 });

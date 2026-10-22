@@ -5,6 +5,7 @@ import {
   UPSCALE_AUTO_BAD_WINDOWS,
   UPSCALE_AUTO_HEADROOM,
   UPSCALE_AUTO_OVER_BUDGET_SHARE,
+  UPSCALE_AUTO_SEVERE_FACTOR,
   UPSCALE_AUTO_START_PRESET,
   UPSCALE_MODES,
   UPSCALE_PRESETS,
@@ -67,14 +68,18 @@ export function isHardwareAdapter(adapter: AdapterFlags | null): boolean {
 
 /**
  * Уровень, с которого начинается обработка; null — улучшение выключено.
- * «Авто» продолжает с уровня, найденного в прошлый раз
+ * «Авто» продолжает с уровня, найденного в прошлый раз; 'off' — видеокарта
+ * не тянет даже лёгкий уровень
  */
 export function getStartPreset(
   mode: UpscaleMode,
-  rememberedAutoPreset: UpscalePreset | null,
+  rememberedAutoPreset: UpscalePreset | 'off' | null,
 ): UpscalePreset | null {
   if (mode === 'off') return null;
-  if (mode === 'auto') return rememberedAutoPreset ?? UPSCALE_AUTO_START_PRESET;
+  if (mode === 'auto') {
+    if (rememberedAutoPreset === 'off') return null;
+    return rememberedAutoPreset ?? UPSCALE_AUTO_START_PRESET;
+  }
 
   return mode;
 }
@@ -96,6 +101,10 @@ export function evaluateAutoWindow(
   badWindows: number,
   budgetMs: number,
 ): { badWindows: number; stepDown: boolean } {
+  if (stats.frameTimeMs > budgetMs * UPSCALE_AUTO_SEVERE_FACTOR) {
+    return { badWindows: 0, stepDown: true };
+  }
+
   const bad =
     stats.frameTimeMs > budgetMs * UPSCALE_AUTO_HEADROOM ||
     stats.overBudgetShare > UPSCALE_AUTO_OVER_BUDGET_SHARE;
@@ -133,8 +142,8 @@ export function formatUpscaleSummary(
 ): string {
   if (mode === 'off') return MODE_LABELS.off;
   if (failed) return 'Не удалось включить';
-  if (mode === 'auto' && activePreset) {
-    return `${MODE_LABELS.auto} · ${MODE_LABELS[activePreset]}`;
+  if (mode === 'auto') {
+    return `${MODE_LABELS.auto} · ${MODE_LABELS[activePreset ?? 'off']}`;
   }
 
   return MODE_LABELS[mode];

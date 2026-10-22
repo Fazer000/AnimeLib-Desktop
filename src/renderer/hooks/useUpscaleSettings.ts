@@ -2,11 +2,7 @@
  * Настройки улучшения картинки: режим, замер и подбор уровня в «Авто»
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  UPSCALE_FRAME_BUDGET_MS,
-  UpscaleMode,
-  UpscalePreset,
-} from '../../constants';
+import { UpscaleMode, UpscalePreset } from '../../constants';
 import {
   evaluateAutoWindow,
   getLowerPreset,
@@ -18,8 +14,11 @@ import type { UpscaleStats } from '../services/player';
 import { usePersistedChoice } from './usePersistedChoice';
 import { usePersistedFlag } from './usePersistedFlag';
 
-const isAutoPresetValue = (value: unknown): value is UpscalePreset | 'none' =>
-  value === 'none' || isUpscalePreset(value);
+/** 'none' — «Авто» ещё не подбирало уровень, 'off' — не тянет даже лёгкий */
+type AutoPresetValue = UpscalePreset | 'none' | 'off';
+
+const isAutoPresetValue = (value: unknown): value is AutoPresetValue =>
+  value === 'none' || value === 'off' || isUpscalePreset(value);
 
 export interface UpscaleSettingsState {
   mode: UpscaleMode;
@@ -34,7 +33,8 @@ export interface UpscaleSettingsState {
 
 /**
  * Хранит выбор пользователя и в «Авто» понижает уровень, когда видеокарта
- * перестаёт успевать. Найденный уровень запоминается до повторного выбора «Авто»
+ * перестаёт успевать; ниже лёгкого — выключает. Найденный уровень
+ * запоминается до повторного выбора «Авто»
  */
 export function useUpscaleSettings(): UpscaleSettingsState {
   const [mode, setStoredMode] = usePersistedChoice<UpscaleMode>(
@@ -42,9 +42,11 @@ export function useUpscaleSettings(): UpscaleSettingsState {
     isUpscaleMode,
     'off',
   );
-  const [autoPreset, setAutoPreset] = usePersistedChoice<
-    UpscalePreset | 'none'
-  >('playerUpscaleAutoPreset', isAutoPresetValue, 'none');
+  const [autoPreset, setAutoPreset] = usePersistedChoice<AutoPresetValue>(
+    'playerUpscaleAutoPreset',
+    isAutoPresetValue,
+    'none',
+  );
   const [showStats, setShowStats] = usePersistedFlag(
     'playerUpscaleShowStats',
     false,
@@ -77,13 +79,12 @@ export function useUpscaleSettings(): UpscaleSettingsState {
       const result = evaluateAutoWindow(
         stats,
         badWindowsRef.current,
-        UPSCALE_FRAME_BUDGET_MS,
+        stats.budgetMs,
       );
       badWindowsRef.current = result.badWindows;
       if (!result.stepDown) return;
 
-      const lower = getLowerPreset(stats.preset);
-      if (lower) setAutoPreset(lower);
+      setAutoPreset(getLowerPreset(stats.preset) ?? 'off');
     },
     [mode, setAutoPreset],
   );

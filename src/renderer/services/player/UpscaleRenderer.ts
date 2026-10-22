@@ -6,14 +6,19 @@
 import {
   UPSCALE_FRAME_BUDGET_MS,
   UPSCALE_FRAME_WINDOW,
-  UPSCALE_STATS_INTERVAL,
   UPSCALE_WARMUP_FRAMES,
   UpscalePreset,
 } from '../../../constants';
 import FrameTimeMeter from '../../utils/FrameTimeMeter';
 import { PixelSize, shouldBypassUpscale } from '../../utils/upscaleGeometry';
 import { createLogger } from '../../../shared/logger';
-import { getFramesPerSecond } from '../../utils/upscaleStats';
+import {
+  getFrameBudgetMs,
+  getFramesPerSecond,
+  isFrameInterval,
+  isStatsWindowDue,
+  isWarmupDone,
+} from '../../utils/upscaleStats';
 import { isHardwareAdapter } from '../../utils/upscaleMode';
 import {
   Anime4KPipelineList,
@@ -51,7 +56,7 @@ fn frag_main(@location(0) uv: vec2f) -> @location(0) vec4f {
 `;
 
 type FrameCallbackVideo = HTMLVideoElement & {
-  requestVideoFrameCallback: (callback: () => void) => number;
+  requestVideoFrameCallback: (callback: (now: number) => void) => number;
   cancelVideoFrameCallback: (handle: number) => void;
 };
 
@@ -60,6 +65,8 @@ export interface UpscaleStats {
   bypassed: boolean;
   framesPerSecond: number;
   frameTimeMs: number;
+  /** Бюджет кадра по частоте видео, мс */
+  budgetMs: number;
   overBudgetShare: number;
   sourceSize: PixelSize;
   targetSize: PixelSize;
@@ -100,6 +107,8 @@ export default class UpscaleRenderer {
 
   private warmupLeft: number = 0;
 
+  private warmupStartedAt: number = 0;
+
   private frameHandle: number | null = null;
 
   private pending: boolean = false;
@@ -113,6 +122,11 @@ export default class UpscaleRenderer {
   private statsWindowStartedAt: number = 0;
 
   private readonly meter = new FrameTimeMeter(UPSCALE_FRAME_WINDOW);
+
+  /** Промежутки между кадрами видео: из них берётся бюджет кадра */
+  private readonly intervals = new FrameTimeMeter(UPSCALE_FRAME_WINDOW);
+
+  private lastVideoFrameAt: number = 0;
 
   private readonly onStats?: (stats: UpscaleStats) => void;
 
@@ -271,6 +285,8 @@ export default class UpscaleRenderer {
    */
   private handleSourceReset = (): void => {
     this.sourceGeneration += 1;
+    this.intervals.reset();
+    this.lastVideoFrameAt = 0;
     this.setFrameVisible(false);
   };
 
@@ -299,7 +315,13 @@ export default class UpscaleRenderer {
     this.frameHandle = this.video.requestVideoFrameCallback(this.handleFrame);
   }
 
-  private handleFrame = (): void => {
+  private handleFrame = (now: number): void => {
+    const interval = now - this.lastVideoFrameAt;
+    if (this.lastVideoFrameAt && isFrameInterval(interval)) {
+      this.intervals.push(interval);
+    }
+    this.lastVideoFrameAt = now;
+
     this.frameHandle = null;
     this.scheduleFrame();
     this.requestRedraw();
@@ -388,6 +410,7 @@ export default class UpscaleRenderer {
     this.meter.reset();
     this.framesSinceStats = 0;
     this.warmupLeft = UPSCALE_WARMUP_FRAMES;
+    this.warmupStartedAt = performance.now();
     log.debug('Pipeline built:', key);
   }
 
@@ -478,36 +501,48 @@ export default class UpscaleRenderer {
       bypassed: true,
       framesPerSecond: 0,
       frameTimeMs: 0,
+      budgetMs: UPSCALE_FRAME_BUDGET_MS,
       overBudgetShare: 0,
       sourceSize,
       targetSize: { ...this.targetSize },
     });
   }
 
+  /**
+   * Копит время кадров; окна ограничены и кадрами, и временем, чтобы
+   * «Авто» быстро реагировало на видеокарту, выдающую кадр в секунду
+   */
   private recordFrameTime(ms: number): void {
+    const now = performance.now();
+
     if (this.warmupLeft > 0) {
       this.warmupLeft -= 1;
+      if (!isWarmupDone(this.warmupLeft, now - this.warmupStartedAt)) return;
+
+      this.warmupLeft = 0;
+      this.framesSinceStats = 0;
+      this.statsWindowStartedAt = now;
       return;
     }
 
-    const now = performance.now();
-    if (this.framesSinceStats === 0) this.statsWindowStartedAt = now;
-
     this.meter.push(ms);
     this.framesSinceStats += 1;
-    if (this.framesSinceStats <= UPSCALE_STATS_INTERVAL || !this.video) return;
+    const elapsed = now - this.statsWindowStartedAt;
+    if (!isStatsWindowDue(this.framesSinceStats, elapsed) || !this.video) {
+      return;
+    }
 
-    const framesPerSecond = getFramesPerSecond(
-      this.framesSinceStats - 1,
-      now - this.statsWindowStartedAt,
-    );
+    const framesPerSecond = getFramesPerSecond(this.framesSinceStats, elapsed);
     this.framesSinceStats = 0;
+    this.statsWindowStartedAt = now;
+    const budgetMs = getFrameBudgetMs(this.intervals.average());
     this.onStats?.({
       preset: this.preset,
       bypassed: false,
       framesPerSecond,
       frameTimeMs: this.meter.average(),
-      overBudgetShare: this.meter.overBudgetShare(UPSCALE_FRAME_BUDGET_MS),
+      budgetMs,
+      overBudgetShare: this.meter.overBudgetShare(budgetMs),
       sourceSize: {
         width: this.video.videoWidth,
         height: this.video.videoHeight,
