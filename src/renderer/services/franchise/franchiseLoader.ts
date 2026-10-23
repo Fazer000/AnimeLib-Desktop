@@ -45,10 +45,7 @@ export interface FranchiseProgress {
 /**
  * Состояние обхода: граф из уже загруженных тайтлов растёт по ходу
  */
-/**
- * Франшиза из Shikimori и найденные на Animelib тайтлы. Граф из неё
- * строится для конкретного текущего тайтла
- */
+/** Франшиза из Shikimori и найденные на Animelib тайтлы */
 export interface ShikimoriSource {
   franchise: ShikimoriFranchise;
   matches: Map<number, AnimelibMatch>;
@@ -93,11 +90,7 @@ class EmptyFranchiseError extends Error {
   }
 }
 
-/**
- * Обходит связи от тайтла и дозапрашивает даты выхода: в ответе связей их нет.
- * Даты найденных тайтлов идут раньше связей, чтобы узлы появлялись быстрее.
- * После каждого ответа отдаёт граф из тайтлов, для которых пришли данные
- */
+/** Обходит связи от тайтла и дозапрашивает даты выхода: в ответе связей их нет */
 async function crawlFranchise(
   startSlug: string,
   onUpdate: (graph: FranchiseGraph, progress: FranchiseProgress) => void,
@@ -222,10 +215,7 @@ const notify = (crawl: Crawl, state: FranchiseState) => {
   crawl.listeners.forEach((listener) => listener(state));
 };
 
-/**
- * Запускает обход франшизы. Готовый граф запоминается на сессию для всех
- * его тайтлов, поэтому переход внутри франшизы не повторяет обход
- */
+/** Запускает обход франшизы */
 function startCrawl(slugUrl: string): Crawl {
   const crawl: Crawl = { state: EMPTY_STATE, listeners: new Set() };
   crawls.set(slugUrl, crawl);
@@ -247,10 +237,7 @@ function startCrawl(slugUrl: string): Crawl {
   return crawl;
 }
 
-/**
- * Франшиза из Shikimori: граф готов после одного запроса, тайтлы ищутся
- * на Animelib в фоне по одному. Если Shikimori не ответил — обход Animelib
- */
+/** Франшиза из Shikimori с поиском тайтлов на Animelib */
 function startShikimoriCrawl(slugUrl: string, shikimoriId: number): Crawl {
   const crawl: Crawl = { state: EMPTY_STATE, listeners: new Set() };
   const queue = new PriorityTaskQueue(
@@ -286,7 +273,6 @@ function startShikimoriCrawl(slugUrl: string, shikimoriId: number): Crawl {
     }, FRANCHISE_CACHE_SAVE_DELAY_MS);
   };
 
-  // Сохранённая франшиза показывается сразу, пока Shikimori отвечает
   if (saved) {
     applyFranchise(
       saved.franchise,
@@ -326,8 +312,6 @@ function startShikimoriCrawl(slugUrl: string, shikimoriId: number): Crawl {
         : null;
       let result = toAnimelibMatch(found, id);
 
-      // Slug на Animelib иногда пишется иначе: ищем по названию
-      // и сверяем первые результаты по id Shikimori
       if (!result.slug && node) {
         const search = await queue.run(
           () => animeApi.searchAnime(node.name),
@@ -392,14 +376,10 @@ function startShikimoriCrawl(slugUrl: string, shikimoriId: number): Crawl {
   const refresh = async () => {
     const franchise = await shikimoriApi.getFranchise(shikimoriId);
 
-    // У тайтла без франшизы Shikimori не отдаёт даже его самого:
-    // одиночный тайтл проще собрать по Animelib
     if (matchOrder(franchise, shikimoriId).length === 0) {
       throw new EmptyFranchiseError();
     }
 
-    // Франшиза могла измениться: найденное для оставшихся тайтлов
-    // сохраняется, искать придётся только новые
     const ids = new Set(franchise.nodes.map((node) => node.id));
     const kept = new Map(
       [...(source?.matches ?? new Map<number, AnimelibMatch>())].filter(
@@ -451,7 +431,6 @@ function startShikimoriCrawl(slugUrl: string, shikimoriId: number): Crawl {
     } else {
       log.warn('Shikimori unavailable, crawling Animelib:', error);
     }
-    crawls.delete(shikimoriKey(shikimoriId));
     const fallback = crawls.get(slugUrl) ?? startCrawl(slugUrl);
     fallback.listeners.add((state) => notify(crawl, state));
     notify(crawl, fallback.state);
@@ -460,11 +439,7 @@ function startShikimoriCrawl(slugUrl: string, shikimoriId: number): Crawl {
   return crawl;
 }
 
-/**
- * Подписка на граф франшизы тайтла: слушатель сразу получает текущее
- * состояние и дальше — каждое обновление. Возвращает отписку.
- * С id Shikimori франшиза берётся оттуда, без него — обходом Animelib
- */
+/** Подписка на граф франшизы тайтла; возвращает отписку */
 export function subscribeFranchise(
   slugUrl: string,
   shikimoriId: number | null,
@@ -476,7 +451,6 @@ export function subscribeFranchise(
       : (crawls.get(shikimoriKey(shikimoriId)) ??
         startShikimoriCrawl(slugUrl, shikimoriId));
 
-  // После входа на сайт скрытые по возрасту тайтлы находятся
   crawl.recheck?.();
   crawl.listeners.add(listener);
   listener(crawl.state);
@@ -484,6 +458,15 @@ export function subscribeFranchise(
   return () => {
     crawl.listeners.delete(listener);
   };
+}
+
+/** Состояние уже загружаемой франшизы без подписки; null — не загружалась */
+export function peekFranchise(
+  slugUrl: string,
+  shikimoriId: number | null,
+): FranchiseState | null {
+  const key = shikimoriId === null ? slugUrl : shikimoriKey(shikimoriId);
+  return crawls.get(key)?.state ?? null;
 }
 
 /**
@@ -496,10 +479,7 @@ export function hasFranchiseCrawl(
   return crawls.has(shikimoriId === null ? slugUrl : shikimoriKey(shikimoriId));
 }
 
-/**
- * Ищет тайтл Shikimori на Animelib вне очереди — когда по нему кликнули.
- * Возвращает slug Animelib или null, если тайтла там нет
- */
+/** Ищет тайтл Shikimori на Animelib вне очереди — когда по нему кликнули */
 export async function resolveFranchiseTitle(
   shikimoriId: number,
 ): Promise<string | null> {

@@ -12,11 +12,7 @@ interface AnimeCardActionsProps {
   trailing?: React.ReactNode;
 }
 
-/**
- * Строка действий карточки аниме: уведомления, папка закладок и trailing
- * (оценка) после разделителя. Клики не открывают страницу тайтла; без входа
- * в аккаунт остаётся только trailing
- */
+/** Строка действий карточки аниме */
 function AnimeCardActions({
   animeInfo,
   active,

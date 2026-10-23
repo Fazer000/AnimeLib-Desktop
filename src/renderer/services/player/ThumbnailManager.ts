@@ -21,11 +21,7 @@ interface HoverWaiter {
   reject: (error: Error) => void;
 }
 
-/**
- * Кадры превью для полоски по сетке в несколько секунд. Основной способ —
- * опорные кадры прямо из MP4; запасной — перемотка скрытых видео, отдельных
- * для наведения и фоновой подготовки
- */
+/** Кадры превью для полоски по сетке в несколько секунд */
 class ThumbnailManager {
   private videoSrc: string | null = null;
 
@@ -61,10 +57,7 @@ class ThumbnailManager {
 
   private isDestroyed = false;
 
-  /**
-   * Запоминает источник кадров и сразу начинает грузить индекс MP4.
-   * Скрытые видео создаются лениво; смена источника сбрасывает кэш и очереди
-   */
+  /** Запоминает источник кадров и сразу начинает грузить индекс MP4 */
   loadVideo(src: string): void {
     if (this.videoSrc === src) return;
 
@@ -78,10 +71,7 @@ class ThumbnailManager {
     this.keyframeSource.prepare();
   }
 
-  /**
-   * Пока основное видео буферизуется, фоновая подготовка ждёт,
-   * чтобы не отбирать у него сеть
-   */
+  /** Пока основное видео буферизуется, фоновая подготовка ждёт, чтобы не отбирать у него сеть */
   setPlaybackBuffering(buffering: boolean): void {
     this.playbackBuffering = buffering;
 
@@ -97,10 +87,7 @@ class ThumbnailManager {
     return snapToGrid(time, this.gridStep);
   }
 
-  /**
-   * Фоновая подготовка всех кадров сетки, равномерно по всей длительности. Запускается
-   * один раз на источник: вскоре после загрузки видео или при наведении
-   */
+  /** Фоновая подготовка всех кадров сетки, равномерно по всей длительности */
   startPreCaching(duration: number): void {
     if (duration <= 0 || !this.videoSrc || this.preCachingStarted) return;
 
@@ -125,10 +112,7 @@ class ThumbnailManager {
     return this.cache.get(this.toGridTime(time)) || null;
   }
 
-  /**
-   * Ближайший готовый кадр не дальше радиуса. По умолчанию — соседний:
-   * размытым он похож на кадр, который вот-вот придёт
-   */
+  /** Ближайший готовый кадр не дальше радиуса */
   getNearestCached(
     time: number,
     radius: number = THUMBNAIL_NEAREST_RADIUS,
@@ -143,10 +127,7 @@ class ThumbnailManager {
       : null;
   }
 
-  /**
-   * Кадр под курсором. Побеждает последний запрос: пока идёт перемотка,
-   * промежуточные ячейки пропускаются, а их ожидания отменяются
-   */
+  /** Кадр под курсором */
   getThumbnail(time: number): Promise<string> {
     if (this.isDestroyed) {
       return Promise.reject(new Error('ThumbnailManager is destroyed'));
@@ -265,11 +246,7 @@ class ThumbnailManager {
     this.isHoverRunning = false;
   }
 
-  /**
-   * Кадр ячейки: опорный кадр из файла, а если файл не подходит —
-   * перемоткой скрытого видео. Наведение не ждёт ни индекс, ни паузу CDN:
-   * в это время кадр снимается перемоткой
-   */
+  /** Кадр ячейки: опорный кадр из файла, а если файл не подходит — перемоткой скрытого видео */
   private async grabFrame(
     time: number,
     grabber: ThumbnailGrabber,
@@ -310,10 +287,7 @@ class ThumbnailManager {
     });
   }
 
-  /**
-   * Фоновый цикл: опорные кадры грузятся в несколько потоков,
-   * перемотка — в один
-   */
+  /** Фоновый цикл: опорные кадры грузятся в несколько потоков, перемотка — в один */
   private async runPrecache(): Promise<void> {
     if (this.isPrecacheRunning) return;
     this.isPrecacheRunning = true;
@@ -332,11 +306,7 @@ class ThumbnailManager {
     }
   }
 
-  /**
-   * Поток фоновой подготовки; неудавшийся кадр повторяется один раз в конце.
-   * Если файл оказался неподходящим, лишние потоки останавливаются: скрытое
-   * видео перематывается только по одному кадру за раз
-   */
+  /** Поток фоновой подготовки; неудавшийся кадр повторяется один раз в конце */
   private async precacheWorker(index: number): Promise<void> {
     while (this.precacheQueue.length > 0) {
       if (index > 0 && !this.usesKeyframes()) break;

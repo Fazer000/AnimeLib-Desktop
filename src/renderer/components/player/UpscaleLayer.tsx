@@ -30,10 +30,7 @@ interface UpscaleLayerProps {
   onFrameVisibilityChange: (visible: boolean) => void;
 }
 
-/**
- * Слой улучшения картинки поверх кадра: холст WebGPU, черта сравнения
- * и замер нагрузки. Без уровня, WebGPU или доступа к кадрам не рисуется
- */
+/** Слой улучшения картинки поверх кадра: холст WebGPU, черта сравнения и замер нагрузки */
 function UpscaleLayer({
   videoRef,
   preset,

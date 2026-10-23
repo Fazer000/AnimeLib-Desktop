@@ -12,10 +12,7 @@ interface AnimeRatingButtonProps {
   onRated: (rating: AnimeRating) => void;
 }
 
-/**
- * Рейтинг тайтла с плашкой своей оценки; клик открывает окно оценки.
- * Без входа в аккаунт рейтинг только показывается
- */
+/** Рейтинг тайтла с плашкой своей оценки; клик открывает окно оценки */
 function AnimeRatingButton({
   animeId,
   rating,

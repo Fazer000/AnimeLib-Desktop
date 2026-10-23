@@ -29,10 +29,7 @@ function overlaps(a: RectLike, b: RectLike, gap: number): boolean {
   );
 }
 
-/**
- * Ставит кнопку в угол; если там чужой элемент — над ним, а если сверху
- * не хватает места — слева от него
- */
+/** Ставит кнопку в угол, обходя чужие элементы */
 export function placeFloatingButton({
   width,
   height,

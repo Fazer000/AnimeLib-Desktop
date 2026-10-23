@@ -50,11 +50,7 @@ const log = createLogger('App');
 
 installDebugApi();
 
-/**
- * С чего открыть приложение: главная базового сайта; у прежних установок
- * без базового сайта — сохранённый адрес AnimeLib; при первом запуске —
- * null, и пользователь выбирает сайт
- */
+/** С чего открыть приложение: главная базового сайта; у прежних установок без базового сайта */
 const initialStartUrl = (): string | null => {
   const startSite = readStartSite();
   if (startSite) return libSiteHomeUrl(startSite, getHomeUrl());
@@ -106,7 +102,6 @@ function App() {
     () => createAppTheme(scheme, currentSite.siteId),
     [scheme, currentSite.siteId],
   );
-  // Папки панели загружаются заранее, как быстрые закладки
   usePrefetchSiteBookmarks(
     currentSite,
     getSiteFolderStatuses(currentSite.kind),

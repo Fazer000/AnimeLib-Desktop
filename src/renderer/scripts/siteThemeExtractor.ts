@@ -14,11 +14,7 @@ export const SITE_THEME_MARKER = '[animelib-theme]';
 
 const READ_TIMEOUT_MS = 3000;
 
-/**
- * Читает режим темы сайта: сначала сохранённые настройки, затем атрибут
- * корня. Настройки первыми, потому что в читалке атрибут показывает тему
- * читалки, а не сайта
- */
+/** Читает режим темы сайта: сначала сохранённые настройки, затем атрибут корня */
 export const siteThemeScript = `
 (function () {
   try {
@@ -34,12 +30,7 @@ export const siteThemeScript = `
 })();
 `;
 
-/**
- * Ставит наблюдателя за атрибутом темы, сообщая о смене через консоль
- * страницы. О теме при загрузке не сообщает: тема общая для всех сайтов,
- * её задаёт приложение, а принимается только смена на самом сайте.
- * В читалке молчит: там атрибут — тема читалки, она меняется только в ней
- */
+/** Ставит наблюдателя за атрибутом темы, сообщая о смене через консоль страницы */
 export const siteThemeWatcherScript = `
 (function () {
   try {
@@ -86,10 +77,7 @@ export function isReaderUrl(url: string): boolean {
   }
 }
 
-/**
- * Тема читалки из темы приложения. У манги — те же три режима, что у
- * сайта; у ранобэ — пресет «светлая» или «тёмная» по показанной схеме
- */
+/** Тема читалки из темы приложения */
 export function readerThemeFor(
   kind: LibSiteKind,
   mode: ThemeMode,
@@ -102,10 +90,7 @@ export function readerThemeFor(
     : { name: 'light', color: { ...RANOBE_READER_LIGHT } };
 }
 
-/**
- * Скрипт смены темы читалки: пишет её в настройки сайта и сообщает о
- * записи событием storage, как и для темы сайта
- */
+/** Скрипт смены темы читалки */
 export function buildReaderThemeWriteScript(theme: ReaderTheme): string {
   const value = JSON.stringify(theme);
 
@@ -134,10 +119,7 @@ export function buildReaderThemeWriteScript(theme: ReaderTheme): string {
 `;
 }
 
-/**
- * Скрипт смены темы сайта: пишет тему в его настройки и сообщает о записи
- * событием storage, на которое сайт синхронизирует своё состояние
- */
+/** Скрипт смены темы сайта: пишет тему в его настройки и сообщает о записи событием storage */
 export function buildSiteThemeWriteScript(mode: ThemeMode): string {
   const name = JSON.stringify(toSiteThemeName(mode));
 
@@ -178,11 +160,7 @@ export interface PageTarget {
   getWebContentsId?: () => number;
 }
 
-/**
- * Выполняет код в текущем документе webview. Через main-процесс код
- * выполняется сразу; executeJavaScript тега ждёт конца загрузки страницы,
- * и тема на тяжёлых сайтах применялась бы с опозданием или терялась
- */
+/** Выполняет код в текущем документе webview */
 async function runInPage(webview: PageTarget, code: string): Promise<unknown> {
   const invoke = window.electron?.ipcRenderer?.invoke;
   if (invoke && webview.getWebContentsId) {

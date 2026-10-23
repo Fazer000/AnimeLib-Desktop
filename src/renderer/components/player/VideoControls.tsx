@@ -158,10 +158,7 @@ interface VideoControlsProps {
   downloadManagerOpen?: boolean;
 }
 
-/**
- * Контролы видеоплеера
- * Использует компонентную ООП-архитектуру
- */
+/** Контролы видеоплеера */
 function VideoControls({
   isPlaying,
   isLoading,

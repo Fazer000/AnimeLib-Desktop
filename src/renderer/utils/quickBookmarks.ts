@@ -12,10 +12,7 @@ const updatedAtOf = (item: BookmarkListItem): number => {
   return Number.isNaN(time) ? 0 : time;
 };
 
-/**
- * Склеивает списки папок в один: от свежих к старым, без повторов тайтла
- * и записей без адреса, не длиннее limit
- */
+/** Склеивает списки папок в один */
 export function mergeBookmarkLists(
   lists: BookmarkListItem[][],
   limit: number,

@@ -1,7 +1,4 @@
-/**
- * Журнал сбоев и перехват падений главного процесса.
- * Пишет на диск независимо от createLogger, который в продакшене отключён.
- */
+/** Журнал сбоев и перехват падений главного процесса */
 import fs from 'fs';
 import path from 'path';
 import { app, BrowserWindow, WebContents, dialog } from 'electron';
@@ -78,10 +75,7 @@ const showFatalDialog = (scope: string, error: unknown): void => {
   });
 };
 
-/**
- * Перехватывает падения главного процесса, гибель рендерера и ошибки из UI.
- * Вызывать до создания окна.
- */
+/** Перехватывает падения главного процесса, гибель рендерера и ошибки из UI */
 export const registerCrashHandlers = (
   getWindow: () => BrowserWindow | null,
 ): void => {

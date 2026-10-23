@@ -21,10 +21,7 @@ export interface ConnectivityMonitorConfig {
   timeoutFailures?: number;
 }
 
-/**
- * Хранит последний вердикт о доступности сайта, объединяет параллельные
- * пробы и не роняет статус в оффлайн по одиночному таймауту
- */
+/** Хранит последний вердикт о доступности сайта */
 export class ConnectivityMonitor {
   private status: boolean | null = null;
 
@@ -86,10 +83,7 @@ export class ConnectivityMonitor {
     return this.run();
   }
 
-  /**
-   * Возвращает вердикт, но ждёт пробу не дольше дедлайна.
-   * Не уложилась — считаем связь потерянной, проба дорабатывает в фоне
-   */
+  /** Возвращает вердикт, но ждёт пробу не дольше дедлайна */
   public async checkFast(): Promise<boolean> {
     if (!this.config.isInterfaceOnline()) {
       this.markOffline();

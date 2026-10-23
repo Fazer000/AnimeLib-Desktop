@@ -79,10 +79,7 @@ interface UseCommentsDataOptions {
   showLoginStreaks: boolean;
 }
 
-/**
- * Загрузка комментариев, голосование, отправка и модерация.
- * Держит всю работу с данными вне компонента отрисовки.
- */
+/** Загрузка комментариев, голосование, отправка и модерация */
 export function useCommentsData({
   episodeId,
   animeSlug,

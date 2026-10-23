@@ -9,10 +9,7 @@ interface RawShikimoriAnime {
   rates_scores_stats?: Array<{ value?: number | null }> | null;
 }
 
-/**
- * Оценка из ответа /animes/{id}: score — строка вида «5.87», голоса —
- * сумма распределения оценок. Нет оценки или голосов — null
- */
+/** Оценка из ответа /animes/{id}: score — строка вида «5.87», голоса — сумма распределения оценок */
 export function toShikimoriRating(raw: unknown): ShikimoriRating | null {
   const anime = raw as RawShikimoriAnime | null;
   const score = Number(anime?.score);

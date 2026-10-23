@@ -1,8 +1,5 @@
 name: Release
 
-# Сборка установщиков для Windows и Linux. Запускается тегом версии (v1.9.0)
-# или вручную; файлы попадают в черновик релиза этой версии на GitHub —
-# апдейтер видит релиз только после публикации черновика
 on:
   push:
     tags: ['v*']
@@ -27,8 +24,6 @@ jobs:
           - name: Windows
             os: windows-latest
             target: --win
-          # Не ubuntu-latest: fpm из electron-builder 25 не собирает rpm
-          # с RPM 4.20+ (Ubuntu 26.04), а в 24.04 стоит RPM 4.18
           - name: Linux
             os: ubuntu-24.04
             target: --linux
@@ -41,7 +36,6 @@ jobs:
           node-version: 20
           cache: npm
 
-      # rpmbuild нужен для пакета Fedora/openSUSE
       - name: Инструменты для rpm
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y rpm
@@ -49,8 +43,6 @@ jobs:
       - name: Установка зависимостей
         run: npm ci
 
-      # Версия приложения берётся из тега (v1.10.0 → 1.10.0), а не из
-      # package.json: в разработке там может стоять другая версия
       - name: Версия из тега
         if: startsWith(github.ref, 'refs/tags/v')
         shell: bash

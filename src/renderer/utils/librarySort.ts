@@ -42,10 +42,7 @@ export function splitLibrarySort(sort: OfflineLibrarySort): {
   return { field, direction };
 }
 
-/**
- * Новое поле сортировки с естественным для него направлением:
- * дата — сначала новые, название — от А до Я
- */
+/** Новое поле сортировки с естественным направлением */
 export function withSortField(
   field: OfflineLibrarySortField,
 ): OfflineLibrarySort {

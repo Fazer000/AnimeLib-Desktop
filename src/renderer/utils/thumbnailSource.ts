@@ -12,10 +12,7 @@ const heightOf = (option: QualityOption): number => {
   return Number.isNaN(height) ? Infinity : height;
 };
 
-/**
- * Адрес самого низкого прогрессивного качества: перемотка по нему быстрее,
- * а для маленькой картинки разницы не видно. null — подходящих вариантов нет
- */
+/** Адрес самого низкого прогрессивного качества */
 export function pickThumbnailSource(options: QualityOption[]): string | null {
   const progressive = options.filter((option) => option.type === 'progressive');
 

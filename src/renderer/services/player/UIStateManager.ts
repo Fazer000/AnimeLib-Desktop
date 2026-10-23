@@ -13,16 +13,7 @@ export interface UIState {
   showEpisodesList: boolean;
 }
 
-/**
- * UIStateManager - управление состоянием UI плеера
- *
- * Отвечает за:
- * - Видимость контролов
- * - Fullscreen режим
- * - Центральная иконка плей/пауза
- * - Hover время на прогресс-баре
- * - Состояние меню
- */
+/** Состояние интерфейса плеера */
 export class UIStateManager {
   private showControls: boolean = true;
 

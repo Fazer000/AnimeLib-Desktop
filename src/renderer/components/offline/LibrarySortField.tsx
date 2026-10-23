@@ -38,10 +38,7 @@ interface LibrarySortFieldProps {
 
 const LABEL_ID = 'offline-library-sort-label';
 
-/**
- * Поле сортировки библиотеки: тип в списке, направление — кнопкой
- * у правого края того же поля
- */
+/** Поле сортировки библиотеки: тип в списке, направление — кнопкой у правого края того же поля */
 function LibrarySortField({ value, onChange }: LibrarySortFieldProps) {
   const { customColors } = useTheme().palette;
   const { field, direction } = splitLibrarySort(value);

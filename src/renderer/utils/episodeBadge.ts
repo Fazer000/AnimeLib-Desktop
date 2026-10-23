@@ -12,10 +12,7 @@ interface EpisodeStatusLike {
   label: string;
 }
 
-/**
- * Плашка есть у серий, которым сайт задал сокращение статуса.
- * Полноценные серии сокращения не имеют и остаются без плашки
- */
+/** Плашка есть у серий, которым сайт задал сокращение статуса */
 export function getEpisodeBadge(
   status: EpisodeStatusLike | null | undefined,
 ): EpisodeBadge | null {

@@ -17,10 +17,7 @@ export const PLAYER_FULLSCREEN_RADIUS = 2;
  */
 export const PLAYER_INSET_X = 0;
 
-/**
- * Шаг округления ширины кадра: чётная целая ширина ставит кадр по центру
- * ровно на пиксели, без просвета фона у правого края, px
- */
+/** Шаг округления ширины кадра */
 export const PLAYER_WIDTH_SNAP_PX = 2;
 
 /**
@@ -239,16 +236,10 @@ export const AMBIENT_FRAME_INTERVAL_MS = 50;
  */
 export const AMBIENT_FADE_SIGMA = 3;
 
-/**
- * Поле буфера вокруг кадра, px. Задаёт ширину кольца свечения и обязано
- * вмещать затухание размытия, иначе кромка свечения обрывается
- */
+/** Поле буфера вокруг кадра, px */
 export const AMBIENT_SOURCE_MARGIN = AMBIENT_SOURCE_BLUR * AMBIENT_FADE_SIGMA;
 
-/**
- * Запас на отрисовку свечения за пределами слоя, px. Заведомо больше кольца,
- * чтобы слой не создавал прокрутку страницы и при этом ничего не обрезал
- */
+/** Запас на отрисовку свечения за пределами слоя, px */
 export const AMBIENT_CLIP_MARGIN = 512;
 
 /**
@@ -267,10 +258,7 @@ export const AMBIENT_FADE_MS = 800;
  */
 export const LETTERBOX_MIN_PX = 2;
 
-/**
- * На сколько подсветка полей заходит под край кадра: закрывает щель
- * от округления границы видео до целых пикселей, px
- */
+/** На сколько подсветка полей заходит под край кадра */
 export const LETTERBOX_SEAM_OVERLAP_PX = 1;
 
 /**
@@ -278,16 +266,10 @@ export const LETTERBOX_SEAM_OVERLAP_PX = 1;
  */
 export const UPSCALE_FRAME_WINDOW = 60;
 
-/**
- * Наименьший бюджет кадра апскейла (60 Гц), мс. Реальный бюджет — интервал
- * между кадрами видео: у аниме в 24 к/с это 41,7 мс
- */
+/** Наименьший бюджет кадра апскейла (60 Гц), мс */
 export const UPSCALE_FRAME_BUDGET_MS = 1000 / 60;
 
-/**
- * Интервал между кадрами видео длиннее этого — пауза или перемотка,
- * в бюджет не идёт, мс
- */
+/** Интервал между кадрами длиннее этого — пауза или перемотка, мс */
 export const UPSCALE_FRAME_INTERVAL_MAX_MS = 250;
 
 /**
@@ -295,10 +277,7 @@ export const UPSCALE_FRAME_INTERVAL_MAX_MS = 250;
  */
 export const UPSCALE_STATS_INTERVAL = 30;
 
-/**
- * Окно статистики закрывается не позже этого времени: на слабой видеокарте
- * 30 кадров идут минуту, и «Авто» опаздывает с понижением, мс
- */
+/** Наибольшая длительность окна статистики апскейла, мс */
 export const UPSCALE_STATS_MAX_MS = 2000;
 
 /**
@@ -306,17 +285,10 @@ export const UPSCALE_STATS_MAX_MS = 2000;
  */
 export const UPSCALE_HUD_BOTTOM = 84;
 
-/**
- * Пауза после последнего изменения размера кадра, после которой цепочка
- * пересобирается. До этого холст растягивает прежний кадр, мс
- */
+/** Пауза после последнего изменения размера кадра, после которой цепочка пересобирается */
 export const UPSCALE_RESIZE_SETTLE_MS = 200;
 
-/**
- * Непрозрачность видео под кадром улучшения. Меньше единицы — и Chromium
- * не выводит видео напрямую через видеокарту: драйвер не тратит ресурсы
- * на VSR невидимого видео, а закрытое холстом видео не рисуется вовсе
- */
+/** Непрозрачность видео под кадром улучшения */
 export const UPSCALE_COVERED_VIDEO_OPACITY = 0.99;
 
 /**
@@ -362,10 +334,7 @@ export const UPSCALE_WARMUP_FRAMES = 15;
  */
 export const UPSCALE_WARMUP_MAX_MS = 3000;
 
-/**
- * «Авто» считает окно замера плохим, если кадр дольше этой доли бюджета
- * или бюджет превышен у такой доли кадров
- */
+/** «Авто»: доля бюджета и доля пропусков, при которых окно замера плохое */
 export const UPSCALE_AUTO_HEADROOM = 0.8;
 export const UPSCALE_AUTO_OVER_BUDGET_SHARE = 0.1;
 
@@ -374,10 +343,7 @@ export const UPSCALE_AUTO_OVER_BUDGET_SHARE = 0.1;
  */
 export const UPSCALE_AUTO_BAD_WINDOWS = 2;
 
-/**
- * Кадр дольше стольких бюджетов (меньше 15 к/с) — понижение сразу,
- * без второго окна: картинка уже почти стоит
- */
+/** Во сколько бюджетов кадр, чтобы «Авто» понизило уровень сразу */
 export const UPSCALE_AUTO_SEVERE_FACTOR = 4;
 
 /**
@@ -413,10 +379,7 @@ export const SETTINGS_MENU_SLIDE_PX = 16;
 export const VOLUME_WHEEL_STEP = 0.1;
 export const VOLUME_WHEEL_THRESHOLD = 100;
 
-/**
- * Селектор элементов с атрибутом data-wheel-volume-ignore: над ними колесо
- * прокручивает сам элемент, а не громкость
- */
+/** Селектор элементов с атрибутом data-wheel-volume-ignore */
 export const WHEEL_VOLUME_IGNORE_SELECTOR = '[data-wheel-volume-ignore]';
 
 /**
@@ -462,28 +425,16 @@ export const LOGIN_STREAK_DEFAULT_STYLES = {
 export const LOGIN_STREAK_BADGE_WIDTH = 26;
 export const LOGIN_STREAK_BADGE_HEIGHT = 28;
 
-/**
- * Смена качества: сколько ждать заранее подгружаемый источник, прежде чем
- * переключиться без него, мс
- */
+/** Смена качества: сколько ждать заранее подгружаемый источник */
 export const QUALITY_PRELOAD_TIMEOUT_MS = 4000;
 
-/**
- * Смена качества: сколько держать застывший кадр до первого кадра нового
- * источника, мс
- */
+/** Смена качества: сколько держать застывший кадр до первого кадра нового источника, мс */
 export const QUALITY_SWITCH_FRAME_TIMEOUT_MS = 3000;
 
-/**
- * Смена качества: индикатор загрузки поверх застывшего кадра появляется,
- * только если переключение затянулось, мс
- */
+/** Смена качества: задержка индикатора загрузки поверх застывшего кадра, мс */
 export const QUALITY_SWITCH_SPINNER_DELAY_MS = 1500;
 
-/**
- * Подсветка гаснет при смене источника с задержкой: быстрая смена качества
- * не должна её гасить, мс
- */
+/** Задержка, с которой гаснет подсветка при смене источника, мс */
 export const AMBIENT_SOURCE_RESET_DELAY_MS = 500;
 
 /**
@@ -491,10 +442,7 @@ export const AMBIENT_SOURCE_RESET_DELAY_MS = 500;
  */
 export const THUMBNAIL_STEP_SECONDS = 5;
 
-/**
- * Насколько далеко может стоять готовый кадр, показываемый размытым вместо
- * ещё не готового: дальше — другая сцена, с
- */
+/** Насколько далеко может стоять готовый кадр, показываемый размытым вместо ещё не готового */
 export const THUMBNAIL_NEAREST_RADIUS = 15;
 
 /**
@@ -507,10 +455,7 @@ export const THUMBNAIL_SEEK_TIMEOUT_MS = 4000;
  */
 export const THUMBNAIL_CACHE_SIZE = 800;
 
-/**
- * Через сколько после загрузки видео превью начинают готовиться в фоне.
- * Пауза даёт основному видео набрать первый буфер, мс
- */
+/** Через сколько после загрузки видео превью начинают готовиться в фоне */
 export const THUMBNAIL_PRECACHE_DELAY_MS = 2000;
 
 /**
@@ -519,10 +464,7 @@ export const THUMBNAIL_PRECACHE_DELAY_MS = 2000;
 export const THUMBNAIL_WIDTH = 240;
 export const THUMBNAIL_HEIGHT = 135;
 
-/**
- * Сколько опорных кадров превью загружается из файла одновременно.
- * Браузер держит не больше 6 соединений на хост, часть нужна основному видео
- */
+/** Сколько опорных кадров превью загружается из файла одновременно */
 export const THUMBNAIL_KEYFRAME_CONCURRENCY = 3;
 
 /**
@@ -530,20 +472,12 @@ export const THUMBNAIL_KEYFRAME_CONCURRENCY = 3;
  */
 export const THUMBNAIL_MOOV_MAX_HOPS = 12;
 
-/**
- * Хронология франшизы: предел тайтлов в обходе, одновременных запросов
- * и пауза после каждого запроса, мс. Обход идёт медленно, чтобы не упереться
- * в ограничение частоты API и не задеть запросы самой страницы
- */
+/** Хронология франшизы: предел тайтлов в обходе */
 export const FRANCHISE_MAX_TITLES = 80;
 export const FRANCHISE_CONCURRENCY = 1;
 export const FRANCHISE_REQUEST_GAP_MS = 600;
 
-/**
- * Сколько шагов не по продолжениям хронология уходит от основной линии.
- * Обход раскрывает связи на этом расстоянии и подбирает тайтлы на шаг дальше,
- * чтобы основную линию можно было найти и от побочного тайтла
- */
+/** Сколько шагов не по продолжениям хронология уходит от основной линии */
 export const FRANCHISE_MAX_HOPS = 1;
 
 /**
@@ -567,17 +501,10 @@ export const SHIKIMORI_TIMEOUT_MS = 10000;
 /** Сколько оценок Shikimori держать в памяти. */
 export const SHIKIMORI_RATING_CACHE_LIMIT = 100;
 
-/**
- * Сколько результатов поиска по названию проверяется, если тайтл Shikimori
- * не нашёлся на Animelib по slug
- */
+/** Сколько результатов поиска по названию проверяется */
 export const FRANCHISE_SEARCH_CANDIDATES = 3;
 
-/**
- * Кэш хронологий между запусками: ключ localStorage, сколько франшиз
- * хранится, сколько живёт найденный и ненайденный на Animelib тайтл, мс,
- * и пауза перед записью, чтобы не писать после каждого найденного тайтла
- */
+/** Кэш хронологий между запусками */
 export const FRANCHISE_CACHE_STORAGE_KEY = 'animeLibFranchiseCache';
 export const FRANCHISE_CACHE_LIMIT = 30;
 export const FRANCHISE_FOUND_TTL_MS = 7 * 24 * 60 * 60 * 1000;

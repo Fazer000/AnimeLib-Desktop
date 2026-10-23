@@ -1,7 +1,4 @@
-/**
- * Следит за курсором над зоной наведения в области перетаскивания окна
- * и сообщает странице, когда курсор входит в зону и выходит из неё
- */
+/** Следит за курсором над зоной наведения в области перетаскивания окна и сообщает странице */
 import { BrowserWindow, screen } from 'electron';
 import { HOVER_ZONE_POLL_MS } from '../constants';
 import { HoverZoneRect, isCursorInZone } from '../shared/hoverZone';

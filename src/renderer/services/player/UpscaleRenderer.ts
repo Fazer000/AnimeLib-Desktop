@@ -279,10 +279,7 @@ export default class UpscaleRenderer {
     this.pipelines = [];
   }
 
-  /**
-   * Новый источник видео: прежний обработанный кадр скрывается до первого
-   * кадра нового видео, чтобы не висел кадр прошлой серии
-   */
+  /** Новый источник видео: прежний обработанный кадр скрывается до первого кадра нового видео */
   private handleSourceReset = (): void => {
     this.sourceGeneration += 1;
     this.intervals.reset();
@@ -485,10 +482,7 @@ export default class UpscaleRenderer {
     }
   }
 
-  /**
-   * Исходник не меньше вывода: кадр не обрабатывается, видно обычное видео.
-   * Сообщает об этом один раз на пару размеров
-   */
+  /** Исходник не меньше вывода: кадр не обрабатывается, видно обычное видео */
   private reportBypass(sourceSize: PixelSize): void {
     this.setFrameVisible(false);
 
@@ -508,10 +502,7 @@ export default class UpscaleRenderer {
     });
   }
 
-  /**
-   * Копит время кадров; окна ограничены и кадрами, и временем, чтобы
-   * «Авто» быстро реагировало на видеокарту, выдающую кадр в секунду
-   */
+  /** Копит время кадров и сообщает статистику по окнам */
   private recordFrameTime(ms: number): void {
     const now = performance.now();
 

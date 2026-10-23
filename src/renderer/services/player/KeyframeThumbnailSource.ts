@@ -24,10 +24,7 @@ const BOX_HEADER_PROBE = 16;
 const HEAD_PROBE = 64 * 1024;
 const JPEG_QUALITY = 0.7;
 
-/**
- * Кадры превью прямо из MP4: индекс moov и опорные кадры читаются
- * запросами по диапазону байт и декодируются через WebCodecs
- */
+/** Кадры превью прямо из MP4 */
 class KeyframeThumbnailSource {
   private index: Mp4VideoIndex | null = null;
 
@@ -160,11 +157,7 @@ class KeyframeThumbnailSource {
     return true;
   }
 
-  /**
-   * Ищет moov по заголовкам верхнего уровня: в начале или в конце файла.
-   * Первым запросом берётся начало файла целиком, чтобы не ходить за
-   * каждым заголовком отдельно
-   */
+  /** Ищет moov по заголовкам верхнего уровня: в начале или в конце файла */
   private async fetchMoov(): Promise<Uint8Array | null> {
     let chunk = await this.fetchRange(0, HEAD_PROBE - 1);
     let chunkStart = 0;
@@ -197,12 +190,7 @@ class KeyframeThumbnailSource {
     return null;
   }
 
-  /**
-   * Читает диапазон байт. На 429, 503 и 403 все запросы источника ждут
-   * общую паузу и повторяются; если CDN так и не пустил — источник
-   * уходит в запасной способ. Ответ без поддержки частей (не 206) —
-   * сразу запасной способ
-   */
+  /** Читает диапазон байт */
   private async fetchRange(start: number, end: number): Promise<Uint8Array> {
     try {
       return await withRateLimitRetry(

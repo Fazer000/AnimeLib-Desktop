@@ -20,10 +20,7 @@ export type ThemeModeListener = (
 const STORAGE_KEY = 'animeLibThemeMode';
 const DARK_QUERY = '(prefers-color-scheme: dark)';
 
-/**
- * Общее состояние темы: одна тема для всех сайтов сети плюс системное
- * предпочтение. Приложение задаёт её сайтам, смена на сайте становится общей
- */
+/** Общее состояние темы: одна тема для всех сайтов сети плюс системное предпочтение */
 export class ThemeModeStore {
   private mode: ThemeMode = DEFAULT_THEME_MODE;
 
@@ -79,11 +76,7 @@ export class ThemeModeStore {
     return this.getScheme() === 'dark' ? 'light' : 'dark';
   }
 
-  /**
-   * Переключение темы пользователем в приложении и на сайте. Пока оба
-   * перекрашиваются, на экране держится снимок окна, затем он плавно
-   * перетекает в новую тему — без промежуточного кадра
-   */
+  /** Переключение темы пользователем в приложении и на сайте */
   toggle(): void {
     const next = this.getToggleTarget();
 

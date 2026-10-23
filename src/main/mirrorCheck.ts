@@ -1,7 +1,4 @@
-/**
- * Проверка зеркал сайтов из main-процесса: здесь виден код ответа, которого
- * нет у запросов страницы к чужому домену, а сеть та же, что у webview
- */
+/** Проверка зеркал сайтов из main-процесса */
 import { net } from 'electron';
 import { MIRROR_CHECK_TIMEOUT } from '../constants';
 import { createLogger } from '../shared/logger';

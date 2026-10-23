@@ -16,10 +16,7 @@ export interface AnimeLibDebugApi {
   where: () => void;
 }
 
-/**
- * Публикует window.animeLibDebug. Только в dev-сборке: в продакшене
- * функция ничего не делает и в бандл не попадает содержимое ветки.
- */
+/** Публикует window.animeLibDebug */
 export function installDebugApi(): void {
   if (!IS_DEV) return;
 

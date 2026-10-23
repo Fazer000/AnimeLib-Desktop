@@ -3,10 +3,7 @@ import { createLogger } from '../../shared/logger';
 
 const log = createLogger('usePersistedFlag');
 
-/**
- * Булев флаг, переживающий перезапуск через localStorage.
- * Возвращает значение и сеттер, который сразу пишет в хранилище.
- */
+/** Булев флаг, переживающий перезапуск через localStorage */
 export function usePersistedFlag(
   key: string,
   defaultValue: boolean,

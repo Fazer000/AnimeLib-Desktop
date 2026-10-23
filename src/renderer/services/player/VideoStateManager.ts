@@ -121,10 +121,7 @@ export class VideoStateManager {
     this.updateState({ isPlaying: false });
   }
 
-  /**
-   * Время и буфер идут отдельным каналом, минуя onStateChange: они меняются
-   * десять раз в секунду, а длительность прокидывается только при изменении.
-   */
+  /** Время и буфер идут отдельным каналом, минуя onStateChange */
   private handleTimeUpdate(): void {
     if (!this.videoElement) return;
 

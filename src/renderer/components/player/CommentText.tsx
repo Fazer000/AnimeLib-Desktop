@@ -6,15 +6,7 @@ interface CommentTextProps {
   html: string;
 }
 
-/**
- * CommentText - Renders formatted comment HTML with proper styling
- *
- * Supports:
- * - Blockquotes (цитаты)
- * - Spoilers (спойлеры)
- * - Bold, Italic, Underline, Strikethrough
- * - Line breaks
- */
+/** Комментарий с форматированием */
 function CommentText({ html }: CommentTextProps) {
   const theme = useTheme();
   const [revealedSpoilers, setRevealedSpoilers] = useState<Set<number>>(

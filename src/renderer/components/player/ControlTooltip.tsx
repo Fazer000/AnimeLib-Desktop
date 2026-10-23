@@ -10,10 +10,7 @@ interface ControlTooltipProps {
   children: React.ReactNode;
 }
 
-/**
- * Подсказка для кнопок плеера
- * Позиционируется средствами CSS, поэтому работает и в fullscreen
- */
+/** Подсказка для кнопок плеера, работает и в полноэкранном режиме */
 function ControlTooltip({
   title,
   placement = 'top',

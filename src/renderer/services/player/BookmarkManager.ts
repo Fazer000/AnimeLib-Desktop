@@ -10,15 +10,7 @@ export interface BookmarkManagerConfig {
   onTimecodeReady?: (timecode: string) => void;
 }
 
-/**
- * BookmarkManager - Управление закладками для аниме
- *
- * Responsibilities:
- * - Загрузка закладки с сервера
- * - Поиск эпизода по закладке
- * - Конвертация таймкода в секунды
- * - Управление состоянием закладки
- */
+/** Закладки аниме */
 export class BookmarkManager {
   private config: BookmarkManagerConfig;
 
@@ -227,10 +219,7 @@ export class BookmarkManager {
     return this.currentBookmark ? this.currentBookmark.item_id : null;
   }
 
-  /**
-   * Сохранить закладку на сервер
-   * Note: This is not static because it's used as instance method by components
-   */
+  /** Сохраняет закладку на сервер */
   // eslint-disable-next-line class-methods-use-this
   public async saveBookmark(
     animeSlugUrl: string,

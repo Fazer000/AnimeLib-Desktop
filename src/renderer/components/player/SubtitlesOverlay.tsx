@@ -10,10 +10,7 @@ interface SubtitlesOverlayProps {
   settings: SubtitlesSettings;
 }
 
-/**
- * Оверлей субтитров форматов srt/vtt (ass рисует JASSUB).
- * Перерисовывается только при смене реплики, а не на каждом тике времени.
- */
+/** Оверлей субтитров форматов srt/vtt (ass рисует JASSUB) */
 function SubtitlesOverlay({
   cues,
   timeStore,

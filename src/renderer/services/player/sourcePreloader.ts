@@ -1,17 +1,11 @@
-/**
- * Заранее подгружает MP4-источник в скрытое видео с нужной позиции,
- * чтобы основное видео переключилось на уже скачанные данные
- */
+/** Заранее подгружает MP4-источник в скрытое видео с нужной позиции */
 import { createLogger } from '../../../shared/logger';
 
 const log = createLogger('SourcePreloader');
 
 const READY_HAVE_FUTURE_DATA = 3;
 
-/**
- * Ждёт, пока скрытое видео будет готово играть с позиции time.
- * true — готово, false — ошибка или истекло время ожидания
- */
+/** Ждёт, пока скрытое видео будет готово играть с позиции time */
 export function preloadProgressiveSource(
   src: string,
   time: number,

@@ -16,10 +16,7 @@ interface EpisodeNavigationHintProps {
   episodes: Array<{ id: number; number: string; name: string }>;
 }
 
-/**
- * Компонент для отображения кнопок переключения эпизодов при наведении
- * на левую и правую часть плеера
- */
+/** Кнопки переключения серий по краям плеера */
 function EpisodeNavigationHint({
   currentEpisodeIndex,
   totalEpisodes,

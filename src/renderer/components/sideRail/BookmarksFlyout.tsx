@@ -147,10 +147,7 @@ interface BookmarksFlyoutProps {
   onOpenReading: (bookmark: ReadingBookmark) => void;
 }
 
-/**
- * Закладки текущего сайта: на AnimeLib — «Смотрю» и «Пересматриваю»
- * (без сети — скачанное), на остальных — «Читаю»
- */
+/** Закладки текущего сайта */
 function BookmarksFlyout({
   site,
   watching,

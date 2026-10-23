@@ -20,10 +20,7 @@ export function buildSourceFilter(blurPx: number, saturation: number): string {
   return `blur(${blurPx}px) saturate(${saturation})`;
 }
 
-/**
- * Поле, за которое размытие успевает сойти на нет. Гауссиан гасится
- * на трёх стандартных отклонениях, а blur(N) задаёт отклонение равным N
- */
+/** Поле, за которое размытие успевает сойти на нет */
 export function getFadeMargin(blurPx: number): number {
   return blurPx * 3;
 }
@@ -39,10 +36,7 @@ export function getBufferSize(
   return { width: width + margin * 2, height: height + margin * 2 };
 }
 
-/**
- * Прямоугольник кадра внутри буфера. Поле нужно, чтобы размытие затухало
- * в буфере, а не обрывалось его краем
- */
+/** Прямоугольник кадра внутри буфера */
 export function getSourceRect(
   width: number,
   height: number,
@@ -51,10 +45,7 @@ export function getSourceRect(
   return { x: margin, y: margin, width, height };
 }
 
-/**
- * Геометрия слоя свечения в процентах от кадра. Поле буфера квадратное,
- * поэтому кольцо свечения выходит одинаковым по всем сторонам
- */
+/** Геометрия слоя свечения в процентах от кадра */
 export function getOverscanBox(
   width: number,
   height: number,

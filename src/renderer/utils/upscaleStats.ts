@@ -21,18 +21,12 @@ export interface UpscaleStatsLike {
   targetSize: { width: number; height: number };
 }
 
-/**
- * Бюджет кадра по среднему интервалу между кадрами видео: обработка
- * успевает, если готова до следующего кадра. Не меньше 60 Гц
- */
+/** Бюджет кадра по интервалу между кадрами видео, не меньше 60 Гц */
 export function getFrameBudgetMs(averageIntervalMs: number): number {
   return Math.max(UPSCALE_FRAME_BUDGET_MS, averageIntervalMs);
 }
 
-/**
- * Годится ли промежуток между кадрами видео для бюджета: паузы
- * и перемотки не годятся
- */
+/** Подходит ли промежуток между кадрами для бюджета */
 export function isFrameInterval(ms: number): boolean {
   return ms > 0 && ms <= UPSCALE_FRAME_INTERVAL_MAX_MS;
 }

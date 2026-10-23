@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   FranchiseState,
   hasFranchiseCrawl,
+  peekFranchise,
   subscribeFranchise,
 } from '../services/franchise/franchiseLoader';
 import { buildShikimoriGraph } from '../utils/shikimoriFranchise';
@@ -15,24 +16,23 @@ const EMPTY: FranchiseState = {
   failed: false,
 };
 
-/**
- * Граф франшизы тайтла, растущий по ходу загрузки. shikimoriId: число —
- * франшиза из Shikimori, null — у тайтла его нет и граф собирается обходом
- * Animelib, undefined — ещё неизвестно, загрузка ждёт. Грузится, только
- * когда включён, и с паузой, чтобы не мешать загрузке плеера
- */
+/** Граф франшизы тайтла, растущий по ходу загрузки */
 function useFranchiseGraph(
   slugUrl: string,
   shikimoriId: number | null | undefined,
   enabled: boolean,
 ): FranchiseState {
-  const [state, setState] = useState<FranchiseState>(EMPTY);
+  const [state, setState] = useState<FranchiseState>(() =>
+    enabled && slugUrl && shikimoriId !== undefined
+      ? (peekFranchise(slugUrl, shikimoriId) ?? EMPTY)
+      : EMPTY,
+  );
 
   useEffect(() => {
     if (!enabled || !slugUrl || shikimoriId === undefined) return undefined;
 
     let unsubscribe: (() => void) | null = null;
-    setState(EMPTY);
+    setState(peekFranchise(slugUrl, shikimoriId) ?? EMPTY);
 
     const timer = setTimeout(
       () => {

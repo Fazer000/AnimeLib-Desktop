@@ -24,11 +24,7 @@ interface UseNextEpisodeFlowOptions {
   onEpisodeSelectWithAutoplay?: (index: number) => void;
 }
 
-/**
- * Автозапуск серии и предложение перейти к следующей.
- * Когда автопереход выключен, по окончании показывается уведомление;
- * отказ пользователя запоминается до смены серии.
- */
+/** Автозапуск серии и предложение перейти к следующей */
 export function useNextEpisodeFlow({
   videoRef,
   autoplayManager,

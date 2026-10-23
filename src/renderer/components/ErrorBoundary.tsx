@@ -19,10 +19,7 @@ interface ErrorBoundaryState {
   error?: Error;
 }
 
-/**
- * Ловит ошибки рендера поддерева и отправляет их в журнал сбоев
- * главного процесса, который пишет на диск и в продакшене.
- */
+/** Ловит ошибки рендера поддерева и отправляет их в журнал сбоев главного процесса */
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);

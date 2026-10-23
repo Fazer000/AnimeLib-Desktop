@@ -4,10 +4,7 @@
 
 const NUMBER_PATTERN = /^\d+(\.\d+)?$/;
 
-/**
- * Возвращает индекс серии по номеру: сначала точное совпадение строки,
- * затем числовое, чтобы «5» находило «05», а «12,5» — «12.5»
- */
+/** Возвращает индекс серии по номеру */
 export function findEpisodeIndex(numbers: string[], query: string): number {
   const normalized = query.trim().replace(',', '.');
 

@@ -1,13 +1,6 @@
 /* eslint global-require: off, no-console: off, promise/always-return: off */
 
-/**
- * This module executes inside of electron's main process. You can start
- * electron renderer process from here and communicate with the other processes
- * through IPC.
- *
- * When running `npm run build` or `npm run build:main`, this file is compiled to
- * `./src/main.js` using webpack. This gives us some performance wins.
- */
+/** Главный процесс Electron */
 import path from 'path';
 import {
   app,
@@ -443,11 +436,7 @@ const createVideoHeadersInterceptor = (siteUrl: string, authToken?: string) => {
   };
 };
 
-/**
- * Разрешает окну приложения читать ответы CDN и API.
- * Сессия окна (persist:webview) отделена от сессии гостевой страницы,
- * поэтому послабление не касается контента сайта.
- */
+/** Разрешает окну приложения читать ответы CDN и API */
 const registerCorsPolicy = (): void => {
   session
     .fromPartition('persist:webview')
@@ -629,9 +618,6 @@ const createWindow = async (): Promise<void> => {
 };
 
 const applyRadicalFix = (): void => {
-  // На Linux песочница zygote уже запущена к этому моменту: no-sandbox
-  // из кода ломает общую память рендереров. WebGPU (Anime4K) там
-  // включается только через Vulkan
   const platformSwitches: [string, string?][] =
     process.platform === 'linux'
       ? [['enable-unsafe-webgpu'], ['enable-features', 'Vulkan']]
@@ -674,10 +660,7 @@ if (process.platform === 'win32') {
 }
 registerOfflineSchemes();
 
-/**
- * Второй экземпляр делил бы профиль с первым и не получил бы доступа к его
- * localStorage, поэтому повторный запуск лишь поднимает открытое окно
- */
+/** Единственный экземпляр: второй делил бы профиль с первым */
 const hasInstanceLock = app.requestSingleInstanceLock();
 
 if (!hasInstanceLock) {
@@ -760,10 +743,7 @@ const registerPlayerNavigationGuard = (): void => {
   });
 };
 
-/**
- * Регистрирует базовый перехватчик для API-запросов (Referer/Origin)
- * Нужен сразу при старте, т.к. API-запросы идут до открытия плеера
- */
+/** Регистрирует перехватчик API-запросов (Referer/Origin) */
 const registerApiInterceptor = (): void => {
   const defaultSiteUrl = 'https://animelib.org';
 

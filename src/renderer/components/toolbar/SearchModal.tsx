@@ -210,10 +210,7 @@ function SearchResultCard({
   );
 }
 
-/**
- * Поиск тайтла по сайту сети: аниме — через свой поиск, манга и ранобэ —
- * через каталог с Site-Id
- */
+/** Поиск тайтла по сайту сети: аниме — через свой поиск, манга и ранобэ — через каталог с Site-Id */
 const searchSite = (site: LibSite, query: string) =>
   site.kind === 'anime'
     ? animeApi.searchAnime(query).then((response) => response.data || [])

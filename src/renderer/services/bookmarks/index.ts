@@ -1,7 +1,4 @@
-/**
- * Bookmarks Services
- * Общее состояние быстрых закладок и папок сайтов
- */
+/** Общее состояние быстрых закладок и папок сайтов */
 import { animeApi } from '../../api/animeApi';
 import { BOOKMARKS_REFRESH_DELAY_MS } from '../../../constants';
 import { SiteBookmarksStore } from './SiteBookmarksStore';

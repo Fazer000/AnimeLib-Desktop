@@ -17,11 +17,7 @@ export interface AnimeBookmarkFolderState {
   createFolder: (name: string) => Promise<boolean>;
 }
 
-/**
- * Загружает папки и закладку тайтла и меняет папку тайтла. Первый раз —
- * сразу, чтобы подпись кнопки не менялась при раскрытии карточки; затем
- * обновляет при каждом раскрытии (active)
- */
+/** Загружает папки и закладку тайтла и меняет папку тайтла */
 export function useAnimeBookmarkFolder(
   animeSlugUrl: string | null,
   active: boolean,

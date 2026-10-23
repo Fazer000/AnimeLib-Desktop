@@ -185,10 +185,7 @@ export const segmentFill = (segment: Segment, time: number): number => {
   return ((time - segment.start) / length) * 100;
 };
 
-/**
- * Прогресс воспроизведения. Заливка обновляется прямой записью в style,
- * поэтому тик времени не вызывает перерисовку React.
- */
+/** Прогресс воспроизведения */
 function ProgressBar({
   timeStore,
   duration,

@@ -10,10 +10,7 @@ export interface PlayerLoadState {
   episodeId: number | null | undefined;
 }
 
-/**
- * Смена озвучки или плеера в той же серии — «source»: время и состояние
- * воспроизведения сохраняются. Любая другая загрузка после первой — «episode»
- */
+/** Смена озвучки или плеера в той же серии */
 export function classifyPlayerLoad({
   isInitialLoad,
   lastEpisodeId,

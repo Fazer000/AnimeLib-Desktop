@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Описание приложения для центров приложений Linux (AppStream) -->
 <component type="desktop-application">
   <id>io.github.fazer000.AnimeLibDesktop</id>
   <launchable type="desktop-id">animelib-desktop.desktop</launchable>

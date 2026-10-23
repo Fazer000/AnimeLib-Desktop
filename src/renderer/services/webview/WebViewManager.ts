@@ -1,31 +1,4 @@
-/**
- * WebViewManager - Manages webview navigation, URL tracking, and state
- *
- * Responsibilities:
- * - WebView navigation (back, forward, reload)
- * - URL tracking and persistence
- * - Navigation state management (canGoBack, canGoForward)
- * - Event handling and callbacks
- *
- * @example
- * ```typescript
- * const manager = new WebViewManager(webviewElement);
- *
- * manager.subscribe({
- *   onNavigationStateChange: (canGoBack, canGoForward) => {
- *     setCanGoBack(canGoBack);
- *     setCanGoForward(canGoForward);
- *   },
- *   onUrlChange: (url) => {
- *     setCurrentUrl(url);
- *   }
- * });
- *
- * manager.goBack();
- * manager.goForward();
- * manager.reload();
- * ```
- */
+/** Навигация и состояние webview */
 
 import {
   getHomeUrl as getSiteHomeUrl,
@@ -450,11 +423,7 @@ export class WebViewManager {
     return this.getWebContentsId() !== null;
   }
 
-  /**
-   * Обрабатывает переход. Адрес сайта в настройках обновляется, только
-   * если страница открылась: иначе недоступное зеркало стало бы адресом
-   * «Домой» и стартовой страницей
-   */
+  /** Обрабатывает переход */
   public handleNavigation(
     url: string,
     source: NavigationSource = 'navigate',

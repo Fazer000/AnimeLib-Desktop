@@ -42,10 +42,7 @@ interface RelatedAnimeProps {
   onOpenUrl: (url: string) => void;
 }
 
-/**
- * Карточка связанного тайтла. Аниме открывается в приложении, манга
- * и ранобэ — на странице тайтла своего сайта сети
- */
+/** Карточка связанного тайтла */
 function RelatedAnimeCard({
   item,
   onAnimeClick,

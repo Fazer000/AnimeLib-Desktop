@@ -15,14 +15,7 @@ export interface SegmentSettings {
   skipSplashScreens: boolean;
 }
 
-/**
- * SegmentManager - управление сегментами видео (опенинг, эндинг и т.д.)
- *
- * Отвечает за:
- * - Определение текущего сегмента
- * - Автопропуск сегментов
- * - Сохранение настроек автопропуска
- */
+/** Сегменты видео: опенинг, эндинг и т.д. */
 export class SegmentManager {
   private segments: TimeCodeSegment[] = [];
 

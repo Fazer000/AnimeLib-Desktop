@@ -61,10 +61,7 @@ export function formatFolderAnimeLabel(episodeNumber: string): string {
     : 'Начать просмотр';
 }
 
-/**
- * Папки, которые подменю сайта показывают и которые стоит загрузить
- * заранее: у аниме «Смотрю» живёт отдельно, у манги и ранобэ — «Читаю»
- */
+/** Папки сайта, которые подгружаются заранее */
 export function getSiteFolderStatuses(kind: LibSiteKind): number[] {
   const folders = QUICK_FOLDERS.map((folder) => getFolderStatus(kind, folder));
 

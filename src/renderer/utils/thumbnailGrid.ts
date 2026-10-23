@@ -2,10 +2,7 @@
  * Сетка кадров превью на полоске и порядок их фоновой подготовки
  */
 
-/**
- * Шаг сетки для длительности: базовый, но не больше maxFrames кадров
- * на всю серию; всегда кратен базовому
- */
+/** Шаг сетки для длительности */
 export function resolveGridStep(
   duration: number,
   baseStep: number,
@@ -25,11 +22,7 @@ export function snapToGrid(time: number, step: number): number {
   return Math.max(0, Math.floor(time / step) * step);
 }
 
-/**
- * Все ячейки сетки в порядке деления пополам: начало, середина, четверти,
- * восьмые и так до шага сетки. Плотность готовых кадров растёт по всей
- * длительности сразу, а не от начала к концу
- */
+/** Все ячейки сетки в порядке деления пополам */
 export function buildPrecacheOrder(duration: number, step: number): number[] {
   const cells = Math.ceil(duration / step);
   if (cells <= 0) return [];
@@ -80,10 +73,7 @@ export interface SeekVideoState {
   readyState: number;
 }
 
-/**
- * Можно ли снимать кадр: перемотка закончена, картинка загружена
- * (HAVE_CURRENT_DATA) и видео стоит на нужном времени
- */
+/** Можно ли снимать кадр */
 export function isFrameReady(state: SeekVideoState, time: number): boolean {
   return (
     !state.seeking &&

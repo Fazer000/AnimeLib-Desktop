@@ -1,8 +1,4 @@
-/**
- * Выполнение скрипта в странице webview сразу, а не после загрузки:
- * executeJavaScript у тега webview ждёт конца загрузки, а у тяжёлых
- * страниц это секунды. mainFrame выполняет код в текущем документе
- */
+/** Выполнение скрипта в странице webview сразу, а не после загрузки */
 import { webContents } from 'electron';
 import { createLogger } from '../shared/logger';
 import { handleIpc } from './ipc';

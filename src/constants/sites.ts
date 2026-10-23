@@ -4,11 +4,7 @@
 
 export type LibSiteKind = 'anime' | 'manga' | 'ranobe';
 
-/**
- * Сайт сети. home — главная; у AnimeLib её нет: адрес выбирает пользователь
- * (animelib.org, v5.animelib.org), и он берётся из настроек. mirrors —
- * главные всех зеркал сайта, первым идёт основное
- */
+/** Сайт сети; home — главная */
 export interface LibSite {
   name: string;
   letter: string;

@@ -74,10 +74,7 @@ import {
 } from 'lucide-react';
 import { ICON_STROKE_WIDTH } from '../../constants';
 
-/**
- * Приводит контурный значок к поведению значков MUI:
- * размер задаётся кеглем, цвет наследуется, толщина штриха общая
- */
+/** Приводит контурный значок к поведению значков MUI */
 const adapt = (Icon: LucideIcon) =>
   styled(Icon)({
     width: '1em',

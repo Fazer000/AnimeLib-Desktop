@@ -16,14 +16,7 @@ export interface LoadContext {
   wasPlaying?: boolean;
 }
 
-/**
- * AutoplayManager - управление автопроигрыванием
- *
- * Отвечает за:
- * - Автопроигрывание при смене озвучки
- * - Автопереход к следующему эпизоду
- * - Логика первой загрузки
- */
+/** Автопроигрывание следующей серии */
 export class AutoplayManager {
   private videoElement: HTMLVideoElement | null = null;
 

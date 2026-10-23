@@ -13,14 +13,7 @@ interface NavigationButtonsProps {
   canGoBack?: boolean;
 }
 
-/**
- * NavigationButtons - Navigation controls for webview/player
- *
- * Features:
- * - Back navigation
- * - RotateCw
- * - House
- */
+/** Кнопки навигации для webview и плеера */
 function NavigationButtons({
   onBack,
   onRefresh,

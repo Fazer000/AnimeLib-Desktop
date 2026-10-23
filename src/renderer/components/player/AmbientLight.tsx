@@ -32,10 +32,7 @@ const CANVAS_SX = {
   opacity: AMBIENT_OPACITY,
 };
 
-/**
- * Подсветка по краям видео: общий на видео буфер 64×36 копируется в холст,
- * а свечение даёт растяжение битмапа средствами композитора
- */
+/** Подсветка по краям видео: общий на видео буфер 64×36 копируется в холст */
 const AmbientLight = memo(
   ({ videoRef, isPlaying, isFullscreen, enabled }: AmbientLightProps) => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);

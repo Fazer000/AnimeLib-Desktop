@@ -18,10 +18,7 @@ interface SiteChoicePageProps {
   onSubmit: (site: LibSite, mirror: string) => void;
 }
 
-/**
- * Первый запуск: выбор базового сайта и его зеркала. Вводить адрес не
- * нужно, доступность зеркал проверяется сразу
- */
+/** Первый запуск: выбор базового сайта и его зеркала */
 function SiteChoicePage({ onSubmit }: SiteChoicePageProps) {
   const { customColors } = useTheme().palette;
   const states = useMirrorStatus(ALL_MIRRORS);

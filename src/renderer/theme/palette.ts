@@ -1,8 +1,4 @@
-/**
- * Единственный источник цветов приложения.
- * Значения совпадают с тем, что было захардкожено по файлам, — токены только
- * дают им имена, оформление не меняется.
- */
+/** Единственный источник цветов приложения */
 
 import type { LoginStreakTier } from '../../constants';
 
@@ -146,10 +142,7 @@ export const LIGHT_ALPHA_SURFACE = 'rgba(255, 255, 255, 0.10)';
 export const LIGHT_ALPHA_BORDER = 'rgba(224, 224, 224, 0.2)';
 export const LIGHT_TEXT_DISABLED = 'rgba(33, 33, 33, 0.38)';
 
-/**
- * Базовые триплеты для полупрозрачных наложений: цвет берётся от схемы,
- * а прозрачность задаётся на месте применения.
- */
+/** Базовые триплеты для полупрозрачных наложений */
 export const DARK_ON_SURFACE_RGB = '255, 255, 255';
 export const LIGHT_ON_SURFACE_RGB = '23, 23, 26';
 export const DARK_OVERLAY_RGB = '20, 20, 20';
@@ -176,10 +169,7 @@ export const LIGHT_SURFACE_CONTAINER_HIGHEST_RGB = '219, 219, 224';
 export const LILAC_TINT_RGB = '237, 231, 246';
 export const NEUTRAL_RGB = '116, 116, 128';
 
-/**
- * Цвета значка серии входов на уровень: контур, сердцевина, число.
- * У премиальных стилей контур и сердцевина — градиенты из двух цветов
- */
+/** Цвета значка серии входов на уровень: контур, сердцевина, число */
 export type LoginStreakSolidColors = readonly [string, string, string];
 export type LoginStreakGradientColors = readonly [
   string,

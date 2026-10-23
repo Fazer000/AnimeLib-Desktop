@@ -11,14 +11,7 @@ interface WindowControlsProps {
   onClose?: () => void;
 }
 
-/**
- * WindowControls - Window management buttons
- *
- * Features:
- * - Minimize window
- * - Maximize/restore window
- * - X window
- */
+/** Кнопки управления окном */
 function WindowControls({
   onMinimize,
   onMaximize,

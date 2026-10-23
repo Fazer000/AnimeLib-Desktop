@@ -61,10 +61,7 @@ export interface PlayerLoadOptions {
   episodeId?: number;
 }
 
-/**
- * Главный контроллер видеоплеера
- * Координирует работу всех менеджеров
- */
+/** Главный контроллер видеоплеера */
 export class VideoPlayerController {
   private shakaManager: ShakaPlayerManager;
 
@@ -435,10 +432,7 @@ export class VideoPlayerController {
     this.config.onOfflineSourceLost?.(true);
   }
 
-  /**
-   * Выбор в меню: «Авто» или конкретное качество. Выбор запоминается;
-   * если играет уже нужное качество, источник не перезагружается
-   */
+  /** Выбор в меню: «Авто» или конкретное качество */
   async changeQuality(
     choice: string,
     beforeSwitch?: () => void,
@@ -466,11 +460,7 @@ export class VideoPlayerController {
     return this.switchQuality(quality, beforeSwitch);
   }
 
-  /**
-   * Бесшовно меняет качество: MP4 нового качества заранее подгружается,
-   * пока играет прежнее; перед переключением вызывается beforeSwitch,
-   * чтобы накрыть перезагрузку застывшим кадром
-   */
+  /** Бесшовно меняет качество: MP4 нового качества заранее подгружается, пока играет прежнее */
   private async switchQuality(
     quality: string,
     beforeSwitch?: () => void,
@@ -656,10 +646,7 @@ export class VideoPlayerController {
   /**
    * Полностью уничтожает контроллер
    */
-  /**
-   * Шаг автоподбора: смотрит на буфер и размер плеера и при необходимости
-   * просит UI переключить качество
-   */
+  /** Шаг автоподбора: смотрит на буфер и размер плеера и при необходимости просит UI переключить качество */
   private autoQualityTick(): void {
     const video = this.videoElement;
     if (!video || this.isSwitchingQuality || !this.qualityManager.isAuto()) {

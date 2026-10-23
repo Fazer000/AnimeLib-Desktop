@@ -50,15 +50,7 @@ export interface CommentsPaginationState {
   loading: boolean;
 }
 
-/**
- * CommentsManager - Управление комментариями эпизода
- *
- * Responsibilities:
- * - Загрузка комментариев с пагинацией
- * - Управление состоянием infinite scroll
- * - Форматирование даты и текста
- * - Вычисление голосов
- */
+/** Комментарии эпизода */
 export type VoteTone = 'positive' | 'negative' | 'neutral';
 
 export class CommentsManager {
@@ -111,10 +103,7 @@ export class CommentsManager {
     ];
   }
 
-  /**
-   * Собирает комментарии одним уровнем ответов: каждый ответ попадает
-   * к корневому комментарию, а имя адресата сохраняется в parentUser
-   */
+  /** Собирает комментарии одним уровнем ответов */
   public static buildTree(
     rootComments: Comment[],
     repliesData: Comment[],

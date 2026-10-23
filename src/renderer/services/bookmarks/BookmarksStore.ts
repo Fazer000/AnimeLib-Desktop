@@ -7,10 +7,7 @@ const log = createLogger('BookmarksStore');
 
 export type BookmarksListener = (items: BookmarkItem[]) => void;
 
-/**
- * Единый источник быстрых закладок («Смотрю» и «Пересматриваю») с подпиской
- * на изменения
- */
+/** Единый источник быстрых закладок («Смотрю» и «Пересматриваю») с подпиской на изменения */
 export class BookmarksStore {
   private items: BookmarkItem[] = [];
 

@@ -26,10 +26,7 @@ export {
   registerOfflineSchemes,
 } from './offlineProtocol';
 
-/**
- * Опрашивает сайт и различает ошибку сети и истёкшее ожидание.
- * Дедлайн стоит поверх запроса, поэтому зависший DNS его не растягивает.
- */
+/** Опрашивает сайт и различает ошибку сети и истёкшее ожидание */
 const probeConnection = (): Promise<ConnectivityProbeResult> =>
   new Promise((resolve) => {
     let settled = false;

@@ -31,11 +31,7 @@ export interface UpscaleSettingsState {
   reportFailure: () => void;
 }
 
-/**
- * Хранит выбор пользователя и в «Авто» понижает уровень, когда видеокарта
- * перестаёт успевать; ниже лёгкого — выключает. Найденный уровень
- * запоминается до повторного выбора «Авто»
- */
+/** Выбор улучшения картинки и подбор уровня в «Авто» */
 export function useUpscaleSettings(): UpscaleSettingsState {
   const [mode, setStoredMode] = usePersistedChoice<UpscaleMode>(
     'playerUpscaleMode',

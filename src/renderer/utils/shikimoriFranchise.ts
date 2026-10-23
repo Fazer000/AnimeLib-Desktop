@@ -1,7 +1,4 @@
-/**
- * Франшиза из Shikimori: разбор ответа в граф хронологии и сопоставление
- * тайтлов с Animelib
- */
+/** Франшиза из Shikimori: разбор ответа в граф хронологии и сопоставление тайтлов с Animelib */
 import {
   FranchiseEdge,
   FranchiseGraph,
@@ -32,10 +29,7 @@ export interface ShikimoriFranchise {
   links: ShikimoriFranchiseLink[];
 }
 
-/**
- * Результат поиска тайтла Shikimori на Animelib: slug null — тайтла нет.
- * restricted — не найден без входа на сайт и может быть скрыт по возрасту
- */
+/** Результат поиска тайтла Shikimori на Animelib */
 export interface AnimelibMatch {
   slug: string | null;
   cover: string | null;
@@ -56,11 +50,7 @@ const EXCLUDED_KINDS = new Set(['Реклама', 'Проморолик', 'cm', 
 /** Часовой пояс дат Shikimori: полночь по Москве, с */
 const SHIKIMORI_DATE_OFFSET = 3 * 60 * 60;
 
-/**
- * Связь Shikimori в связь графа. В Shikimori target — это relation для
- * source; парные связи сводятся к одному направлению: пересказ всегда
- * на конце «Обобщения», побочная история — на конце «Побочной истории»
- */
+/** Связь Shikimori в связь графа */
 const RELATIONS: Record<string, { label: string; reverse?: boolean }> = {
   sequel: { label: 'Продолжение' },
   prequel: { label: 'Предыстория' },
@@ -85,10 +75,7 @@ export function parseShikimoriId(
   return match ? Number(match[1]) : null;
 }
 
-/**
- * Slug Animelib по адресу тайтла на Shikimori: /animes/21-one-piece →
- * one-piece-anime. Animelib находит тайтл по нему без числового префикса
- */
+/** Slug Animelib по адресу тайтла на Shikimori: /animes/21-one-piece → one-piece-anime */
 export function animelibSlugFromShikimoriUrl(url: string): string | null {
   const match = /\/animes\/[a-z]*\d+-([^/?#]+)/.exec(url);
   return match ? `${match[1]}-anime` : null;
@@ -101,10 +88,7 @@ export function shikimoriKey(id: number): string {
   return `shikimori:${id}`;
 }
 
-/**
- * Дата выхода в виде YYYY-MM-DD; у невышедших тайтлов года нет —
- * дата в ответе тогда не настоящая
- */
+/** Дата выхода в виде YYYY-MM-DD */
 export function shikimoriReleaseDate(
   node: ShikimoriFranchiseNode,
 ): string | null {
@@ -131,11 +115,7 @@ export function shikimoriEdge(
     : normalizeEdge(source, target, relation.label);
 }
 
-/**
- * Граф хронологии из франшизы Shikimori. Текущий тайтл получает свой slug
- * Animelib, найденные тайтлы — свой slug и обложку, остальные ждут поиска
- * или отмечаются отсутствующими
- */
+/** Граф хронологии из франшизы Shikimori */
 export function buildShikimoriGraph(
   franchise: ShikimoriFranchise,
   current: FranchiseCurrent,
@@ -188,10 +168,7 @@ export function buildShikimoriGraph(
   return { titles, edges: mergeEdges(edges), curated: true };
 }
 
-/**
- * Порядок поиска на Animelib: сначала тайтлы, ближние по времени к текущему,
- * невышедшие — в конце
- */
+/** Порядок поиска на Animelib: сначала тайтлы, ближние по времени к текущему, невышедшие — в конце */
 export function matchOrder(
   franchise: ShikimoriFranchise,
   currentId: number,
@@ -208,10 +185,7 @@ export function matchOrder(
     .sort((a, b) => distance(a) - distance(b) || a.id - b.id);
 }
 
-/**
- * Найденный на Animelib тайтл засчитывается, только если он ссылается
- * на тот же тайтл Shikimori
- */
+/** Найденный на Animelib тайтл засчитывается, только если он ссылается на тот же тайтл Shikimori */
 export function toAnimelibMatch(
   found: {
     slug_url: string;

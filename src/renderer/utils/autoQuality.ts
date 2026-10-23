@@ -45,10 +45,7 @@ export function playerPixelHeight(
   return Math.round(Math.min(height, (width * 9) / 16) * pixelRatio);
 }
 
-/**
- * Потолок по размеру плеера: самое низкое качество, которого хватает на
- * высоту кадра с небольшим допуском; не хватает ни одного — самое высокое
- */
+/** Потолок по размеру плеера */
 export function sizeCapHeight(pixelHeight: number, values: string[]): number {
   const heights = values.map(qualityHeight).sort((a, b) => a - b);
   const enough = heights.find(
@@ -71,22 +68,13 @@ export function highestWithin(values: string[], limit: number): string {
   );
 }
 
-/**
- * Запомненный ручной выбор для серии: то же качество, иначе ближайшее ниже,
- * иначе самое низкое из доступных
- */
+/** Запомненный ручной выбор для серии */
 export function pickManualQuality(values: string[], preferred: string): string {
   if (values.includes(preferred)) return preferred;
   return highestWithin(values, qualityHeight(preferred));
 }
 
-/**
- * Автоподбор качества по буферу и размеру плеера. Время передаётся извне,
- * поэтому класс не зависит от таймеров и проверяется тестами.
- * Понижает, когда воспроизведение ждёт буфер или запас долго мал, и на
- * время не возвращается к качеству, где сеть не справилась. Повышает по
- * шагу, когда запас долго большой. Не берёт больше, чем нужно плееру
- */
+/** Автоподбор качества по буферу и размеру плеера */
 export class AutoQualityPolicy {
   private readonly values: string[];
 
@@ -170,10 +158,7 @@ export class AutoQualityPolicy {
     }
   }
 
-  /**
-   * Почему играет не самое высокое качество: сеть недавно не справилась
-   * или выше не нужно для размера плеера; ждёт повышения — без причины
-   */
+  /** Почему играет не самое высокое качество */
   reason(now: number): AutoQualityReason {
     const height = qualityHeight(this.current);
     const best = qualityHeight(this.values[0] ?? '');

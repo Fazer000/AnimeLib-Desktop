@@ -1,11 +1,7 @@
 /** ERR_ABORTED: загрузку прервал новый переход, это не сбой сайта */
 const ERR_ABORTED = -3;
 
-/**
- * Коды ответа, при которых сайт по сути не открылся: прокси или Cloudflare
- * не достучались до сервера. 0 — сеть не ответила вовсе. 503 и 403 сюда не
- * входят: так отвечают и страницы проверки «вы не робот»
- */
+/** Коды ответа, при которых сайт по сути не открылся */
 export function isSiteDownStatus(status: number): boolean {
   return (
     status === 0 ||
@@ -16,10 +12,7 @@ export function isSiteDownStatus(status: number): boolean {
   );
 }
 
-/**
- * Открылась ли страница при переходе: код ответа известен только при
- * полной загрузке; без него (переход внутри страницы) — открылась
- */
+/** Открылась ли страница при переходе */
 export function isPageLoaded(httpResponseCode?: number): boolean {
   return httpResponseCode === undefined || !isSiteDownStatus(httpResponseCode);
 }
@@ -30,11 +23,7 @@ export interface LoadFailureEvent {
   isMainFrame?: boolean;
 }
 
-/**
- * Хост страницы, которая не загрузилась, если показывать страницу ошибки:
- * только для основного фрейма, не для прерванных переходов и не для
- * адресов-команд вроде открытия плеера; иначе null
- */
+/** Хост страницы, которая не загрузилась, если показывать страницу ошибки */
 export function failedPageHost(
   event: LoadFailureEvent,
   ignoredPrefixes: string[] = [],

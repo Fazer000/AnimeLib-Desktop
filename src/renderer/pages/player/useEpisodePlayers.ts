@@ -21,11 +21,7 @@ interface UseEpisodePlayersOptions {
   onEpisodeApplied: (episode: Episode) => void;
 }
 
-/**
- * Озвучки серии, выбор источника и его загрузка в плеер.
- * Ответы отсекаются по номеру запроса: при быстром переключении серий
- * приходящие с опозданием данные не должны подменять текущие.
- */
+/** Озвучки серии, выбор источника и его загрузка в плеер */
 export function useEpisodePlayers({
   animeId,
   offlineMode,
@@ -71,10 +67,7 @@ export function useEpisodePlayers({
     [],
   );
 
-  /**
-   * Отдаёт источник плееру. Для Kodik сначала запрашивает ссылки и
-   * отбрасывает их, если за время запроса сменилась серия.
-   */
+  /** Отдаёт источник плееру */
   const loadIntoPlayer = useCallback(
     async (player: Player, shouldAutoplay = false): Promise<void> => {
       const target = videoPlayerRef.current;

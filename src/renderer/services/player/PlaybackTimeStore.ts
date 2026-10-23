@@ -3,10 +3,7 @@ export type PlaybackTimeListener = (
   buffered: number,
 ) => void;
 
-/**
- * Держит время воспроизведения вне состояния React: обновляется десять раз
- * в секунду, поэтому подписчики читают его напрямую, без перерисовки дерева.
- */
+/** Держит время воспроизведения вне состояния React */
 export class PlaybackTimeStore {
   private currentTime = 0;
 

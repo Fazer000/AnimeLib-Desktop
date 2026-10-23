@@ -1,10 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-/**
- * Linux: ставит обёртку запуска вместо исполняемого файла, сам файл
- * переименовывает в animelib-desktop-bin (см. linux-launcher.sh)
- */
+/** Linux: ставит обёртку запуска вместо исполняемого файла */
 exports.default = async function installLinuxLauncher(context) {
   const { electronPlatformName, appOutDir, packager } = context;
   if (electronPlatformName !== 'linux') return;

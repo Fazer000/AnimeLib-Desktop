@@ -34,10 +34,7 @@ interface LoginStreakBadgeProps {
   preferences?: LoginStreakPreferences | null;
 }
 
-/**
- * Значок серии ежедневных входов у имени автора: пламя с числом дней,
- * цвет по уровню серии и личному стилю автора
- */
+/** Значок серии ежедневных входов у имени автора */
 function LoginStreakBadge({
   streak = null,
   preferences = null,

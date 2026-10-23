@@ -16,9 +16,7 @@ export interface SiteBookmarksState {
 const EMPTY: SiteBookmarksSnapshot = { items: [], loaded: false };
 
 /**
- * Закладки одной папки сайта как их отдаёт API. Пока active, показывает
- * сохранённый список сразу и сверяет его с сайтом в фоне; после
- * изменения закладок список обновляется сам
+ * Закладки папки сайта: сохранённый список сразу, свежий — в фоне
  */
 function useSiteBookmarks(
   site: LibSite,

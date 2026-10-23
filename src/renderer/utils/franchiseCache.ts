@@ -1,7 +1,4 @@
-/**
- * Кэш хронологий между запусками: франшиза из Shikimori и найденные
- * на Animelib тайтлы со временем проверки
- */
+/** Кэш хронологий между запусками */
 import type { AnimelibMatch, ShikimoriFranchise } from './shikimoriFranchise';
 
 export interface CachedMatch {
@@ -35,10 +32,7 @@ export function findCachedFranchise(
   );
 }
 
-/**
- * Ещё свежие результаты поиска: найденные живут дольше, ненайденные —
- * меньше, ведь тайтл могут добавить на сайт
- */
+/** Ещё свежие результаты поиска */
 export function freshMatches(
   entry: CachedFranchise,
   now: number,
@@ -56,11 +50,7 @@ export function freshMatches(
   return result;
 }
 
-/**
- * Запись для сохранения. Тайтлы, не найденные без входа, не сохраняются:
- * после входа их нужно проверить заново. Время проверки старых
- * результатов не меняется
- */
+/** Запись для сохранения */
 export function toCachedFranchise(
   franchise: ShikimoriFranchise,
   matches: Map<number, AnimelibMatch>,
@@ -85,10 +75,7 @@ export function toCachedFranchise(
   return { franchise, savedAt: now, matches: saved };
 }
 
-/**
- * Кладёт запись в кэш вместо прежней той же франшизы; при переполнении
- * вытесняются давно сохранённые
- */
+/** Кладёт запись в кэш вместо прежней той же франшизы */
 export function putCachedFranchise(
   entries: CachedFranchise[],
   entry: CachedFranchise,

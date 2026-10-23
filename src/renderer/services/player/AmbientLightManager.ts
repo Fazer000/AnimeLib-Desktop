@@ -1,8 +1,4 @@
-/**
- * Отражение кадра в маленький буфер: свечение даёт растяжение битмапа,
- * поэтому размытие считается по буферу, а не по слою во всю область.
- * На одно видео — одно отражение: все подсветки копируют общий буфер
- */
+/** Отражение кадра в маленький буфер */
 import {
   AMBIENT_FRAME_INTERVAL_MS,
   AMBIENT_SOURCE_RESET_DELAY_MS,
@@ -131,10 +127,7 @@ export default class AmbientLightManager {
     entry.manager.dispose();
   }
 
-  /**
-   * Замораживает подсветку видео на последнем кадре, пока источник
-   * перезагружается; после снятия заморозки отражает текущий кадр
-   */
+  /** Замораживает подсветку видео на последнем кадре, пока источник перезагружается */
   public static hold(video: HTMLVideoElement, held: boolean): void {
     AmbientLightManager.shared.get(video)?.manager.setHeld(held);
   }
@@ -196,10 +189,7 @@ export default class AmbientLightManager {
     this.draw();
   };
 
-  /**
-   * Смена источника: свечение прошлого видео гаснет, если новый кадр
-   * не пришёл за паузу. Быстрая смена качества свечение не гасит
-   */
+  /** Смена источника: свечение прошлого видео гаснет, если новый кадр не пришёл за паузу */
   private setHeld(held: boolean): void {
     this.held = held;
     window.clearTimeout(this.resetTimer);

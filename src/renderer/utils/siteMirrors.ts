@@ -32,10 +32,7 @@ export function readSiteMirrors(): Record<number, string> {
   }
 }
 
-/**
- * Главная сайта с учётом выбранного зеркала; выбор не из списка
- * зеркал сайта игнорируется
- */
+/** Главная сайта с учётом выбранного зеркала; выбор не из списка зеркал сайта игнорируется */
 export function chosenMirror(
   site: LibSite,
   homes: Record<number, string>,
@@ -74,10 +71,7 @@ export function saveSiteMirror(site: LibSite, home: string): void {
   }
 }
 
-/**
- * Какое зеркало предложить: выбранное, пока оно не признано недоступным,
- * иначе первое доступное, затем первое ещё проверяемое
- */
+/** Какое зеркало предложить */
 export function pickMirror(
   mirrors: string[],
   states: MirrorStates,

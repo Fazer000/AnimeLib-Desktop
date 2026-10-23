@@ -1,7 +1,4 @@
-/**
- * Разбор индекса MP4 (moov): где в файле лежат опорные кадры видеодорожки
- * и чем их декодировать
- */
+/** Разбор индекса MP4 (moov): где в файле лежат опорные кадры видеодорожки и чем их декодировать */
 
 export interface Mp4Keyframe {
   time: number;
@@ -48,10 +45,7 @@ const typeAt = (bytes: Uint8Array, offset: number): string =>
 
 const hex = (value: number): string => value.toString(16).padStart(2, '0');
 
-/**
- * Заголовок бокса верхнего уровня; null — данных меньше заголовка.
- * Размер 0 означает «до конца файла»
- */
+/** Заголовок бокса верхнего уровня; null — данных меньше заголовка */
 export function readBoxHeader(bytes: Uint8Array, offset = 0): BoxHeader | null {
   if (bytes.length < offset + 8) return null;
 
@@ -173,10 +167,7 @@ function sampleTimes(view: DataView, stts: Box, count: number): number[] {
   return times;
 }
 
-/**
- * Индекс видеодорожки H.264 из бокса moov целиком (с заголовком).
- * null — видео нет, кодек не H.264 или таблицы неполные
- */
+/** Индекс видеодорожки H.264 из бокса moov */
 export function parseMp4Index(moov: Uint8Array): Mp4VideoIndex | null {
   const view = new DataView(moov.buffer, moov.byteOffset, moov.byteLength);
   const header = readBoxHeader(moov);
@@ -248,10 +239,7 @@ export function parseMp4Index(moov: Uint8Array): Mp4VideoIndex | null {
   };
 }
 
-/**
- * Опорный кадр для ячейки превью [start, end): первый внутри ячейки,
- * а если там нет ни одного — последний перед ней
- */
+/** Опорный кадр для ячейки превью */
 export function findKeyframeForCell(
   keyframes: Mp4Keyframe[],
   start: number,

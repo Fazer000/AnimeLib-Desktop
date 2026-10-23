@@ -256,11 +256,7 @@ const LIGHT_BASE = {
   divider: LIGHT_OUTLINE,
 };
 
-/**
- * Набор ролей для схемы. С siteId сайта манги или ранобэ акценты и шапка
- * светлой схемы берутся из цвета этого сайта; AnimeLib и неизвестный сайт
- * остаются в фирменном фиолетовом приложения
- */
+/** Набор ролей для схемы */
 export function getSchemeColors(scheme: ColorSchemeName, siteId?: number) {
   const colors = scheme === 'light' ? LIGHT_COLORS : DARK_COLORS;
   const site = LIB_SITES.find((item) => item.siteId === siteId);

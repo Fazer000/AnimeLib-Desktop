@@ -1,7 +1,4 @@
-/**
- * Какой файл релиза нужен этой установке и как его поставить.
- * Без electron, чтобы проверять тестами.
- */
+/** Выбор файла релиза и команд установки для обновления */
 import {
   UPDATE_ASSET_PREFIX,
   UPDATE_LINUX_EXECUTABLE,
@@ -23,10 +20,7 @@ export interface PackageManagers {
   zypper: boolean;
 }
 
-/**
- * Вид установки. На Linux AppImage выдаёт переменная APPIMAGE,
- * deb и rpm — файл resources/package-type от electron-builder
- */
+/** Вид установки: exe, dmg, AppImage, deb или rpm */
 export const resolvePackageKind = (
   platform: string,
   appImagePath: string | undefined,
@@ -58,10 +52,7 @@ export const getAssetName = (
   }
 };
 
-/**
- * Ссылка на файл релиза: сначала точное имя, затем любой файл того же
- * типа, иначе ссылка по шаблону имени
- */
+/** Ссылка на файл релиза для этой установки */
 export const pickAssetUrl = (
   assets: { name?: string; browser_download_url?: string }[],
   kind: UpdatePackageKind,
@@ -79,10 +70,7 @@ export const pickAssetUrl = (
   return url || `${repoUrl}/releases/download/v${version}/${name}`;
 };
 
-/**
- * Установка deb или rpm через системное окно пароля (pkexec).
- * null — для этого вида установки команды нет
- */
+/** Команда установки deb или rpm через pkexec */
 export const buildInstallCommand = (
   kind: UpdatePackageKind,
   filePath: string,
@@ -121,10 +109,7 @@ export const buildInstallCommand = (
 const shellQuote = (value: string): string =>
   `'${value.replace(/'/g, `'\\''`)}'`;
 
-/**
- * Команда для ручной установки в терминале, если окно пароля закрыли.
- * null — пакет ставится не командой
- */
+/** Команда ручной установки deb или rpm в терминале */
 export const buildManualInstallCommand = (
   kind: UpdatePackageKind,
   filePath: string,
@@ -142,20 +127,12 @@ export const buildManualInstallCommand = (
   return `sudo rpm -U ${file}`;
 };
 
-/**
- * Аргументы для перезапуска: без --no-sandbox, его снова добавит
- * обёртка запуска, если песочница в системе запрещена
- */
+/** Аргументы для перезапуска без --no-sandbox */
 export const getRelaunchArgs = (argv: string[]): string[] =>
   argv.slice(1).filter((arg) => arg !== '--no-sandbox');
 
-/**
- * Скрипт перезапуска: закрывает унаследованные дескрипторы (иначе старый
- * образ AppImage остаётся смонтированным, а сокеты переходят к новой
- * копии), ждёт выхода процесса $1 и запускает приложение
- */
+/** Скрипт перезапуска: ждёт выхода процесса $1 и запускает приложение */
 const RELAUNCH_SCRIPT = [
-  // ${fd##*/} — подстановка bash, а не шаблон JS
   // eslint-disable-next-line no-template-curly-in-string
   'for fd in /proc/$$/fd/*; do fd=${fd##*/}; [ "$fd" -gt 2 ] && eval "exec $fd>&-"; done 2>/dev/null',
   'while kill -0 "$1" 2>/dev/null; do sleep 0.2; done',
@@ -163,12 +140,7 @@ const RELAUNCH_SCRIPT = [
   'exec "$@"',
 ].join('; ');
 
-/**
- * Перезапуск на Linux через bash, ждущий выхода процесса pid.
- * app.relaunch не годится: его помощник живёт внутри образа AppImage
- * и пропадает вместе с ним, а запуск без ожидания упирается
- * в блокировку единственного экземпляра
- */
+/** Команда перезапуска на Linux после выхода процесса pid */
 export const buildRelaunchCommand = (
   execPath: string,
   args: string[],

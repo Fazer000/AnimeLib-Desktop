@@ -20,10 +20,7 @@ export interface AnimeSubscriptionItem {
   translation_type: number;
 }
 
-/**
- * Делит команды на озвучку и субтитры. Команды обоих типов попадают
- * в оба списка после собственных, как на сайте
- */
+/** Делит команды на озвучку и субтитры */
 export function splitTeamsByBranch<T extends SubscriptionTeamLike>(
   teams: T[] | null | undefined,
 ): { voices: T[]; subtitles: T[] } {
@@ -50,10 +47,7 @@ export function getSubscribedTeams(
     .map((item) => item.team_id);
 }
 
-/**
- * Переключает команду в выборе. «Любая» исключает конкретные команды,
- * а выбор конкретной снимает «Любую»
- */
+/** Переключает команду в выборе */
 export function toggleSubscriptionTeam(
   selected: number[],
   teamId: number,

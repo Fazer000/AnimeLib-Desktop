@@ -54,10 +54,7 @@ export function isUpscalePreset(value: unknown): value is UpscalePreset {
   return UPSCALE_PRESETS.includes(value as UpscalePreset);
 }
 
-/**
- * Годится ли адаптер WebGPU для улучшения: программный (SwiftShader)
- * считает на процессоре и не тянет даже лёгкий уровень
- */
+/** Аппаратный ли адаптер WebGPU: программный улучшение не тянет */
 export function isHardwareAdapter(adapter: AdapterFlags | null): boolean {
   if (adapter === null) return false;
   return (
@@ -66,11 +63,7 @@ export function isHardwareAdapter(adapter: AdapterFlags | null): boolean {
   );
 }
 
-/**
- * Уровень, с которого начинается обработка; null — улучшение выключено.
- * «Авто» продолжает с уровня, найденного в прошлый раз; 'off' — видеокарта
- * не тянет даже лёгкий уровень
- */
+/** Уровень, с которого начинается обработка; null — улучшение выключено */
 export function getStartPreset(
   mode: UpscaleMode,
   rememberedAutoPreset: UpscalePreset | 'off' | null,

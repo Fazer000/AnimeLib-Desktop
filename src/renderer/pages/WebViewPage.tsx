@@ -75,13 +75,7 @@ interface WebViewProps {
   onRequestSites?: () => void;
 }
 
-/**
- * WebView - Refactored webview component with OOP architecture
- *
- * Uses:
- * - WebViewManager for navigation and URL management
- * - ScriptInjectionManager for script injection
- */
+/** WebView сайта */
 function WebViewRefactored({
   savedUrl,
   onPlayerButtonClick,
@@ -110,11 +104,7 @@ function WebViewRefactored({
 
   const currentPageUrl = () => webViewManagerRef.current?.getTrackedUrl() ?? '';
 
-  /**
-   * Тема читалки из темы приложения: ставится при входе в читалку и при
-   * смене темы кнопкой, пока читалка открыта. Смена внутри читалки
-   * остаётся только в ней до выхода
-   */
+  /** Тема читалки из темы приложения */
   const applyReaderTheme = (webview: any, url: string) => {
     const site = findLibSiteByUrl(url);
     if (!site || site.kind === 'anime') return;

@@ -57,10 +57,7 @@ export function getCanvasPixelSize(
   };
 }
 
-/**
- * Обработка не нужна, если исходник не меньше вывода: увеличивать нечего,
- * а нейросети в разрешении исходника впустую нагружают видеокарту
- */
+/** Обработка не нужна, если исходник не меньше вывода */
 export function shouldBypassUpscale(
   source: PixelSize,
   target: PixelSize,

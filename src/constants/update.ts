@@ -52,10 +52,7 @@ export interface UpdateInfo {
  */
 export type UpdateInstallStage = 'installing' | 'restarting';
 
-/**
- * Почему обновление не завершилось: не скачалось, пакет не установлен
- * (пароль не введён), файл AppImage не заменить
- */
+/** Почему обновление не завершилось */
 export type UpdateFailure = 'download' | 'install' | 'readonly';
 
 /**

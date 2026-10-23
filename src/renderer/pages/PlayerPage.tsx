@@ -66,14 +66,7 @@ interface PlayerPageProps {
   onPlayOffline?: (animeId: string, episodeId?: number) => void;
 }
 
-/**
- * PlayerPage - Main player page with episodes and voice team selection
- *
- * Uses OOP architecture with:
- * - PlayerSelectionManager for player selection logic
- * - EpisodeSlider component for episode navigation
- * - PlayerSidebar component for player/voice team list
- */
+/** Страница плеера: серии и выбор озвучки */
 function PlayerPageRefactored({
   playerUrl,
   animeId,
@@ -126,7 +119,6 @@ function PlayerPageRefactored({
 
   const [showDownloadManager, setShowDownloadManager] =
     useState<boolean>(false);
-  // Раскрытая хронология лежит в листе страницы, ниже кнопки «Наверх»
   const [chronologyExpanded, setChronologyExpanded] = useState<boolean>(false);
 
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);

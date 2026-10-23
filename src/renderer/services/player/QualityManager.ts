@@ -186,10 +186,7 @@ export class QualityManager {
     this.emitMode();
   }
 
-  /**
-   * Выбор пользователя в меню: «Авто» или конкретное качество; запоминается
-   * для следующих серий. Возвращает качество, которое должно играть
-   */
+  /** Выбор пользователя в меню: «Авто» или конкретное качество; запоминается для следующих серий */
   choose(choice: string): string | null {
     const values = this.qualityOptions.map((option) => option.value);
     if (choice !== AUTO_QUALITY && !values.includes(choice)) {

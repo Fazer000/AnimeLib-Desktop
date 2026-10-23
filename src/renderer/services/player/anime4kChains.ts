@@ -34,10 +34,7 @@ interface ChainDescriptor {
   targetDimensions: { width: number; height: number };
 }
 
-/**
- * Собирает цепочку уровня по схеме Mode A: восстановление, x2 при нужде,
- * подгонка под экран и второй x2 для больших экранов
- */
+/** Собирает цепочку уровня по схеме Mode A */
 export function createAnime4KChain(
   lib: Anime4KModule,
   preset: UpscalePreset,

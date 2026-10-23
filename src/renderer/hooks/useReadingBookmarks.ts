@@ -10,10 +10,7 @@ interface ReadingBookmarksState {
   signedIn: boolean;
 }
 
-/**
- * Закладки папки сайта манги или ранобэ (по умолчанию «Читаю»);
- * загружаются заново при каждом открытии подменю, пока active
- */
+/** Закладки папки сайта манги или ранобэ (по умолчанию «Читаю») */
 function useReadingBookmarks(
   site: LibSite,
   active: boolean,

@@ -8,10 +8,7 @@ import {
   nextWheelScrollTarget,
 } from '../utils/wheelScroll';
 
-/**
- * Прокручивает горизонтальную ленту колесом мыши и Shift + колесом.
- * Событие не уходит выше, чтобы не менять громкость и не листать страницу
- */
+/** Прокручивает горизонтальную ленту колесом мыши и Shift + колесом */
 function useHorizontalWheelScroll(
   ref: RefObject<HTMLElement | null>,
   enabled: boolean,

@@ -1,7 +1,4 @@
-/**
- * Зона наведения в области перетаскивания окна: там у страницы нет событий
- * мыши, поэтому попадание курсора проверяет главный процесс
- */
+/** Зона наведения в области перетаскивания окна */
 
 export interface HoverZoneRect {
   x: number;
@@ -15,10 +12,7 @@ export interface ScreenPoint {
   y: number;
 }
 
-/**
- * Лежит ли курсор (экранные координаты) в зоне, заданной в CSS-пикселях
- * страницы. contentBounds — область содержимого окна на экране
- */
+/** Лежит ли курсор в зоне наведения */
 export function isCursorInZone(
   cursor: ScreenPoint,
   contentBounds: HoverZoneRect,

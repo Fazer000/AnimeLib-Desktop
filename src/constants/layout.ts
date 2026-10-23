@@ -9,10 +9,7 @@ import { PLAYER_INSET_X, PLAYER_INSET_Y } from './player';
  */
 export const TOOLBAR_HEIGHT = 38;
 
-/**
- * Кнопка прокрутки вверх: размер, отступ от угла и зазор до чужих
- * плавающих элементов, px
- */
+/** Кнопка прокрутки вверх: размер, отступ от угла и зазор до чужих плавающих элементов, px */
 export const SCROLL_TOP_BUTTON_SIZE = 48;
 export const SCROLL_TOP_BUTTON_MARGIN = 24;
 export const SCROLL_TOP_BUTTON_GAP = 12;
@@ -43,10 +40,7 @@ export const SIDEBAR_PREFERRED_WIDTH = '17vw';
  */
 export const SIDEBAR_WIDTH_CSS = `clamp(${SIDEBAR_MIN_WIDTH}px, ${SIDEBAR_PREFERRED_WIDTH}, ${SIDEBAR_MAX_WIDTH}px)`;
 
-/**
- * Свойство, хранящее текущую ширину сайдбара. Зарегистрировано в App.css
- * как <length>, поэтому анимируется, а вместе с ним и всё, что от него считается
- */
+/** Свойство, хранящее текущую ширину сайдбара */
 export const SIDEBAR_WIDTH_PROPERTY = '--player-sidebar-width';
 
 /**
@@ -110,10 +104,7 @@ export const ANIME_CARD_TITLE_FONT = 'clamp(1rem, 1.5vw, 1.5rem)';
  */
 export const ANIME_CARD_FRAME_HEIGHT = 42;
 
-/**
- * Высота шторки карточки. Одна для загрузки и для готовых данных,
- * иначе шторка подпрыгивает, когда данные приходят
- */
+/** Высота шторки карточки */
 export const ANIME_CARD_PANEL_HEIGHT = `calc(${ANIME_CARD_COVER_HEIGHT} + ${ANIME_CARD_FRAME_HEIGHT}px)`;
 
 /**
@@ -143,10 +134,7 @@ export const RELATED_ARROW_SIZE = 40;
 export const RELATED_ROW_PADDING = 16;
 export const RELATED_ROW_GAP = 8;
 
-/**
- * Резиновая ширина комментариев: нижняя граница держит читаемую строку,
- * верхняя не даёт строке уйти за сотню знаков
- */
+/** Резиновая ширина комментариев */
 export const COMMENTS_WIDTH_CSS = 'clamp(860px, 66vw, 1400px)';
 
 /**
@@ -286,10 +274,7 @@ export const OFFLINE_ICON = {
  */
 export const OFFLINE_COVER = { width: 90, height: 125 } as const;
 
-/**
- * Ширина кнопки действия в библиотеке. Задана явно, чтобы «Смотреть»
- * и «Продолжить» занимали одинаковое место и не сдвигали шеврон
- */
+/** Ширина кнопки действия в библиотеке */
 export const OFFLINE_LIBRARY_ACTION_WIDTH = 160;
 
 /**
@@ -355,10 +340,7 @@ export const EPISODE_SLIDER_BUTTON_SIZE = 32;
  */
 export const EPISODE_SLIDER_EDGE_FADE = 56;
 
-/**
- * Прокрутка лент серий колесом: множитель сдвига колеса и пауза, после которой
- * цель прокрутки снова берётся из текущего положения ленты, мс
- */
+/** Прокрутка лент серий колесом */
 export const SLIDER_WHEEL_SCROLL_MULTIPLIER = 3;
 export const SLIDER_WHEEL_IDLE_MS = 200;
 
@@ -376,10 +358,7 @@ export const FRANCHISE_NODE_GAP = 16;
 export const FRANCHISE_ROWS_ABOVE = 2;
 export const FRANCHISE_ROWS_BELOW = 3;
 
-/**
- * Шкала хронологии: наименьшая ширина года с тайтлами и ширина разрыва
- * на месте подряд идущих пустых лет, px
- */
+/** Шкала хронологии: наименьшая ширина года с тайтлами и ширина разрыва на месте подряд идущих пустых лет, px */
 export const FRANCHISE_MIN_YEAR_WIDTH = 160;
 export const FRANCHISE_EMPTY_GAP_WIDTH = 64;
 
@@ -389,18 +368,10 @@ export const FRANCHISE_EMPTY_GAP_WIDTH = 64;
 export const FRANCHISE_LEGEND_WIDTH = 190;
 export const FRANCHISE_AXIS_HEIGHT = 30;
 
-/**
- * Наименьшая высота области хронологии: как у ленты связанного, чтобы
- * комментарии не сдвигались при смене вкладки. Сверху высоту ограничивает
- * число рядов, поэтому по вертикали граф не прокручивается и колесо
- * листает страницу, px
- */
+/** Наименьшая высота области хронологии */
 export const FRANCHISE_MIN_HEIGHT = RELATED_CARD_HEIGHT + 16;
 
-/**
- * Высота полоски с пояснением линий под хронологией, px. Входит в общую
- * наименьшую высоту блока
- */
+/** Высота полоски с пояснением линий под хронологией, px */
 export const FRANCHISE_LEGEND_BAR_HEIGHT = 28;
 
 /** Отступы раскрытой во всё окно хронологии, px. */
@@ -418,10 +389,7 @@ export const FRANCHISE_EXPANDED_Z_INDEX = 1250;
 /** Выезжающая карточка аниме: поверх раскрытой хронологии. */
 export const ANIME_INFO_CARD_Z_INDEX = 1260;
 
-/**
- * Левая панель приложения: ширина, размер кнопок и значков в них, ширина
- * выдвижного подменю и размер язычка, которым панель прячется, px
- */
+/** Левая панель приложения: ширина */
 export const SIDE_RAIL_WIDTH = 52;
 export const SIDE_RAIL_BUTTON_SIZE = 42;
 export const SIDE_RAIL_ICON_SIZE = 24;

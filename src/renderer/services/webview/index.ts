@@ -1,7 +1,4 @@
-/**
- * WebView Services
- * ООП-архитектура для управления webview
- */
+/** Сервисы webview */
 
 export { WebViewManager } from './WebViewManager';
 export type { NavigationState, WebViewCallbacks } from './WebViewManager';

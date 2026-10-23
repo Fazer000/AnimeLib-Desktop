@@ -7,10 +7,7 @@ const READY_HAVE_CURRENT_DATA = 2;
 
 const FRAME_ADVANCE_S = 0.05;
 
-/**
- * Рисует текущий кадр в холст с теми же полями, что у видео на экране.
- * false — кадра нет или его нельзя прочитать
- */
+/** Рисует текущий кадр в холст с полями, как у видео на экране */
 export function captureVideoFrame(
   video: HTMLVideoElement,
   canvas: HTMLCanvasElement,
@@ -44,11 +41,7 @@ export function captureVideoFrame(
   }
 }
 
-/**
- * Ждёт, пока новый источник действительно покажет картинку: у игравшего
- * видео — пока время не сдвинется от позиции переключения, у стоявшего
- * на паузе — пока кадр в нужной позиции не будет готов. Не дольше timeoutMs
- */
+/** Ждёт, пока новый источник покажет картинку */
 export function waitForVideoFrame(
   video: HTMLVideoElement,
   startTime: number,

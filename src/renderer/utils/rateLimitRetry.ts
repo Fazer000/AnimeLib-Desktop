@@ -1,7 +1,4 @@
-/**
- * Повтор запросов после ответа 429 с общей для всех запросов паузой:
- * пока сервер блокирует, новые попытки не отправляются вовсе
- */
+/** Повтор запросов после ответа 429 с общей для всех запросов паузой */
 import {
   API_RATE_LIMIT_BASE_DELAY_MS,
   API_RATE_LIMIT_MAX_DELAY_MS,
@@ -40,10 +37,7 @@ export class RateLimitCooldown {
   }
 }
 
-/**
- * Пауза перед повтором: Retry-After в секундах или дате, иначе удвоение
- * базовой паузы с каждой попыткой; всё ограничено сверху
- */
+/** Пауза перед повтором по Retry-After */
 export function getRateLimitDelayMs(
   attempt: number,
   retryAfter: string | null | undefined,
@@ -73,10 +67,7 @@ export interface RateLimitRetryOptions {
   attempt?: number;
 }
 
-/**
- * Выполняет задачу, дождавшись общей паузы. После 429 продлевает паузу
- * и повторяет; прочие ошибки и исчерпанные попытки пробрасываются
- */
+/** Выполняет задачу, дождавшись общей паузы */
 export async function withRateLimitRetry<T>(
   task: () => Promise<T>,
   inspect: (error: unknown) => RateLimitInfo,

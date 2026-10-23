@@ -44,10 +44,7 @@ export function siteBookmarksKey(
   return `${userId}:${siteId}:${status}`;
 }
 
-/**
- * Сигнатура списка: тайтл и его глава или серия. Подписчики узнают
- * о новом списке, только если она изменилась
- */
+/** Сигнатура списка для сравнения: тайтл и глава или серия */
 export function siteBookmarksSignature(items: unknown[]): string {
   return (items as RawItem[])
     .map((raw) => {
@@ -61,10 +58,7 @@ export function siteBookmarksSignature(items: unknown[]): string {
 }
 
 /**
- * Списки папок сайтов в памяти: «Запланировано», «Любимое» и «Читаю».
- * Как у быстрых закладок, подменю открывается сразу с сохранённым
- * списком, а свежий приходит в фоне; после изменения закладок открытые
- * списки перезагружаются
+ * Списки папок сайтов в памяти с фоновым обновлением, как у быстрых закладок
  */
 export class SiteBookmarksStore {
   private readonly entries = new Map<string, Entry>();
@@ -125,10 +119,7 @@ export class SiteBookmarksStore {
     }
   }
 
-  /**
-   * Закладки изменились: открытые списки перезагружаются (склеивая
-   * частые вызовы), остальные — при следующем открытии
-   */
+  /** Перезагружает открытые списки после изменения закладок */
   invalidate(): void {
     if (this.refreshTimer) clearTimeout(this.refreshTimer);
 

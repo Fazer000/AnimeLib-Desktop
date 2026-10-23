@@ -61,14 +61,7 @@ interface SideRailProps {
   report: ReactNode;
 }
 
-/**
- * Левая панель: переключение сайтов, закладки текущего сайта, папки
- * «Запланировано» и «Любимое», загрузки и обращение к разработчику.
- * Сайты, закладки и папки выдвигаются подменю,
- * которое закрывает клик в любом месте окна; панель прячется язычком.
- * У сайтов с несколькими зеркалами под названием — выбор зеркала.
- * Пока страницу сайта закрывает плеер (suspended), подменю закрыто
- */
+/** Левая панель: сайты, закладки, папки, загрузки и обращение к разработчику */
 function SideRail({
   site,
   onSelectSite,
@@ -86,7 +79,6 @@ function SideRail({
     false,
   );
   const [open, setOpen] = useState<Flyout | null>(null);
-  // Заголовок не пропадает, пока подменю уезжает
   const lastOpen = useRef<Flyout>('bookmarks');
   if (open) lastOpen.current = open;
   const [, setMirrorsVersion] = useState(0);
@@ -190,7 +182,6 @@ function SideRail({
             />
           );
         })}
-        {/* Загрузки есть только у аниме: на других сайтах нет и полосы */}
         {site.kind === 'anime' && divider}
         {downloads}
         <Box sx={{ flex: 1 }} />
@@ -333,7 +324,6 @@ function SideRail({
 
         {open === 'bookmarks' && renderBookmarks(close)}
         {folderOpen && (
-          // Своё состояние на каждую папку и сайт: без мелькания прошлого списка
           <React.Fragment key={`${site.siteId}-${folderOpen}`}>
             {renderFolder(folderOpen, close)}
           </React.Fragment>

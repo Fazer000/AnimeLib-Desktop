@@ -5,10 +5,7 @@ import {
   TimeCodeSegment,
 } from '../../../services/player';
 
-/**
- * Держит менеджер сегментов в курсе таймкодов, длительности и времени.
- * Время берётся подпиской, а не пропсом, чтобы тик не задевал React.
- */
+/** Держит менеджер сегментов в курсе таймкодов, длительности и времени */
 export function usePlayerSegments(
   segmentManager: SegmentManager,
   timecode: TimeCodeSegment[],

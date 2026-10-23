@@ -66,8 +66,6 @@ function RelatedSection({
   useEffect(() => {
     onExpandedChange?.(expanded);
   }, [expanded, onExpandedChange]);
-
-  // Раскрытая хронология закрывается вместе с блоком (смена тайтла)
   useEffect(() => () => onExpandedChange?.(false), [onExpandedChange]);
 
   return (
@@ -155,9 +153,6 @@ function RelatedSection({
           </Box>
         )}
       </Box>
-
-      {/* Без портала: хронология остаётся в слое плеера, и выезжающая
-          карточка аниме из шапки ложится поверх неё */}
       <Modal
         open={expanded}
         onClose={() => setExpanded(false)}

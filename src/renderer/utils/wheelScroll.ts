@@ -2,18 +2,12 @@
  * Расчёт горизонтальной прокрутки ленты колесом мыши
  */
 
-/**
- * Берёт ось с большим сдвигом: колесо даёт вертикальный, а Shift + колесо
- * и свайп тачпадом — горизонтальный
- */
+/** Берёт ось с большим сдвигом */
 export function dominantWheelDelta(deltaX: number, deltaY: number): number {
   return Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
 }
 
-/**
- * Следующая целевая позиция ленты: копится от прошлой цели, поэтому
- * быстрое вращение колеса складывается, а не теряется
- */
+/** Следующая целевая позиция ленты */
 export function nextWheelScrollTarget(
   target: number,
   delta: number,

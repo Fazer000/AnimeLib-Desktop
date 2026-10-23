@@ -22,12 +22,7 @@ interface RawReadingBookmark {
   item?: { volume?: string | number; number?: string | number } | null;
 }
 
-/**
- * Закладки сайта манги или ранобэ в строки подменю. С главой — ссылка
- * на неё в читалке (с ?ui=<id пользователя>, как у ссылок сайта:
- * без него читалка 18+ сайтов отдаёт 404); без главы чтение ещё не начато, и path — страница
- * тайтла на случай, если первую главу не удастся найти
- */
+/** Закладки сайта манги или ранобэ в строки подменю */
 export function toReadingBookmarks(
   items: unknown[],
   kind: LibSiteKind,

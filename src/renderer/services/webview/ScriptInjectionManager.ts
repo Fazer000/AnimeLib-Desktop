@@ -4,26 +4,7 @@ import { getTitleActionScript } from '../../scripts/titleActionButton';
 
 const log = createLogger('ScriptInjectionManager');
 
-/**
- * ScriptInjectionManager - Manages script injection into webview
- *
- * Responsibilities:
- * - Script injection timing
- * - DOM ready detection
- * - Retry logic for failed injections
- * - Multiple script coordination
- *
- * @example
- * ```typescript
- * const manager = new ScriptInjectionManager(webview);
- *
- * manager.injectOnReady(() => {
- *   log.debug('Injecting scripts...');
- *   injectClickInterceptor(webview);
- *   extractAuthToken(webview);
- * });
- * ```
- */
+/** Внедрение скриптов в webview */
 
 export interface InjectionCallback {
   (): void;

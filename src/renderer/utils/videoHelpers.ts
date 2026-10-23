@@ -11,20 +11,13 @@ import {
   QUALITY_SD,
 } from '../theme/palette';
 
-/**
- * Возвращает CSS-ширину блока с заданным соотношением сторон,
- * вписанного в размерный контейнер (container-type: size),
- * округлённую вниз до целых пикселей
- */
+/** Возвращает CSS-ширину блока с заданным соотношением сторон */
 export function getFittedWidth(aspectRatio: number): string {
   const ratio = aspectRatio.toFixed(4);
   return `round(down, min(calc(100cqw - ${PLAYER_INSET_X}px), calc((100cqh - ${PLAYER_INSET_Y}px) * ${ratio})), ${PLAYER_WIDTH_SNAP_PX}px)`;
 }
 
-/**
- * Возвращает CSS-высоту ряда «кадр и сайдбар»: её задаёт кадр,
- * пока хватает окна по высоте
- */
+/** Возвращает CSS-высоту ряда «кадр и сайдбар»: её задаёт кадр, пока хватает окна по высоте */
 export function getPlayerRowHeight(
   aspectRatio: number,
   sidebarWidth: string,
@@ -37,10 +30,7 @@ export function getPlayerRowHeight(
   return `min(${byWidth}, ${byHeight})`;
 }
 
-/**
- * Возвращает отрезок прокрутки, на котором лист страницы наезжает
- * на закреплённый блок: от касания его нижней кромки до полного перекрытия
- */
+/** Возвращает отрезок прокрутки, на котором лист страницы наезжает на закреплённый блок */
 export function getCoverRange(
   gap: number,
   pinnedHeight: string,
@@ -48,10 +38,7 @@ export function getCoverRange(
   return { start: `${gap}px`, end: `calc(${gap}px + ${pinnedHeight})` };
 }
 
-/**
- * Возвращает CSS-высоту вписанного видео для контейнера-строки,
- * где рядом расположен сайдбар заданной ширины (container-type: size)
- */
+/** Возвращает CSS-высоту вписанного видео для контейнера-строки */
 export function getFittedHeight(
   aspectRatio: number,
   sidebarWidth: string,

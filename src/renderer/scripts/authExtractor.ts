@@ -55,10 +55,7 @@ export type AuthExtractionOutcome = 'authenticated' | 'signed-out' | 'unknown';
 
 const TOKEN_STORAGE_KEY = 'animeLibAuthToken';
 
-/**
- * Проверяет, что гостевая страница действительно на сайте:
- * на сторонних страницах отсутствие сессии ничего не значит
- */
+/** Проверяет, что гостевая страница действительно на сайте */
 function isOnSitePage(webview: any): boolean {
   try {
     return isSiteUrl(webview.getURL());
@@ -67,10 +64,7 @@ function isOnSitePage(webview: any): boolean {
   }
 }
 
-/**
- * Извлекает токен аутентификации из WebView и синхронизирует его копию.
- * Копия удаляется, когда сайт сообщил об отсутствии сессии.
- */
+/** Извлекает токен аутентификации из WebView и синхронизирует его копию */
 export function extractAuthToken(webview: any): Promise<AuthExtractionOutcome> {
   if (!webview?.executeJavaScript) {
     log.error('Cannot extract token: webview is not ready');

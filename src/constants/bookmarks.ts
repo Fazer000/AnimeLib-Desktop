@@ -17,10 +17,7 @@ export const BOOKMARK_STATUS_WATCHING = 21;
  */
 export const BOOKMARK_STATUS_PLANNED = 22;
 
-/**
- * Через сколько после изменения закладок перезагружаются списки: серия
- * запросов сайта склеивается в одно обновление, мс
- */
+/** Задержка перезагрузки списков после изменения закладок, мс */
 export const BOOKMARKS_REFRESH_DELAY_MS = 400;
 
 /**
@@ -41,10 +38,7 @@ export const QUICK_BOOKMARK_STATUSES = [
   BOOKMARK_STATUS_REWATCHING,
 ];
 
-/**
- * Папка «Читаю» на сайтах манги и ранобэ: из неё собираются закладки
- * подменю на этих сайтах
- */
+/** Папка «Читаю» на сайтах манги и ранобэ: из неё собираются закладки подменю на этих сайтах */
 export const BOOKMARK_STATUS_READING = 1;
 
 /**

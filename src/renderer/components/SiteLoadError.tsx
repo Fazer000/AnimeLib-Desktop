@@ -8,10 +8,7 @@ interface SiteLoadErrorProps {
   onRetry: () => void;
 }
 
-/**
- * Страница вместо сайта, который не загрузился: без адресной строки это
- * единственный выход, если сайт или зеркало заблокированы
- */
+/** Страница вместо сайта, который не загрузился */
 function SiteLoadError({ host, onChangeSite, onRetry }: SiteLoadErrorProps) {
   const { customColors } = useTheme().palette;
 

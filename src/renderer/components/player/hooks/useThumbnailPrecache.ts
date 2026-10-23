@@ -2,10 +2,7 @@ import { useEffect } from 'react';
 import type { ThumbnailManager } from '../../../services/player';
 import { THUMBNAIL_PRECACHE_DELAY_MS } from '../../../../constants';
 
-/**
- * Запускает фоновую подготовку превью вскоре после загрузки видео, ещё до
- * начала просмотра, чтобы к первому наведению на полоску кадры уже были
- */
+/** Запускает фоновую подготовку превью вскоре после загрузки видео */
 export function useThumbnailPrecache(
   thumbnailManager: ThumbnailManager | null,
   duration: number,

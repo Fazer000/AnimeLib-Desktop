@@ -6,10 +6,7 @@ interface EpisodeStatusBadgeProps {
   status?: { abbr: string | null; label: string } | null;
 }
 
-/**
- * Плашка статуса серии с подсказкой. Подсказка встраивается в полноэкранный
- * элемент, иначе в полноэкранном режиме её не видно
- */
+/** Плашка статуса серии с подсказкой */
 function EpisodeStatusBadge({ status = null }: EpisodeStatusBadgeProps) {
   const { customColors } = useTheme().palette;
   const badge = getEpisodeBadge(status);

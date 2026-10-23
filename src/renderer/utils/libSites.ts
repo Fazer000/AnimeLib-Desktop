@@ -44,10 +44,7 @@ export function libSiteHomeUrl(
   return site.kind === 'anime' ? animeHomeUrl : chosenMirror(site, homes);
 }
 
-/**
- * Куда ведёт «Домой»: на сайтах манги и ранобэ — на главную того домена,
- * где открыта страница; на AnimeLib и вне сети — на главную из настроек
- */
+/** Куда ведёт «Домой» */
 export function currentSiteHomeUrl(
   pageUrl: string,
   animeHomeUrl: string,
@@ -59,10 +56,7 @@ export function currentSiteHomeUrl(
   return `${new URL(pageUrl).origin}/`;
 }
 
-/**
- * Полный адрес пути на сайте сети по Site-Id на выбранном зеркале;
- * AnimeLib и неизвестный сайт — null
- */
+/** Полный адрес пути на сайте сети на выбранном зеркале */
 export function libSitePageUrl(
   siteId: number,
   path: string,
@@ -75,11 +69,7 @@ export function libSitePageUrl(
   return `${new URL(chosenMirror(site, homes)).origin}${path}`;
 }
 
-/**
- * Страница тайтла на его сайте сети по Site-Id: манга — /ru/manga/,
- * ранобэ — /ru/book/. Аниме и неизвестный сайт — null: аниме открывается
- * своим путём, через адрес AnimeLib из настроек
- */
+/** Страница тайтла на его сайте сети по Site-Id: манга — /ru/manga/, ранобэ — /ru/book/ */
 export function libTitlePageUrl(
   siteId: number,
   slugUrl: string,
@@ -93,10 +83,7 @@ export function libTitlePageUrl(
   return libSitePageUrl(siteId, `/ru/${section}/${slugUrl}`, sites, homes);
 }
 
-/**
- * С какой вкладки поиска начать: текущий сайт, если на нём что-то нашлось,
- * иначе первый сайт с результатами по порядку
- */
+/** С какой вкладки поиска начать */
 export function pickSearchSite(
   counts: Record<number, number>,
   currentSiteId: number,

@@ -16,10 +16,7 @@ interface Episode {
   status?: { abbr: string | null; label: string } | null;
 }
 
-/**
- * Гасит ближайший клик после перетаскивания, где бы ни отпустили кнопку,
- * иначе он дойдёт до плеера и переключит паузу
- */
+/** Гасит ближайший клик после перетаскивания */
 const suppressNextClick = (): void => {
   const swallow = (event: MouseEvent) => {
     event.stopPropagation();

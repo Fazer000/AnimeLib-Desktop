@@ -21,10 +21,7 @@ interface ScriptHost {
   executeJavaScript?: (code: string) => Promise<unknown>;
 }
 
-/**
- * Скрипт наблюдателя: сообщает через консоль, прокручена ли страница дальше
- * порога и где виден «Мини чат» — свёрнутая кнопка или раскрытое окно
- */
+/** Скрипт наблюдателя за прокруткой страницы */
 export function buildPageScrollWatcherScript(threshold: number): string {
   return `
 (function () {

@@ -40,10 +40,7 @@ function parseSiteTime(value: string): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-/**
- * Длина действующей серии: не короче порога и со входом не раньше вчерашнего дня.
- * Прерванная серия значка не даёт
- */
+/** Длина действующей серии: не короче порога и со входом не раньше вчерашнего дня */
 export function getActiveStreak(
   info: LoginStreakInfo | null | undefined,
   now: Date = new Date(),
@@ -103,10 +100,7 @@ export function resolveStreakScheme(
   return theme === 'light' || theme === 'dark' ? theme : appScheme;
 }
 
-/**
- * Цвета значка по личному стилю автора. Неизвестный стиль заменяется
- * стандартным, как на сайте
- */
+/** Цвета значка по личному стилю автора */
 export function resolveStreakColors(
   preferences: LoginStreakPreferences | null | undefined,
   tier: LoginStreakTier,

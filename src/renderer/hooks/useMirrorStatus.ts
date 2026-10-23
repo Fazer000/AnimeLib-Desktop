@@ -8,11 +8,7 @@ const log = createLogger('useMirrorStatus');
 /** Последние известные состояния: повторная проверка не мигает «проверкой» */
 const lastStates: MirrorStates = {};
 
-/**
- * Открывается ли зеркало: запрос идёт из main-процесса, где виден код
- * ответа. Сетевой сбой, тайм-аут и ошибки прокси вроде Cloudflare 525 —
- * недоступно. Возвращает время ответа
- */
+/** Открывается ли зеркало: запрос идёт из main-процесса, где виден код ответа */
 async function checkMirror(home: string): Promise<number> {
   const result = await window.electron?.ipcRenderer?.invoke(
     'check-mirror',
@@ -24,10 +20,7 @@ async function checkMirror(home: string): Promise<number> {
   return result.ms;
 }
 
-/**
- * Проверяет доступность зеркал, пока active; результат копится по мере
- * ответов
- */
+/** Проверяет доступность зеркал, пока active; результат копится по мере ответов */
 export default function useMirrorStatus(
   homes: string[],
   active = true,

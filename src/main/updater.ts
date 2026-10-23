@@ -230,10 +230,7 @@ const sendStage = (
   window?.webContents.send('update-install-stage', stage);
 };
 
-/**
- * Перезапускает приложение через секунду: диалог успевает показать стадию.
- * Новый процесс отвязан от текущего и стартует после его выхода
- */
+/** Перезапускает приложение после выхода текущего процесса */
 const relaunchSoon = (execPath: string): void => {
   const relaunch = buildRelaunchCommand(
     execPath,
@@ -258,10 +255,7 @@ const runCommand = (command: string, args: string[]): Promise<boolean> =>
     });
   });
 
-/**
- * AppImage: новый файл скачивается рядом и подменяет старый, затем
- * перезапуск. Папка без записи — файл остаётся в «Загрузках»
- */
+/** AppImage: подменяет файл новым и перезапускает приложение */
 const installAppImage = async (
   window: BrowserWindow | null,
   info: UpdateInfo,
@@ -317,9 +311,7 @@ const installAppImage = async (
 };
 
 /**
- * deb и rpm: установка через системное окно пароля, затем перезапуск.
- * Отказ — папка с пакетом и команда для терминала: Центр приложений
- * не обновляет уже установленный пакет из файла
+ * deb и rpm: установка с паролем и перезапуск; при отказе — команда для терминала
  */
 const installPackage = async (
   window: BrowserWindow | null,
@@ -374,7 +366,6 @@ const downloadAndInstall = async (
   }
 
   const fileName = path.basename(new URL(info.downloadUrl).pathname);
-  // deb и rpm — в «Загрузки»: Центр приложений (snap) не видит /tmp
   const directory =
     kind === 'deb' || kind === 'rpm' ? app.getPath('downloads') : os.tmpdir();
   const filePath = path.join(directory, fileName);

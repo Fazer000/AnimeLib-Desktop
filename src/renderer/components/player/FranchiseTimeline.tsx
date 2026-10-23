@@ -114,10 +114,7 @@ const nodeBox = (
   };
 };
 
-/**
- * Линия связи: в одном ряду — от края к краю, между рядами — дугой
- * от нижнего или верхнего края к левой части узла
- */
+/** Линия связи между узлами хронологии */
 const edgePath = (
   from: NodeBox,
   to: NodeBox,
@@ -189,14 +186,11 @@ function FranchiseNode({
   const textRef = useRef<HTMLDivElement>(null);
   const [clipped, setClipped] = useState(false);
 
-  // Подсказка нужна, только если текст на узле обрезан или тайтла
-  // нет на Animelib. Пиксель запаса — на дробную ширину текста
   const measureClipping = () => {
     const lines = textRef.current ? [...textRef.current.children] : [];
     setClipped(lines.some((line) => line.scrollWidth > line.clientWidth + 1));
   };
 
-  // Шрифт может догрузиться позже, поэтому замер повторяется при наведении
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useLayoutEffect(measureClipping, [label, meta]);
 
@@ -312,10 +306,7 @@ function FranchiseNode({
   );
 }
 
-/**
- * Хронология франшизы: тайтлы по дате выхода, основная линия продолжений
- * по центру, ответвления сверху и снизу
- */
+/** Хронология франшизы: тайтлы по дате выхода */
 function FranchiseTimeline({
   currentSlug,
   shikimoriId,
@@ -345,9 +336,7 @@ function FranchiseTimeline({
   const [hovered, setHovered] = useState<string | null>(null);
   const frameWidth = frameSize?.width ?? 0;
   const frameHeight = frameSize?.height ?? 0;
-  // В раскрытом виде граф можно утащить за края на этот запас
   const overscroll = expanded ? FRANCHISE_EXPANDED_OVERSCROLL : 0;
-  // В раскрытом виде ряды выше: между ними шире промежуток для связей
   const rowHeight = expanded
     ? FRANCHISE_EXPANDED_ROW_HEIGHT
     : FRANCHISE_ROW_HEIGHT;
@@ -377,7 +366,6 @@ function FranchiseTimeline({
       minYearWidth: FRANCHISE_MIN_YEAR_WIDTH,
       emptyGapWidth: FRANCHISE_EMPTY_GAP_WIDTH,
       minWidth: frameWidth - FRANCHISE_LEGEND_WIDTH - PADDING_X * 2 - BORDER,
-      // Ширина лет как в обычном виде: даты не сдвигаются при раскрытии
       yearRows: { above: FRANCHISE_ROWS_ABOVE, below: FRANCHISE_ROWS_BELOW },
       linkAware: expanded,
     });
@@ -395,17 +383,12 @@ function FranchiseTimeline({
       root: franchiseRoot(shown, mainLine),
     };
   }, [graph, currentSlug, frameWidth, rowLimits, expanded]);
-
-  // В раскрытом виде ряды опущены так, чтобы основная история шла
-  // посередине окна, а не прилипала к шкале лет
   const visibleRowsHeight = frameHeight - FRANCHISE_AXIS_HEIGHT - BORDER;
   const rowsTop =
     expanded && view
       ? centerMainRowOffset(view.layout.minRow, rowHeight, visibleRowsHeight)
       : 0;
 
-  // Граф растёт по ходу загрузки: первый раз текущий тайтл ставится
-  // в центр, дальше вид сдвигается вместе с ним, чтобы ничего не прыгало
   useLayoutEffect(() => {
     const element = scrollRef.current;
     if (!view || !element || !view.layout.nodes.has(currentSlug)) return;
@@ -422,7 +405,6 @@ function FranchiseTimeline({
 
     const visibleWidth = element.clientWidth - FRANCHISE_LEGEND_WIDTH;
     const visibleHeight = element.clientHeight - FRANCHISE_AXIS_HEIGHT;
-    // Запас за краями при открытии не показывается: только когда тянут
     const fit = (value: number, size: number, client: number) =>
       Math.min(Math.max(value, overscroll), size - client - overscroll);
 
@@ -515,7 +497,6 @@ function FranchiseTimeline({
     const { shown, layout, sides, root } = view;
     const width = layout.width + PADDING_X * 2;
     const rowsHeight = (layout.maxRow - layout.minRow + 1) * rowHeight;
-    // Раскрытая хронология заполняет окно по высоте: сетка лет доходит до низа
     const height = expanded
       ? Math.max(rowsTop + rowsHeight, visibleRowsHeight)
       : rowsHeight;
@@ -616,7 +597,7 @@ function FranchiseTimeline({
           display: 'flex',
           flexDirection: 'column',
           overflowX: 'auto',
-          overflowY: 'hidden',
+          overflowY: expanded ? 'auto' : 'hidden',
           cursor: isDragging ? 'grabbing' : 'grab',
           userSelect: 'none',
         }}

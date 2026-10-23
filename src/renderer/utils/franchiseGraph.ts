@@ -2,21 +2,14 @@
  * Граф франшизы для хронологии: тайтлы, связи между ними и раскладка по датам
  */
 
-/**
- * Есть ли тайтл на Animelib: ещё неизвестно, есть, нет, или не найден без
- * входа на сайт — тогда он может быть скрыт по возрасту
- */
+/** Есть ли тайтл на Animelib: ещё неизвестно, есть, нет, или не найден без входа на сайт */
 export type FranchiseAvailability =
   | 'pending'
   | 'available'
   | 'missing'
   | 'restricted';
 
-/**
- * Тайтл франшизы. slugUrl — ключ узла; у тайтлов из Shikimori, пока они
- * не сопоставлены с Animelib, это не slug Animelib. Куда вести по клику,
- * говорит link, а без него — сам slugUrl
- */
+/** Тайтл франшизы */
 export interface FranchiseTitle {
   slugUrl: string;
   name: string;
@@ -36,10 +29,7 @@ export interface FranchiseEdge {
   sequel: boolean;
 }
 
-/**
- * Граф франшизы. curated — состав уже выверен источником (Shikimori)
- * и обрезать дальние тайтлы не нужно
- */
+/** Граф франшизы */
 export interface FranchiseGraph {
   titles: Map<string, FranchiseTitle>;
   edges: FranchiseEdge[];
@@ -116,10 +106,7 @@ export function isSequelLabel(label: string): boolean {
   return label === SEQUEL_LABEL || label === PREQUEL_LABEL;
 }
 
-/**
- * Идёт ли обход дальше по связи. Кроссовер ведёт в чужую франшизу:
- * сам тайтл показывается, его связи — нет
- */
+/** Идёт ли обход дальше по связи */
 export function isFranchiseLink(label: string): boolean {
   return label !== CROSSOVER_LABEL;
 }
@@ -168,10 +155,7 @@ export function normalizeEdge(
   return { from, to, label, sequel: label === SEQUEL_LABEL };
 }
 
-/**
- * Одна связь на пару тайтлов. Продолжение важнее прочих подписей,
- * среди прочих остаётся первая встреченная
- */
+/** Одна связь на пару тайтлов */
 export function mergeEdges(edges: FranchiseEdge[]): FranchiseEdge[] {
   const byPair = new Map<string, FranchiseEdge>();
 
@@ -203,12 +187,7 @@ export function animeRelationEdges(
     );
 }
 
-/**
- * Основная линия — цепочка продолжений текущего тайтла, если в ней больше
- * одного тайтла и есть сериал (TV или ONA) или фильм. Иначе — группа,
- * связанная продолжениями, где больше всего TV-сериалов; затем та, где есть
- * текущий тайтл; затем та, у которой больше связей с остальной франшизой
- */
+/** Основная линия — цепочка продолжений текущего тайтла */
 export function findMainLine(
   graph: FranchiseGraph,
   currentSlug: string,
@@ -274,10 +253,7 @@ export function findMainLine(
   return currentLine ?? best;
 }
 
-/**
- * Оставляет тайтлы не дальше заданного числа шагов от основной линии.
- * Шаги по продолжениям не считаются; текущий тайтл остаётся всегда
- */
+/** Оставляет тайтлы не дальше заданного числа шагов от основной линии */
 export function pruneDistantTitles(
   graph: FranchiseGraph,
   mainLine: Set<string>,
@@ -354,10 +330,7 @@ export function toYearFraction(date: string | null): number | null {
   return year + (month - 1) / 12 + (day - 1) / 365;
 }
 
-/**
- * Название без общего начала франшизы: «Атака титанов: Хроника» → «Хроника».
- * Тайтл, чьё название и есть начало, не меняется
- */
+/** Название без общего начала франшизы: «Атака титанов: Хроника» → «Хроника» */
 export function shortenTitle(name: string, root: string): string {
   if (!root || !name.startsWith(root)) return name;
 
@@ -411,10 +384,7 @@ export function formatReleaseMonth(date: string | null): string {
   return month ? `${month} ${match[1]}` : match[1];
 }
 
-/**
- * Год для раскладки: у тайтла без даты — год связанного с ним тайтла,
- * иначе — после самого позднего
- */
+/** Год для раскладки */
 function resolveYears(graph: FranchiseGraph): Map<string, number> {
   const years = new Map<string, number>();
 
@@ -442,11 +412,7 @@ function resolveYears(graph: FranchiseGraph): Map<string, number> {
   return years;
 }
 
-/**
- * Шкала времени: у каждого года с тайтлами своя ширина, подряд идущие
- * пустые годы схлопываются в узкий разрыв. Если шкала уже области,
- * годы растягиваются до её ширины
- */
+/** Шкала времени франшизы */
 export function buildTimeScale(
   yearWidths: Map<number, number>,
   emptyGapWidth: number,
@@ -564,11 +530,7 @@ function measureYears(
   return widths;
 }
 
-/**
- * Насколько неудобен ряд для тайтла: сумма расстояний по рядам до уже
- * расставленных связанных тайтлов; связь продолжения весит больше, чтобы
- * цепочка держалась одного ряда. Ряд дальше от основной линии чуть хуже
- */
+/** Насколько неудобен ряд для тайтла */
 export function rowLinkCost(
   row: number,
   neighbours: Array<{ row: number; sequel: boolean }>,
@@ -580,12 +542,7 @@ export function rowLinkCost(
   return links + Math.abs(row) * 0.01;
 }
 
-/**
- * Раскладка: по горизонтали — дата выхода, основная линия в нулевом ряду.
- * Тайтлы одной стороны занимают первый свободный ряд (с linkAware — тот
- * свободный, что ближе к связанным); если места нет, сдвигаются вправо
- * в ближнем ряду
- */
+/** Раскладка: по горизонтали — дата выхода, основная линия в нулевом ряду */
 export function layoutFranchise(
   graph: FranchiseGraph,
   mainLine: Set<string>,
@@ -690,11 +647,7 @@ export function layoutFranchise(
   };
 }
 
-/**
- * Конец связи, который смотреть позже. У продолжения это само продолжение,
- * у прочих связей — тайтл, вышедший позже; невышедший тайтл без даты —
- * всегда позже. При равных датах — конец связи
- */
+/** Конец связи, который смотреть позже */
 export function laterEnd(
   edge: FranchiseEdge,
   titles: Map<string, FranchiseTitle>,
@@ -709,10 +662,7 @@ export function laterEnd(
   return edge.to;
 }
 
-/**
- * Отступ рядов сверху, при котором основная история (ряд 0) стоит
- * посередине видимой высоты. Рядов больше, чем помещается, — без отступа
- */
+/** Отступ рядов сверху, ставящий основную историю посередине */
 export function centerMainRowOffset(
   minRow: number,
   rowHeight: number,
@@ -723,11 +673,7 @@ export function centerMainRowOffset(
   return Math.max(0, Math.round(visibleHeight / 2 - mainCenter));
 }
 
-/**
- * Сколько рядов ответвлений поместить сверху и снизу от основной линии
- * при заданной высоте: делит свободные ряды в той же пропорции, что и
- * обычный вид, и не опускается ниже него
- */
+/** Сколько рядов ответвлений поместить сверху и снизу от основной линии при заданной высоте */
 export function fitFranchiseRows(
   height: number,
   rowHeight: number,

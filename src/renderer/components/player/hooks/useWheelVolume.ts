@@ -15,10 +15,7 @@ interface UseWheelVolumeOptions {
   onActivity?: () => void;
 }
 
-/**
- * Меняет громкость колесом мыши над плеером. Элементы с пометкой
- * WHEEL_VOLUME_IGNORE_SELECTOR прокручиваются как обычно
- */
+/** Меняет громкость колесом мыши над плеером */
 export function useWheelVolume({
   containerRef,
   enabled,

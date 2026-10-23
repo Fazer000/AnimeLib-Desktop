@@ -1,7 +1,4 @@
-/**
- * Сопоставление плеера после пересоздания: сайт выдаёт плееру Kodik новый id
- * при обновлении озвучки, а тип плеера, команда и вид перевода не меняются
- */
+/** Сопоставление плеера после пересоздания */
 import type { Player } from '../api/animeApi';
 
 export interface PlayerIdentity {
@@ -68,10 +65,7 @@ export function findCurrentPlayer(
   );
 }
 
-/**
- * Отбирает скачанные копии серии для плеера: по id, а если копии сохранены
- * под прежним id — по признакам
- */
+/** Скачанные копии серии для плеера */
 export function findOfflineCopies<
   T extends PlayerIdentity & { playerId: number },
 >(copies: T[], player: Player): T[] {

@@ -12,10 +12,7 @@ interface ScrollToTopButtonProps {
   hidden?: boolean;
 }
 
-/**
- * Кнопка для прокрутки страницы вверх
- * Появляется когда пользователь прокрутил страницу вниз
- */
+/** Кнопка прокрутки страницы вверх */
 function ScrollToTopButton({
   threshold = 300,
   scrollContainerId,

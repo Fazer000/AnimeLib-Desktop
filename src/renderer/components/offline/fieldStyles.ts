@@ -34,10 +34,7 @@ export const offlineLabelSx = (customColors: CustomColors) => ({
   '&.Mui-focused': { color: customColors.accentSoftColor },
 });
 
-/**
- * Снимает фокус с поля после закрытия меню. Пока меню открыто, Select
- * не замечает ухода фокуса и остаётся подсвеченным до второго клика
- */
+/** Снимает фокус с поля после закрытия меню */
 export const blurSelectOnClose = (): void => {
   setTimeout(() => {
     const active = document.activeElement;

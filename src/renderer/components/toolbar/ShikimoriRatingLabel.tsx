@@ -8,10 +8,7 @@ interface ShikimoriRatingLabelProps {
   shikimoriHref: string | null | undefined;
 }
 
-/**
- * Оценка тайтла на Shikimori с числом голосов; только показывается.
- * Пока не загрузилась или её нет — ничего не выводит
- */
+/** Оценка тайтла на Shikimori с числом голосов; только показывается */
 function ShikimoriRatingLabel({ shikimoriHref }: ShikimoriRatingLabelProps) {
   const { customColors } = useTheme().palette;
   const rating = useShikimoriRating(shikimoriHref);

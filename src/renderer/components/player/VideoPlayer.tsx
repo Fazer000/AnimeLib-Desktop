@@ -161,10 +161,7 @@ interface VideoPlayerRef {
   videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
-/**
- * VideoPlayer с ООП-архитектурой
- * Использует классы для управления различными аспектами плеера
- */
+/** Видеоплеер */
 const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
   (
     {
@@ -698,10 +695,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       controllerRef.current?.getStateManager().setPlaybackRate(rate);
     }, []);
 
-    /**
-     * Смена качества под застывшим кадром: пока грузится новый источник,
-     * на экране остаётся последний кадр прежнего
-     */
+    /** Смена качества под застывшим кадром */
     const switchUnderFrozenFrame = useCallback(
       async (
         run: (beforeSwitch: () => void) => Promise<boolean> | undefined,

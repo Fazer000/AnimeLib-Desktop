@@ -1,12 +1,6 @@
-/**
- * Единственный источник кода замены нативных select на кастомные.
- * Тело инжектора сериализуется через toString() и выполняется в контексте гостевой страницы.
- */
+/** Единственный источник кода замены нативных select на кастомные */
 
-/**
- * Тело инжектора. Полностью самодостаточно: не ссылается на внешнюю область
- * видимости, потому что выполняется в другом контексте после сериализации.
- */
+/** Тело инжектора */
 export function customSelectInjectorMain(): void {
   const DROPDOWN_HEIGHT = 200;
   const STYLE_ID = 'custom-select-styles';
@@ -466,10 +460,7 @@ export function customSelectInjectorMain(): void {
   }
 }
 
-/**
- * Возвращает самовыполняющийся исходник инжектора для webview.executeJavaScript.
- * Результат выполнения — boolean: успешность инъекции.
- */
+/** Возвращает самовыполняющийся исходник инжектора для webview.executeJavaScript */
 export function getCustomSelectScript(): string {
   return `(function () {
   try {

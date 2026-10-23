@@ -10,10 +10,7 @@ const log = createLogger('VideoPlayer');
 
 type FullscreenPhase = 'enter' | 'exit' | null;
 
-/**
- * Следит за полноэкранным режимом и отдаёт CSS-анимацию перехода.
- * Фаза живёт ровно столько, сколько идёт анимация.
- */
+/** Следит за полноэкранным режимом и отдаёт CSS-анимацию перехода */
 export function useFullscreenPhase(
   uiStateManager: UIStateManager,
   isFullscreen: boolean,

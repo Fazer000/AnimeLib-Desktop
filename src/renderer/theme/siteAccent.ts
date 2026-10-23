@@ -1,7 +1,4 @@
-/**
- * Акценты сайта сети, выведенные из его единственного фирменного цвета
- * (--primary на сайте): фоны у всех сайтов общие, различается только он
- */
+/** Акценты сайта сети, выведенные из его единственного фирменного цвета (--primary на сайте) */
 import type { ColorSchemeName } from './themeMode';
 import { BLACK, WHITE } from './palette';
 
@@ -65,10 +62,7 @@ export function mixHex(from: string, to: string, t: number): string {
 
 const rgbTriplet = (hex: string) => hexToRgb(hex).join(', ');
 
-/**
- * Акценты сайта для схемы: заливка — сам цвет сайта, текст-акцент
- * осветлён на тёмном и затемнён на светлом, чтобы читаться на фоне
- */
+/** Акценты сайта для схемы */
 export function deriveSiteAccent(
   primary: string,
   scheme: ColorSchemeName,

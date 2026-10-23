@@ -1,7 +1,4 @@
-/**
- * Константы приложения
- * Единая точка для всех метаданных приложения
- */
+/** Константы приложения */
 
 import packageJson from '../../package.json';
 
@@ -45,10 +42,7 @@ export const PLAYER_PROTOCOL_PREFIX = 'anime-lib-player://';
  */
 export const APP_AUTHOR = 'Fazer';
 
-/**
- * Идентификатор приложения в Windows. Берётся из appId сборки: по нему система
- * находит ярлык установщика и показывает имя и значок в медиакарточке и уведомлениях
- */
+/** Идентификатор приложения в Windows */
 export const APP_USER_MODEL_ID = packageJson.build.appId;
 
 /**
@@ -64,18 +58,12 @@ export const APP_INFO = {
   author: APP_AUTHOR,
 } as const;
 
-/**
- * Повторы запроса к API при ответе 429: число попыток и границы паузы, мс.
- * Сайт блокирует примерно на 30 с, попыток хватает пережить блокировку дважды
- */
+/** Повторы запроса к API при ответе 429: число попыток и границы паузы, мс */
 export const API_RATE_LIMIT_RETRIES = 6;
 export const API_RATE_LIMIT_BASE_DELAY_MS = 2000;
 export const API_RATE_LIMIT_MAX_DELAY_MS = 30000;
 
-/**
- * Как часто главный процесс проверяет курсор над зоной наведения
- * в области перетаскивания окна, мс
- */
+/** Как часто главный процесс проверяет курсор над зоной наведения в области перетаскивания окна */
 export const HOVER_ZONE_POLL_MS = 50;
 
 /**

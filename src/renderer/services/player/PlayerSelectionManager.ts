@@ -1,26 +1,4 @@
-/**
- * PlayerSelectionManager - Manages player selection, user preferences, and auto-selection logic
- *
- * Responsibilities:
- * - Tracks and persists user's last selected team and player type
- * - Provides auto-selection logic based on preferences
- * - Groups players by type
- * - Manages player type selection
- *
- * @example
- * ```typescript
- * const manager = new PlayerSelectionManager();
- *
- * // Save user preference
- * manager.savePreference('Anilibria', 'Animelib');
- *
- * // Get auto-selected player
- * const player = manager.autoSelectPlayer(players);
- *
- * // Group players by type
- * const grouped = manager.groupPlayersByType(players);
- * ```
- */
+/** Выбор плеера */
 
 import { Player } from '../../api/animeApi';
 import { PLAYER_TYPE_ANIMELIB, PLAYER_TYPE_KODIK } from '../../../constants';
@@ -111,10 +89,7 @@ export class PlayerSelectionManager {
     return !!(this.lastSelectedTeamName && this.lastSelectedPlayerType);
   }
 
-  /**
-   * Auto-select player based on saved preferences
-   * Returns null if no matching player found
-   */
+  /** Плеер по сохранённым предпочтениям; null — подходящего нет */
   public autoSelectPlayer(players: Player[]): Player | null {
     if (!this.hasPreferences() || players.length === 0) {
       return null;
@@ -133,13 +108,7 @@ export class PlayerSelectionManager {
     return matched || null;
   }
 
-  /**
-   * Auto-select player with fallback logic:
-   * 1. Try to select from saved preferences
-   * 2. If no preferences, select first from AnimeLib
-   * 3. If no AnimeLib players, select first from Kodik
-   * 4. If no Kodik, select any first player
-   */
+  /** Плеер по предпочтениям с запасными вариантами */
   public autoSelectPlayerOrFallback(players: Player[]): Player | null {
     if (players.length === 0) {
       return null;

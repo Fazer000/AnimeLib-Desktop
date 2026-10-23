@@ -19,11 +19,7 @@ interface LetterboxGlowProps {
   onActiveChange: (active: boolean) => void;
 }
 
-/**
- * Подсветка в полях вокруг кадра. Появляется, только если поля есть,
- * и не заходит под сам кадр: слой под видео мешает драйверу выводить
- * видео напрямую (RTX VSR) со скруглёнными углами
- */
+/** Подсветка в полях вокруг кадра */
 function LetterboxGlow({
   videoRef,
   isPlaying,

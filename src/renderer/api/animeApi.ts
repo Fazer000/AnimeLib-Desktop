@@ -715,10 +715,7 @@ export const animeApi = {
     return response.data?.data ?? items;
   },
 
-  /**
-   * Возвращает быстрые закладки из папок «Смотрю» и «Пересматриваю»,
-   * от свежих к старым
-   */
+  /** Возвращает быстрые закладки из папок «Смотрю» и «Пересматриваю», от свежих к старым */
   getQuickBookmarks: async (limit: number = 50): Promise<BookmarkItem[]> => {
     const userId = getUserId();
     if (!userId) {
@@ -913,10 +910,7 @@ export const animeApi = {
     return response.data.data;
   },
 
-  /**
-   * Тайтл по slug, в том числе без числового префикса: one-piece-anime.
-   * Нет такого тайтла — null
-   */
+  /** Тайтл по slug, в том числе без числового префикса: one-piece-anime */
   findAnime: async (animeSlugUrl: string): Promise<AnimeInfo | null> => {
     try {
       return await animeApi.getAnimeRelease(animeSlugUrl);
@@ -926,10 +920,7 @@ export const animeApi = {
     }
   },
 
-  /**
-   * Закладки одной папки на сайте сети (Site-Id) без преобразования;
-   * без входа — пустой список
-   */
+  /** Закладки одной папки на сайте сети (Site-Id) без преобразования; без входа — пустой список */
   getSiteBookmarks: async (
     siteId: number,
     status: number,

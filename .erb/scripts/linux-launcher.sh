@@ -1,7 +1,4 @@
 #!/bin/bash
-# Запуск на Linux: Ubuntu 24.04+ запрещает обычным программам песочницу
-# через пространства имён. Если запрет есть, а chrome-sandbox не SUID
-# (всегда так в AppImage), Chromium падает при старте — тогда без песочницы
 HERE="$(dirname "$(readlink -f "$0")")"
 BIN="$HERE/animelib-desktop-bin"
 SANDBOX="$HERE/chrome-sandbox"

@@ -1,7 +1,4 @@
-/**
- * Режим темы и его разрешение в конкретную схему.
- * Повторяет три состояния сайта: системное и два явных.
- */
+/** Режим темы и его разрешение в конкретную схему */
 
 /** Режим, выбранный на сайте. */
 export type ThemeMode = 'system' | 'light' | 'dark';
@@ -47,11 +44,7 @@ export function isThemeMode(value: unknown): value is ThemeMode {
   return typeof value === 'string' && THEME_MODES.includes(value as ThemeMode);
 }
 
-/**
- * Какую тему записать сайту при загрузке: тема общая для всех сайтов и
- * задаётся приложением, поэтому сайту с другой темой пишется тема
- * приложения; совпадает — ничего
- */
+/** Какую тему записать сайту при загрузке */
 export function siteThemeToWrite(
   siteMode: ThemeMode,
   appMode: ThemeMode,

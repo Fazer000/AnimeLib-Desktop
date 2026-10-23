@@ -7,10 +7,7 @@ import { isFrameReady } from '../../utils/thumbnailGrid';
 
 const JPEG_QUALITY = 0.7;
 
-/**
- * Снимает кадры из собственного скрытого видео: перематывает и ждёт, пока
- * кадр действительно готов. Запросы к одному экземпляру идут по очереди
- */
+/** Снимает кадры из собственного скрытого видео */
 class ThumbnailGrabber {
   private src: string | null = null;
 

@@ -53,10 +53,7 @@ interface TrackOptions {
   sync?: number[] | null;
 }
 
-/**
- * 6 образцов по 1 с (timescale 1000): куски по 2, 2 и 2 образца,
- * размеры 10…60, куски начинаются с 1000, 2000 и 3000
- */
+/** 6 образцов по 1 с (timescale 1000) */
 const videoTrak = ({
   entry = 'avc1',
   co64 = false,

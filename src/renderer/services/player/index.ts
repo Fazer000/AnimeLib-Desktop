@@ -1,7 +1,4 @@
-/**
- * Video Player Services
- * ООП-архитектура для управления видеоплеером
- */
+/** Сервисы видеоплеера */
 
 export { default as AmbientLightManager } from './AmbientLightManager';
 export { PlaybackTimeStore } from './PlaybackTimeStore';

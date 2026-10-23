@@ -13,10 +13,7 @@ const cache = new LruCache<ShikimoriRating | null>(
   SHIKIMORI_RATING_CACHE_LIMIT,
 );
 
-/**
- * Оценка тайтла на Shikimori по ссылке shikimori_href; пока грузится,
- * нет ссылки или оценки — null
- */
+/** Оценка тайтла на Shikimori по ссылке shikimori_href; пока грузится, нет ссылки или оценки */
 export default function useShikimoriRating(
   shikimoriHref: string | null | undefined,
 ): ShikimoriRating | null {

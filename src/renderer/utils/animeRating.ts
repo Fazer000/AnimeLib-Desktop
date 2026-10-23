@@ -12,10 +12,7 @@ const RATING_ACTION_LABELS: Record<RatingAction, string> = {
   delete: 'Удалить оценку',
 };
 
-/**
- * Что сделает кнопка: без прежней оценки — поставит, с новой — изменит,
- * со снятой или той же — удалит
- */
+/** Что сделает кнопка оценки */
 export function getRatingAction(userVote: number, score: number): RatingAction {
   if (!userVote) return 'store';
 

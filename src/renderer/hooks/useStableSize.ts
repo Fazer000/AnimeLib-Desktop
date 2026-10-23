@@ -7,10 +7,7 @@ interface StableSize {
 
 const SETTLE_DELAY = 200;
 
-/**
- * Как часто обновлять размер: 'settled' — после завершения ресайза,
- * 'frame' — не чаще раза за кадр, чтобы содержимое следовало за окном
- */
+/** Как часто обновлять размер */
 export type SizeUpdateMode = 'settled' | 'frame';
 
 /**

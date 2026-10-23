@@ -3,10 +3,7 @@ import { createLogger } from '../../shared/logger';
 
 const log = createLogger('usePersistedChoice');
 
-/**
- * Строковое значение из набора, переживающее перезапуск через localStorage.
- * Неизвестное сохранённое значение заменяется значением по умолчанию
- */
+/** Строковое значение из набора, переживающее перезапуск через localStorage */
 export function usePersistedChoice<T extends string>(
   key: string,
   isValid: (value: unknown) => value is T,
