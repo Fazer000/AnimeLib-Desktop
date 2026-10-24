@@ -198,10 +198,8 @@ export class VideoPlayerController {
    * Прокидывает время воспроизведения мимо состояния React
    */
   private handleTimeUpdate(currentTime: number, buffered: number): void {
-    this.watchStatsManager.updateProgress(
-      currentTime,
-      this.stateManager.getState().duration,
-    );
+    const { duration, isPlaying } = this.stateManager.getState();
+    this.watchStatsManager.updateProgress(currentTime, duration, isPlaying);
     this.config.onTimeUpdate?.(currentTime, buffered);
   }
 
@@ -345,6 +343,7 @@ export class VideoPlayerController {
             ...getPlayerIdentity(options.player),
           }
         : null,
+      options.episodeId ?? null,
     );
 
     this.qualityManager.createQualityOptions(

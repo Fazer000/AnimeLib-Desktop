@@ -130,6 +130,9 @@ export const EPISODE_HINT_FONT = 'clamp(11px, 1.6cqh, 14px)';
  */
 export const WATCH_VIEW_THRESHOLD = 0.6;
 
+/** Наибольший шаг времени между обновлениями, который ещё не перемотка, с */
+export const PLAYBACK_MAX_STEP_S = 3;
+
 /**
  * Идентификаторы плееров в API (регистр важен)
  */
@@ -542,3 +545,6 @@ export const AUTO_QUALITY_SIZE_SETTLE_MS = 2000;
 
 /** Допуск: качество чуть ниже высоты плеера ещё считается достаточным. */
 export const AUTO_QUALITY_SIZE_TOLERANCE = 0.9;
+
+/** Пауза перед повторной отметкой просмотра после сбоя, мс */
+export const WATCH_VIEW_RETRY_MS = 30000;

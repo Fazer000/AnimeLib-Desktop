@@ -252,94 +252,26 @@ function PlayerPageRefactored({
   }, [sidebarCollapsed, setSidebarCollapsed]);
 
   /**
-   * Сохраняет закладку с текущим таймкодом в фоне
+   * Покидает плеер: очищает видео-заголовки и переходит далее
    */
-  const saveBookmarkInBackground = useCallback(() => {
-    const currentEpisode = episodes[currentEpisodeIndex];
-
-    if (
-      !currentEpisode ||
-      !videoPlayerRef.current?.videoRef.current ||
-      !currentAnimeId ||
-      !selectedPlayer
-    ) {
-      return;
+  const exitPlayer = useCallback((navigate: () => void) => {
+    if (window.electron?.electronAPI?.clearVideoHeaders) {
+      window.electron.electronAPI
+        .clearVideoHeaders()
+        .then(() => {
+          log.debug('Video headers cleared');
+          navigate();
+          return null;
+        })
+        .catch((err: any) => {
+          log.error('Error clearing video headers:', err);
+          navigate();
+          return null;
+        });
+    } else {
+      navigate();
     }
-
-    const currentTime =
-      videoPlayerRef.current.videoRef.current.currentTime || 0;
-
-    if (currentTime <= 0) {
-      return;
-    }
-
-    log.debug('Auto-saving bookmark in background:', currentTime);
-
-    const meta = {
-      team: selectedPlayer.team.id,
-      translation_type: selectedPlayer.translation_type.id,
-      player: selectedPlayer.player,
-      item_number: currentEpisode.number,
-    };
-
-    const persist = (synced: boolean) =>
-      progressStore.save({
-        animeId: currentAnimeId,
-        episodeId: currentEpisode.id,
-        itemNumber: currentEpisode.number,
-        seconds: currentTime,
-        teamId: selectedPlayer.team.id,
-        translationTypeId: selectedPlayer.translation_type?.id ?? 0,
-        playerType: selectedPlayer.player,
-        synced,
-      });
-
-    bookmarkManager
-      .saveBookmark(currentAnimeId, currentEpisode.id, currentTime, meta)
-      .then((success) => {
-        persist(success);
-        log.debug('Background bookmark synced:', success);
-        return null;
-      })
-      .catch((err) => {
-        persist(false);
-        log.error('Error saving bookmark in background:', err);
-        return null;
-      });
-  }, [
-    episodes,
-    currentEpisodeIndex,
-    currentAnimeId,
-    bookmarkManager,
-    selectedPlayer,
-  ]);
-
-  /**
-   * Покидает плеер: сохраняет закладку, очищает видео-заголовки и переходит далее
-   */
-  const exitPlayer = useCallback(
-    (navigate: () => void) => {
-      saveBookmarkInBackground();
-
-      if (window.electron?.electronAPI?.clearVideoHeaders) {
-        window.electron.electronAPI
-          .clearVideoHeaders()
-          .then(() => {
-            log.debug('Video headers cleared');
-            navigate();
-            return null;
-          })
-          .catch((err: any) => {
-            log.error('Error clearing video headers:', err);
-            navigate();
-            return null;
-          });
-      } else {
-        navigate();
-      }
-    },
-    [saveBookmarkInBackground],
-  );
+  }, []);
 
   /**
    * Выходит из плеера и открывает страницу в WebView
@@ -375,7 +307,7 @@ function PlayerPageRefactored({
   }, [currentAnimeId, handleRelatedAnimeClick]);
 
   /**
-   * Handle back navigation - with auto-save bookmark
+   * Возвращает на предыдущую страницу
    */
   const handleBack = useCallback(() => {
     log.debug('Going back');
