@@ -22,6 +22,7 @@ const log = createLogger('QualityManager');
 /** «Авто» включено и почему оно играет не самое высокое качество. */
 export interface QualityModeState {
   auto: boolean;
+  available: boolean;
   reason: AutoQualityReason;
 }
 
@@ -203,10 +204,7 @@ export class QualityManager {
       return choice;
     }
 
-    const offline = this.qualityOptions.some((option) =>
-      option.label.endsWith('(оффлайн)'),
-    );
-    if (offline) {
+    if (this.isOfflineSource()) {
       this.emitMode();
       return values[0] ?? null;
     }
@@ -251,9 +249,18 @@ export class QualityManager {
     return this.preference === AUTO_QUALITY;
   }
 
+  /** Играет ли скачанная копия: выбирать «Авто» не из чего */
+  private isOfflineSource(): boolean {
+    return this.qualityOptions.some((option) =>
+      option.label.endsWith('(оффлайн)'),
+    );
+  }
+
   getModeState(): QualityModeState {
+    const available = !this.isOfflineSource();
     return {
-      auto: this.isAuto(),
+      auto: available && this.isAuto(),
+      available,
       reason: this.policy?.reason(Date.now()) ?? null,
     };
   }

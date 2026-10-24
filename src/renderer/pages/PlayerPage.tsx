@@ -244,9 +244,17 @@ function PlayerPageRefactored({
     [selectEpisode],
   );
 
-  /**
-   * Handle autoplay change
-   */
+  /** Разворачивает хронологию, выводя плеер из полноэкранного режима */
+  const handleToggleChronology = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch((err) => log.error('Fullscreen:', err));
+      setChronologyExpanded(true);
+      return;
+    }
+    setChronologyExpanded((value) => !value);
+  }, []);
+
+  /** Сворачивает и разворачивает боковую панель */
   const handleSidebarToggle = useCallback(() => {
     setSidebarCollapsed(!sidebarCollapsed);
   }, [sidebarCollapsed, setSidebarCollapsed]);
@@ -682,6 +690,11 @@ function PlayerPageRefactored({
                       sidebarCollapsed={sidebarCollapsed}
                       onSidebarToggle={handleSidebarToggle}
                       onOpenDownloadManager={() => setShowDownloadManager(true)}
+                      onToggleChronology={
+                        relatedAnime.length > 0
+                          ? handleToggleChronology
+                          : undefined
+                      }
                       downloadManagerOpen={showDownloadManager}
                       offlineMode={offlineMode}
                     />
@@ -771,6 +784,7 @@ function PlayerPageRefactored({
                 relatedAnime={relatedAnime}
                 onAnimeClick={handleRelatedAnimeClick}
                 onOpenUrl={handleOpenPage}
+                expanded={chronologyExpanded}
                 onExpandedChange={setChronologyExpanded}
               />
             )}

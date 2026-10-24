@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Box, ButtonBase, Modal, useTheme } from '@mui/material';
 import {
   FRANCHISE_EXPANDED_PADDING,
@@ -25,8 +25,9 @@ interface RelatedSectionProps {
   relatedAnime: RelatedAnimeType[];
   onAnimeClick: (slugUrl: string) => void;
   onOpenUrl: (url: string) => void;
-  /** Хронология раскрыта во всё окно или свёрнута */
-  onExpandedChange?: (expanded: boolean) => void;
+  /** Хронология раскрыта во всё окно */
+  expanded: boolean;
+  onExpandedChange: (expanded: boolean) => void;
 }
 
 const TAB_LABELS: Record<RelatedTab, string> = {
@@ -49,6 +50,7 @@ function RelatedSection({
   relatedAnime,
   onAnimeClick,
   onOpenUrl,
+  expanded,
   onExpandedChange,
 }: RelatedSectionProps) {
   const { customColors } = useTheme().palette;
@@ -61,12 +63,7 @@ function RelatedSection({
     () => dedupeRelations(relatedAnime),
     [relatedAnime],
   );
-  const [expanded, setExpanded] = useState(false);
-
-  useEffect(() => {
-    onExpandedChange?.(expanded);
-  }, [expanded, onExpandedChange]);
-  useEffect(() => () => onExpandedChange?.(false), [onExpandedChange]);
+  useEffect(() => () => onExpandedChange(false), [onExpandedChange]);
 
   return (
     <Box sx={{ width: '100%', marginBottom: 4, paddingY: 3 }}>
@@ -118,7 +115,7 @@ function RelatedSection({
           {tab === 'chronology' && (
             <ButtonBase
               aria-label="Развернуть хронологию"
-              onClick={() => setExpanded(true)}
+              onClick={() => onExpandedChange(true)}
               sx={{
                 ml: 'auto',
                 width: 32,
@@ -155,7 +152,7 @@ function RelatedSection({
       </Box>
       <Modal
         open={expanded}
-        onClose={() => setExpanded(false)}
+        onClose={() => onExpandedChange(false)}
         hideBackdrop
         disablePortal
         sx={{ top: TOOLBAR_HEIGHT, zIndex: FRANCHISE_EXPANDED_Z_INDEX }}
@@ -172,9 +169,9 @@ function RelatedSection({
             currentSlug={currentSlug}
             shikimoriId={shikimoriId}
             expanded
-            onClose={() => setExpanded(false)}
+            onClose={() => onExpandedChange(false)}
             onAnimeClick={(slugUrl) => {
-              setExpanded(false);
+              onExpandedChange(false);
               onAnimeClick(slugUrl);
             }}
           />
@@ -183,7 +180,5 @@ function RelatedSection({
     </Box>
   );
 }
-
-RelatedSection.defaultProps = { onExpandedChange: undefined };
 
 export default RelatedSection;

@@ -82,6 +82,7 @@ export const HOTKEY_GROUPS: readonly HotkeyGroup[] = [
       { keys: ['F'], label: 'Полноэкранный режим' },
       { keys: ['I'], label: 'Картинка в картинке' },
       { keys: ['V'], label: 'Список эпизодов' },
+      { keys: ['H'], label: 'Хронология франшизы' },
       {
         keys: [
           { icon: 'wheel', prefix: 'Shift +', label: 'Shift и колесо мыши' },

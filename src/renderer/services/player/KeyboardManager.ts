@@ -15,6 +15,7 @@ export interface KeyboardManagerConfig {
   skipTime?: number;
   onKeyPress?: () => void;
   onToggleEpisodes?: () => void;
+  onToggleChronology?: () => void;
 }
 
 /**
@@ -139,6 +140,12 @@ export class KeyboardManager {
       case 'v':
       case 'м':
         this.config.onToggleEpisodes?.();
+        handled = true;
+        break;
+
+      case 'h':
+      case 'р':
+        this.config.onToggleChronology?.();
         handled = true;
         break;
 

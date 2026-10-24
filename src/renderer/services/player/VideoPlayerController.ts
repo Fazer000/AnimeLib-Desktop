@@ -47,6 +47,7 @@ export interface VideoPlayerControllerConfig {
   onSkipForward?: (seconds: number) => void;
   skipTime?: number;
   onToggleEpisodes?: () => void;
+  onToggleChronology?: () => void;
   autoplayManager?: AutoplayManager;
   onOfflineSourceLost?: (recovered: boolean) => void;
 }
@@ -165,6 +166,7 @@ export class VideoPlayerController {
       skipTime: config.skipTime,
       onKeyPress: config.onKeyPress,
       onToggleEpisodes: config.onToggleEpisodes,
+      onToggleChronology: config.onToggleChronology,
     });
 
     this.thumbnailManager = new ThumbnailManager();

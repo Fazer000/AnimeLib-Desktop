@@ -133,6 +133,8 @@ interface VideoPlayerProps {
   // eslint-disable-next-line react/require-default-props
   onOpenDownloadManager?: () => void;
   // eslint-disable-next-line react/require-default-props
+  onToggleChronology?: () => void;
+  // eslint-disable-next-line react/require-default-props
   downloadManagerOpen?: boolean;
   // eslint-disable-next-line react/require-default-props
   // eslint-disable-next-line react/require-default-props
@@ -184,6 +186,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       sidebarCollapsed = false,
       onSidebarToggle,
       onOpenDownloadManager,
+      onToggleChronology,
       downloadManagerOpen = false,
       ambientLightEnabled = true,
       onAmbientLightChange,
@@ -204,6 +207,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       isFromHint?: boolean;
     } | null>(null);
     const isPlayingRef = useRef<boolean>(false);
+    const toggleChronologyRef = useRef(onToggleChronology);
+    toggleChronologyRef.current = onToggleChronology;
 
     const [isControllerReady, setIsControllerReady] = useState<boolean>(false);
     const [currentPlayerData, setCurrentPlayerData] = useState<Player | null>(
@@ -277,6 +282,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const [selectedQuality, setSelectedQuality] = useState<string>('');
     const [qualityMode, setQualityMode] = useState<QualityModeState>({
       auto: true,
+      available: true,
       reason: null,
     });
     const autoQualitySwitchRef = useRef<(quality: string) => void>(() => {});
@@ -372,6 +378,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           onToggleEpisodes: () => {
             uiStateManager.toggleEpisodesList();
           },
+          onToggleChronology: () => toggleChronologyRef.current?.(),
           onOfflineSourceLost: (recovered: boolean) =>
             setSourceNotice(
               recovered

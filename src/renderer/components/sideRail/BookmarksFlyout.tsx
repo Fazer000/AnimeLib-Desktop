@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, ButtonBase, Typography, useTheme } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, ButtonBase, Tooltip, Typography, useTheme } from '@mui/material';
 import {
   BOOKMARKS_COVER,
   LibSite,
@@ -28,6 +28,7 @@ interface RowProps {
  */
 export function Row({ coverUrl, title, caption, onClick }: RowProps) {
   const { customColors } = useTheme().palette;
+  const [truncated, setTruncated] = useState(false);
 
   return (
     <ButtonBase
@@ -63,16 +64,27 @@ export function Row({ coverUrl, title, caption, onClick }: RowProps) {
         )}
       </Box>
       <Box sx={{ minWidth: 0 }}>
-        <Typography
-          noWrap
-          sx={{
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            color: customColors.dialogTextColor,
-          }}
+        <Tooltip
+          title={truncated ? title : ''}
+          placement="top-start"
+          arrow
+          disableInteractive
         >
-          {title}
-        </Typography>
+          <Typography
+            noWrap
+            onMouseEnter={(event) => {
+              const el = event.currentTarget;
+              setTruncated(el.scrollWidth > el.clientWidth);
+            }}
+            sx={{
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: customColors.dialogTextColor,
+            }}
+          >
+            {title}
+          </Typography>
+        </Tooltip>
         <Typography
           sx={{ fontSize: '0.75rem', color: customColors.accentSoftColor }}
         >

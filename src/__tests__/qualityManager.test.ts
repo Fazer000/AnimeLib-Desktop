@@ -117,6 +117,28 @@ describe('QualityManager: сборка вариантов', () => {
     expect(options[0].label).toContain('оффлайн');
   });
 
+  it('для скачанной копии «Авто» недоступно', () => {
+    findEpisodes.mockReturnValue([
+      { playerId: 1, quality: '720p', fileName: 'a.mp4', playlistFileName: '' },
+    ]);
+    const manager = new QualityManager();
+
+    manager.createQualityOptions(animelibPlayer([720]), null, 55);
+
+    expect(manager.getModeState()).toMatchObject({
+      available: false,
+      auto: false,
+    });
+  });
+
+  it('для сетевых вариантов «Авто» доступно', () => {
+    const manager = new QualityManager();
+
+    manager.createQualityOptions(animelibPlayer([720]));
+
+    expect(manager.getModeState().available).toBe(true);
+  });
+
   it('оффлайн-копия в формате hls не получает прогрессивных запасных', () => {
     findEpisodes.mockReturnValue([
       {

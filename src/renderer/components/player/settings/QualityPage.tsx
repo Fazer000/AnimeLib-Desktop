@@ -33,15 +33,17 @@ function QualityPage({
     <Box>
       <PageHeader title="Качество" onBack={onBack} />
 
-      <OptionRow
-        label="Авто"
-        selected={mode.auto}
-        onSelect={() => onSelect(AUTO_QUALITY)}
-        description={
-          mode.auto ? autoQualityCaption(currentLabel, mode.reason) : ''
-        }
-        leading={<Box sx={qualityTagSx(customColors.onVideoColor)}>A</Box>}
-      />
+      {mode.available && (
+        <OptionRow
+          label="Авто"
+          selected={mode.auto}
+          onSelect={() => onSelect(AUTO_QUALITY)}
+          description={
+            mode.auto ? autoQualityCaption(currentLabel, mode.reason) : ''
+          }
+          leading={<Box sx={qualityTagSx(customColors.onVideoColor)}>A</Box>}
+        />
+      )}
 
       {options.map((option) => {
         const tag = getQualityTagFromResolution(option.value);
