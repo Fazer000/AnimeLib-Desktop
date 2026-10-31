@@ -100,8 +100,7 @@ export const CONNECTIVITY_STATUS_TTL_MS = 10000;
  */
 export const CONNECTIVITY_TIMEOUT_FAILURES = 2;
 
-export const CONNECTIVITY_PROBE_URL =
-  'https://api.cdnlibs.org/api/anime?limit=1';
+export const CONNECTIVITY_PROBE_URL = 'https://animelib.org/';
 
 /**
  * Исход пробы: ответ сайта, ошибка сети либо истёкшее ожидание

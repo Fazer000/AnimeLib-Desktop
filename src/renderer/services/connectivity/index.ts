@@ -3,10 +3,9 @@
  */
 import type { ConnectivityProbeResult } from '../../../constants';
 import { ConnectivityMonitor } from './ConnectivityMonitor';
+import { getHomeUrl } from '../../utils/urlHelpers';
 
-/**
- * Опрашивает сайт через main-процесс
- */
+/** Опрашивает главную AnimeLib через main-процесс */
 const probe = async (): Promise<ConnectivityProbeResult> => {
   const api = window.electron?.electronAPI;
 
@@ -15,7 +14,7 @@ const probe = async (): Promise<ConnectivityProbeResult> => {
   }
 
   return api
-    .offlineCheckConnection()
+    .offlineCheckConnection(getHomeUrl())
     .catch((): ConnectivityProbeResult => ({ ok: false, reason: 'network' }));
 };
 

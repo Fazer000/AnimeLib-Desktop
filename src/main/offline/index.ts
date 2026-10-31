@@ -6,7 +6,6 @@ import type { ClientRequest } from 'http';
 import { BrowserWindow, dialog, shell } from 'electron';
 import {
   CONNECTIVITY_CHECK_TIMEOUT_MS,
-  CONNECTIVITY_PROBE_URL,
   ConnectivityProbeResult,
   DownloadRequest,
   OfflineDirectoryResult,
@@ -17,6 +16,7 @@ import { offlineLibrary } from './OfflineLibrary';
 import { downloadManager } from './DownloadManager';
 
 import { createLogger } from '../../shared/logger';
+import { probeTarget, probeVerdict } from '../../shared/siteStatus';
 import { handleIpc, onIpc } from '../ipc';
 
 const log = createLogger('Offline');
@@ -26,8 +26,8 @@ export {
   registerOfflineSchemes,
 } from './offlineProtocol';
 
-/** Опрашивает сайт и различает ошибку сети и истёкшее ожидание */
-const probeConnection = (): Promise<ConnectivityProbeResult> =>
+/** Опрашивает страницу сайта и различает сбой и истёкшее ожидание */
+const probeConnection = (url: string): Promise<ConnectivityProbeResult> =>
   new Promise((resolve) => {
     let settled = false;
     let request: ClientRequest | null = null;
@@ -54,12 +54,9 @@ const probeConnection = (): Promise<ConnectivityProbeResult> =>
       CONNECTIVITY_CHECK_TIMEOUT_MS,
     );
 
-    request = https.get(CONNECTIVITY_PROBE_URL, (response) => {
+    request = https.get(url, (response) => {
       response.resume();
-
-      const ok = (response.statusCode || 500) < 500;
-
-      finish({ ok, reason: ok ? 'ok' : 'network' });
+      finish(probeVerdict(response.statusCode || 0));
     });
 
     request.on('error', () => finish({ ok: false, reason: 'network' }));
@@ -214,7 +211,9 @@ export const registerOfflineHandlers = (
     shell.openPath(offlineLibrary.getDownloadsPath());
   });
 
-  handleIpc('offline-check-connection', async () => probeConnection());
+  handleIpc('offline-check-connection', async (_event, url) =>
+    probeConnection(probeTarget(url)),
+  );
 
   log.debug('Handlers registered');
 };

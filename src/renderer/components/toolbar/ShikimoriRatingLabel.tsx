@@ -16,10 +16,7 @@ function ShikimoriRatingLabel({ shikimoriHref }: ShikimoriRatingLabelProps) {
   if (!rating) return null;
 
   return (
-    <Box
-      title="Оценка на Шикимори"
-      sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}
-    >
+    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
       <ShikimoriLogo
         sx={{ fontSize: 20, color: customColors.dialogTextColor }}
       />

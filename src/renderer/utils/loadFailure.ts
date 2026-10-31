@@ -1,16 +1,9 @@
 /** ERR_ABORTED: загрузку прервал новый переход, это не сбой сайта */
+import { isSiteDownStatus } from '../../shared/siteStatus';
+
 const ERR_ABORTED = -3;
 
-/** Коды ответа, при которых сайт по сути не открылся */
-export function isSiteDownStatus(status: number): boolean {
-  return (
-    status === 0 ||
-    status === 502 ||
-    status === 504 ||
-    status === 530 ||
-    (status >= 520 && status <= 527)
-  );
-}
+export { isSiteDownStatus };
 
 /** Открылась ли страница при переходе */
 export function isPageLoaded(httpResponseCode?: number): boolean {

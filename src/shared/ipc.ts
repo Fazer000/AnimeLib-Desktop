@@ -117,7 +117,7 @@ export interface IpcInvokeMap {
     response: OfflineDirectoryResult;
   };
   'offline-check-connection': {
-    request: void;
+    request: string;
     response: ConnectivityProbeResult;
   };
   'offline-verify': { request: void; response: number };

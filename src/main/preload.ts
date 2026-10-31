@@ -138,8 +138,10 @@ const electronHandler = {
     offlineOpenDirectory: () => {
       ipcRenderer.send('offline-open-directory');
     },
-    offlineCheckConnection: async (): Promise<ConnectivityProbeResult> =>
-      ipcRenderer.invoke('offline-check-connection'),
+    offlineCheckConnection: async (
+      url: string,
+    ): Promise<ConnectivityProbeResult> =>
+      ipcRenderer.invoke('offline-check-connection', url),
     offlineVerify: async (): Promise<number> =>
       ipcRenderer.invoke('offline-verify'),
     offlineResume: async (payload: ResumeDownloadsPayload): Promise<number> =>
