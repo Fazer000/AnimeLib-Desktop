@@ -536,7 +536,10 @@ function DownloadManagerDialog({
         );
 
         if (source) {
-          const urls = qualityManager.buildAnimelibUrls(source.href);
+          const urls = qualityManager.buildAnimelibUrls(
+            source.href,
+            player.video_domain,
+          );
           primaryUrl = urls.primaryUrl;
           fallbackUrls = [urls.fallbackUrl, urls.fallbackUrl2];
         }

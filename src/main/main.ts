@@ -45,17 +45,16 @@ import {
 } from '../constants';
 
 import { createLogger } from '../shared/logger';
+import { videoServerOrigins } from '../shared/videoServers';
 import { handleIpc, onIpc } from './ipc';
 import setHoverZone from './hoverZone';
 
 const log = createLogger('AnimeLIB');
 
+const ANIMELIB_VIDEO_ORIGINS = videoServerOrigins();
+
 const VIDEO_URLS = {
-  ANIMELIB_CDN: [
-    'https://video1.cdnlibs.org/*',
-    'https://video2.cdnlibs.org/*',
-    'https://video1.cdnlibs.org/.%D0%B0s/*',
-  ],
+  ANIMELIB_CDN: ANIMELIB_VIDEO_ORIGINS.map((origin) => `${origin}/*`),
   ANIMELIB_API: ['https://api.cdnlibs.org/*', 'https://hapi.hentaicdn.org/*'],
   KODIK: [
     'https://cloud.kodik-storage.com/*',
@@ -145,7 +144,8 @@ const createKodikHeaders = (
  * Проверяет, является ли URL запросом к AnimeLib CDN
  */
 const isAnimelibUrl = (url: string): boolean =>
-  url.includes('.mp4') && url.includes('cdnlibs.org');
+  url.includes('.mp4') &&
+  ANIMELIB_VIDEO_ORIGINS.some((origin) => url.startsWith(`${origin}/`));
 
 /**
  * Проверяет, является ли URL запросом к AnimeLib API

@@ -99,6 +99,7 @@ export interface Player {
   is_viewed: boolean;
   views: number;
   src?: string;
+  video_domain?: string;
   timecode: TimeCode[];
   subtitles?: Array<{
     id: number;

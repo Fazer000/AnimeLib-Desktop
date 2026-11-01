@@ -548,3 +548,16 @@ export const AUTO_QUALITY_SIZE_TOLERANCE = 0.9;
 
 /** Пауза перед повторной отметкой просмотра после сбоя, мс */
 export const WATCH_VIEW_RETRY_MS = 30000;
+
+/** Видеосервер AnimeLib; id совпадает с video_domain плеера */
+export interface AnimelibVideoServer {
+  id: string;
+  url: string;
+}
+
+/** Видеосерверы AnimeLib в порядке сайта, main — сервер по умолчанию */
+export const ANIMELIB_VIDEO_SERVERS: readonly AnimelibVideoServer[] = [
+  { id: 'main', url: 'https://video1.cdnlibs.org/.%D0%B0s' },
+  { id: 'secondary_1', url: 'https://video2.cdnlibs.org' },
+  { id: 'secondary_2', url: 'https://video1.imglib.info' },
+];

@@ -14,6 +14,7 @@ import {
 } from '../../utils/autoQuality';
 import { resolveKodikSource } from '../../utils/kodikHelpers';
 import { findOfflineCopies } from '../../utils/playerIdentity';
+import { buildVideoUrls } from '../../../shared/videoServers';
 
 import { createLogger } from '../../../shared/logger';
 
@@ -93,7 +94,9 @@ export class QualityManager {
         const online = player.video?.quality?.find(
           (item) => `${item.quality}p` === episode.quality,
         );
-        const urls = online?.href ? this.buildAnimelibUrls(online.href) : null;
+        const urls = online?.href
+          ? this.buildAnimelibUrls(online.href, player.video_domain)
+          : null;
 
         const isHls = Boolean(episode.playlistFileName);
 
@@ -129,7 +132,7 @@ export class QualityManager {
         }
 
         const { primaryUrl, fallbackUrl, fallbackUrl2 } =
-          this.buildAnimelibUrls(quality.href);
+          this.buildAnimelibUrls(quality.href, player.video_domain);
 
         options.push({
           label: `${quality.quality}p`,
@@ -281,35 +284,18 @@ export class QualityManager {
     this.config.onQualityModeChange?.(this.getModeState());
   }
 
-  /**
-   * Создает URL для AnimeLib видео
-   */
+  /** Ссылки на видео AnimeLib: сервер плеера и два запасных */
   // eslint-disable-next-line class-methods-use-this
-  public buildAnimelibUrls(href: string): {
+  public buildAnimelibUrls(
+    href: string,
+    videoDomain?: string | null,
+  ): {
     primaryUrl: string;
     fallbackUrl: string;
     fallbackUrl2: string;
   } {
-    let primaryUrl: string;
-    let fallbackUrl: string;
-    let fallbackUrl2: string;
-
-    if (href.startsWith('http')) {
-      primaryUrl = href.replace(
-        'video1.cdnlibs.org',
-        'video1.cdnlibs.org/.%D0%B0s',
-      );
-      fallbackUrl = href;
-      fallbackUrl2 = href.replace('video1.cdnlibs.org', 'video2.cdnlibs.org');
-    } else if (href.startsWith('//')) {
-      primaryUrl = `https:${href}`;
-      fallbackUrl = `https:${href}`;
-      fallbackUrl2 = `https:${href}`;
-    } else {
-      primaryUrl = `https://video1.cdnlibs.org/.%D0%B0s${href}`;
-      fallbackUrl = `https://video1.cdnlibs.org${href}`;
-      fallbackUrl2 = `https://video2.cdnlibs.org${href}`;
-    }
+    const [primaryUrl, fallbackUrl = primaryUrl, fallbackUrl2 = fallbackUrl] =
+      buildVideoUrls(href, videoDomain);
 
     return { primaryUrl, fallbackUrl, fallbackUrl2 };
   }

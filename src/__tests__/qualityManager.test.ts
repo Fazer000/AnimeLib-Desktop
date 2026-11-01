@@ -64,7 +64,8 @@ describe('QualityManager: сборка вариантов', () => {
 
     expect(option.type).toBe('progressive');
     expect(option.src).not.toBe(option.fallbackSrc);
-    expect(option.fallbackSrc2).toContain('video2.cdnlibs.org');
+    expect(option.fallbackSrc).toContain('video2.cdnlibs.org');
+    expect(option.fallbackSrc2).toContain('video1.imglib.info');
   });
 
   it('источники Kodik разбираются на прямой и запасной', () => {
@@ -240,21 +241,21 @@ describe('QualityManager: выбор качества', () => {
 describe('QualityManager.buildAnimelibUrls', () => {
   const manager = new QualityManager();
 
-  it('относительный путь разворачивает в три зеркала', () => {
+  it('без video_domain первым идёт основной сервер', () => {
     const urls = manager.buildAnimelibUrls('/v/720.mp4');
 
-    expect(urls.primaryUrl).toContain('video1.cdnlibs.org/.%D0%B0s');
-    expect(urls.fallbackUrl).toBe('https://video1.cdnlibs.org/v/720.mp4');
-    expect(urls.fallbackUrl2).toContain('video2.cdnlibs.org');
+    expect(urls.primaryUrl).toBe(
+      'https://video1.cdnlibs.org/.%D0%B0s/v/720.mp4',
+    );
+    expect(urls.fallbackUrl).toBe('https://video2.cdnlibs.org/v/720.mp4');
+    expect(urls.fallbackUrl2).toBe('https://video1.imglib.info/v/720.mp4');
   });
 
-  it('абсолютной ссылке добавляет обходной путь как основной', () => {
-    const href = 'https://video1.cdnlibs.org/v/720.mp4';
-    const urls = manager.buildAnimelibUrls(href);
+  it('сервер из video_domain становится основным', () => {
+    const urls = manager.buildAnimelibUrls('/v/720.mp4', 'secondary_2');
 
-    expect(urls.primaryUrl).toContain('.%D0%B0s');
-    expect(urls.fallbackUrl).toBe(href);
-    expect(urls.fallbackUrl2).toContain('video2.cdnlibs.org');
+    expect(urls.primaryUrl).toBe('https://video1.imglib.info/v/720.mp4');
+    expect(urls.fallbackUrl).toContain('video1.cdnlibs.org/.%D0%B0s');
   });
 
   it('протоколо-относительной только дописывает схему', () => {
