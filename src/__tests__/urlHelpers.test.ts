@@ -15,11 +15,11 @@ describe('isSiteUrl', () => {
     expect(isSiteUrl('https://animelib.org/ru')).toBe(true);
     expect(isSiteUrl('https://v5.animelib.org/')).toBe(true);
     expect(isSiteUrl('https://anime.animelib.org/x')).toBe(true);
-    expect(isSiteUrl('https://anilib.me/ru')).toBe(true);
   });
 
   it('отклоняет чужие домены, в том числе похожие', () => {
     expect(isSiteUrl('https://example.com')).toBe(false);
+    expect(isSiteUrl('https://anilib.me/ru')).toBe(false);
     expect(isSiteUrl('https://notanimelib.org')).toBe(false);
     expect(isSiteUrl('https://animelib.org.evil.com')).toBe(false);
   });
@@ -59,6 +59,12 @@ describe('getSiteOrigin', () => {
 
   it('игнорирует сохранённый чужой домен', () => {
     localStorage.setItem('animeLibUrl', 'https://evil.com/');
+
+    expect(getSiteOrigin()).toBe(DEFAULT_ORIGIN);
+  });
+
+  it('с отключённого зеркала anilib.me возвращает на адрес по умолчанию', () => {
+    localStorage.setItem('animeLibUrl', 'https://anilib.me/');
 
     expect(getSiteOrigin()).toBe(DEFAULT_ORIGIN);
   });

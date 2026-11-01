@@ -98,9 +98,9 @@ describe('выбор зеркала', () => {
     expect(readSiteMirrors()).toEqual({ 2: 'https://slashlib.me/' });
     expect(currentMirror(yaoi)).toBe('https://slashlib.me/');
 
-    saveSiteMirror(anime, 'https://anilib.me/');
-    expect(localStorage.getItem('animeLibUrl')).toBe('https://anilib.me/');
-    expect(currentMirror(anime)).toBe('https://anilib.me/');
+    saveSiteMirror(anime, 'https://animelib.org/');
+    expect(localStorage.getItem('animeLibUrl')).toBe('https://animelib.org/');
+    expect(currentMirror(anime)).toBe('https://animelib.org/');
   });
 
   it('испорченная запись — пустой выбор', () => {

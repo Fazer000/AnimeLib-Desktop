@@ -17,7 +17,7 @@ describe('probeVerdict', () => {
 
 describe('probeTarget', () => {
   it('зеркала AnimeLib проверяются как есть', () => {
-    ['https://v5.animelib.org/', 'https://anilib.me/'].forEach((url) =>
+    ['https://v5.animelib.org/', 'https://animelib.org/'].forEach((url) =>
       expect(probeTarget(url)).toBe(url),
     );
   });
@@ -26,6 +26,7 @@ describe('probeTarget', () => {
     [
       'https://example.com/',
       'https://mangalib.me/',
+      'https://anilib.me/',
       'http://animelib.org/',
       'https://animelib.org.evil.test/',
       'не адрес',

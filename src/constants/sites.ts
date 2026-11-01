@@ -32,13 +32,9 @@ export const LIB_SITES: LibSite[] = [
     letter: 'A',
     siteId: 5,
     kind: 'anime',
-    hosts: ['animelib.org', 'anilib.me'],
+    hosts: ['animelib.org'],
     home: null,
-    mirrors: [
-      'https://animelib.org/',
-      'https://v5.animelib.org/',
-      'https://anilib.me/',
-    ],
+    mirrors: ['https://animelib.org/', 'https://v5.animelib.org/'],
   },
   {
     name: 'MangaLIB',

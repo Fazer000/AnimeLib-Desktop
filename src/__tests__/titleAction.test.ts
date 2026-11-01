@@ -179,7 +179,7 @@ describe('currentSiteHomeUrl', () => {
 
   it('на AnimeLib и вне сети — главная из настроек', () => {
     expect(
-      currentSiteHomeUrl('https://anilib.me/ru/anime/1--a', animeHome),
+      currentSiteHomeUrl('https://animelib.org/ru/anime/1--a', animeHome),
     ).toBe(animeHome);
     expect(currentSiteHomeUrl('https://example.com/', animeHome)).toBe(
       animeHome,
@@ -189,9 +189,9 @@ describe('currentSiteHomeUrl', () => {
 });
 
 describe('запасные домены', () => {
-  it('узнаёт anilib.me и slashlib.me', () => {
-    expect(findLibSite('anilib.me')?.siteId).toBe(5);
+  it('узнаёт slashlib.me, но не отключённый anilib.me', () => {
     expect(findLibSite('slashlib.me')?.siteId).toBe(2);
+    expect(findLibSite('anilib.me')).toBeNull();
   });
 });
 
