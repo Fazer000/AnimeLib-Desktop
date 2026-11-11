@@ -59,6 +59,7 @@ import {
   PLAYER_FULLSCREEN_EASING,
   PLAYER_FULLSCREEN_TRANSITION,
   SUBTITLES_DEFAULT_SETTINGS,
+  SUBTITLES_Z_INDEX,
   PLAYER_PIP_ICON_SIZE,
   UPSCALE_COVERED_VIDEO_OPACITY,
   QUALITY_SWITCH_FRAME_TIMEOUT_MS,
@@ -973,6 +974,10 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             '& .player-controls': {
               opacity: 1,
             },
+          },
+          '& .JASSUB': {
+            position: 'relative',
+            zIndex: SUBTITLES_Z_INDEX,
           },
         }}
         onMouseMove={() => {

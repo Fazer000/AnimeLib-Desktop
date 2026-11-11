@@ -105,6 +105,18 @@ function cleanCueText(text: string): string {
     .trim();
 }
 
+/** Векторная фигура ASS (m 0 0 l 100 0 …), попавшая в SRT/VTT как текст */
+export function isDrawingText(text: string): boolean {
+  return /^m(?:\s+-?\d+(?:\.\d+)?){2,}(?:\s+[nlbspc](?:\s+-?\d+(?:\.\d+)?)*)*$/i.test(
+    text.trim(),
+  );
+}
+
+/** Реплики, видимые в момент time, по времени начала */
+export function activeCues(cues: SubtitleCue[], time: number): SubtitleCue[] {
+  return cues.filter((cue) => time >= cue.from && time <= cue.to);
+}
+
 /**
  * Разбирает SRT/VTT в список реплик
  */
@@ -119,7 +131,7 @@ export function parseTimedText(content: string): SubtitleCue[] {
 
     const [from, to] = lines[timeIndex].split('-->');
     const text = cleanCueText(lines.slice(timeIndex + 1).join('\n'));
-    if (!text) return;
+    if (!text || isDrawingText(text)) return;
 
     cues.push({ from: parseTimestamp(from), to: parseTimestamp(to), text });
   });

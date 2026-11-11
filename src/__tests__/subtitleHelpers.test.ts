@@ -1,8 +1,10 @@
 import {
+  activeCues,
   applyAssStyleOverrides,
   buildSubtitleTrackLabel,
   buildSubtitleUrlCandidates,
   detectSubtitleFormat,
+  isDrawingText,
   parseTimedText,
 } from '../renderer/utils/subtitleHelpers';
 
@@ -247,5 +249,50 @@ describe('applyAssStyleOverrides', () => {
         offsetY: 10,
       }),
     ).toBe(plain);
+  });
+});
+
+describe('isDrawingText', () => {
+  it('узнаёт векторные фигуры ASS', () => {
+    [
+      'm 0 0 l 100 0 100 100 0 100',
+      'm 0 0 s 100 0 100 100 0 100 c',
+      'm -226.5 -79.5 l 270 -79.5 l 270 93 l -226.5 93',
+    ].forEach((text) => expect(isDrawingText(text)).toBe(true));
+  });
+
+  it('обычный текст и числа в репликах не трогает', () => {
+    ['Кому:', 'm', 'm 5', 'm 5 минут', '100 0 100', 'М 0 0 л 100'].forEach(
+      (text) => expect(isDrawingText(text)).toBe(false),
+    );
+  });
+});
+
+describe('parseTimedText: фигуры ASS', () => {
+  it('пропускает реплики-фигуры и оставляет текст', () => {
+    const cues = parseTimedText(
+      'WEBVTT\n\n41:12.000 --> 41:14.000\nm 0 0 l 100 0 100 100 0 100\n\n41:12.000 --> 41:14.000\nКому:',
+    );
+
+    expect(cues.map((cue) => cue.text)).toEqual(['Кому:']);
+  });
+});
+
+describe('activeCues', () => {
+  const cues = [
+    { from: 0, to: 5, text: 'Кому:' },
+    { from: 1, to: 4, text: 'Эгилу' },
+    { from: 6, to: 8, text: 'Тема:' },
+  ];
+
+  it('отдаёт все реплики, видимые одновременно', () => {
+    expect(activeCues(cues, 2).map((cue) => cue.text)).toEqual([
+      'Кому:',
+      'Эгилу',
+    ]);
+  });
+
+  it('вне реплик пусто', () => {
+    expect(activeCues(cues, 5.5)).toEqual([]);
   });
 });

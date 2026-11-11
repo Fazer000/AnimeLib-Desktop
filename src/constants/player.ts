@@ -198,6 +198,9 @@ export const SUBTITLES_DEFAULT_SETTINGS = {
  */
 export const SUBTITLES_BASE_FONT_CQH = 4.4;
 
+/** Слой субтитров: над видео и апскейлером, под элементами управления */
+export const SUBTITLES_Z_INDEX = 898;
+
 /**
  * Ключ localStorage для настроек комментариев
  */

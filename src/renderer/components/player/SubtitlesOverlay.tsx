@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
-import { SubtitleCue } from '../../utils/subtitleHelpers';
+import { SubtitleCue, activeCues } from '../../utils/subtitleHelpers';
 import { SubtitlesSettings, PlaybackTimeStore } from '../../services/player';
-import { SUBTITLES_BASE_FONT_CQH } from '../../../constants';
+import { SUBTITLES_BASE_FONT_CQH, SUBTITLES_Z_INDEX } from '../../../constants';
 
 interface SubtitlesOverlayProps {
   cues: SubtitleCue[];
@@ -16,20 +16,24 @@ function SubtitlesOverlay({
   timeStore,
   settings,
 }: SubtitlesOverlayProps) {
-  const [activeCue, setActiveCue] = useState<SubtitleCue | null>(null);
+  const [visible, setVisible] = useState<SubtitleCue[]>([]);
 
   useEffect(() => {
     const pick = (time: number) => {
-      const next =
-        cues.find((cue) => time >= cue.from && time <= cue.to) ?? null;
-      setActiveCue((prev) => (prev === next ? prev : next));
+      const next = activeCues(cues, time);
+      setVisible((prev) =>
+        prev.length === next.length &&
+        prev.every((cue, index) => cue === next[index])
+          ? prev
+          : next,
+      );
     };
 
     pick(timeStore.getCurrentTime());
     return timeStore.subscribe(pick);
   }, [cues, timeStore]);
 
-  if (!activeCue) return null;
+  if (visible.length === 0) return null;
 
   const isBox = settings.outline === 'box';
   const isOutline = settings.outline === 'outline';
@@ -44,7 +48,7 @@ function SubtitlesOverlay({
         alignItems: 'flex-end',
         justifyContent: 'center',
         pointerEvents: 'none',
-        zIndex: 898,
+        zIndex: SUBTITLES_Z_INDEX,
       }}
     >
       <Box
@@ -67,7 +71,7 @@ function SubtitlesOverlay({
             : 'none',
         }}
       >
-        {activeCue.text}
+        {visible.map((cue) => cue.text).join('\n')}
       </Box>
     </Box>
   );
