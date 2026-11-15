@@ -13,6 +13,7 @@ import {
   EPISODE_CHIP_ICON_FONT,
   EPISODE_CHIP_MARGIN_BOTTOM,
   EPISODE_CHIP_MARGIN_TOP,
+  EPISODE_CHIP_MAX_WIDTH,
   EPISODE_CHIP_MIN_WIDTH,
   EPISODE_SEARCH_BLOCK_WIDTH,
   EPISODE_SLIDER_BUTTON_SIZE,
@@ -32,6 +33,8 @@ const sliderButtonSx = (colors: CustomColors) => ({
   '&:hover': { backgroundColor: colors.mutedColor },
 });
 
+const EPISODE_GAP = 1.25;
+
 interface EpisodeSliderProps {
   episodes: Episode[];
   currentEpisodeIndex: number;
@@ -46,6 +49,7 @@ function EpisodeSliderRefactored({
   bookmarkedEpisodeId = null,
 }: EpisodeSliderProps) {
   const theme = useTheme();
+  const fillWidth = `calc(${episodes.length * EPISODE_CHIP_MAX_WIDTH}px + ${theme.spacing(Math.max(0, episodes.length - 1) * EPISODE_GAP)})`;
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -282,7 +286,8 @@ function EpisodeSliderRefactored({
             flex: 1,
             minWidth: 0,
             display: 'flex',
-            gap: 1.25,
+            gap: EPISODE_GAP,
+            containerType: 'inline-size',
             overflowX: 'auto',
             overflowY: 'hidden',
             cursor: isDragging ? 'grabbing' : 'grab',
@@ -323,8 +328,11 @@ function EpisodeSliderRefactored({
                   },
                 }}
                 sx={{
-                  flex: episodes.length > 6 ? '1' : 'none',
+                  flex: 'none',
+                  width: EPISODE_CHIP_MIN_WIDTH,
                   minWidth: EPISODE_CHIP_MIN_WIDTH,
+                  maxWidth: EPISODE_CHIP_MAX_WIDTH,
+                  [`@container (max-width: ${fillWidth})`]: { flex: 1 },
                   borderRadius: '6px',
                   backgroundColor: isSelected
                     ? theme.palette.customColors.secondaryColor

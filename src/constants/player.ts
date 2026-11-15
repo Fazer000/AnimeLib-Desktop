@@ -512,8 +512,10 @@ export const FRANCHISE_SEARCH_CANDIDATES = 3;
 
 /** Кэш хронологий между запусками */
 export const FRANCHISE_CACHE_STORAGE_KEY = 'animeLibFranchiseCache';
+export const FRANCHISE_ANIMELIB_CACHE_STORAGE_KEY =
+  'animeLibFranchiseGraphCache';
 export const FRANCHISE_CACHE_LIMIT = 30;
-export const FRANCHISE_FOUND_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+export const FRANCHISE_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const FRANCHISE_MISSING_TTL_MS = 24 * 60 * 60 * 1000;
 export const FRANCHISE_CACHE_SAVE_DELAY_MS = 2000;
 

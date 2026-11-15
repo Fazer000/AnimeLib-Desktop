@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   FranchiseState,
-  hasFranchiseCrawl,
+  hasFranchiseData,
   peekFranchise,
   subscribeFranchise,
 } from '../services/franchise/franchiseLoader';
@@ -38,7 +38,7 @@ function useFranchiseGraph(
       () => {
         unsubscribe = subscribeFranchise(slugUrl, shikimoriId, setState);
       },
-      hasFranchiseCrawl(slugUrl, shikimoriId) ? 0 : FRANCHISE_START_DELAY_MS,
+      hasFranchiseData(slugUrl, shikimoriId) ? 0 : FRANCHISE_START_DELAY_MS,
     );
 
     return () => {

@@ -6,7 +6,7 @@ import {
   FRANCHISE_REQUEST_GAP_MS,
   FRANCHISE_SEARCH_CANDIDATES,
   FRANCHISE_CACHE_SAVE_DELAY_MS,
-  FRANCHISE_FOUND_TTL_MS,
+  FRANCHISE_CACHE_TTL_MS,
   FRANCHISE_MISSING_TTL_MS,
 } from '../../../constants';
 import PriorityTaskQueue, { TaskPriority } from '../../utils/PriorityTaskQueue';
@@ -32,7 +32,12 @@ import {
   titleFromRelation,
 } from '../../utils/franchiseGraph';
 import { freshMatches, toCachedFranchise } from '../../utils/franchiseCache';
-import { loadCachedFranchise, saveCachedFranchise } from './franchiseStore';
+import {
+  loadCachedAnimelibGraph,
+  loadCachedFranchise,
+  saveCachedAnimelibGraph,
+  saveCachedFranchise,
+} from './franchiseStore';
 import { createLogger } from '../../../shared/logger';
 
 const log = createLogger('franchiseLoader');
@@ -94,7 +99,7 @@ class EmptyFranchiseError extends Error {
 async function crawlFranchise(
   startSlug: string,
   onUpdate: (graph: FranchiseGraph, progress: FranchiseProgress) => void,
-): Promise<FranchiseGraph> {
+): Promise<{ graph: FranchiseGraph; complete: boolean }> {
   const queue = new PriorityTaskQueue(
     FRANCHISE_CONCURRENCY,
     FRANCHISE_REQUEST_GAP_MS,
@@ -105,6 +110,7 @@ async function crawlFranchise(
   const pending: Promise<void>[] = [];
   const hops = new Map<string, number>([[startSlug, 0]]);
   const expanded = new Set<string>();
+  let complete = true;
 
   const snapshot = (): FranchiseGraph => ({
     titles: new Map([...titles].filter(([slug]) => ready.has(slug))),
@@ -133,6 +139,7 @@ async function crawlFranchise(
         releaseDate: info.releaseDate || null,
       });
     } catch (error) {
+      complete = false;
       log.warn('Release date failed:', slugUrl, error);
     }
 
@@ -183,6 +190,7 @@ async function crawlFranchise(
 
       report();
     } catch (error) {
+      complete = false;
       log.warn('Relations failed:', slugUrl, error);
     }
   };
@@ -207,7 +215,7 @@ async function crawlFranchise(
   log.debug(
     `Franchise of ${startSlug}: ${graph.titles.size} titles, ${graph.edges.length} links`,
   );
-  return graph;
+  return { graph, complete };
 }
 
 const notify = (crawl: Crawl, state: FranchiseState) => {
@@ -220,10 +228,18 @@ function startCrawl(slugUrl: string): Crawl {
   const crawl: Crawl = { state: EMPTY_STATE, listeners: new Set() };
   crawls.set(slugUrl, crawl);
 
+  const cached = loadCachedAnimelibGraph(slugUrl);
+  if (cached) {
+    cached.titles.forEach((_, slug) => crawls.set(slug, crawl));
+    notify(crawl, { ...EMPTY_STATE, graph: cached, done: true });
+    return crawl;
+  }
+
   crawlFranchise(slugUrl, (graph, progress) =>
     notify(crawl, { ...EMPTY_STATE, graph, progress }),
   )
-    .then((graph) => {
+    .then(({ graph, complete }) => {
+      if (complete) saveCachedAnimelibGraph(graph);
       notify(crawl, { ...EMPTY_STATE, graph, done: true });
       graph.titles.forEach((_, slug) => crawls.set(slug, crawl));
       return graph;
@@ -245,8 +261,12 @@ function startShikimoriCrawl(slugUrl: string, shikimoriId: number): Crawl {
     FRANCHISE_REQUEST_GAP_MS,
   );
   const inFlight = new Map<number, Promise<AnimelibMatch>>();
+  const checkedMatches = new Map<number, number>();
   let source: ShikimoriSource | null = null;
   let saved = loadCachedFranchise(shikimoriId);
+  let savedAt = saved?.savedAt ?? 0;
+  const now = Date.now();
+  const cacheIsFresh = saved !== null && now - savedAt < FRANCHISE_CACHE_TTL_MS;
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
   crawls.set(shikimoriKey(shikimoriId), crawl);
 
@@ -258,26 +278,35 @@ function startShikimoriCrawl(slugUrl: string, shikimoriId: number): Crawl {
     franchise.nodes.forEach((node) => crawls.set(shikimoriKey(node.id), crawl));
   };
 
+  const save = () => {
+    saveTimer = null;
+    if (!source) return;
+    saved = toCachedFranchise(
+      source.franchise,
+      source.matches,
+      saved,
+      savedAt,
+      checkedMatches,
+    );
+    saveCachedFranchise(saved);
+  };
+
   const persist = () => {
     if (saveTimer) clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-      saveTimer = null;
-      if (!source) return;
-      saved = toCachedFranchise(
-        source.franchise,
-        source.matches,
-        saved,
-        Date.now(),
-      );
-      saveCachedFranchise(saved);
-    }, FRANCHISE_CACHE_SAVE_DELAY_MS);
+    saveTimer = setTimeout(save, FRANCHISE_CACHE_SAVE_DELAY_MS);
+  };
+
+  const flush = () => {
+    if (!saveTimer) return;
+    clearTimeout(saveTimer);
+    save();
   };
 
   if (saved) {
     applyFranchise(
       saved.franchise,
-      freshMatches(saved, Date.now(), {
-        found: FRANCHISE_FOUND_TTL_MS,
+      freshMatches(saved, now, {
+        found: FRANCHISE_CACHE_TTL_MS,
         missing: FRANCHISE_MISSING_TTL_MS,
       }),
     );
@@ -339,6 +368,7 @@ function startShikimoriCrawl(slugUrl: string, shikimoriId: number): Crawl {
       result = markGuestMiss(result, animeApi.isAuthorized());
 
       if (source) {
+        checkedMatches.set(id, Date.now());
         source = {
           ...source,
           matches: new Map(source.matches).set(id, result),
@@ -369,7 +399,10 @@ function startShikimoriCrawl(slugUrl: string, shikimoriId: number): Crawl {
     Promise.all(
       hidden.map((id) => crawl.match?.(id, 'low').catch(() => undefined)),
     )
-      .then(() => report(true))
+      .then(() => {
+        flush();
+        return report(true);
+      })
       .catch(() => undefined);
   };
 
@@ -387,24 +420,28 @@ function startShikimoriCrawl(slugUrl: string, shikimoriId: number): Crawl {
       ),
     );
     applyFranchise(franchise, kept);
+    savedAt = Date.now();
     persist();
   };
 
   const run = async () => {
-    report(false);
-
-    try {
-      await refresh();
-    } catch (error) {
-      if (!source) throw error;
-      log.warn('Shikimori unavailable, using saved franchise:', error);
+    if (!cacheIsFresh) {
+      report(false);
+      try {
+        await refresh();
+      } catch (error) {
+        if (!source) throw error;
+        log.warn('Shikimori unavailable, using saved franchise:', error);
+      }
     }
 
     if (!source) return;
-    const { franchise } = source;
-    report(false);
+    const { franchise, matches } = source;
 
-    const order = matchOrder(franchise, shikimoriId);
+    const order = matchOrder(franchise, shikimoriId).filter(
+      (node) => !matches.has(node.id),
+    );
+    if (order.length > 0) report(false);
     for (let index = 0; index < order.length; index += 1) {
       try {
         // eslint-disable-next-line no-await-in-loop
@@ -414,6 +451,7 @@ function startShikimoriCrawl(slugUrl: string, shikimoriId: number): Crawl {
       }
     }
 
+    flush();
     report(true);
     log.debug(
       `Shikimori franchise ${shikimoriId}: ${franchise.nodes.length} titles`,
@@ -469,14 +507,17 @@ export function peekFranchise(
   return crawls.get(key)?.state ?? null;
 }
 
-/**
- * Обход франшизы тайтла уже идёт или закончен
- */
-export function hasFranchiseCrawl(
+/** Есть состояние или данные франшизы на диске. */
+export function hasFranchiseData(
   slugUrl: string,
   shikimoriId: number | null,
 ): boolean {
-  return crawls.has(shikimoriId === null ? slugUrl : shikimoriKey(shikimoriId));
+  const key = shikimoriId === null ? slugUrl : shikimoriKey(shikimoriId);
+  return (
+    crawls.has(key) ||
+    (shikimoriId !== null && loadCachedFranchise(shikimoriId) !== null) ||
+    loadCachedAnimelibGraph(slugUrl) !== null
+  );
 }
 
 /** Ищет тайтл Shikimori на Animelib вне очереди — когда по нему кликнули */

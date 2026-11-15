@@ -55,7 +55,8 @@ export function toCachedFranchise(
   franchise: ShikimoriFranchise,
   matches: Map<number, AnimelibMatch>,
   previous: CachedFranchise | null,
-  now: number,
+  savedAt: number,
+  checkedMatches: ReadonlyMap<number, number> = new Map(),
 ): CachedFranchise {
   const ids = new Set(franchise.nodes.map((node) => node.id));
   const saved: Record<number, CachedMatch> = {};
@@ -64,15 +65,15 @@ export function toCachedFranchise(
     if (match.restricted || !ids.has(id)) return;
 
     const old = previous?.matches[id];
-    const same = old && old.slug === match.slug;
+    const previousCheck = old?.slug === match.slug ? old?.checkedAt : undefined;
     saved[id] = {
       slug: match.slug,
       cover: match.cover,
-      checkedAt: same ? old.checkedAt : now,
+      checkedAt: checkedMatches.get(id) ?? previousCheck ?? savedAt,
     };
   });
 
-  return { franchise, savedAt: now, matches: saved };
+  return { franchise, savedAt, matches: saved };
 }
 
 /** Кладёт запись в кэш вместо прежней той же франшизы */

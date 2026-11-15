@@ -157,6 +157,7 @@ export const EPISODE_CHIP_MARGIN_BOTTOM = 2;
  * Минимальная ширина чипа эпизода, px
  */
 export const EPISODE_CHIP_MIN_WIDTH = 'clamp(52px, 5.5vw, 84px)';
+export const EPISODE_CHIP_MAX_WIDTH = 224;
 
 /**
  * Кегль номера эпизода в ленте

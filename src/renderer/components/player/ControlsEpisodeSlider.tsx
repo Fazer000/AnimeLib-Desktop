@@ -6,6 +6,7 @@ import useHorizontalWheelScroll from '../../hooks/useHorizontalWheelScroll';
 import {
   EPISODE_CHIP_FONT,
   EPISODE_CHIP_ICON_FONT,
+  EPISODE_CHIP_MAX_WIDTH,
   EPISODE_CHIP_MIN_WIDTH,
 } from '../../../constants';
 
@@ -40,6 +41,8 @@ interface EpisodeCarouselProps {
   bookmarkedEpisodeId?: number | null;
 }
 
+const EPISODE_MARGIN = 1.25;
+
 function ControlsEpisodeSlider({
   episodes,
   currentEpisodeIndex,
@@ -48,6 +51,7 @@ function ControlsEpisodeSlider({
   bookmarkedEpisodeId = null,
 }: EpisodeCarouselProps) {
   const theme = useTheme();
+  const fillWidth = `calc(${episodes.length * EPISODE_CHIP_MAX_WIDTH}px + ${theme.spacing(episodes.length * EPISODE_MARGIN * 2)})`;
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -189,6 +193,7 @@ function ControlsEpisodeSlider({
         ref={scrollRef}
         sx={{
           display: 'flex',
+          containerType: 'inline-size',
           alignItems: 'center',
           overflowX: 'auto',
           overflowY: 'hidden',
@@ -217,11 +222,14 @@ function ControlsEpisodeSlider({
               disableRipple={dragMoved}
               sx={{
                 padding: '8px 12px',
-                mx: 1.25,
+                mx: EPISODE_MARGIN,
+                width: EPISODE_CHIP_MIN_WIDTH,
                 minWidth: EPISODE_CHIP_MIN_WIDTH,
+                maxWidth: EPISODE_CHIP_MAX_WIDTH,
                 borderRadius: '6px',
                 cursor: 'pointer',
-                flex: episodes.length > 6 ? '1' : 'none',
+                flex: 'none',
+                [`@container (max-width: ${fillWidth})`]: { flex: 1 },
                 backgroundColor: isSelected
                   ? theme.palette.customColors.secondaryColor
                   : `rgba(${theme.palette.customColors.onVideoSurfaceRgb}, 0.45)`,
