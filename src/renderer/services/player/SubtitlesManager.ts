@@ -12,9 +12,11 @@ import {
   buildSubtitleUrlCandidates,
   detectSubtitleFormat,
   parseTimedText,
+  restoreSubtitleFontScale,
 } from '../../utils/subtitleHelpers';
 import {
   SUBTITLES_DEFAULT_SETTINGS,
+  SUBTITLES_FONT_SCALES,
   SUBTITLES_STORAGE_KEY,
 } from '../../../constants';
 
@@ -78,7 +80,12 @@ export class SubtitlesManager {
     try {
       const raw = localStorage.getItem(SUBTITLES_STORAGE_KEY);
       if (raw) {
-        return { ...SUBTITLES_DEFAULT_SETTINGS, ...JSON.parse(raw) };
+        const { fontScaleIndex, fontScale, ...settings } = JSON.parse(raw);
+        return {
+          ...SUBTITLES_DEFAULT_SETTINGS,
+          ...settings,
+          fontScale: restoreSubtitleFontScale(fontScaleIndex, fontScale),
+        };
       }
     } catch (error) {
       log.error('Failed to read settings:', error);
@@ -92,9 +99,13 @@ export class SubtitlesManager {
    */
   private persistSettings(): void {
     try {
+      const { fontScale, ...settings } = this.settings;
       localStorage.setItem(
         SUBTITLES_STORAGE_KEY,
-        JSON.stringify(this.settings),
+        JSON.stringify({
+          ...settings,
+          fontScaleIndex: SUBTITLES_FONT_SCALES.indexOf(fontScale),
+        }),
       );
     } catch (error) {
       log.error('Failed to save settings:', error);

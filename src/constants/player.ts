@@ -164,7 +164,7 @@ export const SKIP_TIME_STEP = 5;
 export const SKIP_TIME_MAX = 300;
 export const SKIP_TIME_MARK_STEP = 60;
 
-export const SUBTITLES_FONT_SCALES = [0.75, 1, 1.25, 1.5, 2];
+export const SUBTITLES_FONT_SCALES = [0.5, 0.75, 1, 1.25, 1.5];
 
 /**
  * Доступные вертикальные смещения субтитров
@@ -188,7 +188,7 @@ export const SUBTITLES_OUTLINE_MODES: Array<{
  */
 export const SUBTITLES_DEFAULT_SETTINGS = {
   trackName: null as string | null,
-  fontScale: 1,
+  fontScale: SUBTITLES_FONT_SCALES[1],
   outline: 'outline' as 'none' | 'outline' | 'box',
   offsetY: 0,
 };

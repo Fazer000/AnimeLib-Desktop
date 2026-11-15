@@ -1,6 +1,12 @@
 /**
  * Хелперы разбора субтитров и построения ссылок на них
  */
+import {
+  SUBTITLES_DEFAULT_SETTINGS,
+  SUBTITLES_FONT_SCALES,
+} from '../../constants';
+
+const LEGACY_FONT_SCALES = [0.75, 1, 1.25, 1.5, 2];
 
 export type SubtitleFormat = 'ass' | 'srt' | 'vtt';
 
@@ -14,6 +20,19 @@ export interface SubtitleStyleSettings {
   fontScale: number;
   outline: 'none' | 'outline' | 'box';
   offsetY: number;
+}
+
+/** Читает размер по делению шкалы, включая настройки прежней версии. */
+export function restoreSubtitleFontScale(
+  savedIndex: unknown,
+  legacyScale: unknown,
+): number {
+  const index =
+    typeof savedIndex === 'number'
+      ? savedIndex
+      : LEGACY_FONT_SCALES.findIndex((scale) => scale === legacyScale);
+
+  return SUBTITLES_FONT_SCALES[index] ?? SUBTITLES_DEFAULT_SETTINGS.fontScale;
 }
 
 /**

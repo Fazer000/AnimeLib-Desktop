@@ -6,7 +6,31 @@ import {
   detectSubtitleFormat,
   isDrawingText,
   parseTimedText,
+  restoreSubtitleFontScale,
 } from '../renderer/utils/subtitleHelpers';
+
+describe('restoreSubtitleFontScale', () => {
+  it.each([
+    [0.75, 0.5],
+    [1, 0.75],
+    [1.25, 1],
+    [1.5, 1.25],
+    [2, 1.5],
+  ])(
+    'оставляет старое значение %s на том же делении, теперь %s',
+    (old, next) => {
+      expect(restoreSubtitleFontScale(undefined, old)).toBe(next);
+    },
+  );
+
+  it('читает новое деление без повторного уменьшения', () => {
+    expect(restoreSubtitleFontScale(4, undefined)).toBe(1.5);
+  });
+
+  it('использует исходное деление при неверных настройках', () => {
+    expect(restoreSubtitleFontScale(99, undefined)).toBe(0.75);
+  });
+});
 
 describe('detectSubtitleFormat', () => {
   it('узнаёт формат по полю format', () => {
