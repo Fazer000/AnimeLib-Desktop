@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useLayoutEffect } from 'react';
 import { Box, Button, Typography, useTheme } from '@mui/material';
 import { Bookmark } from '../icons';
 import EpisodeStatusBadge from './EpisodeStatusBadge';
@@ -36,8 +36,6 @@ interface EpisodeCarouselProps {
   currentEpisodeIndex: number;
   showEpisodes: boolean;
   onEpisodeSelect: (index: number) => void;
-  // eslint-disable-next-line react/no-unused-prop-types
-  onMenuOpenChange: (isOpen: boolean) => void;
   bookmarkedEpisodeId?: number | null;
 }
 
@@ -53,6 +51,8 @@ function ControlsEpisodeSlider({
   const theme = useTheme();
   const fillWidth = `calc(${episodes.length * EPISODE_CHIP_MAX_WIDTH}px + ${theme.spacing(episodes.length * EPISODE_MARGIN * 2)})`;
   const scrollRef = useRef<HTMLDivElement>(null);
+  const lastActiveEpisodeId = useRef<number | undefined>(undefined);
+  const activeEpisodeId = episodes[currentEpisodeIndex]?.id;
 
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragStart, setDragStart] = useState<{ x: number; scrollLeft: number }>(
@@ -65,38 +65,36 @@ function ControlsEpisodeSlider({
   const [dragMoved, setDragMoved] = useState<boolean>(false);
   const movedRef = useRef<boolean>(false);
 
-  const scrollToActiveEpisode = useCallback(
-    // eslint-disable-next-line no-undef
-    (behavior: ScrollBehavior = 'smooth') => {
-      if (!scrollRef.current) return;
-      const container = scrollRef.current;
-      const activeButton =
-        container.querySelectorAll<HTMLElement>('.episode-button')[
-          currentEpisodeIndex
-        ];
-      if (!activeButton) return;
+  useLayoutEffect(() => {
+    const previousId = lastActiveEpisodeId.current;
+    const episodeChanged = previousId !== activeEpisodeId;
+    const container = scrollRef.current;
+    if (!container || activeEpisodeId === undefined) return;
+    if (!showEpisodes && !episodeChanged) return;
 
-      const containerWidth = container.clientWidth;
-      const buttonLeft = activeButton.offsetLeft;
-      const buttonWidth = activeButton.offsetWidth;
-      const targetScroll = buttonLeft - containerWidth / 2 + buttonWidth / 2;
+    const button =
+      container.querySelectorAll<HTMLElement>('.episode-button')[
+        currentEpisodeIndex
+      ];
+    if (!button) return;
 
-      container.scrollTo({ left: targetScroll, behavior });
-    },
-    [currentEpisodeIndex],
-  );
-
-  useEffect(() => {
-    if (episodes.length > 0) {
-      setTimeout(() => scrollToActiveEpisode('instant'), 100);
+    const center =
+      button.offsetLeft - (container.clientWidth - button.offsetWidth) / 2;
+    const left = Math.max(
+      0,
+      Math.min(center, container.scrollWidth - container.clientWidth),
+    );
+    if (Math.abs(container.scrollLeft - left) >= 1) {
+      container.scrollTo({
+        left,
+        behavior:
+          showEpisodes && episodeChanged && previousId !== undefined
+            ? 'smooth'
+            : 'instant',
+      });
     }
-  }, [episodes, scrollToActiveEpisode]);
-
-  useEffect(() => {
-    if (showEpisodes) {
-      setTimeout(() => scrollToActiveEpisode('smooth'), 50);
-    }
-  }, [showEpisodes, currentEpisodeIndex, scrollToActiveEpisode]);
+    lastActiveEpisodeId.current = activeEpisodeId;
+  }, [activeEpisodeId, currentEpisodeIndex, episodes.length, showEpisodes]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);
@@ -172,6 +170,7 @@ function ControlsEpisodeSlider({
 
   return (
     <Box
+      inert={!showEpisodes}
       sx={{
         position: 'absolute',
         bottom: 0,
@@ -192,6 +191,7 @@ function ControlsEpisodeSlider({
       <Box
         ref={scrollRef}
         sx={{
+          position: 'relative',
           display: 'flex',
           containerType: 'inline-size',
           alignItems: 'center',

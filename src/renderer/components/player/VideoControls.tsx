@@ -15,7 +15,6 @@ import {
 import ProgressBar from './ProgressBar';
 import PlaybackControls from './PlaybackControls';
 import VolumeControl from './VolumeControl';
-import ControlsEpisodeSlider from './ControlsEpisodeSlider';
 import ControlTooltip from './ControlTooltip';
 import SettingsMenu from './SettingsMenu';
 import type { UpscaleControls } from './settings/types';
@@ -99,10 +98,7 @@ interface VideoControlsProps {
   qualityMode: QualityModeState;
   playbackRate: number;
 
-  episodes: Array<{ id: number; number: string; name: string }>;
-  currentEpisodeIndex: number;
-  onEpisodeSelect: (index: number) => void;
-  bookmarkedEpisodeId?: number | null;
+  hasEpisodes: boolean;
 
   onTogglePlay: () => void;
   onVolumeChange: (volume: number) => void;
@@ -175,10 +171,7 @@ function VideoControls({
   selectedQuality,
   qualityMode,
   playbackRate,
-  episodes,
-  currentEpisodeIndex,
-  onEpisodeSelect,
-  bookmarkedEpisodeId,
+  hasEpisodes,
   onTogglePlay,
   onVolumeChange,
   onToggleMute,
@@ -265,10 +258,6 @@ function VideoControls({
 
   const handleToggleEpisodes = () => {
     onShowEpisodesChange?.(!showEpisodes);
-  };
-
-  const handleEpisodeSelect = (index: number) => {
-    onEpisodeSelect(index);
   };
 
   const episodesVisible = isFullscreen && showEpisodes;
@@ -424,7 +413,7 @@ function VideoControls({
         </Box>
       )}
 
-      {isFullscreen && episodes && episodes.length > 0 && (
+      {isFullscreen && hasEpisodes && (
         <Box
           sx={{
             position: 'absolute',
@@ -687,17 +676,6 @@ function VideoControls({
         </Box>
       </Box>
 
-      {isFullscreen && (
-        <ControlsEpisodeSlider
-          episodes={episodes}
-          currentEpisodeIndex={currentEpisodeIndex}
-          showEpisodes={showEpisodes}
-          onEpisodeSelect={handleEpisodeSelect}
-          onMenuOpenChange={onMenuOpenChange}
-          bookmarkedEpisodeId={bookmarkedEpisodeId}
-        />
-      )}
-
       <SettingsMenu
         anchorEl={anchorEl}
         onClose={handleSettingsMenuClose}
@@ -734,7 +712,6 @@ VideoControls.defaultProps = {
   onSaveBookmark: undefined,
   hasBookmark: false,
   onSkipTimeChange: undefined,
-  bookmarkedEpisodeId: null,
   autoplayEnabled: false,
   onAutoplayChange: undefined,
   currentSegment: null,

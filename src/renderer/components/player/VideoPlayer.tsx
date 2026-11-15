@@ -24,6 +24,7 @@ import {
   animeApi,
 } from '../../api/animeApi';
 import VideoControls from './VideoControls';
+import ControlsEpisodeSlider from './ControlsEpisodeSlider';
 import SubtitlesOverlay from './SubtitlesOverlay';
 import AnimeInfoComponent from './AnimeInfo';
 import EpisodeNavigationHint from './EpisodeNavigationHint';
@@ -1290,10 +1291,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             subtitleSettings={subtitleSettings}
             onSubtitleTrackChange={handleSubtitleTrackChange}
             onSubtitleSettingsChange={handleSubtitleSettingsChange}
-            episodes={episodes}
-            currentEpisodeIndex={currentEpisodeIndex}
-            onEpisodeSelect={onEpisodeSelect}
-            bookmarkedEpisodeId={bookmarkedEpisodeId}
+            hasEpisodes={episodes.length > 0}
             autoplayEnabled={autoplayEnabled}
             ambientLightEnabled={ambientLightEnabled}
             onAmbientLightChange={onAmbientLightChange}
@@ -1317,6 +1315,16 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             onSidebarToggle={onSidebarToggle}
             onOpenDownloadManager={onOpenDownloadManager}
             downloadManagerOpen={downloadManagerOpen}
+          />
+        )}
+
+        {uiState.isFullscreen && (
+          <ControlsEpisodeSlider
+            episodes={episodes}
+            currentEpisodeIndex={currentEpisodeIndex}
+            showEpisodes={uiState.showControls && uiState.showEpisodesList}
+            onEpisodeSelect={onEpisodeSelect}
+            bookmarkedEpisodeId={bookmarkedEpisodeId}
           />
         )}
 
