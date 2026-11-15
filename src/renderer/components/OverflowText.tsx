@@ -8,6 +8,20 @@ interface OverflowTextProps extends Omit<TypographyProps, 'children'> {
   tooltipEnabled?: boolean;
 }
 
+/** Отличает скрытые строки от выступающих за строку частей букв. */
+function isTextClipped(element: HTMLElement): boolean {
+  if (element.scrollWidth > element.clientWidth + 1) return true;
+
+  const overflow = element.scrollHeight - element.clientHeight;
+  if (overflow <= 1) return false;
+
+  const { lineHeight, webkitLineClamp } = getComputedStyle(element);
+  const lineHeightPx = parseFloat(lineHeight);
+  return Number(webkitLineClamp) > 0 && Number.isFinite(lineHeightPx)
+    ? overflow > lineHeightPx / 2
+    : true;
+}
+
 /** Показывает полный текст, если он обрезан по ширине или высоте. */
 function OverflowText({
   children,
@@ -18,12 +32,6 @@ function OverflowText({
   ...typographyProps
 }: OverflowTextProps) {
   const [clipped, setClipped] = useState(false);
-  const measure = (element: HTMLElement) => {
-    setClipped(
-      element.scrollWidth > element.clientWidth ||
-        element.scrollHeight > element.clientHeight,
-    );
-  };
 
   return (
     <Tooltip
@@ -42,11 +50,11 @@ function OverflowText({
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...typographyProps}
         onMouseOver={(event) => {
-          measure(event.currentTarget);
+          setClipped(isTextClipped(event.currentTarget));
           onMouseOver?.(event);
         }}
         onFocus={(event) => {
-          measure(event.currentTarget);
+          setClipped(isTextClipped(event.currentTarget));
           onFocus?.(event);
         }}
       >
