@@ -30,6 +30,7 @@ import {
   PLAYER_SHEET_OFFSET,
   PLAYER_SHEET_RADIUS,
   PLAYER_SLIDER_BOTTOM_GAP,
+  SCROLLBAR_WIDTH,
   SIDEBAR_WIDTH_CSS,
   SIDEBAR_WIDTH_PROPERTY,
   SIDEBAR_WIDTH_VAR,
@@ -80,11 +81,15 @@ function PlayerPageRefactored({
 }: PlayerPageProps) {
   const { customColors } = useTheme().palette;
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
+  const expandedSidebarWidth = offlineMode
+    ? `calc(${SIDEBAR_WIDTH_CSS} + ${SCROLLBAR_WIDTH}px)`
+    : SIDEBAR_WIDTH_CSS;
 
   const playerRowHeight = getPlayerRowHeight(
     DEFAULT_VIDEO_ASPECT_RATIO,
     SIDEBAR_WIDTH_VAR,
     TOOLBAR_HEIGHT + EPISODE_SLIDER_HEIGHT + PLAYER_SLIDER_BOTTOM_GAP,
+    offlineMode ? 0 : SCROLLBAR_WIDTH,
   );
 
   const coverRange = getCoverRange(
@@ -465,6 +470,7 @@ function PlayerPageRefactored({
           marginTop: `${TOOLBAR_HEIGHT}px`,
           overflowY: offlineMode ? 'hidden' : 'auto',
           overflowX: 'hidden',
+          scrollbarGutter: offlineMode ? 'auto' : 'stable',
         }}
       >
         <Box
@@ -477,7 +483,7 @@ function PlayerPageRefactored({
             isolation: 'isolate',
             [SIDEBAR_WIDTH_PROPERTY]: sidebarCollapsed
               ? '0px'
-              : SIDEBAR_WIDTH_CSS,
+              : expandedSidebarWidth,
             transition: `${SIDEBAR_WIDTH_PROPERTY} ${SIDEBAR_TRANSITION}ms ${SIDEBAR_EASING}`,
           }}
         >

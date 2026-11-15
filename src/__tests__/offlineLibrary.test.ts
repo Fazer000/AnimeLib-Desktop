@@ -257,6 +257,24 @@ describe('OfflineLibrary: сверка с диском', () => {
     expect(offlineLibrary.getAnime()[0].episodes).toHaveLength(1);
   });
 
+  it('учитывает пропавший локальный HLS-плейлист и сохраняет изменения каталога', () => {
+    touch('a.mp4');
+    touch('b.ts');
+    offlineLibrary.addEpisode('one-piece', meta, episode());
+    offlineLibrary.addEpisode(
+      'one-piece',
+      meta,
+      episode({ episodeId: 2, fileName: 'b.ts', playlistFileName: 'b.m3u8' }),
+    );
+
+    expect(offlineLibrary.verify()).toBe(1);
+    offlineLibrary.init();
+
+    expect(
+      offlineLibrary.getAnime()[0].episodes.map((item) => item.episodeId),
+    ).toEqual([1]);
+  });
+
   it('getCoverFileName отдаёт обложку тайтла', () => {
     offlineLibrary.addEpisode('one-piece', meta, episode(), 'cover.jpg');
 

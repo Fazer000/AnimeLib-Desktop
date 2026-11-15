@@ -408,7 +408,11 @@ export class VideoPlayerController {
 
     await this.shakaManager.detachSource();
 
-    if (!options || !(await OfflineSourceGuard.isOnline())) {
+    if (
+      !options ||
+      options.offlineAnimeId ||
+      !(await OfflineSourceGuard.isOnline())
+    ) {
       log.warn('Offline source lost, no fallback');
       this.config.onOfflineSourceLost?.(false);
       return;

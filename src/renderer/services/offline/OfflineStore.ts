@@ -149,14 +149,15 @@ class OfflineStore {
   /**
    * Сверяет каталог с диском и обновляет снимок
    */
-  public async verify(): Promise<void> {
-    const removed = await this.api?.offlineVerify?.().catch(() => 0);
+  public async verify(): Promise<number> {
+    const removed = (await this.api?.offlineVerify?.().catch(() => 0)) ?? 0;
 
     if (removed) {
       log.warn('Missing episodes removed:', removed);
     }
 
     await this.refresh();
+    return removed;
   }
 
   /**

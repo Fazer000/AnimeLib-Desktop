@@ -350,7 +350,16 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         log.debug('Initial skip time from storage:', initialSkipTime);
 
         const controller = new VideoPlayerController({
-          onError,
+          onError: (error) => {
+            if (offlineMode) {
+              setSourceNotice({
+                text: 'Не удалось открыть скачанную серию. Проверьте, доступен ли файл на диске.',
+                severity: 'warning',
+              });
+            } else {
+              onError?.(error);
+            }
+          },
           onLoadingChange: setIsLoading,
           onStateChange: (updates) => {
             setVideoState((prev) => ({ ...prev, ...updates }));
@@ -388,7 +397,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
                     severity: 'info',
                   }
                 : {
-                    text: 'Скачанный файл удалён, а сеть недоступна — воспроизведение остановлено',
+                    text: 'Скачанный файл недоступен — воспроизведение остановлено',
                     severity: 'warning',
                   },
             ),
@@ -426,6 +435,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       };
     }, [
       onError,
+      offlineMode,
       skipManager,
       uiStateManager,
       autoplayManager,

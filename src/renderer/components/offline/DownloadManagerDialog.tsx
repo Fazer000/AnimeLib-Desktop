@@ -260,9 +260,23 @@ function DownloadManagerDialog({
   }, [defaultQualities, defaultQuality]);
 
   useEffect(() => {
-    if (open) {
-      offlineStore.verify();
-    }
+    if (!open) return undefined;
+
+    let active = true;
+    const verifyLibrary = async () => {
+      const removed = await offlineStore.verify();
+      if (active && removed > 0) {
+        setNotice({
+          text: 'Некоторые скачанные файлы отсутствуют на диске. Библиотека обновлена.',
+          severity: 'warning',
+        });
+      }
+    };
+
+    verifyLibrary();
+    return () => {
+      active = false;
+    };
   }, [open]);
 
   useEffect(

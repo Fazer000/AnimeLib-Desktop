@@ -22,9 +22,10 @@ export function getPlayerRowHeight(
   aspectRatio: number,
   sidebarWidth: string,
   reservedHeight: number,
+  scrollbarWidth: number = SCROLLBAR_WIDTH,
 ): string {
   const ratio = aspectRatio.toFixed(4);
-  const byWidth = `calc((100vw - ${sidebarWidth} - ${SCROLLBAR_WIDTH}px) / ${ratio})`;
+  const byWidth = `calc((100vw - ${sidebarWidth} - ${scrollbarWidth}px) / ${ratio})`;
   const byHeight = `calc(100vh - ${reservedHeight}px)`;
 
   return `min(${byWidth}, ${byHeight})`;

@@ -69,8 +69,10 @@ class OfflineLibrary {
     let removed = 0;
 
     this.anime.forEach((entry) => {
-      const alive = entry.episodes.filter((episode) =>
-        this.hasFile(episode.fileName),
+      const alive = entry.episodes.filter(
+        (episode) =>
+          this.hasFile(episode.fileName) &&
+          (!episode.playlistFileName || this.hasFile(episode.playlistFileName)),
       );
 
       removed += entry.episodes.length - alive.length;
@@ -96,11 +98,6 @@ class OfflineLibrary {
           this.hasFile(subtitle.fileName),
         );
       });
-
-      entry.episodes = entry.episodes.filter(
-        (episode) =>
-          !episode.playlistFileName || this.hasFile(episode.playlistFileName),
-      );
     });
 
     const before = this.anime.length;

@@ -124,6 +124,12 @@ describe('getPlayerRowHeight', () => {
     expect(height).toContain('100vw - clamp(280px, 17vw, 320px)');
   });
 
+  it('офлайн-сайдбар занимает место полосы прокрутки без двойного вычета', () => {
+    expect(getPlayerRowHeight(16 / 9, '326px', 110, 0)).toBe(
+      'min(calc((100vw - 326px - 0px) / 1.7778), calc(100vh - 110px))',
+    );
+  });
+
   it('анимируемая ширина сайдбара подставляется как ссылка на свойство', () => {
     const height = getPlayerRowHeight(16 / 9, SIDEBAR_WIDTH_VAR, 110);
 
