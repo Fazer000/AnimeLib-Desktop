@@ -32,6 +32,14 @@ function AnimeInfoComponent({
 }: AnimeInfoProps) {
   if (!animeInfo) return null;
 
+  const subtitleText = [
+    episodeNumber ? `Эпизод ${episodeNumber}` : null,
+    episodeName,
+    selectedPlayer?.team?.name || selectedPlayer?.player,
+  ]
+    .filter(Boolean)
+    .join(' • ');
+
   const releaseYear = new Date(animeInfo.releaseDate).getFullYear();
   const metaText = [
     animeInfo.rating?.averageFormated,
@@ -73,7 +81,7 @@ function AnimeInfoComponent({
         {animeInfo.rus_name || animeInfo.name}
       </Typography>
 
-      {(episodeNumber || selectedPlayer) && (
+      {subtitleText && (
         <Typography
           variant="body2"
           sx={{
@@ -83,19 +91,7 @@ function AnimeInfoComponent({
             mb: 0.5,
           }}
         >
-          {episodeNumber && `Эпизод ${episodeNumber}`}
-          {episodeNumber && selectedPlayer && ' • '}
-          {selectedPlayer && (
-            <span style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-              {selectedPlayer.team?.name || selectedPlayer.player}
-            </span>
-          )}
-          {episodeName && ' • '}
-          {episodeName && (
-            <span style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-              {episodeName}
-            </span>
-          )}
+          {subtitleText}
         </Typography>
       )}
 
