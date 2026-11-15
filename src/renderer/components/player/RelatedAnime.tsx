@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import type { CustomColors } from '@mui/material/styles';
 import { ChevronLeft, ChevronRight } from '../icons';
+import OverflowText from '../OverflowText';
 import { RelatedAnime as RelatedAnimeType } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 import {
@@ -149,7 +150,7 @@ function RelatedAnimeCard({
             {item.related_type.label}
           </Typography>
 
-          <Typography
+          <OverflowText
             sx={{
               fontSize: '1rem',
               fontWeight: 600,
@@ -164,7 +165,7 @@ function RelatedAnimeCard({
             }}
           >
             {item.media.rus_name || item.media.name}
-          </Typography>
+          </OverflowText>
         </Box>
 
         <Box>

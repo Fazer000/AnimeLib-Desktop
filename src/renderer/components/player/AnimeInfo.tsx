@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { AnimeInfo } from '../../api/animeApi';
+import OverflowText from '../OverflowText';
 import {
   PLAYER_INFO_MAX_WIDTH,
   PLAYER_INFO_TOP,
@@ -63,8 +64,10 @@ function AnimeInfoComponent({
         transition: 'opacity 0.3s ease',
       }}
     >
-      <Typography
+      <OverflowText
         variant="h6"
+        tooltipPlacement="bottom"
+        tooltipEnabled={show}
         sx={{
           color: 'white',
           fontWeight: 600,
@@ -79,7 +82,7 @@ function AnimeInfoComponent({
         }}
       >
         {animeInfo.rus_name || animeInfo.name}
-      </Typography>
+      </OverflowText>
 
       {subtitleText && (
         <Typography

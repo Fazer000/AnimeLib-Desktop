@@ -24,6 +24,7 @@ import {
 import { offlineStore } from '../../services/offline';
 import DialogCloseButton from '../DialogCloseButton';
 import EmptyState from '../EmptyState';
+import OverflowText from '../OverflowText';
 import useDownloadSpeed from '../../hooks/useDownloadSpeed';
 import {
   formatEta,
@@ -181,7 +182,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
                 />
               )}
 
-              <Typography
+              <OverflowText
                 sx={{
                   fontSize: OFFLINE_FONT.body,
                   flex: 1,
@@ -191,7 +192,7 @@ function DownloadsList({ tasks }: DownloadsListProps) {
                 noWrap
               >
                 {`${task.animeTitle} · ${task.episodeNumber} серия · ${task.quality} · ${task.teamName}`}
-              </Typography>
+              </OverflowText>
 
               <Box
                 sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}

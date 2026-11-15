@@ -25,6 +25,7 @@ import {
 import { getQualityTagColor } from '../../utils/videoHelpers';
 import TeamAvatar from './TeamAvatar';
 import ControlTooltip from './ControlTooltip';
+import OverflowText from '../OverflowText';
 import HotkeysDialog from './HotkeysDialog';
 
 interface PlayerSidebarProps {
@@ -407,7 +408,7 @@ function PlayerSidebarRefactored({
                     coverUrl={player.team.cover?.thumbnail}
                   />
 
-                  <Typography
+                  <OverflowText
                     variant="body2"
                     sx={{
                       flex: 1,
@@ -424,7 +425,7 @@ function PlayerSidebarRefactored({
                     }}
                   >
                     {player.team.name}
-                  </Typography>
+                  </OverflowText>
 
                   <Box
                     sx={{

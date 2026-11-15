@@ -14,6 +14,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import OverflowText from '../OverflowText';
 import {
   ChevronDown,
   Library,
@@ -278,12 +279,12 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                 </Box>
 
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography
+                  <OverflowText
                     sx={{ fontSize: OFFLINE_FONT.title, fontWeight: 600 }}
                     noWrap
                   >
                     {item.title}
-                  </Typography>
+                  </OverflowText>
                   <Typography
                     sx={{
                       fontSize: OFFLINE_FONT.caption,
@@ -396,7 +397,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                       },
                     }}
                   >
-                    <Typography
+                    <OverflowText
                       sx={{
                         fontSize: OFFLINE_FONT.episode,
                         flex: 1,
@@ -410,7 +411,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                       noWrap
                     >
                       {buildEpisodeLabel(episode)}
-                    </Typography>
+                    </OverflowText>
 
                     <IconButton
                       size="small"

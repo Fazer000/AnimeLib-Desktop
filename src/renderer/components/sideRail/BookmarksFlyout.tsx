@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Box, ButtonBase, Tooltip, Typography, useTheme } from '@mui/material';
+import React from 'react';
+import { Box, ButtonBase, Typography, useTheme } from '@mui/material';
 import {
   BOOKMARKS_COVER,
   LibSite,
@@ -7,6 +7,7 @@ import {
   buildOfflineUrl,
 } from '../../../constants';
 import { BookmarkItem } from '../../api/animeApi';
+import OverflowText from '../OverflowText';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
 import useReadingBookmarks from '../../hooks/useReadingBookmarks';
 import {
@@ -28,7 +29,6 @@ interface RowProps {
  */
 export function Row({ coverUrl, title, caption, onClick }: RowProps) {
   const { customColors } = useTheme().palette;
-  const [truncated, setTruncated] = useState(false);
 
   return (
     <ButtonBase
@@ -64,27 +64,16 @@ export function Row({ coverUrl, title, caption, onClick }: RowProps) {
         )}
       </Box>
       <Box sx={{ minWidth: 0 }}>
-        <Tooltip
-          title={truncated ? title : ''}
-          placement="top-start"
-          arrow
-          disableInteractive
+        <OverflowText
+          noWrap
+          sx={{
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: customColors.dialogTextColor,
+          }}
         >
-          <Typography
-            noWrap
-            onMouseEnter={(event) => {
-              const el = event.currentTarget;
-              setTruncated(el.scrollWidth > el.clientWidth);
-            }}
-            sx={{
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              color: customColors.dialogTextColor,
-            }}
-          >
-            {title}
-          </Typography>
-        </Tooltip>
+          {title}
+        </OverflowText>
         <Typography
           sx={{ fontSize: '0.75rem', color: customColors.accentSoftColor }}
         >

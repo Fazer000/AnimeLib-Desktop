@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Box, Typography, CircularProgress, useTheme } from '@mui/material';
 import { animeApi, AnimeInfo } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
+import OverflowText from '../OverflowText';
 import AnimeCardActions from './AnimeCardActions';
 import AnimeRatingButton from './AnimeRatingButton';
 import ShikimoriRatingLabel from './ShikimoriRatingLabel';
@@ -230,8 +231,10 @@ function AnimeInfoCard({
               justifyContent: 'center',
             }}
           >
-            <Typography
+            <OverflowText
               variant="h5"
+              tooltipPlacement="bottom"
+              tooltipEnabled={isVisible}
               sx={{
                 color: customColors.dialogTextColor,
                 fontWeight: 600,
@@ -244,7 +247,7 @@ function AnimeInfoCard({
               }}
             >
               {animeInfo.rus_name || animeInfo.name}
-            </Typography>
+            </OverflowText>
 
             <Box
               sx={{

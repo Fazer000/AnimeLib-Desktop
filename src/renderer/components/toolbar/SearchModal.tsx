@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { BookOpen, Play, Search, SearchX, X } from '../icons';
 import EmptyState from '../EmptyState';
+import OverflowText from '../OverflowText';
 import LibSiteIcon from '../sideRail/LibSiteIcon';
 import { animeApi, SearchResultItem } from '../../api/animeApi';
 import useImageWithReferer from '../../hooks/useImageWithReferer';
@@ -117,7 +118,7 @@ function SearchResultCard({
           >
             {result.status?.label || 'Неизвестно'}
           </Typography>
-          <Typography
+          <OverflowText
             variant="body1"
             sx={{
               color: customColors.dialogTextColor,
@@ -128,7 +129,7 @@ function SearchResultCard({
             }}
           >
             {result.rus_name || result.name}
-          </Typography>
+          </OverflowText>
           <Typography
             variant="caption"
             sx={{
