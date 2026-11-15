@@ -42,6 +42,7 @@ function AnimeCardActions({
             display: 'flex',
             alignItems: 'center',
             gap: 1,
+            minWidth: 0,
             cursor: 'default',
           }}
         >

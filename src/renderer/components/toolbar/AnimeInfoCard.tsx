@@ -48,14 +48,32 @@ function AnimeInfoCard({
 
   const panelRef = useRef<HTMLDivElement | null>(null);
   const pointerRef = useRef<PointLike | null>(null);
+  const hideAfterActionRef = useRef(false);
 
   const coverUrl = useImageWithReferer(animeInfo?.cover?.default);
 
   useEffect(() => {
-    if (!isVisible) return undefined;
+    if (!isVisible) {
+      hideAfterActionRef.current = false;
+      pointerRef.current = null;
+      return undefined;
+    }
 
     const remember = (event: PointerEvent) => {
-      pointerRef.current = { x: event.clientX, y: event.clientY };
+      const { clientX: x, clientY: y } = event;
+      const previous = pointerRef.current;
+      pointerRef.current = { x, y };
+
+      if (
+        hideAfterActionRef.current &&
+        event.type === 'pointermove' &&
+        (previous?.x !== x || previous?.y !== y) &&
+        event.target instanceof Node &&
+        panelRef.current?.contains(event.target)
+      ) {
+        hideAfterActionRef.current = false;
+        onMouseEnter();
+      }
     };
 
     document.addEventListener('pointermove', remember, true);
@@ -65,19 +83,28 @@ function AnimeInfoCard({
       document.removeEventListener('pointermove', remember, true);
       document.removeEventListener('pointerdown', remember, true);
     };
-  }, [isVisible]);
+  }, [isVisible, onMouseEnter]);
 
-  const handlePopupClose = useCallback(() => {
-    requestAnimationFrame(() => {
-      const panel = panelRef.current;
-      if (
-        panel &&
-        !isPointInRect(pointerRef.current, panel.getBoundingClientRect())
-      ) {
+  const handlePopupClose = useCallback(
+    (hideCard = false) => {
+      if (hideCard) {
+        hideAfterActionRef.current = true;
         onMouseLeave();
+        return;
       }
-    });
-  }, [onMouseLeave]);
+
+      requestAnimationFrame(() => {
+        const panel = panelRef.current;
+        if (
+          panel &&
+          !isPointInRect(pointerRef.current, panel.getBoundingClientRect())
+        ) {
+          onMouseLeave();
+        }
+      });
+    },
+    [onMouseLeave],
+  );
 
   /** Данные грузятся сразу при открытии тайтла, а не при первом наведении */
   useEffect(() => {
@@ -141,7 +168,9 @@ function AnimeInfoCard({
     <CardPopupProvider value={handlePopupClose}>
       <Box
         ref={panelRef}
-        onMouseEnter={onMouseEnter}
+        onMouseEnter={() => {
+          if (!hideAfterActionRef.current) onMouseEnter();
+        }}
         onMouseLeave={onMouseLeave}
         sx={{
           ...panelSx,

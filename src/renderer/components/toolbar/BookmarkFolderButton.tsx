@@ -20,12 +20,17 @@ interface BookmarkFolderButtonProps {
   state: AnimeBookmarkFolderState;
 }
 
+const ADD_TO_PLANS_LABEL = 'Добавить в планы';
+const LOADING_LABEL = 'Закладки';
+const IN_LIST_LABEL = 'В списке';
+
 /**
  * Папка тайтла в закладках: кнопка с текущей папкой и меню переноса
  */
 function BookmarkFolderButton({ state }: BookmarkFolderButtonProps) {
   const { customColors } = useTheme().palette;
   const anchorRef = useRef<HTMLDivElement | null>(null);
+  const hideCardAfterExit = useRef(false);
   const [open, setOpen] = useState<boolean>(false);
   const [newName, setNewName] = useState<string>('');
   const [creating, setCreating] = useState<boolean>(false);
@@ -36,32 +41,47 @@ function BookmarkFolderButton({ state }: BookmarkFolderButtonProps) {
     ? (folders.find((folder) => folder.id === bookmark.status) ?? null)
     : null;
 
-  let label = 'Добавить в планы';
-  if (!loaded) label = 'Закладки';
-  else if (bookmark) label = current?.name ?? 'В списке';
+  let label = ADD_TO_PLANS_LABEL;
+  if (!loaded) label = LOADING_LABEL;
+  else if (bookmark) label = current?.name ?? IN_LIST_LABEL;
+
+  const sizingLabels = new Set([
+    ADD_TO_PLANS_LABEL,
+    LOADING_LABEL,
+    IN_LIST_LABEL,
+    ...folders.map((folder) => folder.name),
+  ]);
 
   const accent = current?.color || customColors.accentSoftColor;
   const baseSx = cardActionButtonSx(customColors);
 
   const notifyPopupClosed = useCardPopupClose();
 
-  const close = () => {
-    setOpen(false);
-    notifyPopupClosed();
+  const handleMenuExited = () => {
+    notifyPopupClosed(hideCardAfterExit.current);
+    hideCardAfterExit.current = false;
   };
 
   const handleMainClick = () => {
-    if (bookmark) setOpen(true);
-    else moveTo(BOOKMARK_STATUS_PLANNED);
+    if (bookmark) {
+      setOpen(true);
+    } else {
+      moveTo(BOOKMARK_STATUS_PLANNED);
+      notifyPopupClosed(true);
+    }
   };
 
   const handleSelect = (status: number) => {
-    close();
-    if (status !== bookmark?.status) moveTo(status);
+    setOpen(false);
+    if (status !== bookmark?.status) {
+      hideCardAfterExit.current = true;
+      moveTo(status);
+    }
   };
 
   const handleRemove = () => {
-    close();
+    hideCardAfterExit.current = true;
+    setOpen(false);
     remove();
   };
 
@@ -76,7 +96,7 @@ function BookmarkFolderButton({ state }: BookmarkFolderButtonProps) {
 
   return (
     <>
-      <Box ref={anchorRef} sx={{ display: 'inline-flex' }}>
+      <Box ref={anchorRef} sx={{ display: 'inline-flex', minWidth: 0 }}>
         <Button
           disabled={!loaded || busy}
           onClick={handleMainClick}
@@ -84,10 +104,38 @@ function BookmarkFolderButton({ state }: BookmarkFolderButtonProps) {
             ...baseSx,
             borderRadius: '6px 0 0 6px',
             color: bookmark ? accent : customColors.primaryTextColor,
+            justifyContent: 'flex-start',
           }}
         >
-          {busy ? <CircularProgress size={14} color="inherit" /> : <Bookmark />}
-          {label}
+          <Box component="span" sx={{ display: 'inline-flex', flexShrink: 0 }}>
+            {busy ? (
+              <CircularProgress size={16} color="inherit" />
+            ) : (
+              <Bookmark />
+            )}
+          </Box>
+          <Box
+            component="span"
+            sx={{
+              display: 'inline-grid',
+              gridTemplateColumns: 'minmax(0, 1fr)',
+              minWidth: 0,
+              '& > span': {
+                gridArea: '1 / 1',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                textAlign: 'left',
+              },
+              '& > [aria-hidden]': { visibility: 'hidden' },
+            }}
+          >
+            <span>{label}</span>
+            {Array.from(sizingLabels, (name) => (
+              <span key={name} aria-hidden="true">
+                {name}
+              </span>
+            ))}
+          </Box>
         </Button>
         <Button
           aria-label="Выбрать папку"
@@ -98,6 +146,7 @@ function BookmarkFolderButton({ state }: BookmarkFolderButtonProps) {
           sx={{
             ...baseSx,
             px: 0.75,
+            flexShrink: 0,
             borderLeft: 'none',
             borderRadius: '0 6px 6px 0',
           }}
@@ -109,7 +158,8 @@ function BookmarkFolderButton({ state }: BookmarkFolderButtonProps) {
       <Menu
         anchorEl={anchorRef.current}
         open={open}
-        onClose={close}
+        onClose={() => setOpen(false)}
+        onTransitionExited={handleMenuExited}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         slotProps={{ paper: { sx: { mt: 0.75, minWidth: 220 } } }}

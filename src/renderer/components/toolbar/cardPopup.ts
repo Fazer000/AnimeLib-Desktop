@@ -3,11 +3,13 @@
  */
 import { createContext, useContext } from 'react';
 
-const CardPopupContext = createContext<() => void>(() => {});
+type CardPopupClose = (hideCard?: boolean) => void;
+
+const CardPopupContext = createContext<CardPopupClose>(() => {});
 
 export const CardPopupProvider = CardPopupContext.Provider;
 
 /** Возвращает функцию, которую меню или окно вызывает при закрытии */
-export function useCardPopupClose(): () => void {
+export function useCardPopupClose(): CardPopupClose {
   return useContext(CardPopupContext);
 }

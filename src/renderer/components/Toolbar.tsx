@@ -19,7 +19,7 @@ import { createLogger } from '../../shared/logger';
 
 const log = createLogger('Toolbar');
 
-const ANIME_INFO_HIDE_DELAY = 3000;
+const ANIME_INFO_HIDE_DELAY = 2000;
 
 interface ToolbarProps {
   onBack?: () => void;
