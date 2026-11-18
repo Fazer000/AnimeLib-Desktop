@@ -13,6 +13,7 @@ import {
 } from '../icons';
 
 import ProgressBar from './ProgressBar';
+import isNearBookmark from '../../utils/bookmarkPosition';
 import PlaybackControls from './PlaybackControls';
 import VolumeControl from './VolumeControl';
 import ControlTooltip from './ControlTooltip';
@@ -120,6 +121,7 @@ interface VideoControlsProps {
 
   onSaveBookmark?: () => void;
   hasBookmark?: boolean;
+  bookmarkTime?: number | null;
 
   timecode: TimeCode[];
   currentSegment?: TimeCode | null;
@@ -167,6 +169,7 @@ function VideoControls({
   onMenuOpenChange,
   onSaveBookmark,
   hasBookmark,
+  bookmarkTime = null,
   qualityOptions,
   selectedQuality,
   qualityMode,
@@ -210,6 +213,18 @@ function VideoControls({
   downloadManagerOpen = false,
 }: VideoControlsProps) {
   const theme = useTheme();
+  const [nearBookmark, setNearBookmark] = useState(false);
+
+  useEffect(() => {
+    const update = (time: number) => {
+      setNearBookmark(
+        Boolean(hasBookmark) && isNearBookmark(time, bookmarkTime),
+      );
+    };
+    update(timeStore.getCurrentTime());
+    return timeStore.subscribe(update);
+  }, [timeStore, bookmarkTime, hasBookmark]);
+
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [showVolumeTooltip, setShowVolumeTooltip] = useState(false);
 
@@ -501,6 +516,7 @@ function VideoControls({
         onMouseLeave={onMouseLeave}
       >
         <ProgressBar
+          bookmarkTime={bookmarkTime}
           timeStore={timeStore}
           duration={duration}
           hoverTime={hoverTime}
@@ -555,7 +571,7 @@ function VideoControls({
                     onSaveBookmark();
                   }}
                   sx={{
-                    color: hasBookmark
+                    color: nearBookmark
                       ? theme.palette.customColors.onVideoAccentColor
                       : 'white',
                     padding: 0.25,
@@ -571,7 +587,7 @@ function VideoControls({
                   <Bookmark
                     sx={{
                       ...ICON_SX,
-                      fill: hasBookmark ? 'currentColor' : 'none',
+                      fill: nearBookmark ? 'currentColor' : 'none',
                     }}
                   />
                 </IconButton>
@@ -711,6 +727,7 @@ function VideoControls({
 VideoControls.defaultProps = {
   onSaveBookmark: undefined,
   hasBookmark: false,
+  bookmarkTime: null,
   onSkipTimeChange: undefined,
   autoplayEnabled: false,
   onAutoplayChange: undefined,

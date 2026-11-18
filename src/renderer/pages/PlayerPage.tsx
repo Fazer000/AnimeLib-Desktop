@@ -152,6 +152,8 @@ function PlayerPageRefactored({
     setInitialTimecode,
     hasBookmark,
     setHasBookmark,
+    bookmarkTime,
+    setBookmarkTime,
     bookmarkChecked,
     bookmarkedEpisodeId,
     setBookmarkedEpisodeId,
@@ -394,6 +396,7 @@ function PlayerPageRefactored({
       });
 
       setHasBookmark(true);
+      setBookmarkTime(currentTime);
       setBookmarkedEpisodeId(episodeId);
 
       if (success) {
@@ -408,6 +411,7 @@ function PlayerPageRefactored({
       selectedPlayer,
       episodes,
       setHasBookmark,
+      setBookmarkTime,
       setBookmarkedEpisodeId,
     ],
   );
@@ -686,6 +690,12 @@ function PlayerPageRefactored({
                       }}
                       onSaveBookmark={handleSaveBookmark}
                       hasBookmark={hasBookmark}
+                      bookmarkTime={
+                        episodes[currentEpisodeIndex]?.id ===
+                        bookmarkedEpisodeId
+                          ? bookmarkTime
+                          : null
+                      }
                       bookmarkedEpisodeId={bookmarkedEpisodeId}
                       autoplayEnabled={autoplayEnabled}
                       onAutoplayChange={handleAutoplayChange}

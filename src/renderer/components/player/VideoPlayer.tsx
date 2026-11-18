@@ -113,6 +113,8 @@ interface VideoPlayerProps {
   // eslint-disable-next-line react/require-default-props
   hasBookmark?: boolean;
   // eslint-disable-next-line react/require-default-props
+  bookmarkTime?: number | null;
+  // eslint-disable-next-line react/require-default-props
   bookmarkedEpisodeId?: number | null;
   // eslint-disable-next-line react/require-default-props
   autoplayEnabled?: boolean;
@@ -180,6 +182,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       onTimecodeApplied,
       onSaveBookmark,
       hasBookmark = false,
+      bookmarkTime = null,
       bookmarkedEpisodeId = null,
       autoplayEnabled = false,
       onAutoplayChange,
@@ -1274,6 +1277,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             onMenuOpenChange={handleMenuOpenChange}
             onSaveBookmark={handleSaveBookmark}
             hasBookmark={hasBookmark}
+            bookmarkTime={bookmarkTime}
             qualityOptions={qualityOptions}
             selectedQuality={selectedQuality}
             qualityMode={qualityMode}

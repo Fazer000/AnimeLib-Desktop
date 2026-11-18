@@ -27,6 +27,8 @@ type Segment = {
 interface ProgressBarProps {
   timeStore: PlaybackTimeStore;
   duration: number;
+  // eslint-disable-next-line react/require-default-props
+  bookmarkTime?: number | null;
   hoverTime: number | null;
   onSeek: (time: number) => void;
   onProgressMouseMove: (event: React.MouseEvent<HTMLDivElement>) => void;
@@ -95,6 +97,7 @@ const HOVER_MARKER_SX = {
 };
 
 const sliderSx = (colors: CustomColors) => ({
+  zIndex: 1,
   color: colors.onVideoAccentColor,
   height: 28,
   padding: '0 !important',
@@ -189,6 +192,7 @@ export const segmentFill = (segment: Segment, time: number): number => {
 function ProgressBar({
   timeStore,
   duration,
+  bookmarkTime = null,
   hoverTime,
   onSeek,
   onProgressMouseMove,
@@ -499,6 +503,27 @@ function ProgressBar({
         onMouseLeave={onProgressMouseLeave}
         sx={sliderSx(customColors)}
       />
+
+      {bookmarkTime !== null &&
+        bookmarkTime >= 0 &&
+        bookmarkTime <= duration &&
+        duration > 0 && (
+          <Box
+            aria-label={`Закладка ${formatTime(bookmarkTime)}`}
+            sx={{
+              position: 'absolute',
+              left: `${(bookmarkTime / duration) * 100}%`,
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 0,
+              width: 4,
+              height: 12,
+              borderRadius: 1,
+              backgroundColor: customColors.onVideoAccentColor,
+              pointerEvents: 'none',
+            }}
+          />
+        )}
 
       {hoverTime !== null && duration > 0 && (
         <Box

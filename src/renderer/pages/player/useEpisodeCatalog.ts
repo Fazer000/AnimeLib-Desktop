@@ -25,6 +25,7 @@ export function useEpisodeCatalog({
   const [loading, setLoading] = useState<boolean>(false);
 
   const [initialTimecode, setInitialTimecode] = useState<number | null>(null);
+  const [bookmarkTime, setBookmarkTime] = useState<number | null>(null);
   const [hasBookmark, setHasBookmark] = useState<boolean>(false);
   const [bookmarkChecked, setBookmarkChecked] = useState<boolean>(false);
   const [bookmarkedEpisodeId, setBookmarkedEpisodeId] = useState<number | null>(
@@ -74,6 +75,7 @@ export function useEpisodeCatalog({
 
       if (latest && latest.seconds > 0) {
         setBookmarkedEpisodeId(latest.episodeId);
+        setBookmarkTime(latest.seconds);
       }
 
       if (progress && progress.episodeId === targetId && progress.seconds > 0) {
@@ -135,6 +137,8 @@ export function useEpisodeCatalog({
           animeId,
           loadedEpisodes,
         );
+
+        setBookmarkTime(result.timecodeSeconds);
 
         const targetIndex = initialEpisodeId
           ? loadedEpisodes.findIndex((item) => item.id === initialEpisodeId)
@@ -231,6 +235,8 @@ export function useEpisodeCatalog({
     setInitialTimecode,
     hasBookmark,
     setHasBookmark,
+    bookmarkTime,
+    setBookmarkTime,
     bookmarkChecked,
     bookmarkedEpisodeId,
     setBookmarkedEpisodeId,
