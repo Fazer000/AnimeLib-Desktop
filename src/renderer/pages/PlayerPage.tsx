@@ -8,6 +8,7 @@ import {
 } from '../api/animeApi';
 import { parseShikimoriId } from '../utils/shikimoriFranchise';
 import CustomToolbar from '../components/Toolbar';
+import PlayerEntrySplash from '../components/player/PlayerEntrySplash';
 import VideoPlayer, { VideoPlayerRef } from '../components/player/VideoPlayer';
 import ErrorBoundary from '../components/ErrorBoundary';
 import EpisodeSlider from '../components/player/EpisodeSlider';
@@ -435,6 +436,7 @@ function PlayerPageRefactored({
     <Box
       sx={{
         height: '100vh',
+        position: 'relative',
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: customColors.pageColor,
@@ -823,6 +825,15 @@ function PlayerPageRefactored({
           />
         )}
       </Box>
+
+      <PlayerEntrySplash
+        key={currentAnimeId}
+        loading={
+          !show404 &&
+          !kodikError &&
+          (!bookmarkChecked || episodesLoading || playersLoading)
+        }
+      />
 
       <DownloadManagerDialog
         open={showDownloadManager}

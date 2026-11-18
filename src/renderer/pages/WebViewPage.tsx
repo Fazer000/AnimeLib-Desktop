@@ -10,6 +10,8 @@ import { Box, useTheme } from '@mui/material';
 import CustomToolbar from '../components/Toolbar';
 import ScrollTopFab from '../components/ScrollTopFab';
 import SiteLoadError from '../components/SiteLoadError';
+import SiteSplash from '../components/SiteSplash';
+import useSiteSplash from '../hooks/useSiteSplash';
 import { failedPageHost, isSiteDownStatus } from '../utils/loadFailure';
 import { findLibSiteByUrl } from '../utils/libSites';
 import { siteThemeToWrite } from '../theme/themeMode';
@@ -96,6 +98,7 @@ function WebViewRefactored({
   const [pageScroll, setPageScroll] = useState<PageScrollState | null>(null);
 
   const webviewRef = useRef<any>(null);
+  const splash = useSiteSplash(webviewRef, savedUrl);
   const onPageUrlChangeRef = useRef(onPageUrlChange);
   onPageUrlChangeRef.current = onPageUrlChange;
 
@@ -576,6 +579,12 @@ function WebViewRefactored({
               WebkitFontSmoothing: 'antialiased',
               MozOsxFontSmoothing: 'grayscale',
             }}
+          />
+
+          <SiteSplash
+            site={splash.site}
+            visible={splash.visible && !loadError}
+            slow={splash.slow}
           />
 
           {loadError && (
