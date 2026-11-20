@@ -1,3 +1,4 @@
+/** Проверки выбора источников и качества. */
 import type { Player, KodikVideoLinks } from '../renderer/api/animeApi';
 
 const findEpisodes = jest.fn(() => [] as unknown[]);
@@ -31,6 +32,29 @@ const kodikLinks = (
 
 describe('QualityManager: сборка вариантов', () => {
   beforeEach(() => findEpisodes.mockReturnValue([]));
+  it('uses the real height and FF label of an enhanced local copy', () => {
+    findEpisodes.mockReturnValue([
+      {
+        playerId: 1,
+        quality: '720p',
+        enhanced: true,
+        videoWidth: 2560,
+        videoHeight: 1440,
+        fileName: 'enhanced.bin',
+        playlistFileName: '',
+      },
+    ]);
+    const manager = new QualityManager();
+    manager.createQualityOptions(animelibPlayer([720]), null, 55);
+    expect(manager.getQualityOptions()).toEqual([
+      expect.objectContaining({
+        value: '1440p',
+        label: '1440p (FF) (оффлайн)',
+        src: expect.stringContaining('enhanced.bin'),
+        fallbackSrc: undefined,
+      }),
+    ]);
+  });
 
   it('сортирует качества по убыванию и выбирает лучшее', () => {
     const onSelectedQualityChange = jest.fn();

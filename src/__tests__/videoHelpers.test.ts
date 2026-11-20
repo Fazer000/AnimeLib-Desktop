@@ -1,3 +1,4 @@
+/** Проверки форматирования и геометрии плеера. */
 import {
   calculateBufferedPercent,
   calculateProgressPercent,
@@ -53,6 +54,8 @@ describe('getQualityLevel', () => {
 describe('getQualityTagFromResolution', () => {
   it('различает FHD и HD, в отличие от уровня', () => {
     expect(getQualityTagFromResolution('2160p')).toBe('4K');
+    expect(getQualityTagFromResolution('1440p')).toBe('QHD');
+    expect(getQualityTagFromResolution('1440p (FF)')).toBe('QHD');
     expect(getQualityTagFromResolution('1080p')).toBe('FHD');
     expect(getQualityTagFromResolution('720p')).toBe('HD');
     expect(getQualityTagFromResolution('360p')).toBe('SD');
@@ -66,7 +69,7 @@ describe('getQualityTagFromResolution', () => {
 
 describe('getQualityTagColor', () => {
   it('у каждой метки свой цвет', () => {
-    const tags = ['4K', 'FHD', 'HD', 'SD'];
+    const tags = ['4K', 'QHD', 'FHD', 'HD', 'SD'];
     const colors = tags.map(getQualityTagColor);
 
     expect(new Set(colors).size).toBe(tags.length);

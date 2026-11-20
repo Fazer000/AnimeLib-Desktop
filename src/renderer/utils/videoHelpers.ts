@@ -1,3 +1,4 @@
+/** Форматирование времени, качества и геометрии плеера. */
 import {
   PLAYER_INSET_X,
   PLAYER_INSET_Y,
@@ -6,6 +7,7 @@ import {
 } from '../../constants';
 import {
   QUALITY_FHD,
+  QUALITY_QHD,
   INFO_BRIGHT,
   QUALITY_4K,
   QUALITY_SD,
@@ -101,6 +103,7 @@ export function getQualityTagFromResolution(quality: string): string {
 
   if (Number.isNaN(qualityNum)) return '';
   if (qualityNum >= 2160) return '4K';
+  if (qualityNum >= 1440) return 'QHD';
   if (qualityNum >= 1080) return 'FHD';
   if (qualityNum >= 720) return 'HD';
   return 'SD';
@@ -111,6 +114,7 @@ export function getQualityTagFromResolution(quality: string): string {
  */
 export const QUALITY_TAG_COLORS: Record<string, string> = {
   '4K': QUALITY_4K,
+  QHD: QUALITY_QHD,
   FHD: QUALITY_FHD,
   HD: INFO_BRIGHT,
   SD: QUALITY_SD,

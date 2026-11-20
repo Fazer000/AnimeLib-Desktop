@@ -191,6 +191,9 @@ export interface DownloadTask {
  * Скачанная серия в каталоге
  */
 export interface OfflineEpisode {
+  enhanced?: boolean;
+  videoWidth?: number;
+  videoHeight?: number;
   episodeId: number;
   episodeNumber: string;
   episodeName: string;
@@ -210,6 +213,16 @@ export interface OfflineEpisode {
   subtitles: Array<{ name: string; format: string; fileName: string }>;
   createdAt: string;
 }
+
+/** Возвращает фактическое качество, сохраняя исходный ключ загрузки. */
+export const getOfflineQuality = (episode: OfflineEpisode): string =>
+  episode.videoHeight && episode.videoHeight > 0
+    ? `${episode.videoHeight}p`
+    : episode.quality;
+
+/** Добавляет метку Frame Forge к качеству серии. */
+export const formatOfflineQuality = (episode: OfflineEpisode): string =>
+  `${getOfflineQuality(episode)}${episode.enhanced ? ' (FF)' : ''}`;
 
 /**
  * Метаданные аниме для оверлея плеера

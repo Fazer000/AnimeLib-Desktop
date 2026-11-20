@@ -1,3 +1,4 @@
+/** Список скачанных тайтлов и серий. */
 import React, { useMemo, useRef, useState } from 'react';
 import {
   Box,
@@ -34,6 +35,7 @@ import {
   OFFLINE_LIBRARY_SORT_STORAGE_KEY,
   OfflineAnime,
   OfflineEpisode,
+  formatOfflineQuality,
 } from '../../../constants';
 import { usePersistedChoice } from '../../hooks/usePersistedChoice';
 import { isLibrarySort, sortLibrary } from '../../utils/librarySort';
@@ -92,7 +94,7 @@ const countEpisodes = (episodes: OfflineEpisode[]): number =>
 const buildEpisodeLabel = (episode: OfflineEpisode): string =>
   [
     `${episode.episodeNumber} серия`,
-    episode.quality,
+    formatOfflineQuality(episode),
     episode.teamName,
     formatSize(episode.fileSize),
   ]

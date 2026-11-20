@@ -1,9 +1,12 @@
+/** Выбор источников и качества воспроизведения. */
 import { Player, KodikVideoLinks } from '../../api/animeApi';
 import { QualityOption } from './ShakaPlayerManager';
 import { offlineStore } from '../offline';
 import {
   QUALITY_PREFERENCE_STORAGE_KEY,
   buildOfflineUrl,
+  getOfflineQuality,
+  formatOfflineQuality,
 } from '../../../constants';
 import {
   AutoQualityPolicy,
@@ -101,11 +104,12 @@ export class QualityManager {
         const isHls = Boolean(episode.playlistFileName);
 
         options.push({
-          label: `${episode.quality} (оффлайн)`,
-          value: episode.quality,
+          label: `${formatOfflineQuality(episode)} (оффлайн)`,
+          value: getOfflineQuality(episode),
           src: buildOfflineUrl(episode.playlistFileName || episode.fileName),
-          fallbackSrc: isHls ? undefined : urls?.primaryUrl,
-          fallbackSrc2: isHls ? undefined : urls?.fallbackUrl,
+          fallbackSrc: isHls || episode.enhanced ? undefined : urls?.primaryUrl,
+          fallbackSrc2:
+            isHls || episode.enhanced ? undefined : urls?.fallbackUrl,
           type: isHls ? 'hls' : 'progressive',
         });
       });

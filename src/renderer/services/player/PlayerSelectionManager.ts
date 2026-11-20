@@ -17,6 +17,7 @@ export interface StateUpdateCallbacks {
   onSelectedPlayerTypeChange?: (type: string) => void;
 }
 
+/** Хранит выбор озвучки и типа плеера. */
 export class PlayerSelectionManager {
   private lastSelectedTeamName: string = '';
 
@@ -24,19 +25,20 @@ export class PlayerSelectionManager {
 
   private callbacks: StateUpdateCallbacks = {};
 
+  /** Загружает сохранённый выбор. */
   constructor() {
     this.loadPreferences();
   }
 
   /**
-   * Subscribe to state changes
+   * Подписывает на изменения состояния
    */
   public subscribe(callbacks: StateUpdateCallbacks): void {
     this.callbacks = callbacks;
   }
 
   /**
-   * Load user preferences from localStorage
+   * Загружает настройки выбора плеера
    */
   private loadPreferences(): void {
     try {
@@ -53,7 +55,7 @@ export class PlayerSelectionManager {
   }
 
   /**
-   * Save user preferences to localStorage
+   * Сохраняет настройки выбора плеера
    */
   public savePreference(teamName: string, playerType: string): void {
     this.lastSelectedTeamName = teamName;
@@ -73,7 +75,7 @@ export class PlayerSelectionManager {
   }
 
   /**
-   * Get last selected preferences
+   * Возвращает последний выбор плеера
    */
   public getPreferences(): PlayerPreferences {
     return {
@@ -83,7 +85,7 @@ export class PlayerSelectionManager {
   }
 
   /**
-   * Check if user has saved preferences
+   * Проверяет наличие сохранённого выбора
    */
   public hasPreferences(): boolean {
     return !!(this.lastSelectedTeamName && this.lastSelectedPlayerType);
@@ -153,7 +155,7 @@ export class PlayerSelectionManager {
   }
 
   /**
-   * Group players by type (AnimeLib, Kodik, etc.)
+   * Группирует плееры по типу
    */
   public static groupPlayersByType(
     players: Player[],
@@ -171,7 +173,7 @@ export class PlayerSelectionManager {
   }
 
   /**
-   * Get sorted player types (AnimeLib first, then alphabetically)
+   * Сортирует типы, помещая AnimeLib первым
    */
   public static getSortedPlayerTypes(
     groupedPlayers: Record<string, Player[]>,
@@ -184,7 +186,7 @@ export class PlayerSelectionManager {
   }
 
   /**
-   * Auto-select player type for display
+   * Выбирает тип плеера для отображения
    */
   public autoSelectPlayerType(
     groupedPlayers: Record<string, Player[]>,
@@ -213,9 +215,13 @@ export class PlayerSelectionManager {
   }
 
   /**
-   * Get max quality for a player
+   * Возвращает максимальное качество доступного источника
    */
-  public static getMaxQuality(player: Player): number {
+  public static getMaxQuality(
+    player: Player,
+    offlineHeights: number[] = [],
+  ): number {
+    if (offlineHeights.length > 0) return Math.max(...offlineHeights);
     return (
       player.video?.quality?.reduce(
         (max, q) => (q.quality > max ? q.quality : max),
@@ -225,10 +231,11 @@ export class PlayerSelectionManager {
   }
 
   /**
-   * Get quality tag (4K, FHD, HD, SD) based on resolution
+   * Возвращает метку качества по разрешению
    */
   public static getQualityTag(quality: number): string {
     if (quality >= 2160) return '4K';
+    if (quality >= 1440) return 'QHD';
     if (quality >= 1080) return 'FHD';
     if (quality >= 720) return 'HD';
     if (quality >= 480) return 'SD';
@@ -261,7 +268,7 @@ export class PlayerSelectionManager {
   }
 
   /**
-   * Clear all preferences
+   * Сбрасывает сохранённый выбор
    */
   public clearPreferences(): void {
     this.lastSelectedTeamName = '';

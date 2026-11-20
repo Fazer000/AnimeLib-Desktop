@@ -1,3 +1,4 @@
+/** Боковая панель плееров и озвучек. */
 import React, { useState } from 'react';
 import {
   Box,
@@ -21,12 +22,15 @@ import {
   PLAYER_TYPE_KODIK,
   SIDEBAR_SEARCH_HEIGHT,
   SIDEBAR_SEARCH_ICON_SIZE,
+  getOfflineQuality,
 } from '../../../constants';
 import { getQualityTagColor } from '../../utils/videoHelpers';
 import TeamAvatar from './TeamAvatar';
 import ControlTooltip from './ControlTooltip';
 import OverflowText from '../OverflowText';
 import HotkeysDialog from './HotkeysDialog';
+import useOfflineLibrary from '../../hooks/useOfflineLibrary';
+import { findOfflineCopies } from '../../utils/playerIdentity';
 
 interface PlayerSidebarProps {
   players: Player[];
@@ -51,6 +55,7 @@ function PlayerSidebarRefactored({
   isCollapsed = false,
 }: PlayerSidebarProps) {
   const theme = useTheme();
+  const offlineSnapshot = useOfflineLibrary();
   const [hotkeysOpen, setHotkeysOpen] = useState<boolean>(false);
   const [query, setQuery] = useState<string>('');
 
@@ -356,7 +361,18 @@ function PlayerSidebarRefactored({
             }}
           >
             {visiblePlayers.map((player) => {
-              const maxQuality = PlayerSelectionManager.getMaxQuality(player);
+              const candidates = offlineSnapshot.anime
+                .flatMap((anime) => anime.episodes)
+                .filter((episode) => episode.episodeId === player.episode_id);
+              const copies = candidates.length
+                ? findOfflineCopies(candidates, player)
+                : [];
+              const maxQuality = PlayerSelectionManager.getMaxQuality(
+                player,
+                copies
+                  .map((episode) => parseInt(getOfflineQuality(episode), 10))
+                  .filter(Boolean),
+              );
               const qualityTag =
                 PlayerSelectionManager.getQualityTag(maxQuality) ||
                 (player.player === PLAYER_TYPE_KODIK ? 'HD' : '');

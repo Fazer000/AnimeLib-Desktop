@@ -1,3 +1,4 @@
+/** Проверки выбора плеера и меток качества. */
 import { PlayerSelectionManager } from '../renderer/services/player/PlayerSelectionManager';
 import type { Player } from '../renderer/api/animeApi';
 
@@ -187,6 +188,11 @@ describe('PlayerSelectionManager: качество и вид перевода', 
     });
 
     expect(PlayerSelectionManager.getMaxQuality(withQuality)).toBe(1080);
+    expect(PlayerSelectionManager.getMaxQuality(withQuality, [720, 1440])).toBe(
+      1440,
+    );
+    expect(PlayerSelectionManager.getMaxQuality(withQuality, [720])).toBe(720);
+    expect(PlayerSelectionManager.getMaxQuality(withQuality, [])).toBe(1080);
   });
 
   it('без данных о качестве возвращает ноль', () => {
@@ -195,6 +201,10 @@ describe('PlayerSelectionManager: качество и вид перевода', 
 
   it('метка качества соответствует разрешению', () => {
     expect(PlayerSelectionManager.getQualityTag(2160)).toBe('4K');
+    expect(PlayerSelectionManager.getQualityTag(1440)).toBe('QHD');
+    expect(PlayerSelectionManager.getMaxQuality({} as Player, [1440])).toBe(
+      1440,
+    );
     expect(PlayerSelectionManager.getQualityTag(1080)).toBe('FHD');
     expect(PlayerSelectionManager.getQualityTag(720)).toBe('HD');
     expect(PlayerSelectionManager.getQualityTag(480)).toBe('SD');

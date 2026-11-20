@@ -68,6 +68,7 @@ export const INFO_BRIGHT = '#3B82F6';
 
 /** Метки качества видео. */
 export const QUALITY_4K = '#F5A623';
+export const QUALITY_QHD = '#F05A64';
 export const QUALITY_SD = '#9CA3AF';
 
 /** Поверхности тёмной схемы, от кадра к самой светлой ступени. */

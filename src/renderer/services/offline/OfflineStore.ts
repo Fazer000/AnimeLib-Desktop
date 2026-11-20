@@ -75,6 +75,7 @@ class OfflineStore {
     }
 
     this.installed = true;
+    window.addEventListener('focus', () => this.refresh());
     this.resume();
     ipc.on('offline-tasks-changed', () => this.refresh());
     ipc.on('offline-library-changed', () => this.refresh());

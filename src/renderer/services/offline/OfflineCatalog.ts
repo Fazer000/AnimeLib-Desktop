@@ -7,6 +7,7 @@ import {
   OfflineContinueItem,
   OfflineEpisode,
   buildOfflineUrl,
+  getOfflineQuality,
 } from '../../../constants';
 import { offlineStore } from './OfflineStore';
 import { progressStore } from './ProgressStore';
@@ -34,7 +35,11 @@ const toEpisode = (item: OfflineEpisode): Episode => ({
 const toPlayer = (items: OfflineEpisode[]): Player => {
   const [item] = items;
   const qualities = Array.from(
-    new Set(items.map((entry) => parseInt(entry.quality, 10)).filter(Boolean)),
+    new Set(
+      items
+        .map((entry) => parseInt(getOfflineQuality(entry), 10))
+        .filter(Boolean),
+    ),
   ).sort((a, b) => b - a);
 
   const teamLogoUrl = item.teamLogoFileName
@@ -128,6 +133,7 @@ const toAnimeInfo = (entry: OfflineAnime): AnimeInfo =>
     shiki_rate: 0,
   }) as AnimeInfo;
 
+/** Преобразует локальный каталог в данные плеера. */
 class OfflineCatalog {
   /**
    * Возвращает запись аниме из каталога

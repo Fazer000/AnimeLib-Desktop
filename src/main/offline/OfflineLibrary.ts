@@ -15,6 +15,7 @@ import {
   OfflineEpisode,
 } from '../../constants';
 import { collectTeamLogoFileNames, findTeamLogoFileName } from './teamLogos';
+import readFrameForgeMark from './frameForge';
 
 import { createLogger } from '../../shared/logger';
 
@@ -240,6 +241,8 @@ class OfflineLibrary {
 
       entry.episodes.forEach((episode) => {
         names.add(episode.fileName);
+        names.add(`${episode.fileName}.frameforge.json`);
+        names.add(`${episode.fileName}.frameforge-original`);
         episode.subtitles.forEach((subtitle) => names.add(subtitle.fileName));
       });
     });
@@ -440,7 +443,14 @@ class OfflineLibrary {
    * Возвращает весь каталог
    */
   public getAnime(): OfflineAnime[] {
-    return this.anime;
+    return this.anime.map((entry) => ({
+      ...entry,
+      episodes: entry.episodes.map((episode) => ({
+        ...episode,
+        enhanced: false,
+        ...readFrameForgeMark(this.resolveFile(episode.fileName)),
+      })),
+    }));
   }
 
   /**
