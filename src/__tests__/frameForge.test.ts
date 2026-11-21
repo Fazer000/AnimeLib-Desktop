@@ -24,6 +24,10 @@ describe('Frame Forge label', () => {
   };
 
   beforeEach(() => {
+    fs.rmSync(path.join(directory, '.frameforge'), {
+      recursive: true,
+      force: true,
+    });
     fs.writeFileSync(video, 'test');
     fs.writeFileSync(sidecar, JSON.stringify(marker));
   });
@@ -34,6 +38,25 @@ describe('Frame Forge label', () => {
   });
   it.each(['Prepared', 'Restored'])('ignores %s transactions', (State) => {
     fs.writeFileSync(sidecar, JSON.stringify({ ...marker, State }));
+    expect(readFrameForgeMark(video)).toBeNull();
+  });
+  it('prefers metadata from the service directory over a legacy marker', () => {
+    const service = path.join(directory, '.frameforge');
+    fs.mkdirSync(service);
+    const relocated = path.join(service, 'episode.bin.frameforge.json');
+    fs.writeFileSync(
+      relocated,
+      JSON.stringify({ ...marker, Width: 2560, Height: 1440 }),
+    );
+    expect(readFrameForgeMark(video)).toMatchObject({
+      videoWidth: 2560,
+      videoHeight: 1440,
+    });
+
+    fs.writeFileSync(
+      relocated,
+      JSON.stringify({ ...marker, State: 'Prepared' }),
+    );
     expect(readFrameForgeMark(video)).toBeNull();
   });
   it('ignores a replaced file with a different size', () => {

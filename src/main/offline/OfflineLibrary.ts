@@ -15,7 +15,7 @@ import {
   OfflineEpisode,
 } from '../../constants';
 import { collectTeamLogoFileNames, findTeamLogoFileName } from './teamLogos';
-import readFrameForgeMark from './frameForge';
+import readFrameForgeMark, { frameForgeMetadataPaths } from './frameForge';
 
 import { createLogger } from '../../shared/logger';
 
@@ -236,20 +236,32 @@ class OfflineLibrary {
 
     this.anime.forEach((entry) => {
       if (entry.coverFileName) {
-        names.add(entry.coverFileName);
+        names.add(path.basename(entry.coverFileName));
       }
 
       entry.episodes.forEach((episode) => {
-        names.add(episode.fileName);
-        names.add(`${episode.fileName}.frameforge.json`);
-        names.add(`${episode.fileName}.frameforge-original`);
-        episode.subtitles.forEach((subtitle) => names.add(subtitle.fileName));
+        names.add(path.basename(episode.fileName));
+        frameForgeMetadataPaths(episode.fileName).forEach((name) =>
+          names.add(name),
+        );
+        episode.subtitles.forEach((subtitle) =>
+          names.add(path.basename(subtitle.fileName)),
+        );
       });
     });
 
-    collectTeamLogoFileNames(this.anime).forEach((name) => names.add(name));
+    collectTeamLogoFileNames(this.anime).forEach((name) =>
+      names.add(path.basename(name)),
+    );
 
-    return Array.from(names).filter((name) => this.hasFile(name));
+    return Array.from(names).filter((name) => {
+      try {
+        const stat = fs.statSync(path.join(this.downloadsPath, name));
+        return stat.isFile() && stat.size > 0;
+      } catch {
+        return false;
+      }
+    });
   }
 
   /**
@@ -262,7 +274,8 @@ class OfflineLibrary {
       }
 
       const needed = files.reduce(
-        (sum, name) => sum + fs.statSync(this.resolveFile(name)).size,
+        (sum, name) =>
+          sum + fs.statSync(path.join(this.downloadsPath, name)).size,
         0,
       );
       const stats = fs.statfsSync(newPath);
@@ -312,13 +325,13 @@ class OfflineLibrary {
 
     // eslint-disable-next-line no-restricted-syntax
     for (const name of [...files, OFFLINE_QUEUE_FILE]) {
-      if (this.hasFile(name)) {
+      const source = path.join(this.downloadsPath, name);
+      if (fs.existsSync(source)) {
         try {
+          const destination = path.join(newPath, name);
+          fs.mkdirSync(path.dirname(destination), { recursive: true });
           // eslint-disable-next-line no-await-in-loop
-          await OfflineLibrary.moveFile(
-            this.resolveFile(name),
-            path.join(newPath, name),
-          );
+          await OfflineLibrary.moveFile(source, destination);
           moved += 1;
         } catch (error) {
           failed += 1;

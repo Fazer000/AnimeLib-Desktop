@@ -136,6 +136,42 @@ describe('OfflineLibrary: каталог', () => {
   });
 });
 
+describe('OfflineLibrary: перенос Frame Forge', () => {
+  beforeEach(reset);
+
+  it('переносит вложенные метаданные и копию оригинала вместе с серией', async () => {
+    offlineLibrary.addEpisode('one-piece', meta, episode());
+    touch('a.mp4');
+    const source = offlineLibrary.getDownloadsPath();
+    const service = path.join('.frameforge');
+    const marker = path.join(service, 'a.mp4.frameforge.json');
+    const backup = path.join(service, 'a.mp4.frameforge-original');
+    fs.mkdirSync(path.join(source, service));
+    fs.writeFileSync(path.join(source, marker), 'marker');
+    fs.writeFileSync(path.join(source, backup), 'original');
+    const target = fs.mkdtempSync(path.join(userData, 'migrated-'));
+
+    try {
+      await expect(offlineLibrary.migrateTo(target)).resolves.toMatchObject({
+        moved: 3,
+        failed: 0,
+        fits: true,
+      });
+      expect(fs.readFileSync(path.join(target, marker), 'utf8')).toBe('marker');
+      expect(fs.readFileSync(path.join(target, backup), 'utf8')).toBe(
+        'original',
+      );
+      expect(fs.existsSync(path.join(source, marker))).toBe(false);
+      expect(fs.existsSync(path.join(target, 'a.mp4.frameforge.json'))).toBe(
+        false,
+      );
+    } finally {
+      offlineLibrary.setDownloadsPath(source);
+      fs.rmSync(target, { recursive: true, force: true });
+    }
+  });
+});
+
 describe('OfflineLibrary: удаление', () => {
   beforeEach(reset);
 

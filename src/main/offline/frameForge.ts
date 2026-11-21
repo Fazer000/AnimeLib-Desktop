@@ -3,6 +3,17 @@ import fs from 'fs';
 import path from 'path';
 import readMp4Dimensions from './mp4Dimensions';
 
+/** Возвращает относительные пути к служебным файлам серии. */
+export function frameForgeMetadataPaths(fileName: string): string[] {
+  const name = path.basename(fileName);
+  return [
+    path.join('.frameforge', name + '.frameforge.json'),
+    path.join('.frameforge', name + '.frameforge-original'),
+    name + '.frameforge.json',
+    name + '.frameforge-original',
+  ];
+}
+
 /** Проверяет метаданные и возвращает размеры улучшенного файла. */
 export default function readFrameForgeMark(videoPath: string): {
   enhanced: true;
@@ -11,9 +22,13 @@ export default function readFrameForgeMark(videoPath: string): {
   videoHeight?: number;
 } | null {
   try {
-    const marker = JSON.parse(
-      fs.readFileSync(`${videoPath}.frameforge.json`, 'utf8'),
-    );
+    const directory = path.dirname(videoPath);
+    const [current, , legacy] = frameForgeMetadataPaths(videoPath);
+    const currentPath = path.join(directory, current);
+    const markerPath = fs.existsSync(currentPath)
+      ? currentPath
+      : path.join(directory, legacy);
+    const marker = JSON.parse(fs.readFileSync(markerPath, 'utf8'));
     if (
       marker.Version !== 1 ||
       marker.State !== 'Enhanced' ||
