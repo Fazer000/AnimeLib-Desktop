@@ -7,10 +7,10 @@ import readMp4Dimensions from './mp4Dimensions';
 export function frameForgeMetadataPaths(fileName: string): string[] {
   const name = path.basename(fileName);
   return [
-    path.join('.frameforge', name + '.frameforge.json'),
-    path.join('.frameforge', name + '.frameforge-original'),
-    name + '.frameforge.json',
-    name + '.frameforge-original',
+    path.join('.frameforge', `${name}.frameforge.json`),
+    path.join('.frameforge', `${name}.frameforge-original`),
+    `${name}.frameforge.json`,
+    `${name}.frameforge-original`,
   ];
 }
 
