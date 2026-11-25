@@ -14,13 +14,14 @@ import {
 import type { CustomColors } from '@mui/material/styles';
 import { CheckCheck } from '../icons';
 import { Episode, Player } from '../../api/animeApi';
-import { PlayerSelectionManager } from '../../services/player';
+import { OFFLINE_FONT, OFFLINE_ICON } from '../../../constants';
 import {
-  OFFLINE_DOWNLOADABLE_PLAYER,
-  OFFLINE_DOWNLOADABLE_PLAYERS,
-  OFFLINE_FONT,
-  OFFLINE_ICON,
-} from '../../../constants';
+  DownloadTeamOption,
+  getEpisodeQualities,
+  KodikQualityMap,
+  resolveEpisodeQuality,
+  resolveTeamPlayer,
+} from '../../utils/downloadSelection';
 import { SUCCESS_MID } from '../../theme/palette';
 import { DownloadedEpisodeInfo, formatSize } from '../../utils/offlineFormat';
 import {
@@ -28,13 +29,6 @@ import {
   offlineLabelSx,
   offlineSelectSx,
 } from './fieldStyles';
-
-export type KodikQualityMap = Record<number, string[]>;
-
-interface DownloadTeamOption {
-  key: string;
-  label: string;
-}
 
 interface EpisodeSelectionListProps {
   episodes: Episode[];
@@ -67,98 +61,6 @@ const checkboxSx = (customColors: CustomColors) => ({
 
 const DOWNLOADED_CHECKBOX_SX = {
   '&.Mui-disabled': { color: SUCCESS_MID },
-};
-
-// ID плеера меняется от серии к серии, поэтому используем данные варианта.
-const downloadTeamKey = (player: Player): string =>
-  JSON.stringify([player.team.name, player.translation_type?.id]);
-
-/** Собирает варианты и помечает дорожки с субтитрами. */
-export function getDownloadTeamOptions(
-  players: Player[],
-): DownloadTeamOption[] {
-  const variants = new Map<string, Player>();
-  players.forEach((player) => {
-    const key = downloadTeamKey(player);
-    if (
-      OFFLINE_DOWNLOADABLE_PLAYERS.includes(player.player) &&
-      !variants.has(key)
-    ) {
-      variants.set(key, player);
-    }
-  });
-  return Array.from(variants, ([key, player]) => {
-    const { name } = player.team;
-    const label = PlayerSelectionManager.isSubtitlesOnly(player)
-      ? `${name} · Субтитры`
-      : name;
-    return { key, label };
-  });
-}
-
-/** Находит выбранный вариант для конкретной серии. */
-export const resolveTeamPlayer = (
-  players: Player[] | undefined,
-  teamKey: string,
-): Player | undefined => {
-  const candidates = players?.filter(
-    (item) =>
-      OFFLINE_DOWNLOADABLE_PLAYERS.includes(item.player) &&
-      downloadTeamKey(item) === teamKey,
-  );
-  return (
-    candidates?.find((item) => item.player === OFFLINE_DOWNLOADABLE_PLAYER) ??
-    candidates?.[0]
-  );
-};
-
-/**
- * Возвращает доступные качества серии для выбранной озвучки
- */
-export const getEpisodeQualities = (
-  players: Player[] | undefined,
-  teamKey: string,
-  kodikQualities: KodikQualityMap = {},
-): string[] => {
-  const player = resolveTeamPlayer(players, teamKey);
-
-  if (!player) {
-    return [];
-  }
-
-  const list =
-    player.player === OFFLINE_DOWNLOADABLE_PLAYER
-      ? (player.video?.quality || []).map((item) => `${item.quality}p`)
-      : kodikQualities[player.id] || [];
-
-  return [...list].sort((a, b) => parseInt(b, 10) - parseInt(a, 10));
-};
-
-/**
- * Подбирает качество серии по умолчанию: точное совпадение или ближайшее меньшее
- */
-export const resolveEpisodeQuality = (
-  qualities: string[],
-  preferred: string,
-): string => {
-  if (qualities.length === 0) {
-    return '';
-  }
-
-  if (qualities.includes(preferred)) {
-    return preferred;
-  }
-
-  const target = parseInt(preferred, 10);
-
-  if (!target) {
-    return qualities[0];
-  }
-
-  return (
-    qualities.find((item) => parseInt(item, 10) <= target) ||
-    qualities[qualities.length - 1]
-  );
 };
 
 /**

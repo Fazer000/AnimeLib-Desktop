@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { RefObject } from 'react';
 import { LIB_SITES } from '../../constants';
+import SPLASH_TIMING from '../../constants/splash';
 import { findLibSiteByUrl } from '../utils/libSites';
 import { sitePageReadyScript } from '../scripts/sitePageReady';
 
@@ -36,7 +37,7 @@ export default function useSiteSplash(
       clear();
       dismiss = setTimeout(
         () => setVisible(false),
-        Math.max(0, 380 - (Date.now() - shownAt)),
+        Math.max(0, SPLASH_TIMING.entry - (Date.now() - shownAt)),
       );
     };
     const start = (event?: {
@@ -57,8 +58,8 @@ export default function useSiteSplash(
       setSite(nextSite);
       setVisible(true);
       setSlow(false);
-      hint = setTimeout(() => setSlow(true), 1800);
-      safety = setTimeout(hide, 7000);
+      hint = setTimeout(() => setSlow(true), SPLASH_TIMING.slowHint);
+      safety = setTimeout(hide, SPLASH_TIMING.timeout);
     };
     const check = () => {
       clearTimeout(poll);

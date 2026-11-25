@@ -3,6 +3,7 @@ import { useTheme } from '@mui/material';
 import type { LibSite } from '../../constants';
 import { LIB_SITE_COLORS } from '../theme/palette';
 import paths from './siteSplashPaths';
+import { splashFrame, splashPulse } from '../utils/splashAnimation';
 
 interface Props {
   site: LibSite;
@@ -13,8 +14,6 @@ const traces = [
   'M6.4 43.2V9.4Q6.4 6.45 9.4 6.45H43.2',
   'M97.4 61V94.8Q97.4 97.75 94.4 97.75H60.6',
 ];
-const clamp = (value: number) => Math.max(0, Math.min(1, value));
-
 /** Хореография мобильной эмблемы без перерисовок React на каждом кадре. */
 export default function SiteSplashLogo({ site, visible }: Props) {
   const { customColors } = useTheme().palette;
@@ -41,56 +40,43 @@ export default function SiteSplashLogo({ site, visible }: Props) {
     const lengths = pulses.map((path) => path.getTotalLength());
     const start = performance.now();
     let exitStart: number | null = null;
-    let frozenBlend = 0;
     let frame = 0;
     const paint = (now: number) => {
       const elapsed = now - start;
-      const blendT = clamp((elapsed - 280) / 260);
-      let blend = blendT * blendT * (3 - 2 * blendT);
       if (!visibleRef.current && exitStart === null) {
         exitStart = now;
-        frozenBlend = clamp((elapsed - 280) / 260);
       }
-      const exit =
-        exitStart === null ? 0 : 1 - (1 - clamp((now - exitStart) / 240)) ** 3;
-      if (exitStart !== null) blend = frozenBlend * (1 - exit);
-      const entry = reduced ? 1 : 1 - (1 - clamp(elapsed / 380)) ** 5;
-      const cycle = (Math.max(0, elapsed - 280) % 1400) / 1400;
-      const breath = reduced ? 0 : Math.sin(cycle * 2 * Math.PI) * blend;
-      const offset = reduced
-        ? 0
-        : (1 - entry) * 18.5 + 1.35 * breath + 6.8 * exit;
-      svg.style.opacity = String(reduced ? 1 : clamp(elapsed / 160));
-      const scale = reduced
-        ? 1
-        : 0.9 + 0.1 * entry + 0.015 * breath + 0.042 * exit;
+      const {
+        exit,
+        offset,
+        opacity,
+        scale,
+        cycle,
+        blend,
+        sheenX,
+        sheenOpacity,
+      } = splashFrame(
+        elapsed,
+        exitStart === null ? null : now - exitStart,
+        reduced,
+      );
+      svg.style.opacity = String(opacity);
       letterGroup.setAttribute(
         'transform',
         `translate(51.9 52.1) scale(${scale}) translate(-51.9 -52.1)`,
       );
-      const glint = (1 - Math.cos(clamp((cycle - 0.46) / 0.42) * Math.PI)) / 2;
-      sheen.setAttribute('transform', `translate(${-15 + 134 * glint} 0)`);
-      sheen.style.opacity = String(
-        !reduced && cycle >= 0.46 && cycle <= 0.88 ? blend : 0,
-      );
+      sheen.setAttribute('transform', `translate(${sheenX} 0)`);
+      sheen.style.opacity = String(sheenOpacity);
       brackets.forEach((bracket, index) => {
         const shift = index === 0 ? -offset : offset;
         bracket.setAttribute('transform', `translate(${shift} ${shift})`);
-        const t = clamp(cycle / 0.72);
-        const u = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
         const length = lengths[index];
-        const travel = u * length * 1.44;
-        const tail = Math.max(0, travel - length * 0.44);
-        const head = Math.min(length, travel);
-        const alpha =
-          reduced || cycle > 0.72
-            ? 0
-            : clamp(
-                Math.min(
-                  travel / (length * 0.44),
-                  (length * 1.44 - travel) / (length * 0.44),
-                ),
-              ) * blend;
+        const { head, tail, alpha } = splashPulse(
+          length,
+          cycle,
+          blend,
+          reduced,
+        );
         const pulse = pulses[index];
         pulse.style.strokeDasharray = `${Math.max(0, head - tail)} ${length * 2}`;
         pulse.style.strokeDashoffset = String(-tail);

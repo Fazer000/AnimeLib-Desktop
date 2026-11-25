@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Fade, Typography, useTheme } from '@mui/material';
 import type { LibSite } from '../../constants';
+import SPLASH_TIMING from '../../constants/splash';
 import SiteSplashLogo from './SiteSplashLogo';
 
 interface SiteSplashProps {
@@ -13,7 +14,7 @@ interface SiteSplashProps {
 export default function SiteSplash({ site, visible, slow }: SiteSplashProps) {
   const { customColors } = useTheme().palette;
   return (
-    <Fade in={visible} timeout={240} unmountOnExit>
+    <Fade in={visible} timeout={SPLASH_TIMING.exit} unmountOnExit>
       <Box
         role="status"
         aria-label={`Загрузка ${site.name}`}

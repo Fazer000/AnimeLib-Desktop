@@ -23,27 +23,26 @@ import {
   mapDownloadedEpisodes,
   sumSize,
 } from '../../utils/offlineFormat';
-import { normalizeKodikUrl, toKodikDirectUrl } from '../../utils/kodikHelpers';
 import useOfflineLibrary from '../../hooks/useOfflineLibrary';
-import { QualityManager } from '../../services/player';
+import useDownloadSizes from '../../hooks/useDownloadSizes';
 import DialogCloseButton from '../DialogCloseButton';
-import EpisodeSelectionList, {
+import EpisodeSelectionList from './EpisodeSelectionList';
+import {
+  prepareEpisodeDownload,
+  KodikLinks,
   KodikQualityMap,
   getEpisodeQualities,
   getDownloadTeamOptions,
-  resolveEpisodeQuality,
   resolveTeamPlayer,
-} from './EpisodeSelectionList';
+} from '../../utils/downloadSelection';
 import DownloadsList from './DownloadsList';
 import OfflineLibraryTab from './OfflineLibraryTab';
 import {
   DownloadRequest,
-  DownloadSource,
   isActiveDownload,
   OFFLINE_ACTIONS_HEIGHT,
   OFFLINE_DIALOG_HEIGHT,
   OFFLINE_DIALOG_MAX_WIDTH,
-  OFFLINE_DOWNLOADABLE_PLAYER,
   OFFLINE_FONT,
   OFFLINE_MIN_FREE_SPACE_BYTES,
   OFFLINE_KODIK_CONCURRENCY,
@@ -113,51 +112,6 @@ const footerButtonSx = (customColors: CustomColors) => ({
   },
 });
 
-/** Собирает один и тот же источник для проверки размера и загрузки. */
-const resolveDownloadSource = (
-  player: Player,
-  quality: string,
-  kodikLinks: Record<number, Record<string, Array<{ src: string }>>>,
-): DownloadSource | undefined => {
-  let isHls = false;
-  let primaryUrl = '';
-  let fallbackUrls: string[] = [];
-
-  if (player.player !== OFFLINE_DOWNLOADABLE_PLAYER) {
-    const sources = kodikLinks[player.id]?.[quality.replace('p', '')] || [];
-    const links = sources.map((item) => normalizeKodikUrl(item.src));
-    const direct = links.map(toKodikDirectUrl).filter(Boolean);
-    const chosen = direct.length > 0 ? direct : links;
-
-    isHls = direct.length === 0;
-    [primaryUrl] = chosen;
-    fallbackUrls = chosen.slice(1);
-  } else {
-    const source = player.video?.quality?.find(
-      (item) => `${item.quality}p` === quality,
-    );
-
-    if (source) {
-      const urls = new QualityManager().buildAnimelibUrls(
-        source.href,
-        player.video_domain,
-      );
-      primaryUrl = urls.primaryUrl;
-      fallbackUrls = [urls.fallbackUrl, urls.fallbackUrl2];
-    }
-  }
-
-  if (!primaryUrl) return undefined;
-  return {
-    videoUrl: primaryUrl,
-    fallbackUrls,
-    sourceType: isHls ? 'hls' : 'progressive',
-    playerType: player.player,
-    authToken: getAuthToken(),
-    siteOrigin: getSiteOrigin(),
-  };
-};
-
 /**
  * Менеджер загрузки серий для оффлайн-просмотра
  */
@@ -184,9 +138,7 @@ function DownloadManagerDialog({
     Record<number, Player[]>
   >({});
   const [kodikQualities, setKodikQualities] = useState<KodikQualityMap>({});
-  const [kodikLinks, setKodikLinks] = useState<
-    Record<number, Record<string, Array<{ src: string }>>>
-  >({});
+  const [kodikLinks, setKodikLinks] = useState<KodikLinks>({});
   const [loadingIds, setLoadingIds] = useState<number[]>([]);
   const [failedIds, setFailedIds] = useState<number[]>([]);
   const [kodikPending, setKodikPending] = useState<number[]>([]);
@@ -194,9 +146,6 @@ function DownloadManagerDialog({
   const [qualityByEpisode, setQualityByEpisode] = useState<
     Record<number, string>
   >({});
-  const [sizesByUrl, setSizesByUrl] = useState<Record<string, number>>({});
-  const probedSizes = useRef(new Map<string, number>());
-  const sizeQueue = useRef(new TaskQueue(OFFLINE_PLAYERS_CONCURRENCY));
   const [isResolving, setIsResolving] = useState<boolean>(false);
   const [migration, setMigration] = useState<string>('');
   const [notice, setNotice] = useState<{
@@ -277,58 +226,37 @@ function DownloadManagerDialog({
       ),
     [snapshot],
   );
-  const selectedSources = useMemo(
-    () =>
-      selectedIds
-        .filter((id) => !unavailableIds.has(id))
-        .map((id) => {
-          const list = playersByEpisode[id];
-          const player = resolveTeamPlayer(list, teamKey);
-          const qualities = getEpisodeQualities(list, teamKey, kodikQualities);
-          const quality = qualities.includes(qualityByEpisode[id])
-            ? qualityByEpisode[id]
-            : resolveEpisodeQuality(qualities, defaultQuality);
-          return {
-            quality,
-            source:
-              player && resolveDownloadSource(player, quality, kodikLinks),
-          };
-        }),
-    [
-      selectedIds,
-      unavailableIds,
-      playersByEpisode,
-      teamKey,
-      kodikQualities,
-      qualityByEpisode,
-      defaultQuality,
-      kodikLinks,
-    ],
-  );
-
-  useEffect(() => {
-    if (!open || tab !== 0) return undefined;
-    let cancelled = false;
-    selectedSources.forEach(({ source }) => {
-      if (
-        source?.sourceType !== 'progressive' ||
-        probedSizes.current.has(source.videoUrl)
-      )
-        return;
-      sizeQueue.current.run(async () => {
-        if (cancelled || probedSizes.current.has(source.videoUrl)) return;
-        const bytes = await offlineStore.probeSize(source);
-        probedSizes.current.set(source.videoUrl, bytes);
-        setSizesByUrl((previous) => ({
-          ...previous,
-          [source.videoUrl]: bytes,
-        }));
-      });
-    });
-    return () => {
-      cancelled = true;
+  const selectedSources = useMemo(() => {
+    const credentials = {
+      authToken: getAuthToken(),
+      siteOrigin: getSiteOrigin(),
     };
-  }, [open, tab, selectedSources]);
+    return selectedIds
+      .filter((id) => !unavailableIds.has(id))
+      .map((episodeId) => ({
+        episodeId,
+        ...prepareEpisodeDownload({
+          players: playersByEpisode[episodeId],
+          teamKey,
+          kodikQualities,
+          kodikLinks,
+          preferredQuality: defaultQuality,
+          overrideQuality: qualityByEpisode[episodeId],
+          credentials,
+        }),
+      }));
+  }, [
+    selectedIds,
+    unavailableIds,
+    playersByEpisode,
+    teamKey,
+    kodikQualities,
+    qualityByEpisode,
+    defaultQuality,
+    kodikLinks,
+  ]);
+
+  const sizesByUrl = useDownloadSizes(open && tab === 0, selectedSources);
 
   const selectedSize = selectedSources.reduce(
     (total, { source, quality }) =>
@@ -591,46 +519,28 @@ function DownloadManagerDialog({
   };
 
   const handleDownload = async () => {
-    const availableSelection = selectedIds.filter(
-      (id) => !unavailableIds.has(id),
-    );
-    if (availableSelection.length === 0 || !teamKey) {
-      return;
-    }
+    if (selectedSources.length === 0 || !teamKey) return;
 
     setIsResolving(true);
+
+    const authToken = getAuthToken();
+    const siteOrigin = getSiteOrigin();
 
     const releaseYear = animeInfo?.releaseDate
       ? new Date(animeInfo.releaseDate).getFullYear()
       : 0;
     const requests: DownloadRequest[] = [];
 
-    availableSelection.forEach((episodeId) => {
+    selectedSources.forEach(({ episodeId, player, quality, source }) => {
       const episodeOrder = episodes.findIndex((item) => item.id === episodeId);
       const episode = episodes[episodeOrder];
-      const episodePlayers = playersByEpisode[episodeId];
-
-      if (!episode || !episodePlayers) {
-        return;
-      }
-
-      const player = resolveTeamPlayer(episodePlayers, teamKey);
-
-      const qualities = getEpisodeQualities(
-        episodePlayers,
-        teamKey,
-        kodikQualities,
-      );
-      const quality = qualities.includes(qualityByEpisode[episodeId])
-        ? qualityByEpisode[episodeId]
-        : resolveEpisodeQuality(qualities, defaultQuality);
+      if (!episode) return;
 
       if (!player) {
         log.warn('Skipped episode:', episode.number);
         return;
       }
 
-      const source = resolveDownloadSource(player, quality, kodikLinks);
       if (!source) {
         log.warn('No source for episode:', episode.number);
         return;
@@ -657,6 +567,8 @@ function DownloadManagerDialog({
         translationLabel: player.translation_type?.label || '',
         quality,
         ...source,
+        authToken,
+        siteOrigin,
         subtitles: (player.subtitles || []).map((item) => ({
           name: item.name,
           format: item.format,
@@ -669,7 +581,7 @@ function DownloadManagerDialog({
     const estimated = requests.reduce(
       (total, request) =>
         total +
-        (probedSizes.current.get(request.videoUrl) ||
+        (sizesByUrl[request.videoUrl] ||
           sizeEstimator.estimateEpisode(request.quality)),
       0,
     );
