@@ -14,6 +14,7 @@ import {
 import { ExternalLink } from '../icons';
 import DialogCloseButton from '../DialogCloseButton';
 import ManualCommand from './ManualCommand';
+import ReleaseNotesText from './ReleaseNotesText';
 import {
   DIALOG_TITLE_RIGHT_INSET,
   UpdateFailure,
@@ -96,7 +97,7 @@ const renderNotes = (
             mb: 0.5,
           }}
         >
-          {text.replace(/^#+\s*/, '')}
+          <ReleaseNotesText text={text.replace(/^#+\s*/, '')} />
         </Typography>
       );
     }
@@ -112,7 +113,8 @@ const renderNotes = (
             mb: 0.25,
           }}
         >
-          •&nbsp;{text.replace(/^[-*]\s*/, '')}
+          •&nbsp;
+          <ReleaseNotesText text={text.replace(/^[-*]\s*/, '')} />
         </Typography>
       );
     }
@@ -126,7 +128,7 @@ const renderNotes = (
           mb: 0.5,
         }}
       >
-        {text}
+        <ReleaseNotesText text={text} />
       </Typography>
     );
   });
