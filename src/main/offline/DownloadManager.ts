@@ -190,34 +190,41 @@ class DownloadManager {
    * Добавляет запросы в очередь
    */
   public enqueue(requests: DownloadRequest[]): DownloadTask[] {
-    const created = requests
-      .filter(
-        (request) =>
-          !offlineLibrary.hasEpisode(
-            request.episodeId,
-            request.playerId,
-            request.quality,
-          ),
+    const activeEpisodeIds = new Set(
+      this.queue
+        .filter(({ task }) => isActiveDownload(task.status))
+        .map(({ task }) => task.episodeId),
+    );
+    const created = requests.flatMap((request) => {
+      if (
+        activeEpisodeIds.has(request.episodeId) ||
+        offlineLibrary.hasEpisode(
+          request.episodeId,
+          request.playerId,
+          request.quality,
+        )
       )
-      .map((request) => {
-        const task: DownloadTask = {
-          id: randomUUID(),
-          animeId: request.animeId,
-          animeTitle: request.animeTitle,
-          episodeId: request.episodeId,
-          episodeNumber: request.episodeNumber,
-          quality: request.quality,
-          teamName: request.teamName,
-          status: 'queued',
-          progress: 0,
-          loadedBytes: 0,
-          totalBytes: 0,
-          error: '',
-        };
+        return [];
 
-        this.queue.push({ task, request });
-        return task;
-      });
+      activeEpisodeIds.add(request.episodeId);
+      const task: DownloadTask = {
+        id: randomUUID(),
+        animeId: request.animeId,
+        animeTitle: request.animeTitle,
+        episodeId: request.episodeId,
+        episodeNumber: request.episodeNumber,
+        quality: request.quality,
+        teamName: request.teamName,
+        status: 'queued',
+        progress: 0,
+        loadedBytes: 0,
+        totalBytes: 0,
+        error: '',
+      };
+
+      this.queue.push({ task, request });
+      return [task];
+    });
 
     this.notify('offline-tasks-changed');
     this.persist();

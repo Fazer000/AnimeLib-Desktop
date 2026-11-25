@@ -37,6 +37,7 @@ import DownloadsList from './DownloadsList';
 import OfflineLibraryTab from './OfflineLibraryTab';
 import {
   DownloadRequest,
+  isActiveDownload,
   OFFLINE_ACTIONS_HEIGHT,
   OFFLINE_DIALOG_HEIGHT,
   OFFLINE_DIALOG_MAX_WIDTH,
@@ -208,6 +209,19 @@ function DownloadManagerDialog({
   const downloadedIds = useMemo(
     () => Object.keys(downloadedEpisodes).map(Number),
     [downloadedEpisodes],
+  );
+  const activeEpisodeIds = useMemo(
+    () =>
+      new Set(
+        snapshot.tasks
+          .filter((task) => isActiveDownload(task.status))
+          .map((task) => task.episodeId),
+      ),
+    [snapshot.tasks],
+  );
+  const unavailableIds = useMemo(
+    () => new Set([...downloadedIds, ...activeEpisodeIds]),
+    [downloadedIds, activeEpisodeIds],
   );
 
   const librarySize = useMemo(
@@ -436,13 +450,15 @@ function DownloadManagerDialog({
 
   useEffect(() => {
     setSelectedIds((prev) => {
-      const next = prev.filter((id) => !downloadedIds.includes(id));
+      const next = prev.filter((id) => !unavailableIds.has(id));
 
       return next.length === prev.length ? prev : next;
     });
-  }, [downloadedIds]);
+  }, [unavailableIds]);
 
   const handleToggle = (episodeId: number, extend: boolean) => {
+    if (unavailableIds.has(episodeId)) return;
+
     const lastId = lastToggledRef.current;
     lastToggledRef.current = episodeId;
 
@@ -453,7 +469,7 @@ function DownloadManagerDialog({
       const range = episodes
         .slice(Math.min(from, to), Math.max(from, to) + 1)
         .map((item) => item.id)
-        .filter((id) => !downloadedIds.includes(id));
+        .filter((id) => !unavailableIds.has(id));
 
       ensureLoaded(range);
       setSelectedIds((prev) => Array.from(new Set([...prev, ...range])));
@@ -473,10 +489,10 @@ function DownloadManagerDialog({
   const handleToggleAll = () => {
     const ids = episodes
       .map((item) => item.id)
-      .filter((id) => !downloadedIds.includes(id));
+      .filter((id) => !unavailableIds.has(id));
 
     setSelectedIds((prev) => {
-      if (prev.length === ids.length) {
+      if (ids.every((id) => prev.includes(id))) {
         return [];
       }
 
@@ -492,7 +508,10 @@ function DownloadManagerDialog({
   };
 
   const handleDownload = async () => {
-    if (selectedIds.length === 0 || !teamName) {
+    const availableSelection = selectedIds.filter(
+      (id) => !unavailableIds.has(id),
+    );
+    if (availableSelection.length === 0 || !teamName) {
       return;
     }
 
@@ -506,7 +525,7 @@ function DownloadManagerDialog({
       : 0;
     const requests: DownloadRequest[] = [];
 
-    selectedIds.forEach((episodeId) => {
+    availableSelection.forEach((episodeId) => {
       const episode = episodes.find((item) => item.id === episodeId);
       const episodePlayers = playersByEpisode[episodeId];
 
@@ -689,6 +708,7 @@ function DownloadManagerDialog({
             onRetry={handleRetry}
             qualityByEpisode={qualityByEpisode}
             downloadedIds={downloadedIds}
+            activeEpisodeIds={activeEpisodeIds}
             downloadedEpisodes={downloadedEpisodes}
             onToggle={handleToggle}
             onToggleAll={handleToggleAll}

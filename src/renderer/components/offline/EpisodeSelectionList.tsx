@@ -44,6 +44,7 @@ interface EpisodeSelectionListProps {
   onRetry: (episodeId: number) => void;
   qualityByEpisode: Record<number, string>;
   downloadedIds: number[];
+  activeEpisodeIds: ReadonlySet<number>;
   downloadedEpisodes: Record<number, DownloadedEpisodeInfo>;
   onToggle: (episodeId: number, extend: boolean) => void;
   onToggleAll: () => void;
@@ -150,6 +151,7 @@ function EpisodeSelectionList({
   onRetry,
   qualityByEpisode,
   downloadedIds,
+  activeEpisodeIds,
   downloadedEpisodes,
   onToggle,
   onToggleAll,
@@ -158,11 +160,15 @@ function EpisodeSelectionList({
   onEpisodeQualityChange,
 }: EpisodeSelectionListProps) {
   const { customColors } = useTheme().palette;
-  const selectableCount = episodes.filter(
-    (item) => !downloadedIds.includes(item.id),
+  const selectable = episodes.filter(
+    (item) =>
+      !downloadedIds.includes(item.id) && !activeEpisodeIds.has(item.id),
+  );
+  const selectableCount = selectable.length;
+  const selectedCount = selectable.filter((item) =>
+    selectedIds.includes(item.id),
   ).length;
-  const allSelected =
-    selectableCount > 0 && selectedIds.length === selectableCount;
+  const allSelected = selectableCount > 0 && selectedCount === selectableCount;
 
   return (
     <Box>
@@ -252,14 +258,17 @@ function EpisodeSelectionList({
             sx={checkboxSx(customColors)}
           />
           <Typography sx={{ fontSize: OFFLINE_FONT.body }}>
-            {`Выбрать все · выбрано ${selectedIds.length} из ${selectableCount}`}
+            {`Выбрать все · выбрано ${selectedCount} из ${selectableCount}`}
           </Typography>
         </Box>
       </Box>
 
       <Box sx={{ pr: 1, pt: 0.5 }}>
         {episodes.map((episode) => {
-          const isSelected = selectedIds.includes(episode.id);
+          const isActive = activeEpisodeIds.has(episode.id);
+          const isDownloaded = downloadedIds.includes(episode.id);
+          const isUnavailable = isDownloaded || isActive;
+          const isSelected = !isUnavailable && selectedIds.includes(episode.id);
           const isLoading = loadingIds.includes(episode.id);
           const isFailed = !isLoading && failedIds.includes(episode.id);
           const qualities = getEpisodeQualities(
@@ -267,7 +276,6 @@ function EpisodeSelectionList({
             teamName,
             kodikQualities,
           );
-          const isDownloaded = downloadedIds.includes(episode.id);
           const player = resolveTeamPlayer(
             playersByEpisode[episode.id],
             teamName,
@@ -285,7 +293,7 @@ function EpisodeSelectionList({
                 px: 0.5,
                 gap: 1,
                 borderRadius: 1.5,
-                opacity: isDownloaded ? 0.62 : 1,
+                opacity: isUnavailable ? 0.62 : 1,
                 backgroundColor: isSelected
                   ? customColors.accentQuietColor
                   : 'transparent',
@@ -317,6 +325,7 @@ function EpisodeSelectionList({
                   <Checkbox
                     size="small"
                     checked={isSelected}
+                    disabled={isActive}
                     onChange={(event) =>
                       onToggle(
                         episode.id,
@@ -329,7 +338,7 @@ function EpisodeSelectionList({
                 <Typography
                   sx={{
                     fontSize: OFFLINE_FONT.body,
-                    color: isDownloaded
+                    color: isUnavailable
                       ? `rgba(${customColors.onSurfaceRgb}, 0.55)`
                       : 'inherit',
                   }}
@@ -349,6 +358,18 @@ function EpisodeSelectionList({
                   </Typography>
                 )}
               </Box>
+
+              {isActive && !isDownloaded && (
+                <Typography
+                  sx={{
+                    fontSize: OFFLINE_FONT.hint,
+                    color: customColors.mutedTextColor,
+                    flexShrink: 0,
+                  }}
+                >
+                  В загрузках
+                </Typography>
+              )}
 
               {isDownloaded && (
                 <Box
