@@ -111,11 +111,18 @@ class ProgressStore {
   /**
    * Помечает запись синхронизированной
    */
-  public markSynced(animeId: string, episodeId: number): void {
+  public markSynced(
+    animeId: string,
+    episodeId: number,
+    updatedAt?: string,
+  ): void {
     const map = this.getAll();
     const key = buildKey(animeId, episodeId);
 
-    if (map[key]) {
+    if (
+      map[key] &&
+      (updatedAt === undefined || map[key].updatedAt === updatedAt)
+    ) {
       map[key].synced = true;
       this.setAll(map);
     }

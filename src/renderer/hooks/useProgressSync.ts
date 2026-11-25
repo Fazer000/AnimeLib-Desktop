@@ -59,7 +59,11 @@ function useProgressSync(isOnline: boolean): void {
             },
           );
 
-          progressStore.markSynced(entry.animeId, entry.episodeId);
+          progressStore.markSynced(
+            entry.animeId,
+            entry.episodeId,
+            entry.updatedAt,
+          );
           log.debug('Synced:', entry.animeId, entry.episodeId);
         } catch (error) {
           log.error('Failed:', entry.animeId, error);
@@ -153,7 +157,10 @@ function useProgressSync(isOnline: boolean): void {
           const seconds = BookmarkManager.timecodeToSeconds(bookmark.progress);
           const local = progressStore.get(item.animeId, episode.episodeId);
 
-          if (local && Math.abs(local.seconds - seconds) < 1) {
+          if (
+            local &&
+            (!local.synced || Math.abs(local.seconds - seconds) < 1)
+          ) {
             // eslint-disable-next-line no-continue
             continue;
           }

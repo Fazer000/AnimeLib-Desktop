@@ -73,7 +73,7 @@ export function useEpisodeCatalog({
         setCurrentEpisodeIndex(index);
       }
 
-      if (latest && latest.seconds > 0) {
+      if (latest) {
         setBookmarkedEpisodeId(latest.episodeId);
         setBookmarkTime(latest.seconds);
       }

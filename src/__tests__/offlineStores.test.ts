@@ -101,6 +101,16 @@ describe('ProgressStore', () => {
     expect(progressStore.getAll()).toEqual({});
   });
 
+  it('ответ сервера на прежнюю закладку не снимает новую с очереди', () => {
+    const previous = '2026-01-01T00:00:00.000Z';
+    progressStore.saveAt(entry(), previous);
+    progressStore.saveAt(entry({ seconds: 500 }), '2026-01-01T00:00:01.000Z');
+    progressStore.markSynced('one-piece', 1, previous);
+    expect(progressStore.getPending()).toEqual([
+      expect.objectContaining({ seconds: 500 }),
+    ]);
+  });
+
   it('битое хранилище читается как пустое', () => {
     localStorage.setItem(OFFLINE_PROGRESS_STORAGE_KEY, 'не json');
 

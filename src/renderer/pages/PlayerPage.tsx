@@ -378,12 +378,14 @@ function PlayerPageRefactored({
         meta,
       });
 
-      const success = await bookmarkManager.saveBookmark(
-        currentAnimeId,
-        episodeId,
-        currentTime,
-        meta,
-      );
+      const success = offlineMode
+        ? false
+        : await bookmarkManager.saveBookmark(
+            currentAnimeId,
+            episodeId,
+            currentTime,
+            meta,
+          );
 
       progressStore.save({
         animeId: currentAnimeId,
@@ -409,6 +411,7 @@ function PlayerPageRefactored({
     [
       currentAnimeId,
       bookmarkManager,
+      offlineMode,
       selectedPlayer,
       episodes,
       setHasBookmark,
@@ -691,7 +694,12 @@ function PlayerPageRefactored({
                         setInitialTimecode(null);
                       }}
                       onSaveBookmark={handleSaveBookmark}
-                      hasBookmark={hasBookmark}
+                      hasBookmark={
+                        offlineMode
+                          ? episodes[currentEpisodeIndex]?.id ===
+                            bookmarkedEpisodeId
+                          : hasBookmark
+                      }
                       bookmarkTime={
                         episodes[currentEpisodeIndex]?.id ===
                         bookmarkedEpisodeId
