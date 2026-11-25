@@ -109,6 +109,9 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [pending, setPending] = useState<PendingRemoval | null>(null);
   const shownRef = useRef<PendingRemoval | null>(null);
+  const removalTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const removalDialogRef = useRef<HTMLDivElement | null>(null);
+  const libraryRef = useRef<HTMLDivElement | null>(null);
   const [query, setQuery] = useState<string>('');
   const [sort, setSort] = usePersistedChoice(
     OFFLINE_LIBRARY_SORT_STORAGE_KEY,
@@ -123,6 +126,36 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
   const shown = pending || shownRef.current;
 
   const activeFile = offlineStore.getActiveFile();
+
+  /** Освобождает фокус до открытия вложенного окна. */
+  const openRemoval = (trigger: HTMLButtonElement, removal: PendingRemoval) => {
+    removalTriggerRef.current = trigger;
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    setPending(removal);
+  };
+
+  /** Снимает фокус внутри окна перед его скрытием. */
+  const closeRemoval = () => {
+    const focused = document.activeElement;
+    if (
+      focused instanceof HTMLElement &&
+      removalDialogRef.current?.contains(focused)
+    ) {
+      focused.blur();
+    }
+    setPending(null);
+  };
+
+  /** Возвращает фокус после снятия aria-hidden с библиотеки. */
+  const restoreRemovalFocus = () => {
+    const trigger = removalTriggerRef.current;
+    removalTriggerRef.current = null;
+    (trigger?.isConnected ? trigger : libraryRef.current)?.focus({
+      preventScroll: true,
+    });
+  };
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -143,7 +176,11 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
   }
 
   return (
-    <Box sx={{ pt: anime.length >= SEARCH_MIN_ITEMS ? 0 : 2 }}>
+    <Box
+      ref={libraryRef}
+      tabIndex={-1}
+      sx={{ pt: anime.length >= SEARCH_MIN_ITEMS ? 0 : 2 }}
+    >
       {anime.length >= SEARCH_MIN_ITEMS && (
         <Box
           sx={{
@@ -358,8 +395,8 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                       backgroundColor: `rgba(${customColors.dangerRgb}, 0.14)`,
                     },
                   }}
-                  onClick={() =>
-                    setPending({
+                  onClick={(event) =>
+                    openRemoval(event.currentTarget, {
                       text: `Удалить «${item.title}» целиком?`,
                       note: isPlayingHere
                         ? 'Серия из этого аниме сейчас воспроизводится. При наличии сети плеер продолжит с онлайн-источника.'
@@ -439,7 +476,7 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
                           );
 
                         if (episode.fileName === activeFile) {
-                          setPending({
+                          openRemoval(event.currentTarget, {
                             text: `Серия ${episode.episodeNumber} сейчас воспроизводится. Удалить файл?`,
                             note: 'При наличии сети плеер продолжит с онлайн-источника.',
                             confirm: remove,
@@ -461,9 +498,13 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
       })}
 
       <Dialog
+        ref={removalDialogRef}
         open={Boolean(pending)}
-        onClose={() => setPending(null)}
+        onClose={closeRemoval}
+        disableRestoreFocus
+        aria-labelledby="offline-removal-title"
         slotProps={{
+          transition: { onExited: restoreRemovalFocus },
           paper: {
             sx: {
               backgroundColor: customColors.raisedColor,
@@ -475,9 +516,10 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
           },
         }}
       >
-        <DialogCloseButton onClose={() => setPending(null)} />
+        <DialogCloseButton onClose={closeRemoval} />
 
         <DialogTitle
+          id="offline-removal-title"
           sx={{
             fontSize: OFFLINE_FONT.section,
             fontWeight: 600,
@@ -506,8 +548,8 @@ function OfflineLibraryTab({ anime, onPlay }: OfflineLibraryTabProps) {
           <Button
             variant="contained"
             onClick={() => {
+              closeRemoval();
               pending?.confirm();
-              setPending(null);
             }}
             sx={{
               textTransform: 'none',
