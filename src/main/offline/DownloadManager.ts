@@ -488,6 +488,7 @@ class DownloadManager {
         episodeNumber: request.episodeNumber,
         episodeName: request.episodeName,
         season: request.season,
+        episodeOrder: request.episodeOrder,
         playerId: request.playerId,
         playerType: request.playerType,
         teamId: request.teamId,

@@ -168,14 +168,29 @@ class OfflineCatalog {
 
     const unique = new Map<number, OfflineEpisode>();
     entry.episodes.forEach((item) => {
-      if (!unique.has(item.episodeId)) {
+      const existing = unique.get(item.episodeId);
+      if (
+        !existing ||
+        (existing.episodeOrder === undefined && item.episodeOrder !== undefined)
+      ) {
         unique.set(item.episodeId, item);
       }
     });
 
-    return Array.from(unique.values())
-      .sort((a, b) => parseFloat(a.episodeNumber) - parseFloat(b.episodeNumber))
-      .map(toEpisode);
+    const episodes = Array.from(unique.values());
+    const hasSiteOrder = episodes.every((item) =>
+      Number.isInteger(item.episodeOrder),
+    );
+    episodes.sort((a, b) => {
+      if (hasSiteOrder) return (a.episodeOrder ?? 0) - (b.episodeOrder ?? 0);
+      return (
+        (Number(a.season) || 1) - (Number(b.season) || 1) ||
+        (parseFloat(a.episodeNumber) || 0) -
+          (parseFloat(b.episodeNumber) || 0) ||
+        a.episodeId - b.episodeId
+      );
+    });
+    return episodes.map(toEpisode);
   }
 
   /**

@@ -152,6 +152,7 @@ export interface DownloadRequest {
   episodeNumber: string;
   episodeName: string;
   season: string;
+  episodeOrder?: number;
   playerId: number;
   playerType: string;
   teamId: number;
@@ -198,6 +199,7 @@ export interface OfflineEpisode {
   episodeNumber: string;
   episodeName: string;
   season: string;
+  episodeOrder?: number;
   playerId: number;
   playerType: string;
   teamId: number;

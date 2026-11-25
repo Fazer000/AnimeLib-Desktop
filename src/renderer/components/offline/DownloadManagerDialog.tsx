@@ -526,7 +526,8 @@ function DownloadManagerDialog({
     const requests: DownloadRequest[] = [];
 
     availableSelection.forEach((episodeId) => {
-      const episode = episodes.find((item) => item.id === episodeId);
+      const episodeOrder = episodes.findIndex((item) => item.id === episodeId);
+      const episode = episodes[episodeOrder];
       const episodePlayers = playersByEpisode[episodeId];
 
       if (!episode || !episodePlayers) {
@@ -595,6 +596,7 @@ function DownloadManagerDialog({
         episodeNumber: episode.number,
         episodeName: episode.name,
         season: episode.season,
+        episodeOrder,
         playerId: player.id,
         playerType: player.player,
         teamId: player.team.id,

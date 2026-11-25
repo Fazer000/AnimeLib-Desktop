@@ -28,6 +28,42 @@ const episode = (patch: Partial<OfflineEpisode> = {}): OfflineEpisode =>
     ...patch,
   }) as OfflineEpisode;
 
+describe('OfflineCatalog: порядок серий', () => {
+  it.each([true, false])(
+    'оставляет повторные номера в конце (порядок сайта сохранён: %s)',
+    (savedOrder) => {
+      const makeEpisode = (
+        episodeId: number,
+        episodeNumber: string,
+        season: string,
+        order: number,
+      ) =>
+        episode({
+          episodeId,
+          episodeNumber,
+          season,
+          episodeOrder: savedOrder ? order : undefined,
+        });
+      const first = makeEpisode(10, '1', '1', 0);
+      mockSnapshot.anime = [
+        {
+          animeId: 'test',
+          episodes: [
+            makeEpisode(21, '2', '2', 25),
+            first,
+            makeEpisode(20, '1', '2', 24),
+            makeEpisode(19, '24', '1', 23),
+            { ...first, playerId: 15 },
+          ],
+        } as OfflineAnime,
+      ];
+      expect(offlineCatalog.getEpisodes('test').map(({ id }) => id)).toEqual([
+        10, 19, 20, 21,
+      ]);
+    },
+  );
+});
+
 describe('OfflineCatalog: качество', () => {
   it('передаёт фактическое разрешение в плеер без изменения ключа загрузки', () => {
     const enhanced = episode({
