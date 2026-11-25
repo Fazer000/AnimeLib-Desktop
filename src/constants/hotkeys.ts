@@ -22,6 +22,7 @@ export type HotkeyKey = string | HotkeyIconKey;
 export interface HotkeyItem {
   keys: HotkeyKey[];
   label: string;
+  onlineOnly?: boolean;
 }
 
 /**
@@ -82,7 +83,7 @@ export const HOTKEY_GROUPS: readonly HotkeyGroup[] = [
       { keys: ['F'], label: 'Полноэкранный режим' },
       { keys: ['I'], label: 'Картинка в картинке' },
       { keys: ['V'], label: 'Список эпизодов' },
-      { keys: ['H'], label: 'Хронология франшизы' },
+      { keys: ['H'], label: 'Хронология франшизы', onlineOnly: true },
       {
         keys: [
           { icon: 'wheel', prefix: 'Shift +', label: 'Shift и колесо мыши' },

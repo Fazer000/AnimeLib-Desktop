@@ -738,6 +738,7 @@ function PlayerPageRefactored({
               }}
             >
               <PlayerSidebar
+                offlineMode={offlineMode}
                 players={players}
                 selectedPlayer={selectedPlayer}
                 selectedPlayerType={selectedPlayerType}

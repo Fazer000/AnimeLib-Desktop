@@ -37,6 +37,7 @@ interface PlayerSidebarProps {
   selectedPlayer: Player | null;
   selectedPlayerType: string;
   loading: boolean;
+  offlineMode: boolean;
   onPlayerSelect: (player: Player) => void;
   onPlayerTypeSelect: (type: string) => void;
   isCollapsed?: boolean;
@@ -50,6 +51,7 @@ function PlayerSidebarRefactored({
   selectedPlayer,
   selectedPlayerType,
   loading,
+  offlineMode,
   onPlayerSelect,
   onPlayerTypeSelect,
   isCollapsed = false,
@@ -533,7 +535,11 @@ function PlayerSidebarRefactored({
         )}
       </Box>
 
-      <HotkeysDialog open={hotkeysOpen} onClose={() => setHotkeysOpen(false)} />
+      <HotkeysDialog
+        open={hotkeysOpen}
+        offlineMode={offlineMode}
+        onClose={() => setHotkeysOpen(false)}
+      />
     </Box>
   );
 }

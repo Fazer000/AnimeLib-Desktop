@@ -21,6 +21,7 @@ import {
 
 interface HotkeysDialogProps {
   open: boolean;
+  offlineMode: boolean;
   onClose: () => void;
 }
 
@@ -134,7 +135,7 @@ function HotkeyColumn({ group }: { group: HotkeyGroup }) {
 /**
  * Окно со списком горячих клавиш плеера
  */
-function HotkeysDialog({ open, onClose }: HotkeysDialogProps) {
+function HotkeysDialog({ open, offlineMode, onClose }: HotkeysDialogProps) {
   const { customColors } = useTheme().palette;
   return (
     <Dialog
@@ -180,7 +181,17 @@ function HotkeysDialog({ open, onClose }: HotkeysDialogProps) {
           }}
         >
           {HOTKEY_GROUPS.map((group) => (
-            <HotkeyColumn key={group.title} group={group} />
+            <HotkeyColumn
+              key={group.title}
+              group={
+                offlineMode
+                  ? {
+                      ...group,
+                      items: group.items.filter((item) => !item.onlineOnly),
+                    }
+                  : group
+              }
+            />
           ))}
         </Box>
 
