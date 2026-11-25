@@ -30,6 +30,7 @@ import DialogCloseButton from '../DialogCloseButton';
 import EpisodeSelectionList, {
   KodikQualityMap,
   getEpisodeQualities,
+  getDownloadTeamOptions,
   resolveEpisodeQuality,
   resolveTeamPlayer,
 } from './EpisodeSelectionList';
@@ -42,7 +43,6 @@ import {
   OFFLINE_DIALOG_HEIGHT,
   OFFLINE_DIALOG_MAX_WIDTH,
   OFFLINE_DOWNLOADABLE_PLAYER,
-  OFFLINE_DOWNLOADABLE_PLAYERS,
   OFFLINE_FONT,
   OFFLINE_MIN_FREE_SPACE_BYTES,
   OFFLINE_KODIK_CONCURRENCY,
@@ -132,7 +132,7 @@ function DownloadManagerDialog({
 
   const [tab, setTab] = useState<number>(0);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [teamName, setTeamName] = useState<string>('');
+  const [teamKey, setTeamKey] = useState<string>('');
   const [defaultQuality, setDefaultQuality] = useState<string>('');
   const [playersByEpisode, setPlayersByEpisode] = useState<
     Record<number, Player[]>
@@ -175,31 +175,26 @@ function DownloadManagerDialog({
       .catch((error) => log.error('Anime info failed:', error));
   }, [open, animeId, animeInfo]);
 
-  const teams = useMemo(() => {
-    const collect = (list: Player[]) =>
-      list
-        .filter((item) => OFFLINE_DOWNLOADABLE_PLAYERS.includes(item.player))
-        .map((item) => item.team.name);
-
-    return Array.from(
-      new Set([
-        ...collect(players),
-        ...collect(Object.values(playersByEpisode).flat()),
+  const teams = useMemo(
+    () =>
+      getDownloadTeamOptions([
+        ...players,
+        ...Object.values(playersByEpisode).flat(),
       ]),
-    );
-  }, [players, playersByEpisode]);
+    [players, playersByEpisode],
+  );
 
   const defaultQualities = useMemo(() => {
     const all = Object.values(playersByEpisode).flatMap((list) =>
-      getEpisodeQualities(list, teamName, kodikQualities),
+      getEpisodeQualities(list, teamKey, kodikQualities),
     );
 
-    const fromCurrent = getEpisodeQualities(players, teamName, kodikQualities);
+    const fromCurrent = getEpisodeQualities(players, teamKey, kodikQualities);
 
     return Array.from(new Set([...fromCurrent, ...all])).sort(
       (a, b) => parseInt(b, 10) - parseInt(a, 10),
     );
-  }, [playersByEpisode, players, teamName, kodikQualities]);
+  }, [playersByEpisode, players, teamKey, kodikQualities]);
 
   const downloadedEpisodes = useMemo(
     () => mapDownloadedEpisodes(snapshot.anime),
@@ -239,7 +234,7 @@ function DownloadManagerDialog({
         selectedIds.map((id) => {
           const qualities = getEpisodeQualities(
             playersByEpisode[id],
-            teamName,
+            teamKey,
             kodikQualities,
           );
 
@@ -251,7 +246,7 @@ function DownloadManagerDialog({
     [
       selectedIds,
       playersByEpisode,
-      teamName,
+      teamKey,
       kodikQualities,
       qualityByEpisode,
       defaultQuality,
@@ -259,10 +254,10 @@ function DownloadManagerDialog({
   );
 
   useEffect(() => {
-    if (!teamName && teams.length > 0) {
-      setTeamName(teams[0]);
+    if (teams.length > 0 && !teams.some((team) => team.key === teamKey)) {
+      setTeamKey(teams[0].key);
     }
-  }, [teams, teamName]);
+  }, [teams, teamKey]);
 
   useEffect(() => {
     if (
@@ -338,7 +333,7 @@ function DownloadManagerDialog({
   }, [open, hasContext, initialTab]);
 
   const kodikPlayerOf = (list: Player[] | undefined): Player | undefined => {
-    const player = resolveTeamPlayer(list, teamName);
+    const player = resolveTeamPlayer(list, teamKey);
 
     return player?.player === PLAYER_TYPE_KODIK && player.src
       ? player
@@ -390,7 +385,7 @@ function DownloadManagerDialog({
     players,
     selectedIds,
     playersByEpisode,
-    teamName,
+    teamKey,
     kodikQualities,
     kodikPending,
     kodikFailed,
@@ -511,7 +506,7 @@ function DownloadManagerDialog({
     const availableSelection = selectedIds.filter(
       (id) => !unavailableIds.has(id),
     );
-    if (availableSelection.length === 0 || !teamName) {
+    if (availableSelection.length === 0 || !teamKey) {
       return;
     }
 
@@ -534,11 +529,11 @@ function DownloadManagerDialog({
         return;
       }
 
-      const player = resolveTeamPlayer(episodePlayers, teamName);
+      const player = resolveTeamPlayer(episodePlayers, teamKey);
 
       const qualities = getEpisodeQualities(
         episodePlayers,
-        teamName,
+        teamKey,
         kodikQualities,
       );
       const quality = qualities.includes(qualityByEpisode[episodeId])
@@ -700,7 +695,7 @@ function DownloadManagerDialog({
             episodes={episodes}
             selectedIds={selectedIds}
             teams={teams}
-            teamName={teamName}
+            teamKey={teamKey}
             defaultQuality={defaultQuality}
             defaultQualities={defaultQualities}
             playersByEpisode={playersByEpisode}
@@ -714,7 +709,7 @@ function DownloadManagerDialog({
             downloadedEpisodes={downloadedEpisodes}
             onToggle={handleToggle}
             onToggleAll={handleToggleAll}
-            onTeamChange={setTeamName}
+            onTeamChange={setTeamKey}
             onDefaultQualityChange={(quality) => {
               setDefaultQuality(quality);
               setQualityByEpisode((prev) => {
@@ -722,7 +717,7 @@ function DownloadManagerDialog({
                 selectedIds.forEach((id) => {
                   const available = getEpisodeQualities(
                     playersByEpisode[id],
-                    teamName,
+                    teamKey,
                     kodikQualities,
                   );
                   if (available.includes(quality)) {

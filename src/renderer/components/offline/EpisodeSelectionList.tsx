@@ -14,6 +14,7 @@ import {
 import type { CustomColors } from '@mui/material/styles';
 import { CheckCheck } from '../icons';
 import { Episode, Player } from '../../api/animeApi';
+import { PlayerSelectionManager } from '../../services/player';
 import {
   OFFLINE_DOWNLOADABLE_PLAYER,
   OFFLINE_DOWNLOADABLE_PLAYERS,
@@ -30,11 +31,16 @@ import {
 
 export type KodikQualityMap = Record<number, string[]>;
 
+interface DownloadTeamOption {
+  key: string;
+  label: string;
+}
+
 interface EpisodeSelectionListProps {
   episodes: Episode[];
   selectedIds: number[];
-  teams: string[];
-  teamName: string;
+  teams: DownloadTeamOption[];
+  teamKey: string;
   defaultQuality: string;
   defaultQualities: string[];
   playersByEpisode: Record<number, Player[]>;
@@ -48,7 +54,7 @@ interface EpisodeSelectionListProps {
   downloadedEpisodes: Record<number, DownloadedEpisodeInfo>;
   onToggle: (episodeId: number, extend: boolean) => void;
   onToggleAll: () => void;
-  onTeamChange: (teamName: string) => void;
+  onTeamChange: (teamKey: string) => void;
   onDefaultQualityChange: (quality: string) => void;
   onEpisodeQualityChange: (episodeId: number, quality: string) => void;
 }
@@ -63,25 +69,46 @@ const DOWNLOADED_CHECKBOX_SX = {
   '&.Mui-disabled': { color: SUCCESS_MID },
 };
 
-/**
- * Возвращает доступные качества серии для выбранной озвучки
- */
-/**
- * Выбирает плеер команды с приоритетом прямого источника
- */
+// ID плеера меняется от серии к серии, поэтому используем данные варианта.
+const downloadTeamKey = (player: Player): string =>
+  JSON.stringify([player.team.name, player.translation_type?.id]);
+
+/** Собирает варианты и помечает дорожки с субтитрами. */
+export function getDownloadTeamOptions(
+  players: Player[],
+): DownloadTeamOption[] {
+  const variants = new Map<string, Player>();
+  players.forEach((player) => {
+    const key = downloadTeamKey(player);
+    if (
+      OFFLINE_DOWNLOADABLE_PLAYERS.includes(player.player) &&
+      !variants.has(key)
+    ) {
+      variants.set(key, player);
+    }
+  });
+  return Array.from(variants, ([key, player]) => {
+    const { name } = player.team;
+    const label = PlayerSelectionManager.isSubtitlesOnly(player)
+      ? `${name} · Субтитры`
+      : name;
+    return { key, label };
+  });
+}
+
+/** Находит выбранный вариант для конкретной серии. */
 export const resolveTeamPlayer = (
   players: Player[] | undefined,
-  teamName: string,
+  teamKey: string,
 ): Player | undefined => {
-  const candidates = (players || []).filter(
+  const candidates = players?.filter(
     (item) =>
       OFFLINE_DOWNLOADABLE_PLAYERS.includes(item.player) &&
-      item.team.name === teamName,
+      downloadTeamKey(item) === teamKey,
   );
-
   return (
-    candidates.find((item) => item.player === OFFLINE_DOWNLOADABLE_PLAYER) ||
-    candidates[0]
+    candidates?.find((item) => item.player === OFFLINE_DOWNLOADABLE_PLAYER) ??
+    candidates?.[0]
   );
 };
 
@@ -90,10 +117,10 @@ export const resolveTeamPlayer = (
  */
 export const getEpisodeQualities = (
   players: Player[] | undefined,
-  teamName: string,
+  teamKey: string,
   kodikQualities: KodikQualityMap = {},
 ): string[] => {
-  const player = resolveTeamPlayer(players, teamName);
+  const player = resolveTeamPlayer(players, teamKey);
 
   if (!player) {
     return [];
@@ -141,7 +168,7 @@ function EpisodeSelectionList({
   episodes,
   selectedIds,
   teams,
-  teamName,
+  teamKey,
   defaultQuality,
   defaultQualities,
   playersByEpisode,
@@ -195,7 +222,7 @@ function EpisodeSelectionList({
               onClose={blurSelectOnClose}
               labelId="offline-team-label"
               label="Озвучка"
-              value={teams.includes(teamName) ? teamName : ''}
+              value={teams.some((team) => team.key === teamKey) ? teamKey : ''}
               onChange={(event) => onTeamChange(event.target.value)}
               displayEmpty
               sx={offlineSelectSx(customColors)}
@@ -204,8 +231,8 @@ function EpisodeSelectionList({
                 <MenuItem value="">Озвучки не найдены</MenuItem>
               )}
               {teams.map((team) => (
-                <MenuItem key={team} value={team}>
-                  {team}
+                <MenuItem key={team.key} value={team.key}>
+                  {team.label}
                 </MenuItem>
               ))}
             </Select>
@@ -273,12 +300,12 @@ function EpisodeSelectionList({
           const isFailed = !isLoading && failedIds.includes(episode.id);
           const qualities = getEpisodeQualities(
             playersByEpisode[episode.id],
-            teamName,
+            teamKey,
             kodikQualities,
           );
           const player = resolveTeamPlayer(
             playersByEpisode[episode.id],
-            teamName,
+            teamKey,
           );
           const isHls = Boolean(player) && player?.player !== 'Animelib';
 
