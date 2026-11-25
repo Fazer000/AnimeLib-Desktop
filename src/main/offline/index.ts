@@ -13,7 +13,7 @@ import {
   OfflineSnapshot,
 } from '../../constants';
 import { offlineLibrary } from './OfflineLibrary';
-import { downloadManager } from './DownloadManager';
+import { DownloadManager, downloadManager } from './DownloadManager';
 
 import { createLogger } from '../../shared/logger';
 import { probeTarget, probeVerdict } from '../../shared/siteStatus';
@@ -99,6 +99,10 @@ export const registerOfflineHandlers = (
   offlineLibrary.cleanupOrphans(downloadManager.getReservedFiles());
 
   handleIpc('offline-get-snapshot', async () => buildSnapshot());
+
+  handleIpc('offline-probe-size', async (_event, source) =>
+    DownloadManager.probeSize(source),
+  );
 
   handleIpc('offline-free-space', async () => offlineLibrary.getFreeSpace());
 

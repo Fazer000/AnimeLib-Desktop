@@ -3,6 +3,7 @@
  */
 import {
   DownloadRequest,
+  DownloadSource,
   OfflineDirectoryResult,
   OfflineEpisode,
   OfflineMigrationProgress,
@@ -301,9 +302,12 @@ class OfflineStore {
     this.api?.offlineOpenDirectory?.();
   }
 
-  /**
-   * Возвращает свободное место в папке загрузок
-   */
+  /** Запрашивает размер файла у источника. */
+  public async probeSize(source: DownloadSource): Promise<number> {
+    return (await this.api?.offlineProbeSize?.(source).catch(() => 0)) || 0;
+  }
+
+  /** Возвращает свободное место в папке загрузок. */
   public async getFreeSpace(): Promise<number> {
     const free = await this.api?.offlineGetFreeSpace?.().catch(() => 0);
 

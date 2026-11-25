@@ -8,6 +8,7 @@ import { BrowserWindow } from 'electron';
 import { randomUUID } from 'crypto';
 import {
   DownloadRequest,
+  DownloadSource,
   DownloadStatus,
   DownloadTask,
   OFFLINE_DOWNLOAD_RETRIES,
@@ -24,7 +25,7 @@ import {
 import { offlineLibrary } from './OfflineLibrary';
 import { hlsDownloader } from './HlsDownloader';
 import { parallelDownloader } from './ParallelDownloader';
-import { KODIK_HEADERS } from './httpClient';
+import { KODIK_HEADERS, probeFileSize } from './httpClient';
 
 import { createLogger } from '../../shared/logger';
 
@@ -49,7 +50,7 @@ const PARTIAL_SUFFIXES = [
   '.bin.parts.json',
 ];
 
-class DownloadManager {
+export class DownloadManager {
   private queue: QueueItem[] = [];
 
   private active: number = 0;
@@ -665,12 +666,16 @@ class DownloadManager {
     });
   }
 
+  /** Уточняет размер основного источника. */
+  public static probeSize(source: DownloadSource): Promise<number> {
+    if (source.sourceType !== 'progressive') return Promise.resolve(0);
+    return probeFileSize(source.videoUrl, DownloadManager.buildHeaders(source));
+  }
+
   /**
    * Собирает заголовки под источник загрузки
    */
-  private static buildHeaders(
-    request: DownloadRequest,
-  ): Record<string, string> {
+  private static buildHeaders(request: DownloadSource): Record<string, string> {
     if (request.playerType !== OFFLINE_DOWNLOADABLE_PLAYER) {
       return { ...KODIK_HEADERS };
     }

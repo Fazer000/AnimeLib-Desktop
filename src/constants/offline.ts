@@ -170,6 +170,17 @@ export interface DownloadRequest {
   siteOrigin: string;
 }
 
+/** Источник для проверки размера без сохранения файла. */
+export type DownloadSource = Pick<
+  DownloadRequest,
+  | 'playerType'
+  | 'sourceType'
+  | 'videoUrl'
+  | 'fallbackUrls'
+  | 'authToken'
+  | 'siteOrigin'
+>;
+
 /**
  * Элемент очереди загрузки
  */

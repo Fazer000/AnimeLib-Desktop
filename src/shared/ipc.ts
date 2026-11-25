@@ -2,6 +2,7 @@
 import type {
   ConnectivityProbeResult,
   DownloadRequest,
+  DownloadSource,
   DownloadTask,
   OfflineDirectoryResult,
   OfflineMigrationProgress,
@@ -122,6 +123,7 @@ export interface IpcInvokeMap {
   };
   'offline-verify': { request: void; response: number };
   'offline-resume': { request: ResumeDownloadsPayload; response: number };
+  'offline-probe-size': { request: DownloadSource; response: number };
   'offline-free-space': { request: void; response: number };
 }
 

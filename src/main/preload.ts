@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import type {
   ConnectivityProbeResult,
   DownloadRequest,
+  DownloadSource,
   DownloadTask,
   OfflineDirectoryResult,
   OfflineSnapshot,
@@ -146,6 +147,8 @@ const electronHandler = {
       ipcRenderer.invoke('offline-verify'),
     offlineResume: async (payload: ResumeDownloadsPayload): Promise<number> =>
       ipcRenderer.invoke('offline-resume', payload),
+    offlineProbeSize: (source: DownloadSource): Promise<number> =>
+      ipcRenderer.invoke('offline-probe-size', source),
     offlineGetFreeSpace: async (): Promise<number> =>
       ipcRenderer.invoke('offline-free-space'),
   },
